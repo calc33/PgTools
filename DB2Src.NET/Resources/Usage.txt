@@ -1,0 +1,11 @@
+使用方法:
+DB2Src.net [OPTIONS]... [Directory]
+
+一般的なオプション:
+  -?, --help		このヘルプを表示し、終了します
+
+接続オプション
+  -d, --dbname=DATABASE	データベース名
+  -h, --host=HOSTNAME	データベースサーバのホストまたはソケットディレクトリ
+  -p, --port=PORT		データベースサーバのポート番号
+  -U, --username=NAME	指定したデータベースユーザで接続

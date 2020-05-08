@@ -1,0 +1,75 @@
+﻿<UserControl x:Name="userControl" x:Class="Db2Source.SequenceControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Db2Source"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
+    <UserControl.Resources>
+        <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
+        <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+    </UserControl.Resources>
+    <TabControl x:Name="tabControlMain">
+        <TabItem Header="情報">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="所有者："/>
+                        <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="buttonApplySchema" Margin="1,2,1,0" ToolTip="コメントの変更をDBに適用" Style="{DynamicResource ButtonStyleApply}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" VerticalAlignment="Top" Click="buttonApplySchema_Click"/>
+                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="コメントの変更を取消し" Style="{DynamicResource ButtonStyleRevert}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="依存関係">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,4">
+                    <TextBlock DockPanel.Dock="Top" Padding="2">この表から参照</TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照先"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+                <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
+                <DockPanel Grid.Row="1">
+                    <TextBlock DockPanel.Dock="Top" Padding="2">この表を参照</TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照元"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="ソース">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                </StackPanel>
+                <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+            </DockPanel>
+        </TabItem>
+    </TabControl>
+</UserControl>

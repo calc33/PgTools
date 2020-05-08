@@ -1,0 +1,5 @@
+select c.conname, c.conkey
+from pg_catalog.pg_constraint c
+where c.conrelid = :oid
+  and c.contype in ('p', 'u')
+order by c.contype, c.conname

@@ -1,0 +1,5 @@
+select a.attname as column_name, a.attnum as ordinal_position
+from pg_catalog.pg_attribute a
+where a.attrelid = :oid
+--  and 0 < a.attnum
+order by a.attnum

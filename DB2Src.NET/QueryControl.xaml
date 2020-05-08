@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="Db2Source.QueryControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Db2Source"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Initialized="UserControl_Initialized">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="10*"/>
+        </Grid.RowDefinitions>
+        <DockPanel Margin="0,0,0,4">
+            <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleExec}" Click="buttonFetch_Click" HorizontalAlignment="Left" Content="実行" DockPanel.Dock="Right" Margin="2,0" TabIndex="1" VerticalAlignment="Top" MinWidth="40" MinHeight="50"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid>
+	                <TextBox x:Name="textBoxSql" VerticalScrollBarVisibility="Visible" TabIndex="0" AcceptsReturn="True" ToolTip="(SQLを入力してください)" HorizontalScrollBarVisibility="Auto"/>
+                    <local:SearchTextBoxControl x:Name="searchTextBoxSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSql}" FontFamily="Yu Gothic UI"/>
+                </Grid>
+                <GridSplitter x:Name="splitterParameters" Grid.Column="1" Width="4" HorizontalAlignment="Left"/>
+                <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" DockPanel.Dock="Right" Grid.Column="1" Margin="4,0,0,0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}" />
+                        <DataGridComboBoxColumn x:Name="dataGridColumnDbType" Header="型" SelectedValueBinding="{Binding DbType}" DisplayMemberPath="Name" SelectedValuePath="DbType" />
+                        <DataGridCheckBoxColumn Header="Null" Binding="{Binding IsNull}"/>
+                        <DataGridTextColumn Header="値" Binding="{Binding Text}" MinWidth="64"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </DockPanel>
+        <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2" IsTabStop="False"/>
+        <TabControl x:Name="tabControlResult" Grid.Row="1" TabIndex="2">
+            <TabItem x:Name="tabItemLog" Header="状況" TabIndex="3">
+                <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch" MinHeight="20"/>
+            </TabItem>
+            <TabItem x:Name="tabItemDataGrid" Header="結果" TabIndex="5">
+                <DockPanel MinHeight="20">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                        <Button x:Name="buttonCopyAll" Margin="2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+                        <TextBlock x:Name="textBlockGridResult"/>
+                    </StackPanel>
+                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True"/>
+                </DockPanel>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

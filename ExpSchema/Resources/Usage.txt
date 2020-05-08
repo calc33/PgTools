@@ -1,0 +1,18 @@
+ExpSchはスキーマ定義情報を出力します
+
+使用方法:
+ExpSch [OPTIONS]... [Directory]
+
+一般的なオプション:
+  -?, --help                このヘルプを表示し、終了します
+
+出力内容を制御するためのオプション:
+  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ
+  -n, --schema=SCHEMA      指名したスキーマのみをダンプ
+  -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
+  --no-tablespaces         テーブルスペースの割り当てを出力しません
+接続オプション
+  -d, --dbname=データベース名  ダンプするデータベース
+  -h, --host=HOSTNAME      データベースサーバのホストまたはソケットディレクトリです
+  -p, --port=PORT          データベースサーバのポート番号です
+  -U, --username=NAME      指定したデータベースユーザで接続します

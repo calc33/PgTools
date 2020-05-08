@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30002.166
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB2Src.net", "DB2Src.NET\DB2Src.net.csproj", "{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpSch", "ExpSchema\ExpSch.csproj", "{7117CB74-7CD8-4360-9704-F8A558BFCB97}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Db2SrcDataSet", "Db2SrcDataSet\Db2SrcDataSet.csproj", "{079817E7-43D7-4473-9C1F-9957D349998B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpTbl", "ExpTbl\ExpTbl.csproj", "{393E4BD2-C17A-4875-A28F-A21C8FB7E339}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7117CB74-7CD8-4360-9704-F8A558BFCB97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7117CB74-7CD8-4360-9704-F8A558BFCB97}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7117CB74-7CD8-4360-9704-F8A558BFCB97}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7117CB74-7CD8-4360-9704-F8A558BFCB97}.Release|Any CPU.Build.0 = Release|Any CPU
+		{079817E7-43D7-4473-9C1F-9957D349998B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{079817E7-43D7-4473-9C1F-9957D349998B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{079817E7-43D7-4473-9C1F-9957D349998B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{079817E7-43D7-4473-9C1F-9957D349998B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{393E4BD2-C17A-4875-A28F-A21C8FB7E339}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{393E4BD2-C17A-4875-A28F-A21C8FB7E339}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{393E4BD2-C17A-4875-A28F-A21C8FB7E339}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{393E4BD2-C17A-4875-A28F-A21C8FB7E339}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CE22D939-F1FD-413E-BE3C-7BDAE99A8C5B}
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+EndGlobal

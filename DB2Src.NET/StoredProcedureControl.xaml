@@ -1,0 +1,118 @@
+﻿<UserControl x:Name="userControl" x:Class="Db2Source.StoredProcedureControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:Db2Source"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
+    <UserControl.Resources>
+        <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
+        <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+    </UserControl.Resources>
+    <TabControl x:Name="tabControlMain">
+        <TabItem x:Name="tabItemExecute" Header="実行">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,4">
+                    <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleExec}" Click="buttonFetch_Click" HorizontalAlignment="Left" MinWidth="40" MaxHeight="50" Content="実行" DockPanel.Dock="Right" Margin="2,0"/>
+                    <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}" />
+                            <DataGridCheckBoxColumn Header="Null" Binding="{Binding IsNull}"/>
+                            <DataGridTextColumn Header="値(実行前)" Binding="{Binding Value}"/>
+                            <DataGridTextColumn Header="値(実行後)" IsReadOnly="True" Binding="{Binding NewValue}"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+                <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2"/>
+                <DockPanel Grid.Row="1" Grid.ColumnSpan="2">
+                    <TabControl x:Name="tabControlResult" Grid.Row="1" TabIndex="2">
+                        <TabItem x:Name="tabItemLog" Header="状況" TabIndex="3">
+                            <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch"/>
+                        </TabItem>
+                        <TabItem x:Name="tabItemDataGrid" Header="結果" TabIndex="5">
+                            <DockPanel>
+                                <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+                                    <TextBlock x:Name="textBlockGridResult"/>
+                                </StackPanel>
+                                <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" />
+                            </DockPanel>
+                        </TabItem>
+                    </TabControl>
+                </DockPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="情報">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="2,2">
+                        <TextBlock Text="所有者："/>
+                        <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
+                    </StackPanel>
+                    <TextBlock Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="buttonApplySchema" Margin="1,2,1,0" ToolTip="コメントの変更をDBに適用" Style="{DynamicResource ButtonStyleApply}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" VerticalAlignment="Top" Click="buttonApplySchema_Click"/>
+                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="コメントの変更を取消し" Style="{DynamicResource ButtonStyleRevert}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
+            </Grid>
+        </TabItem>
+        <TabItem Header="依存関係">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,4">
+                    <TextBlock DockPanel.Dock="Top" Padding="2">この表から参照</TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照先"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+                <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
+                <DockPanel Grid.Row="1">
+                    <TextBlock DockPanel.Dock="Top" Padding="2">この表を参照</TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照元"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="ソース">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                </StackPanel>
+                <Grid>
+                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+                    <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
+                </Grid>
+            </DockPanel>
+        </TabItem>
+    </TabControl>
+</UserControl>

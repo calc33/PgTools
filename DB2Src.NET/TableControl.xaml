@@ -1,0 +1,353 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Db2Source"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Name="userControl" x:Class="Db2Source.TableControl"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
+    <UserControl.Resources>
+        <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+        <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
+        <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="SizeWE"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DataGridColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="ToolTip" Value="{Binding Comment}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                        <Grid>
+                            <Themes:DataGridHeaderBorder BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" IsClickable="{TemplateBinding CanUserSort}" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" Padding="{TemplateBinding Padding}" SortDirection="{TemplateBinding SortDirection}" SeparatorBrush="{TemplateBinding SeparatorBrush}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Themes:DataGridHeaderBorder>
+                            <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                            <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DataGridCellStyle1" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                </Trigger>
+                <!--
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="true"/>
+                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                </MultiTrigger>
+                -->
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <TabControl x:Name="tabControlMain">
+        <TabItem Header="データ">
+            <Grid>
+                <Grid.InputBindings>
+                    <KeyBinding Command="local:DataGridCommands.CopyTable" Gesture="Ctrl+T"/>
+                </Grid.InputBindings>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,4">
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="2">
+                        <CheckBox x:Name="checkBoxLimitRow" VerticalAlignment="Center" IsChecked="True" TabIndex="3"/>
+                        <TextBlock Text="先頭の"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
+                        <TextBox x:Name="textBoxLimitRow" Text="100" Width="48"  VerticalAlignment="Center" TextAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=checkBoxLimitRow}" PreviewTextInput="textBoxLimitRow_PreviewTextInput" TabIndex="4"/>
+                        <TextBlock Text="件のみ"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
+                        <TextBlock x:Name="textBlockWarningLimit" Text="件数上限に達しています"  VerticalAlignment="Center" Margin="2,0" Foreground="Red" Visibility="Collapsed"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Margin="2,0" MinHeight="80">
+                        <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleSearch}" Click="buttonFetch_Click" HorizontalAlignment="Left" Content="検索" VerticalAlignment="Top" MinWidth="40" MinHeight="50" TabIndex="1"/>
+                    </StackPanel>
+                    <DockPanel DockPanel.Dock="Bottom">
+                        <TextBlock DockPanel.Dock="Left" Text="並び順：" VerticalAlignment="Center"/>
+                        <local:SortFieldListControl x:Name="sortFields" VerticalContentAlignment="Top" Margin="0,2" Target="{Binding Target, ElementName=userControl}" Height="Auto" TabIndex="2"/>
+                    </DockPanel>
+                    <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                        <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0"/>
+	                    <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
+                    </Grid>
+                </DockPanel>
+                <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2" IsTabStop="False" TabIndex="5" Background="Transparent"/>
+                <DockPanel Grid.Row="1">
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
+                        <Button x:Name="buttonAdd" Margin="2,2,1,2" Padding="2" Style="{DynamicResource ButtonStyleAdd}" ToolTip="追加" Click="buttonAdd_Click" TabIndex="6" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
+                        <Button x:Name="buttonDelete" Margin="1,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleDelete}" ToolTip="削除" Click="buttonDelete_Click" TabIndex="7" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
+                        <Button x:Name="buttonApply" Margin="2,2,1,2" Padding="2" Style="{DynamicResource ButtonStyleApply}" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
+                        <Button x:Name="buttonRevert" Margin="1,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleRollback}" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9"/>
+                        <Button x:Name="buttonFilterColumns" Margin="2,2,4,2" Padding="4,2" Content="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
+                        <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                        <Button x:Name="buttonSearchWord" Margin="4,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleMiniSearch}" ToolTip="検索" Click="buttonSearchWord_Click"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
+                        
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
+                        <TextBlock x:Name="textBlockGridResult"/>
+                    </StackPanel>
+                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell"/>
+                </DockPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="情報">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="62*"/>
+                </Grid.RowDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="所有者："/>
+                        <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
+                        <TextBlock Text="表領域：" Margin="8,0,0,0"/>
+                        <TextBox IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="80"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="buttonApplySchema" Margin="1,2,1,0" ToolTip="変更をDBに適用" Style="{DynamicResource ButtonStyleApply}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" VerticalAlignment="Top" Click="buttonApplySchema_Click"/>
+                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" Style="{DynamicResource ButtonStyleRevert}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
+                        <CheckBox x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click"/>
+                    </StackPanel>
+                </StackPanel>
+                <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
+                <DataGrid x:Name="dataGridColumns" Margin="0,0,0,4" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" Grid.Row="2" SelectionUnit="Cell">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="TextAlignment" Value="Right"/>
+                                    <Setter Property="Margin" Value="2,1"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="必須" Binding="{Binding NotNull, Converter={StaticResource NotNullTextConverter}}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="TextAlignment" Value="Center"/>
+                                    <Setter Property="Margin" Value="2,1"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="項目名" Binding="{Binding Name}" IsReadOnly="True">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Margin" Value="2,1"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="型" Binding="{Binding DataType}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Margin" Value="2,1"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="初期値" Binding="{Binding DefaultValue}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Margin" Value="2,1"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="コメント" Binding="{Binding CommentText}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="TextWrapping" Value="Wrap"/>
+                                    <Setter Property="Margin" Value="2,1"/>
+                                    <Setter Property="MaxHeight" Value="{Binding DataGridResultMaxHeight, ElementName=userControl}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>
+            </Grid>
+        </TabItem>
+        <TabItem Header="トリガー">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+                <DataGrid x:Name="dataGridTrigger" MinWidth="200" ItemsSource="{Binding Target.Triggers, ElementName=userControl}" AutoGenerateColumns="False" SelectedCellsChanged="dataGridTrigger_SelectedCellsChanged" SourceUpdated="dataGridTrigger_SourceUpdated">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <GridSplitter Margin="0,0,-4,0" Width="4" />
+                <Grid Grid.Column="1" Margin="6,2,2,2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="操作：" VerticalAlignment="Center" Grid.RowSpan="2"/>
+                    <ComboBox Grid.Column="1" SelectedIndex="0" Grid.RowSpan="2" VerticalAlignment="Center" SelectedValuePath="Value" DisplayMemberPath="Text" MinWidth="60" SelectedValue="{Binding SelectedItem.Timing, ElementName=dataGridTrigger}">
+                        <ComboBox.Items>
+                            <local:TimingItem Value="Unknown" Text=""/>
+                            <local:TimingItem Value="Before" Text="Before"/>
+                            <local:TimingItem Value="After" Text="After"/>
+                        </ComboBox.Items>
+                    </ComboBox>
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center">
+                        <CheckBox x:Name="checkBoxInsertTrigger" Content="Insert" Margin="4,2" VerticalAlignment="Center"/>
+                        <CheckBox x:Name="checkBoxDeleteTrigger" Content="Delete" Margin="4,2" VerticalAlignment="Center"/>
+                        <CheckBox x:Name="checkBoxTruncateTrigger" Content="Truncate" Margin="4,2" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <DockPanel Grid.Column="2" Grid.Row="1">
+                        <CheckBox x:Name="checkBoxUpdateTrigger" Content="Update" Margin="4,2" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                        <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding SelectedItem.UpdateEventColumnsText, ElementName=dataGridTrigger}"/>
+                    </DockPanel>
+                    <TextBlock Grid.Row="2" Text="条件：" VerticalAlignment="Center"/>
+                    <TextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2" Text="{Binding SelectedItem.Condition, ElementName=dataGridTrigger}"/>
+                    <TextBlock Grid.Row="3" Text="処理："/>
+                    <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Text="{Binding SelectedItem.Definition, ElementName=dataGridTrigger}"/>
+                </Grid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="依存関係">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"/>
+                    <RowDefinition Height="1*"/>
+                </Grid.RowDefinitions>
+                <DockPanel Margin="0,0,0,4">
+                    <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表から参照"/></TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照先"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+                <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
+                <DockPanel Grid.Row="1">
+                    <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表を参照"/></TextBlock>
+                    <DataGrid>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="参照元"/>
+                            <DataGridTextColumn Header="制約名"/>
+                            <DataGridTextColumn Header="列"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </DockPanel>
+            </Grid>
+        </TabItem>
+        <TabItem Header="ソース">
+            <DockPanel>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceKeyCons" Content="一意成約" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceRefCons" Content="参照制約" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceCons" Content="その他制約" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceIndex" Content="インデックス" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                </StackPanel>
+                <Grid>
+                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                    <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
+                </Grid>
+            </DockPanel>
+        </TabItem>
+        <TabItem x:Name="tabItemTemplate" Header="SQLテンプレート">
+            <TabControl>
+                <TabItem x:Name="tabItemSelectSql" Header="SELECT">
+                    <DockPanel>
+                        <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Auto">
+                            <StackPanel Margin="2" Orientation="Horizontal">
+                                <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                                    <StackPanel Orientation="Horizontal" Margin="2,2">
+                                        <TextBlock Text="{Binding Target.Name, ElementName=userControl}" MinWidth="32"/>
+                                        <TextBlock Text=" as "/>
+                                        <TextBox x:Name="textBoxAlias0" MinWidth="16"/>
+                                    </StackPanel>
+                                </Border>
+                                <Button Style="{DynamicResource ButtonStyleAdd}" Margin="2,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                        <Grid>
+                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" Margin="0,-1,0,1"/>
+                            <local:SearchTextBoxControl x:Name="searchTextBoxSelectSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSelectSql}" FontFamily="Yu Gothic UI"/>
+                        </Grid>
+                    </DockPanel>
+                </TabItem>
+                <TabItem x:Name="tabItemInsertSql" Header="INSERT">
+                    <Grid>
+                        <TextBox x:Name="textBoxInsertSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <local:SearchTextBoxControl x:Name="searchTextBoxInsertSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxInsertSql}" FontFamily="Yu Gothic UI"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tabItemUpdateSql" Header="UPDATE">
+                    <Grid>
+                        <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <local:SearchTextBoxControl x:Name="searchTextBoxUpdateSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxUpdateSql}" FontFamily="Yu Gothic UI"/>
+                    </Grid>
+                </TabItem>
+                <TabItem x:Name="tabItemDeleteSql" Header="DELETE">
+                    <Grid>
+                        <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <local:SearchTextBoxControl x:Name="searchTextBoxDeleteSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxDeleteSql}" FontFamily="Yu Gothic UI"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </TabItem>
+    </TabControl>
+</UserControl>
