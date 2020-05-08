@@ -6,13 +6,13 @@ PgToolsはWindows上でPostgreSQLデータベースを管理するためのツ�
 
 ## DB2Src.NET
 
-DB2Src.NET は PostgreSQL用のデータベースブラウザです。
+**DB2Src.NET** は PostgreSQL用のデータベースブラウザです。
 
 ## ExpSch / ExpTbl
 ExpSch および ExpTbl はデータベースの構成をテキストファイル化して git / subversion 等のバージョン管理システムで管理することを目的としたコマンドラインユーティリティです。
 
 ### ExpSch
-ExpSch はオブジェクトの定義SQLをオブジェクト単毎にファイルに出力します。
+**ExpSch** はオブジェクトの定義SQLをオブジェクト毎にファイルに出力します。
 
 <pre>
 使用方法:
@@ -22,7 +22,7 @@ ExpSch [OPTIONS]... [Directory]
   -?, --help                このヘルプを表示し、終了します
 
 出力内容を制御するためのオプション:
-  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ
+  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ(規定値:UTF-8)
   -n, --schema=SCHEMA      指名したスキーマのみをダンプ
   -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
   --no-tablespaces         テーブルスペースの割り当てを出力しません
@@ -34,7 +34,7 @@ ExpSch [OPTIONS]... [Directory]
   </pre>
 
 ### ExpTbl
-ExpTbl はテーブルのデータをテーブル毎にファイルに出力します。
+**ExpTbl** はテーブルのデータをテーブル毎にファイルに出力します。
 データはCOPY文形式で出力します。
 
 本番系とテスト系等複数のデータベース間でマスタ構成の差異を把握することを目的に作られているため、
@@ -58,7 +58,7 @@ ExpTbl genrule [OPTIONS]... [RULEFILE]
   -?, --help                このヘルプを表示し、終了します
 
 出力内容を制御するためのオプション:
-  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ
+  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ(規定値:UTF-8)
   -n, --schema=SCHEMA      指名したスキーマのみをダンプ
   -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
   -c --cofig=CONFIGFILE    CONFIGFILEを指定します。指定しない場合 "ExpTbl.cfg" になります
@@ -69,3 +69,8 @@ ExpTbl genrule [OPTIONS]... [RULEFILE]
   -p, --port=PORT          データベースサーバのポート番号です
   -U, --username=NAME      指定したデータベースユーザで接続します
 </pre>
+
+使用手順
+1. **ExpTbl genrule** で ExpTblRule.cfg を作成<br>ExpTblRule.cfgのテンプレートを作成します。用途に合わせて内容を修正してください。
+1. **ExpTbl genconf** で ExpTblRul.ecfg から ExpTbl.cfg を作成<br>ExpTbl.cfg にはデータを出力するテーブルの一覧と、各テーブルの設定が記述されています。テーブル毎に出力を調整したい場合はこのファイルを編集してください。
+1. **ExpTbl exp** でデータ出力<br>ExpTbl.cfg の設定をもとにデータを出力します。
