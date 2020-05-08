@@ -9,7 +9,7 @@ PgToolsはWindows上でPostgreSQLデータベースを管理するためのツ�
 **DB2Src.NET** は PostgreSQL用のデータベースブラウザです。
 
 ## ExpSch / ExpTbl
-ExpSch および ExpTbl はデータベースの構成をテキストファイル化して git / subversion 等のバージョン管理システムで管理することを目的としたコマンドラインユーティリティです。
+ExpSch および ExpTbl はデータベースの構成をテキストファイル化して git / subversion 等のバージョン管理システムで管理することを目的としたコマンドラインユーティリティです。pgpass.conf にパスワードが登録されている場合、パスワードの入力を省略できます。
 
 ### ExpSch
 **ExpSch** はオブジェクトの定義SQLをオブジェクト毎にファイルに出力します。
@@ -71,6 +71,6 @@ ExpTbl genrule [OPTIONS]... [RULEFILE]
 </pre>
 
 使用手順
-1. **ExpTbl genrule** で ExpTblRule.cfg を作成<br>ExpTblRule.cfgのテンプレートを作成します。用途に合わせて内容を修正してください。
-1. **ExpTbl genconf** で ExpTblRul.ecfg から ExpTbl.cfg を作成<br>ExpTbl.cfg にはデータを出力するテーブルの一覧と、各テーブルの設定が記述されています。テーブル毎に出力を調整したい場合はこのファイルを編集してください。
-1. **ExpTbl exp** でデータ出力<br>ExpTbl.cfg の設定をもとにデータを出力します。
+1. **ExpTbl genrule** で ExpTblRule.cfg を作成<br>ExpTblRule.cfgのテンプレートを作成します。作成後、用途に合わせて内容を修正してください。
+2. **ExpTbl genconf** で ExpTblRul.ecfg から ExpTbl.cfg を作成<br>ExpTbl.cfg にはデータを出力するテーブルの一覧と、各テーブルの設定が記述されています。テーブル毎に出力を調整したい場合はこのファイルを編集してください。
+3. **ExpTbl exp** でデータ出力<br>ExpTbl.cfg の設定をもとにデータを出力します。
