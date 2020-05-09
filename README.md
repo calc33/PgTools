@@ -1,5 +1,6 @@
 # PgTools
-PgTool is management tools for PostgreSQL on Windows, requires .NET Framework 4.6.1 or later. Commandline arguments are similar to psql / pg_dump.<br>
+PgTool is management tools for PostgreSQL on Windows, requires .NET Framework 4.6.1 or later.<br>
+Commandline arguments are similar to psql / pg_dump.<br>
 
 PgToolsはWindows上でPostgreSQLデータベースを管理するためのツール類です。.NET Framework 4.6.1以降が必要です。<br>
 コマンドライン引数は psql / pg_dump に準じています。
