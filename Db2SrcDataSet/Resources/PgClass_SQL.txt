@@ -1,0 +1,9 @@
+select oid,
+  relname, relnamespace, reltablespace, relkind,
+  pg_get_userbyid(relowner) as ownername
+from pg_catalog.pg_class
+where not pg_is_other_temp_schema(relnamespace)
+  and (not relkind in ('c', 'r', 'v', 'f')
+    or pg_has_role(relowner, 'USAGE'::text)
+    or has_table_privilege(oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+    or has_any_column_privilege(oid, 'SELECT, INSERT, UPDATE, REFERENCES'))

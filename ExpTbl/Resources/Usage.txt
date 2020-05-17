@@ -1,0 +1,25 @@
+ExpTblはスキーマ定義情報を出力します
+使用方法:
+ExpTbl exp [OPTIONS]... [Directory]
+ExpTbl genconf [OPTIONS]... [CONFIGFILE]
+ExpTbl genrule [OPTIONS]... [RULEFILE]
+
+  exp        テーブルのデータをファイルに出力します
+  genconf    ファイルの出力を制御する設定ファイルを生成します
+             CONFIGFILE を省略すると "ExpTBl.cfg" に書き出します
+  genrule    genconf で使用するルールファイルのテンプレートを生成します
+             RULEFILE を省略すると "ExpTBlRule.cfg" に書き出します
+一般的なオプション:
+  -?, --help                このヘルプを表示し、終了します
+
+出力内容を制御するためのオプション:
+  -E, --encoding=ENCODING  ENCODING符号化方式でデータをダンプ
+  -n, --schema=SCHEMA      指名したスキーマのみをダンプ
+  -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
+  -c --cofig=CONFIGFILE    CONFIGFILEを指定します。指定しない場合 "ExpTbl.cfg" になります
+  -r --rule=RULEFILE       RULEFILEを指定します。指定しない場合 "ExpTblRule.cfg" になります
+接続オプション
+  -d, --dbname=データベース名  ダンプするデータベース
+  -h, --host=HOSTNAME      データベースサーバのホストまたはソケットディレクトリです
+  -p, --port=PORT          データベースサーバのポート番号です
+  -U, --username=NAME      指定したデータベースユーザで接続します

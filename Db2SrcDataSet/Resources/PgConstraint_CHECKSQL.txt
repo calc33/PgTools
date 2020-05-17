@@ -1,0 +1,2 @@
+select oid, substring(pg_get_constraintdef(oid), 7) as checkdef
+from pg_catalog.pg_constraint where contype = 'c'

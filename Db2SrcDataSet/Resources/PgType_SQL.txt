@@ -1,0 +1,13 @@
+select t.oid,
+  t.typname, t.typnamespace, t.typowner, t.typlen, t.typbyval, t.typtype, t.typcategory, t.typispreferred,
+  t.typisdefined, t.typdelim, t.typrelid, t.typelem, t.typarray,
+  t.typinput::text as typinput, t.typoutput::text as typoutput,
+  t.typreceive::text as typreceive, t.typsend::text as typsend,
+  t.typmodin::text as typmodin, t.typmodout::text as typmodout,
+  t.typanalyze::text as typanalyze, t.typalign, t.typstorage, t.typnotnull,
+  t.typbasetype, t.typtypmod, t.typndims, t.typcollation, t.typdefault,
+  format_type(t.oid, null) as formatname,
+  format_type(t.typbasetype, t.typtypmod) as baseformatname,
+  format_type(t.typelem, null) as elemformatname,
+  pg_get_userbyid(t.typowner) as ownername
+from pg_catalog.pg_type t

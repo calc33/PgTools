@@ -1,0 +1,11 @@
+select c.oid,
+  p.start_value, p.minimum_value, p.maximum_value, p.increment, p.cycle_option,
+  rn.nspname as owned_schema, rc.relname as owned_table, ra.attname as owned_field
+from pg_class c
+  left outer join pg_depend d on (c.oid = d.objid and d.deptype = 'a')
+  left outer join pg_class rc on (d.refobjid = rc.oid)
+  left outer join pg_attribute ra on (d.refobjid = ra.attrelid and d.refobjsubid = ra.attnum)
+  left outer join pg_namespace rn on (rc.relnamespace = rn.oid),
+  lateral pg_sequence_parameters(c.oid) p(start_value, minimum_value, maximum_value, increment, cycle_option)
+where c.relkind = 'S'::"char" and not pg_is_other_temp_schema(c.relnamespace)
+  and (pg_has_role(c.relowner, 'USAGE') or has_sequence_privilege(c.oid, 'SELECT, UPDATE, USAGE'))

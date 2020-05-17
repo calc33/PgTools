@@ -1,0 +1,9 @@
+select i.indexrelid as oid, i.indrelid, i.indnatts,
+  i.indisunique, i.indisprimary, i.indisexclusion, i.indimmediate, i.indisclustered,
+  i.indisvalid, i.indcheckxmin, i.indisready, i.indislive, i.indisreplident,
+  i.indkey, i.indcollation, i.indclass, i.indoption,
+  pg_get_indexdef(i.indexrelid) AS indexdef,
+  am.amname AS indextype
+from pg_index i
+  left outer join pg_opclass op0 on (i.indclass[0] = op0.oid)
+  left outer join pg_am am on (op0.opcmethod = am.oid)

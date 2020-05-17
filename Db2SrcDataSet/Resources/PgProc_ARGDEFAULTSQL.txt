@@ -1,0 +1,4 @@
+select ss.p_oid as oid, (ss.x).n,
+  pg_get_function_arg_default(ss.p_oid, (ss.x).n) as parameter_default
+from (select p.oid as p_oid, information_schema._pg_expandarray(coalesce(p.proallargtypes, (p.proargtypes)::oid[])) as x from pg_proc p) ss
+where pg_get_function_arg_default(ss.p_oid, (ss.x).n) is not null
