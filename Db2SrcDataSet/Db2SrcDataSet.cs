@@ -48,7 +48,7 @@ namespace Db2Source
         }
     }
 
-    public class NamedObject: IComparable
+    public class NamedObject : IComparable
     {
         private string _identifier;
         public string Identifier
@@ -120,7 +120,7 @@ namespace Db2Source
             return string.Compare(Identifier, (((NamedObject)obj).Identifier));
         }
     }
-    public class NamedCollection: ICollection<NamedObject>
+    public class NamedCollection : ICollection<NamedObject>
     {
         internal List<NamedObject> _list = new List<NamedObject>();
         Dictionary<string, NamedObject> _nameDict = null;
@@ -244,9 +244,9 @@ namespace Db2Source
         #endregion
     }
 
-    public class NamedCollection<T>: NamedCollection, ICollection<T> where T : NamedObject
+    public class NamedCollection<T> : NamedCollection, ICollection<T> where T : NamedObject
     {
-        internal class EnumeratorWrapper: IEnumerator<T>
+        internal class EnumeratorWrapper : IEnumerator<T>
         {
             private IEnumerator _base;
             internal EnumeratorWrapper(IEnumerator enumerator)
@@ -336,7 +336,7 @@ namespace Db2Source
         //}
         #endregion
     }
-    public class CommentChangedEventArgs: EventArgs
+    public class CommentChangedEventArgs : EventArgs
     {
         public Comment Comment { get; private set; }
         internal CommentChangedEventArgs(Comment comment)
@@ -344,7 +344,7 @@ namespace Db2Source
             Comment = comment;
         }
     }
-    public class PropertyChangedEventArgs: EventArgs
+    public class PropertyChangedEventArgs : EventArgs
     {
         public string Property { get; private set; }
         public object OldValue { get; private set; }
@@ -364,7 +364,7 @@ namespace Db2Source
         AddRange,
         Clear
     }
-    public class CollectionOperationEventArgs<T>: EventArgs
+    public class CollectionOperationEventArgs<T> : EventArgs
     {
         public string Property { get; private set; }
         public CollectionOperation Operation { get; private set; }
@@ -390,7 +390,7 @@ namespace Db2Source
             OldValue = oldValue;
         }
     }
-    public class ColumnPropertyChangedEventArgs: PropertyChangedEventArgs
+    public class ColumnPropertyChangedEventArgs : PropertyChangedEventArgs
     {
         public Column Column { get; private set; }
         internal ColumnPropertyChangedEventArgs(object sender, PropertyChangedEventArgs e) : base(e.Property, e.NewValue, e.OldValue)
@@ -398,7 +398,7 @@ namespace Db2Source
             Column = sender as Column;
         }
     }
-    public class LogEventArgs: EventArgs
+    public class LogEventArgs : EventArgs
     {
         public LogStatus Status { get; private set; }
         public string Text { get; private set; }
@@ -410,7 +410,7 @@ namespace Db2Source
             Sql = sql;
         }
     }
-    public class SchemaObjectReplacedEventArgs: EventArgs
+    public class SchemaObjectReplacedEventArgs : EventArgs
     {
         public SchemaObject New { get; private set; }
         public SchemaObject Old { get; private set; }
@@ -420,6 +420,176 @@ namespace Db2Source
             Old = oldobj;
         }
     }
+
+    public class Dependency
+    {
+        public SchemaObject From { get; private set; }
+        public SchemaObject To { get; private set; }
+        public Dependency(SchemaObject from, SchemaObject to)
+        {
+            From = from;
+            To = to;
+        }
+    }
+
+    //public sealed class DependencyCollection : IList<Dependency>
+    //{
+    //    private List<Dependency> _dependencies = new List<Dependency>();
+    //    private Dictionary<SchemaObject, IList<SchemaObject>> _dependFrom = null;
+    //    private Dictionary<SchemaObject, IList<SchemaObject>> _dependTo = null;
+    //    private void InvalidateDependencies()
+    //    {
+    //        _dependFrom = null;
+    //        _dependTo = null;
+    //    }
+    //    private void UpdateDependencies()
+    //    {
+    //        if (_dependFrom != null && _dependTo != null)
+    //        {
+    //            return;
+    //        }
+    //        Dictionary<SchemaObject, IList<SchemaObject>> from = new Dictionary<SchemaObject, IList<SchemaObject>>();
+    //        Dictionary<SchemaObject, IList<SchemaObject>> to = new Dictionary<SchemaObject, IList<SchemaObject>>();
+    //        IList<SchemaObject> l;
+    //        foreach (Dependency d in _dependencies)
+    //        {
+    //            l = null;
+    //            if (!from.TryGetValue(d.From, out l))
+    //            {
+    //                l = new List<SchemaObject>();
+    //                from.Add(d.From, l);
+    //            }
+    //            l.Add(d.To);
+    //            l = null;
+    //            if (!to.TryGetValue(d.To, out l))
+    //            {
+    //                l = new List<SchemaObject>();
+    //                to.Add(d.To, l);
+    //            }
+    //            l.Add(d.From);
+    //        }
+    //        foreach (SchemaObject o in from.Keys)
+    //        {
+    //            l = from[o];
+    //            ((List<SchemaObject>)l).Sort();
+    //            from[o] = l.ToArray();
+    //        }
+    //        foreach (SchemaObject o in to.Keys)
+    //        {
+    //            l = to[o];
+    //            ((List<SchemaObject>)l).Sort();
+    //            to[o] = l.ToArray();
+    //        }
+    //        _dependFrom = from;
+    //        _dependTo = to;
+    //    }
+    //    private static SchemaObject[] EmptySchemaObjectArray = new SchemaObject[0];
+
+    //    public SchemaObject[] GetDepended(SchemaObject target)
+    //    {
+    //        UpdateDependencies();
+    //        IList<SchemaObject> l;
+    //        if (_dependFrom.TryGetValue(target, out l))
+    //        {
+    //            return l as SchemaObject[];
+    //        }
+    //        return EmptySchemaObjectArray;
+    //    }
+    //    public SchemaObject[] GetDependOn(SchemaObject target)
+    //    {
+    //        UpdateDependencies();
+    //        IList<SchemaObject> l;
+    //        if (_dependTo.TryGetValue(target, out l))
+    //        {
+    //            return l as SchemaObject[];
+    //        }
+    //        return EmptySchemaObjectArray;
+    //    }
+
+    //    public DependencyCollection() { }
+    //    public DependencyCollection(IEnumerable<Dependency> dependencies)
+    //    {
+    //        _dependencies = new List<Dependency>(dependencies);
+    //    }
+
+    //    #region IList<SchemaObject>の実装
+    //    public int Count { get { return (_dependencies).Count; } }
+
+    //    public bool IsReadOnly { get { return false; } }
+
+    //    public Dependency this[int index]
+    //    {
+    //        get { return _dependencies[index]; }
+    //        set
+    //        {
+    //            if (_dependencies[index] == value)
+    //            {
+    //                return;
+    //            }
+    //            _dependencies[index] = value;
+    //            InvalidateDependencies();
+    //        }
+    //    }
+    //    public int IndexOf(Dependency item)
+    //    {
+    //        return _dependencies.IndexOf(item);
+    //    }
+
+    //    public void Insert(int index, Dependency item)
+    //    {
+    //        _dependencies.Insert(index, item);
+    //        InvalidateDependencies();
+    //    }
+
+    //    public void RemoveAt(int index)
+    //    {
+    //        _dependencies.RemoveAt(index);
+    //        InvalidateDependencies();
+    //    }
+
+    //    public void Add(Dependency item)
+    //    {
+    //        _dependencies.Add(item);
+    //        InvalidateDependencies();
+    //    }
+
+    //    public void Clear()
+    //    {
+    //        _dependencies.Clear();
+    //        InvalidateDependencies();
+    //    }
+
+    //    public bool Contains(Dependency item)
+    //    {
+    //        return _dependencies.Contains(item);
+    //    }
+
+    //    public void CopyTo(Dependency[] array, int arrayIndex)
+    //    {
+    //        _dependencies.CopyTo(array, arrayIndex);
+    //    }
+
+    //    public bool Remove(Dependency item)
+    //    {
+    //        bool flag = _dependencies.Remove(item);
+    //        if (flag)
+    //        {
+    //            InvalidateDependencies();
+    //        }
+    //        return flag;
+    //    }
+
+    //    public IEnumerator<Dependency> GetEnumerator()
+    //    {
+    //        return _dependencies.GetEnumerator();
+    //    }
+
+    //    IEnumerator IEnumerable.GetEnumerator()
+    //    {
+    //        return _dependencies.GetEnumerator();
+    //    }
+    //    #endregion
+    //}
 
     public class Schema: NamedObject, IComparable
     {
@@ -686,13 +856,11 @@ namespace Db2Source
         {
             private Db2SourceContext _owner;
             private PropertyInfo _itemsProperty;
-            private MethodInfo _itemsPropertyGet;
             internal SchemaObjectCollection(Db2SourceContext owner, string itemsPropertyName)
             {
                 _owner = owner;
                 _itemsProperty = typeof(Schema).GetProperty(itemsPropertyName);
-                _itemsPropertyGet = _itemsProperty?.GetGetMethod();
-                if (_itemsPropertyGet == null)
+                if (_itemsProperty == null)
                 {
                     throw new ArgumentException(string.Format("プロパティ {0} が見つかりません", itemsPropertyName), "itemsPropertyName");
                 }
@@ -711,7 +879,7 @@ namespace Db2Source
                     {
                         return null;
                     }
-                    NamedCollection<SchemaObject> objs = _itemsPropertyGet.Invoke(sc, null) as NamedCollection<SchemaObject>;
+                    NamedCollection objs = _itemsProperty.GetValue(sc) as NamedCollection;
                     return objs[identifier] as T;
                     //return sc.Objects[identifier] as T;
                 }
@@ -746,7 +914,7 @@ namespace Db2Source
                     {
                         continue;
                     }
-                    NamedCollection<SchemaObject> objs = _itemsPropertyGet.Invoke(sc, null) as NamedCollection<SchemaObject>;
+                    NamedCollection objs = _itemsProperty.GetValue(sc) as NamedCollection;
                     foreach (SchemaObject o in objs)
                     {
                         if (o is T)
@@ -768,7 +936,7 @@ namespace Db2Source
             return ConnectionInfo?.NewConnection();
         }
         public abstract bool NeedQuotedIdentifier(string value);
-        private static string GetQuotedIdentifier(string value)
+        protected static string GetQuotedIdentifier(string value)
         {
             StringBuilder buf = new StringBuilder();
             buf.Append('"');
@@ -783,7 +951,7 @@ namespace Db2Source
             buf.Append('"');
             return buf.ToString();
         }
-        private static bool IsQuotedIdentifier(string value)
+        protected static bool IsQuotedIdentifier(string value)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -861,6 +1029,55 @@ namespace Db2Source
             {
                 buf.Append('.');
                 buf.Append(GetEscapedIdentifier(objectNames[i]));
+            }
+            return buf.ToString();
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public static string DequoteIdentifier(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            int i = value.IndexOf('"');
+            if (i == -1)
+            {
+                return value;
+            }
+            StringBuilder buf = new StringBuilder(value);
+            bool inQuote = false;
+            bool wasQuote = false;
+            while (i < buf.Length)
+            {
+                char c = buf[i];
+                if (c == '"')
+                {
+                    if (!inQuote && wasQuote)
+                    {
+                        i++;
+                    }
+                    else
+                    {
+                        buf.Remove(i, 1);
+                    }
+                    inQuote = !inQuote;
+                }
+                else
+                {
+                    if (char.IsSurrogate(c))
+                    {
+                        i += 2;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+                wasQuote = (c == '"');
             }
             return buf.ToString();
         }
@@ -987,7 +1204,6 @@ namespace Db2Source
         public SchemaObjectCollection<Comment> Comments { get; private set; }
         public SchemaObjectCollection<Constraint> Constraints { get; private set; }
         public SchemaObjectCollection<Trigger> Triggers { get; private set; }
-
         /// <summary>
         /// 文字列のnullをDbNullに置換
         /// </summary>
@@ -1079,10 +1295,17 @@ namespace Db2Source
         //    }
         //}
 
+        public void Clear()
+        {
+            Schemas.Clear();
+            //Dependencies.Clear();
+        }
+
         public event EventHandler<EventArgs> SchemaLoaded;
         public abstract void LoadSchema(IDbConnection connection);
         public void LoadSchema()
         {
+            Clear();
             using (IDbConnection conn = Connection())
             {
                 LoadSchema(conn);
@@ -2837,9 +3060,8 @@ namespace Db2Source
                 return;
             }
 
-            foreach (SchemaObject o in _owner.Schema.Objects)
+            foreach (Constraint c in _owner.Schema.Constraints)
             {
-                Constraint c = o as Constraint;
                 if (c == null)
                 {
                     continue;
@@ -3087,6 +3309,285 @@ namespace Db2Source
         }
         #endregion
     }
+    public sealed class ReferedForeignKeyCollection : IList<ForeignKeyConstraint>, IList
+    {
+        private Table _owner;
+        private List<ForeignKeyConstraint> _list = null;
+        private Dictionary<string, ForeignKeyConstraint> _nameToConstraint = null;
+
+        public ReferedForeignKeyCollection(Table owner)
+        {
+            _owner = owner;
+        }
+
+        public void Invalidate()
+        {
+            _list = null;
+            _nameToConstraint = null;
+        }
+
+        private void RequireItems()
+        {
+            if (_list != null)
+            {
+                return;
+            }
+            _list = new List<ForeignKeyConstraint>();
+            if (_owner == null || _owner.Schema == null)
+            {
+                return;
+            }
+
+            foreach (Constraint c in _owner.Schema.Constraints)
+            {
+                ForeignKeyConstraint fc = c as ForeignKeyConstraint;
+                if (fc == null)
+                {
+                    continue;
+                }                
+                if (fc.ReferenceConstraint == null || fc.ReferenceConstraint.Table == null)
+                {
+                    continue;
+                }
+                if (!fc.ReferenceConstraint.Table.Equals(_owner))
+                {
+                    continue;
+                }
+                _list.Add(fc);
+            }
+            _list.Sort();
+        }
+        private void RequireNameToConstraint()
+        {
+            if (_nameToConstraint != null)
+            {
+                return;
+            }
+            _nameToConstraint = new Dictionary<string, ForeignKeyConstraint>();
+            RequireItems();
+            foreach (ForeignKeyConstraint c in _list)
+            {
+                _nameToConstraint.Add(c.Name, c);
+            }
+        }
+        public Constraint this[int index]
+        {
+            get
+            {
+                RequireItems();
+                return _list[index];
+            }
+        }
+        public ForeignKeyConstraint this[string name]
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    return null;
+                }
+                RequireNameToConstraint();
+                ForeignKeyConstraint ret;
+                if (!_nameToConstraint.TryGetValue(name, out ret))
+                {
+                    return null;
+                }
+                return ret;
+            }
+        }
+        internal bool ConstraintNameChanging(Constraint Constraint, string newName)
+        {
+            if (string.IsNullOrEmpty(newName))
+            {
+                return true;
+            }
+            if (Constraint != null && Constraint.Name == newName)
+            {
+                return true;
+            }
+            return (this[newName] == null);
+        }
+        internal void ConstraintNameChanged(Constraint Constraint)
+        {
+            _nameToConstraint = null;
+        }
+        #region ICollection<Constraint>の実装
+        public int Count
+        {
+            get
+            {
+                RequireItems();
+                return _list.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        bool IList.IsFixedSize
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        object ICollection.SyncRoot
+        {
+            get
+            {
+                return ((IList)_list).SyncRoot;
+            }
+        }
+
+        bool ICollection.IsSynchronized
+        {
+            get
+            {
+                return ((IList)_list).IsSynchronized;
+            }
+        }
+
+        object IList.this[int index]
+        {
+            get
+            {
+                RequireItems();
+                return ((IList)_list)[index];
+            }
+
+            set
+            {
+                RequireItems();
+                ((IList)_list)[index] = value;
+            }
+        }
+
+        ForeignKeyConstraint IList<ForeignKeyConstraint>.this[int index]
+        {
+            get
+            {
+                RequireItems();
+                return _list[index];
+            }
+
+            set
+            {
+                RequireItems();
+                _list[index] = value;
+            }
+        }
+
+        public void Add(ForeignKeyConstraint item)
+        {
+            RequireItems();
+            _list.Add(item);
+            _nameToConstraint = null;
+        }
+        int IList.Add(object value)
+        {
+            ForeignKeyConstraint item = value as ForeignKeyConstraint;
+            RequireItems();
+            int ret = -1;
+            ret = ((IList)_list).Add(item);
+            _nameToConstraint = null;
+            return ret;
+        }
+
+        public void Clear()
+        {
+            _list?.Clear();
+            _nameToConstraint = null;
+        }
+
+        public bool Contains(ForeignKeyConstraint item)
+        {
+            RequireItems();
+            return _list.Contains(item);
+        }
+
+        bool IList.Contains(object value)
+        {
+            RequireItems();
+            return ((IList)_list).Contains(value);
+        }
+
+        public void CopyTo(ForeignKeyConstraint[] array, int arrayIndex)
+        {
+            RequireItems();
+            _list.CopyTo(array, arrayIndex);
+        }
+
+        public void CopyTo(Array array, int index)
+        {
+            RequireItems();
+            ((IList)_list).CopyTo(array, index);
+        }
+
+        public IEnumerator<ForeignKeyConstraint> GetEnumerator()
+        {
+            RequireItems();
+            return _list.GetEnumerator();
+        }
+
+        public bool Remove(ForeignKeyConstraint item)
+        {
+            RequireItems();
+            bool ret = _list.Remove(item);
+            if (ret)
+            {
+                _nameToConstraint = null;
+            }
+            return ret;
+        }
+
+        void IList.Remove(object value)
+        {
+            RequireItems();
+            bool ret = _list.Remove(value as ForeignKeyConstraint);
+            if (ret)
+            {
+                _nameToConstraint = null;
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            RequireItems();
+            return _list.GetEnumerator();
+        }
+
+        public int IndexOf(ForeignKeyConstraint item)
+        {
+            return _list.IndexOf(item);
+        }
+
+        int IList.IndexOf(object value)
+        {
+            return ((IList)_list).IndexOf(value);
+        }
+
+        public void Insert(int index, ForeignKeyConstraint item)
+        {
+            _list.Insert(index, item);
+        }
+        void IList.Insert(int index, object value)
+        {
+            ((IList)_list).Insert(index, value);
+        }
+
+
+        public void RemoveAt(int index)
+        {
+            _list.RemoveAt(index);
+        }
+        #endregion
+    }
 
     public sealed class TriggerCollection: IList<Trigger>, IList
     {
@@ -3116,22 +3617,21 @@ namespace Db2Source
             {
                 return;
             }
-            foreach (SchemaObject o in _owner.Schema.Objects)
+            foreach (Trigger t in _owner.Schema.Triggers)
             {
-                Trigger c = o as Trigger;
-                if (c == null)
+                if (t == null)
                 {
                     continue;
                 }
-                if (c.Table == null)
+                if (t.Table == null)
                 {
                     continue;
                 }
-                if (!c.Table.Equals(_owner))
+                if (!t.Table.Equals(_owner))
                 {
                     continue;
                 }
-                _list.Add(c);
+                _list.Add(t);
             }
             _list.Sort();
         }
@@ -3757,9 +4257,6 @@ namespace Db2Source
         public string SqlDef { get; set; } = null;
         public TriggerCollection Triggers { get; private set; }
 
-        public List<SchemaObject> ReferFrom { get; private set; } = new List<SchemaObject>();
-        public List<SchemaObject> ReferTo { get; private set; } = new List<SchemaObject>();
-
         public event EventHandler<PropertyChangedEventArgs> PropertyChanged;
         protected internal void OnPropertyChanged(PropertyChangedEventArgs e)
         {
@@ -4053,6 +4550,23 @@ namespace Db2Source
         public string TablespaceName { get; set; }
         public string[] ExtraInfo { get; set; }
         public Regex TemporaryNamePattern { get; set; }
+        public ReferedForeignKeyCollection ReferFrom { get; private set; }
+        public List<ForeignKeyConstraint> ReferTo
+        {
+            get
+            {
+                List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>();
+                foreach (Constraint c in Constraints)
+                {
+                    ForeignKeyConstraint fc = c as ForeignKeyConstraint;
+                    if (fc != null)
+                    {
+                        l.Add(fc);
+                    }
+                }
+                return l;
+            }
+        }
         public override void InvalidateConstraints()
         {
             Constraints.Invalidate();
@@ -4174,6 +4688,7 @@ namespace Db2Source
         {
             Constraints = new ConstraintCollection(this);
             Indexes = new IndexCollection(this);
+            ReferFrom = new ReferedForeignKeyCollection(this);
         }
     }
     public partial class View: Selectable
@@ -4453,6 +4968,9 @@ namespace Db2Source
         private string _tableName;
         private SchemaObject _table;
         private string _referencedTableName;
+        private string _procedureSchema;
+        private string _procedureName;
+        private StoredFunction _procedure;
         private TriggerOrientation _orientation;
         private string _orientationText;
         private string _referenceNewTable;
@@ -4705,6 +5223,57 @@ namespace Db2Source
                 PropertyChangedEventArgs e = new PropertyChangedEventArgs("TableName", value, _tableName);
                 _tableName = value;
                 InvalidateTable();
+                OnPropertyChanged(e);
+            }
+        }
+
+        private void InvalidateProcedure()
+        {
+            _procedure = null;
+        }
+        private void UpdateProcedure()
+        {
+            if (_procedure != null)
+            {
+                return;
+            }
+            _procedure = Context?.StoredFunctions[_procedureSchema, _procedureName];
+        }
+        public StoredFunction Procedure
+        {
+            get
+            {
+                UpdateProcedure();
+                return _procedure;
+            }
+        }
+        public string ProcedureSchema
+        {
+            get { return _procedureSchema; }
+            set
+            {
+                if (_procedureSchema == value)
+                {
+                    return;
+                }
+                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ProcedureSchema", value, _procedureSchema);
+                _procedureSchema = value;
+                InvalidateProcedure();
+                OnPropertyChanged(e);
+            }
+        }
+        public string ProcedureName
+        {
+            get { return _procedureName; }
+            set
+            {
+                if (_procedureName == value)
+                {
+                    return;
+                }
+                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ProcedureName", value, _procedureName);
+                _procedureName = value;
+                InvalidateProcedure();
                 OnPropertyChanged(e);
             }
         }

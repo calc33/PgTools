@@ -107,6 +107,9 @@
       <DependentUpon>NewConnectionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ParameterStore.cs" />
+    <Compile Include="PgDumpOptionWindow.xaml.cs">
+      <DependentUpon>PgDumpOptionWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="QueryControl.xaml.cs">
       <DependentUpon>QueryControl.xaml</DependentUpon>
     </Compile>
@@ -166,6 +169,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="NewConnectionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PgDumpOptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

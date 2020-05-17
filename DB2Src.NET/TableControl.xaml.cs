@@ -135,6 +135,8 @@ namespace Db2Source
             UpdateDataGridColumns();
             DataGridControllerResult.Table = Target;
             sortFields.Target = Target;
+            //dataGridReferTo.ItemsSource = Target.ReferTo;
+            //dataGridReferedBy.ItemsSource = Target.ReferFrom;
             UpdateTextBoxSource();
             UpdateIsTargetModified();
             UpdateTextBoxTemplateSql();
@@ -582,6 +584,14 @@ namespace Db2Source
             checkBoxDeleteTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Delete) != 0);
             checkBoxTruncateTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Truncate) != 0);
             checkBoxUpdateTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Update) != 0);
+            if (t != null && t.Procedure != null)
+            {
+                textBoxTriggerBodySQL.Text = t.Context.GetSQL(t.Procedure, string.Empty, string.Empty, 0, false);
+            }
+            else
+            {
+                textBoxTriggerBodySQL.Text = string.Empty;
+            }
         }
 
         private void dataGridTrigger_SourceUpdated(object sender, DataTransferEventArgs e)
@@ -652,24 +662,6 @@ namespace Db2Source
         private void FindCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             DataGridControllerResult.ShowSearchWinodow();
-            //SearchDataGridTextWindow win = null;
-            //if (_searchDataGridTextWindow != null)
-            //{
-            //    _searchDataGridTextWindow.TryGetTarget(out win);
-            //}
-            //if (win == null || !win.IsVisible)
-            //{
-            //    win = new SearchDataGridTextWindow();
-            //    _searchDataGridTextWindow = new WeakReference<SearchDataGridTextWindow>(win);
-            //}
-            //if (win == null)
-            //{
-            //    return;
-            //}
-            //win.Owner = Window.GetWindow(this);
-            //win.Target = DataGridControllerResult;
-            //WindowUtil.MoveFormNearby(win, e.Source as FrameworkElement, false, true);
-            //win.Show();
         }
 
         private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -700,19 +692,6 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-    public class IsEnabledToColorConverter: IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (value != null && (bool)value) ? SystemColors.ControlTextBrush : SystemColors.GrayTextBrush;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
     public class TimingItem
     {
         public TriggerTiming? Value { get; set; }
@@ -720,6 +699,85 @@ namespace Db2Source
         public override string ToString()
         {
             return Text;
+        }
+    }
+    public class PgsqlColumnArrayToTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            string[] strs = value as string[];
+            if (strs.Length == 0)
+            {
+                return null;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append('(');
+            buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[0]));
+            for (int i = 1; i < strs.Length; i++)
+            {
+                buf.Append(", ");
+                buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[i]));
+            }
+            buf.Append(')');
+            return buf.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            string csv = value.ToString();
+            if (string.IsNullOrEmpty(csv))
+            {
+                return csv;
+            }
+            if (csv[0] == '(')
+            {
+                csv = csv.Substring(1);
+            }
+            if (csv[csv.Length - 1] == ')')
+            {
+                csv = csv.Substring(0, csv.Length - 1);
+            }
+            string[] strs = csv.Split(',');
+            for (int i = 0; i < strs.Length; i++)
+            {
+                strs[i] = Db2SourceContext.DequoteIdentifier(strs[i].Trim());
+            }
+            return strs;
+        }
+    }
+
+    public class ForeignKeyRuleConverter : IValueConverter
+    {
+        private static Dictionary<ForeignKeyRule, string> _ruleToText = new Dictionary<ForeignKeyRule, string>()
+        {
+            { ForeignKeyRule.NoAction, "NO ACTION" },
+            { ForeignKeyRule.Restrict, "RESTICT" },
+            { ForeignKeyRule.Cascade, "CASCADE" },
+            { ForeignKeyRule.SetNull, "SET NULL" },
+            { ForeignKeyRule.SetDefault, "SET DEFAULT" },
+        };
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is ForeignKeyRule))
+            {
+                return null;
+            }
+            ForeignKeyRule rule = (ForeignKeyRule)value;
+            return _ruleToText[rule];
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

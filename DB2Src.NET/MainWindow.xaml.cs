@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -170,6 +171,7 @@ namespace Db2Source
                 return null;
             }
             ret.Target = target;
+            target.Control = ret;
             return ret as Control;
         }
 
@@ -185,6 +187,7 @@ namespace Db2Source
             Title = TitleBase + " - " + CurrentDataSet;
             UpdateTreeViewDB();
             UpdateTabControlsTarget();
+            gridLoading.Visibility = Visibility.Collapsed;
         }
 
         private Db2SourceContext _dataSetTemp;
@@ -214,6 +217,12 @@ namespace Db2Source
                 App.HandleThreadException(t);
             }
             return;
+        }
+
+        public void LoadSchema(Db2SourceContext dataSet)
+        {
+            gridLoading.Visibility = Visibility.Visible;
+            Task t = LoadSchemaAsync(dataSet);
         }
 
         //#pragma warning restore 1998
@@ -402,7 +411,7 @@ namespace Db2Source
 
         private void menuItemRefreshSchema_Click(object sender, RoutedEventArgs e)
         {
-            Task t = LoadSchemaAsync(CurrentDataSet);
+            LoadSchema(CurrentDataSet);
         }
 
         private void buttonFilterKind_Click(object sender, RoutedEventArgs e)
@@ -478,10 +487,28 @@ namespace Db2Source
             Db2SourceContext ds = info.NewDataSet();
             ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
             //_connectionToDataSet.Add(info, ds);
-            Task t = LoadSchemaAsync(ds);
+            LoadSchema(ds);
+        }
+        private string GetExecutableFromPath(string filename)
+        {
+            if (System.IO.Path.IsPathRooted(filename) && File.Exists(filename))
+            {
+                return filename;
+            }
+            string[] paths = Environment.GetEnvironmentVariable("PATH").Split(';');
+            foreach (string dir in paths)
+            {
+                string path = System.IO.Path.Combine(dir, filename);
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
+            return null;
         }
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
+            gridLoading.Visibility = Visibility.Collapsed;
             ConnectionInfo info = new NpgsqlConnectionInfo()
             {
                 ServerName = App.Hostname,
@@ -509,6 +536,33 @@ namespace Db2Source
             }
             info = win.Target;
             Connect(info);
+            menuItemPsql.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPsql.Tag.ToString()));
+            menuItemPgdump.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPgdump.Tag.ToString()));
+        }
+
+        private void menuItemPsql_Click(object sender, RoutedEventArgs e)
+        {
+            string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
+            if (string.IsNullOrEmpty(exe))
+            {
+                return;
+            }
+            NpgsqlConnectionInfo info = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            string arg = string.Format("-h {0} -p {1} -d {2} -U {3}", info.ServerName, info.ServerPort, info.DatabaseName, info.UserName);
+            Process.Start(exe, arg);
+        }
+
+        private void menuItemPgdump_Click(object sender, RoutedEventArgs e)
+        {
+            string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
+            if (string.IsNullOrEmpty(exe))
+            {
+                return;
+            }
+            PgDumpOptionWindow win = new PgDumpOptionWindow();
+            win.Owner = this;
+            win.DataSet = CurrentDataSet;
+            win.ShowDialog();
         }
     }
 }

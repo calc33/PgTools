@@ -146,7 +146,19 @@ namespace Db2Source
             {
                 ShowUsage();
             }
+            if (!HasConnectionInfo)
+            {
+                LoadConnectionInfoFromRegistry();
+            }
         }
+        public static void LoadConnectionInfoFromRegistry()
+        {
+            Hostname = Registry.GetString("Connection", "ServerName", Hostname);
+            Port = Registry.GetInt32("Connection", "ServerPort", Port);
+            Database = Registry.GetString("Connection", "DatabaseName", Database);
+            Username = Registry.GetString("Connection", "UserName", Username);
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             AnalyzeArguments(e.Args);
@@ -159,12 +171,15 @@ namespace Db2Source
         {
             return "新しい接続...";
         }
-        public NewNpgsqlConnectionInfo() : base()
+        public NewNpgsqlConnectionInfo(bool fromSetting) : base()
         {
-            ServerName = App.Hostname;
-            ServerPort = App.Port;
-            DatabaseName = App.Database;
-            UserName = App.Username;
+            if (fromSetting)
+            {
+                ServerName = App.Hostname;
+                ServerPort = App.Port;
+                DatabaseName = App.Database;
+                UserName = App.Username;
+            }
             Name = GetDefaultName();
         }
     }
@@ -181,4 +196,17 @@ namespace Db2Source
             return !(bool)value;
         }
     }
+    public class IsEnabledToColorConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value != null && (bool)value) ? SystemColors.ControlTextBrush : SystemColors.GrayTextBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

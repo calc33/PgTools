@@ -465,6 +465,7 @@ namespace Db2Source
 
         public bool Search()
         {
+            SaveToRegistry();
             if ((int)buttonSearch.Tag == -1)
             {
                 return SearchBackword();
@@ -475,6 +476,22 @@ namespace Db2Source
             }
         }
 
+        public void LoadFromRegistry()
+        {
+            textBoxSearch.Text = App.Registry.GetString("SearchText", "Keyword", textBoxSearch.Text);
+            checkBoxFoldOption.IsChecked = App.Registry.GetBool("SearchText", "ShowOption", false);
+            checkBoxCaseful.IsChecked = App.Registry.GetBool("SearchText", "Caseful", false);
+            checkBoxWardwrap.IsChecked = App.Registry.GetBool("SearchText", "Wordwrap", false);
+            checkBoxRegex.IsChecked = App.Registry.GetBool("SearchText", "Regex", false);
+        }
+        public void SaveToRegistry()
+        {
+            App.Registry.SetValue(0, "SearchText", "Keyword", textBoxSearch.Text);
+            App.Registry.SetValue(0, "SearchText", "ShowOption", IsChecked(checkBoxFoldOption));
+            App.Registry.SetValue(0, "SearchText", "Caseful", IsChecked(checkBoxCaseful));
+            App.Registry.SetValue(0, "SearchText", "Wordwrap", IsChecked(checkBoxWardwrap));
+            App.Registry.SetValue(0, "SearchText", "Regex", IsChecked(checkBoxRegex));
+        }
 
         private void buttonReverse_Click(object sender, RoutedEventArgs e)
         {
@@ -497,6 +514,7 @@ namespace Db2Source
 
         private void buttonClose_Click(object sender, RoutedEventArgs e)
         {
+            Target?.Focus();
             Visibility = Visibility.Collapsed;
         }
 
@@ -514,9 +532,23 @@ namespace Db2Source
                     e.Handled = true;
                     break;
                 case Key.Escape:
+                    Target?.Focus();
                     Visibility = Visibility.Collapsed;
                     e.Handled = true;
                     break;
+            }
+        }
+
+        private void UserControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadFromRegistry();
+        }
+
+        private void UserControl_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (!IsVisible)
+            {
+                SaveToRegistry();
             }
         }
     }

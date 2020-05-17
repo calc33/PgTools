@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
-VisualStudioVersion = 16.0.30002.166
+VisualStudioVersion = 16.0.30104.148
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DB2Src.net", "DB2Src.NET\DB2Src.net.csproj", "{D4E9CB0C-0897-4DD3-BD9E-69BC88C174E5}"
 EndProject
@@ -38,7 +38,7 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {CE22D939-F1FD-413E-BE3C-7BDAE99A8C5B}
+		SolutionGuid = {C953A822-D2F5-476D-9BC5-2619AC9D0B04}
 	EndGlobalSection
 	GlobalSection(SubversionScc) = preSolution
 		Svn-Managed = True

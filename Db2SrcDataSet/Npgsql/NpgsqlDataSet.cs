@@ -47,9 +47,21 @@ namespace Db2Source
         }
         private static readonly Dictionary<string, bool> PgsqlReservedDict = InitPgsqlReservedDict();
         private static readonly Regex PgSqlIdentifierRegex = new Regex("^[_A-z][_$0-9A-z]*$");
-        public override bool NeedQuotedIdentifier(string value)
+        public static bool NeedQuotedPgsqlIdentifier(string value)
         {
             return !PgSqlIdentifierRegex.IsMatch(value) || PgsqlReservedDict.ContainsKey(value.ToUpper());
+        }
+        public override bool NeedQuotedIdentifier(string value)
+        {
+            return NeedQuotedPgsqlIdentifier(value);
+        }
+        public static string GetEscapedPgsqlIdentifier(string objectName)
+        {
+            if (!IsQuotedIdentifier(objectName) && NeedQuotedPgsqlIdentifier(objectName))
+            {
+                return GetQuotedIdentifier(objectName);
+            }
+            return objectName;
         }
 
         private static readonly Dictionary<string, PropertyInfo> BaseTypeToProp = new Dictionary<string, PropertyInfo>()
@@ -77,50 +89,6 @@ namespace Db2Source
             return HiddenSchemaNames.ContainsKey(schemaName);
         }
 
-        public static string DequoteIdentifier(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-            int i = value.IndexOf('"');
-            if (i == -1)
-            {
-                return value;
-            }
-            StringBuilder buf = new StringBuilder(value);
-            bool inQuote = false;
-            bool wasQuote = false;
-            while (i < buf.Length)
-            {
-                char c = buf[i];
-                if (c == '"')
-                {
-                    if (!inQuote && wasQuote)
-                    {
-                        i++;
-                    }
-                    else
-                    {
-                        buf.Remove(i, 1);
-                    }
-                    inQuote = !inQuote;
-                }
-                else
-                {
-                    if (char.IsSurrogate(c))
-                    {
-                        i += 2;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                }
-                wasQuote = (c == '"');
-            }
-            return buf.ToString();
-        }
         private static List<string> GetParameterNames(string sql)
         {
             List<string> l = new List<string>();

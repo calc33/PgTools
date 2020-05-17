@@ -305,7 +305,10 @@ namespace Db2Source
             return null;
         }
 
-        private static string ToLowerIdentifier(string text)
+        private delegate char ConvertChar(char ch);
+        private static ConvertChar NormalizeIdentifierChar = char.ToLower;
+        private static char NoConvert(char ch) { return ch; }
+        private static string NormalizeIdentifier(string text)
         {
             if (string.IsNullOrEmpty(text))
             {
@@ -315,7 +318,7 @@ namespace Db2Source
             bool inQuote = false;
             foreach (char c in text)
             {
-                buf.Append(inQuote ? c : char.ToLower(c));
+                buf.Append(inQuote ? c : NormalizeIdentifierChar(c));
                 if (c == '"')
                 {
                     inQuote = !inQuote;
@@ -380,8 +383,15 @@ namespace Db2Source
             buf.Append("for each ");
             buf.Append(trigger.OrientationText);
             buf.AppendLine();
+            if (!string.IsNullOrEmpty(trigger.Condition))
+            {
+                buf.Append(spc);
+                buf.Append("when ");
+                buf.Append(trigger.Condition);
+                buf.AppendLine();
+            }
             buf.Append(spc);
-            buf.Append(ToLowerIdentifier(trigger.Definition));
+            buf.Append(NormalizeIdentifier(trigger.Definition));
             buf.Append(postfix);
             if (addNewline)
             {

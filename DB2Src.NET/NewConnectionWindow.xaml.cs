@@ -107,9 +107,11 @@ namespace Db2Source
                     tb = new TextBox();
                     tb.Name = newName;
                     tb.Margin = new Thickness(2.0);
-                    Binding b1 = new Binding("Target." + prop.Name);
-                    b1.ElementName = "window";
-                    b1.Mode = BindingMode.TwoWay;
+                    Binding b1 = new Binding("Target." + prop.Name)
+                    {
+                        ElementName = "window",
+                        Mode = BindingMode.TwoWay
+                    };
                     tb.SetBinding(TextBox.TextProperty, b1);
                     RegisterName(tb.Name, tb);
                 }
@@ -137,6 +139,7 @@ namespace Db2Source
                         pb.PasswordChanged += PbPassword_PasswordChanged;
                         pb.Tag = tb;
                         tb.TextChanged += TbPassword_TextChanged;
+                        tb.IsVisibleChanged += TbPassword_IsVisibleChanged;
                         tb.Tag = pb;
                         RegisterName(pb.Name, pb);
                     }
@@ -157,23 +160,37 @@ namespace Db2Source
                     CheckBox cb = FindName(newName) as CheckBox;
                     if (cb == null)
                     {
-                        cb = new CheckBox();
-                        cb.Name = newName;
-                        cb.Content = "パスワードを表示";
-                        cb.IsChecked = false;
+                        cb = new CheckBox()
+                        {
+                            Name = newName,
+                            Content = "パスワードを表示",
+                            IsChecked = false
+                        };
                         RegisterName(cb.Name, cb);
 
-                        Binding b3 = new Binding("IsChecked");
-                        b3.ElementName = cb.Name;
-                        b3.Mode = BindingMode.OneWay;
-                        b3.Converter = new BooleanToVisibilityConverter();
+                        Binding b3 = new Binding("IsChecked")
+                        {
+                            ElementName = cb.Name,
+                            Mode = BindingMode.OneWay,
+                            Converter = new BooleanToVisibilityConverter()
+                        };
                         tb.SetBinding(VisibilityProperty, b3);
 
-                        Binding b4 = new Binding("IsChecked");
-                        b4.ElementName = cb.Name;
-                        b4.Mode = BindingMode.OneWay;
-                        b4.Converter = new InvertBooleanToVisibilityConverter();
+                        Binding b4 = new Binding("IsChecked")
+                        {
+                            ElementName = cb.Name,
+                            Mode = BindingMode.OneWay,
+                            Converter = new InvertBooleanToVisibilityConverter()
+                        };
                         pb.SetBinding(VisibilityProperty, b4);
+
+                        Binding b5 = new Binding("IsEnabled")
+                        {
+                            RelativeSource = RelativeSource.Self,
+                            Mode = BindingMode.OneWay,
+                            Converter = new IsEnabledToColorConverter()
+                        };
+                        cb.SetBinding(ForegroundProperty, b5);
                     }
                     else
                     {
@@ -181,12 +198,39 @@ namespace Db2Source
                     }
                     Grid.SetColumn(cb, 1);
                     Grid.SetRow(cb, r);
+                    if (Target.IsPasswordHidden)
+                    {
+                        cb.IsEnabled = false;
+                        cb.IsChecked = false;
+                    }
+                    else
+                    {
+                        cb.IsEnabled = true;
+                    }
                     GridProperties.Children.Add(cb);
                 }
             }
             StackPanelMain.UpdateLayout();
         }
 
+        private void UpdateCheckBoxPasswordEnabled(TextBox textBox)
+        {
+            if (!Target.IsPasswordHidden)
+            {
+                return;
+            }
+            if (!string.IsNullOrEmpty(textBox.Text))
+            {
+                return;
+            }
+            Target.IsPasswordHidden = false;
+            CheckBox cb = FindName("checkBoxPassword") as CheckBox;
+            if (cb == null)
+            {
+                return;
+            }
+            cb.IsEnabled = !Target.IsPasswordHidden;
+        }
         private void TbPassword_TextChanged(object sender, TextChangedEventArgs e)
         {
             TextBox tb = (TextBox)sender;
@@ -195,6 +239,23 @@ namespace Db2Source
             {
                 pb.Password = tb.Text;
             }
+            UpdateCheckBoxPasswordEnabled(tb);
+        }
+
+        private void TbPassword_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox tb = (sender as TextBox);
+            if (tb == null)
+            {
+                return;
+            }
+            if (!tb.IsVisible)
+            {
+                return;
+            }
+            // UNDO履歴をクリア
+            tb.IsUndoEnabled = false;
+            tb.IsUndoEnabled = true;
         }
 
         private void PbPassword_PasswordChanged(object sender, RoutedEventArgs e)
@@ -205,6 +266,7 @@ namespace Db2Source
             {
                 tb.Text = pb.Password;
             }
+            UpdateCheckBoxPasswordEnabled(tb);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -267,8 +329,18 @@ namespace Db2Source
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
             List<ConnectionInfo> l = new List<ConnectionInfo>(NpgsqlConnectionInfo.GetKnownConnectionInfos());
-            ConnectionInfo info0 = new NewNpgsqlConnectionInfo();
+            ConnectionInfo info0 = new NewNpgsqlConnectionInfo(true);
+            info0.FillStoredPassword(false);
             l.Insert(0, info0);
+            for (int i = 1; i < l.Count; i++)
+            {
+                if (l[i].ContentEquals(info0))
+                {
+                    info0 = l[i];
+                    l[0] = new NewNpgsqlConnectionInfo(false);
+                    break;
+                }
+            }
             ConnectionList = l;
             Target = info0;
         }

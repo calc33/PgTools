@@ -414,121 +414,128 @@
             </Setter>
         </Style>
     </Window.Resources>
-    <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="データベース(_D)">
-                <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
-                    <MenuItem Header="Postgres(NpgSql)"/>
+    <Grid x:Name="gridMain">
+        <DockPanel>
+            <Menu DockPanel.Dock="Top">
+                <MenuItem Header="データベース(_D)">
+                    <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
+                        <MenuItem Header="Postgres(NpgSql)"/>
+                    </MenuItem>
+                    <MenuItem x:Name="buttonQuit" Header="終了(_X)" Click="buttonQuit_Click"/>
                 </MenuItem>
-                <MenuItem x:Name="buttonQuit" Header="終了(_X)" Click="buttonQuit_Click"/>
-            </MenuItem>
-            <MenuItem Header="編集(_E)">
-                <MenuItem Header="元に戻す(_U)" InputGestureText="Ctrl+Z" />
-                <Separator/>
-                <MenuItem Header="切り取り(_T)" InputGestureText="Ctrl+X" Command="ApplicationCommands.Cut"/>
-                <MenuItem Header="コピー(_C)" InputGestureText="Ctrl+C" Command="ApplicationCommands.Copy"/>
-                <MenuItem Header="表をコピー(_V)" InputGestureText="Ctrl+Shift+C" Command="local:DataGridCommands.CopyTable"/>
-                <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
-                <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
-                <Separator/>
-                <MenuItem Header="すべて選択(_A)" InputGestureText="Ctrl+A" Command="ApplicationCommands.SelectAll"/>
-            </MenuItem>
-            <MenuItem Header="検索(_S)">
-                <MenuItem Header="検索(_F)..." InputGestureText="Ctrl+F" Command="ApplicationCommands.Find"/>
-                <MenuItem Header="次を検索(_N)" InputGestureText="F3" Command="local:SearchCommands.FindNext"/>
-                <MenuItem Header="前を検索(_P)" InputGestureText="Shift+F3" Command="local:SearchCommands.FindPrevious"/>
-            </MenuItem>
-            <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
-                <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
-                <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
-                <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
-            </MenuItem>
-        </Menu>
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition/>
-            </Grid.ColumnDefinitions>
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                    <!--<ComboBox x:Name="comboBoxConnection" HorizontalAlignment="Stretch" Margin="2,2,4,2" DisplayMemberPath="Name" SelectionChanged="comboBoxConnection_SelectionChanged" DropDownClosed="comboBoxConnection_DropDownClosed"/>-->
-                    <Border Margin="0,0,4,2" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
-                        <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
-                            <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
-                                <Button.ContextMenu>
-                                    <ContextMenu>
-                                        <MenuItem x:Name="menuItemFilterByObjectName" Header="名前で絞り込み" IsCheckable="True" IsChecked="True"/>
-                                        <MenuItem x:Name="menuItemFilterByColumnName" Header="列名で絞り込み" IsCheckable="True"/>
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                                <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16">
-                                    <Ellipse Canvas.Left="3" Canvas.Top="1" Width="10" Height="10" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                    <Line X1="6" Y1="9" X2="1" Y2="14" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                    <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Canvas.Left="10" Canvas.Top="12">
-                                        <Polygon.Points>
-                                            <Point X="0" Y="0"/>
-                                            <Point X="4" Y="0"/>
-                                            <Point X="2" Y="4"/>
-                                        </Polygon.Points>
-                                    </Polygon>
-                                </Canvas>
-                            </Button>
-                            <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" />
-                        </DockPanel>
-                    </Border>
-                </StackPanel>
-                <TreeView x:Name="treeViewDB" Margin="0,0,4,0">
-                    <TreeView.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
-                        </ContextMenu>
-                    </TreeView.ContextMenu>
-                    <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" Style="{DynamicResource TreeViewItemStyleDB}" IsExpanded="True" >
-                        <TreeViewItem.Items>
-                            <TreeViewItem x:Name="TreeViewItemDB"  Header="データベース" Style="{DynamicResource TreeViewItemStyleTable}" MouseDoubleClick="TreeViewItem_MouseDoubleClick" >
-                            </TreeViewItem>
-                        </TreeViewItem.Items>
-                    </TreeViewItem>
-                </TreeView>
-            </DockPanel>
-            <GridSplitter Grid.Column="0" Grid.RowSpan="2" Width="6"/>
-            <Grid Grid.Column="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TabControl x:Name="tabControlMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                    <TabItem Header="クエリ">
-                        <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}" Margin="0,0,0,0"/>
-                    </TabItem>
-                </TabControl>
-                <GridSplitter Grid.Column="0" Grid.Row="0" Height="4" Cursor="SizeNS" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+                <MenuItem Header="編集(_E)">
+                    <MenuItem Header="元に戻す(_U)" InputGestureText="Ctrl+Z" />
+                    <Separator/>
+                    <MenuItem Header="切り取り(_T)" InputGestureText="Ctrl+X" Command="ApplicationCommands.Cut"/>
+                    <MenuItem Header="コピー(_C)" InputGestureText="Ctrl+C" Command="ApplicationCommands.Copy"/>
+                    <MenuItem Header="表をコピー(_V)" InputGestureText="Ctrl+Shift+C" Command="local:DataGridCommands.CopyTable"/>
+                    <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
+                    <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
+                    <Separator/>
+                    <MenuItem Header="すべて選択(_A)" InputGestureText="Ctrl+A" Command="ApplicationCommands.SelectAll"/>
+                </MenuItem>
+                <MenuItem Header="検索(_S)">
+                    <MenuItem Header="検索(_F)..." InputGestureText="Ctrl+F" Command="ApplicationCommands.Find"/>
+                    <MenuItem Header="次を検索(_N)" InputGestureText="F3" Command="local:SearchCommands.FindNext"/>
+                    <MenuItem Header="前を検索(_P)" InputGestureText="Shift+F3" Command="local:SearchCommands.FindPrevious"/>
+                </MenuItem>
+                <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
+                    <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
+                    <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
+                    <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
+                    <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
+                    <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
+                </MenuItem>
+            </Menu>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <!--<ComboBox x:Name="comboBoxConnection" HorizontalAlignment="Stretch" Margin="2,2,4,2" DisplayMemberPath="Name" SelectionChanged="comboBoxConnection_SelectionChanged" DropDownClosed="comboBoxConnection_DropDownClosed"/>-->
+                        <Border Margin="0,0,6,2" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                            <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
+                                <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="menuItemFilterByObjectName" Header="名前で絞り込み" IsCheckable="True" IsChecked="True"/>
+                                            <MenuItem x:Name="menuItemFilterByColumnName" Header="列名で絞り込み" IsCheckable="True"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16">
+                                        <Ellipse Canvas.Left="3" Canvas.Top="1" Width="10" Height="10" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                        <Line X1="6" Y1="9" X2="1" Y2="14" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                        <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Canvas.Left="10" Canvas.Top="12">
+                                            <Polygon.Points>
+                                                <Point X="0" Y="0"/>
+                                                <Point X="4" Y="0"/>
+                                                <Point X="2" Y="4"/>
+                                            </Polygon.Points>
+                                        </Polygon>
+                                    </Canvas>
+                                </Button>
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" />
+                            </DockPanel>
+                        </Border>
+                    </StackPanel>
+                    <TreeView x:Name="treeViewDB" Margin="0,0,6,0">
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
+                        <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" Style="{DynamicResource TreeViewItemStyleDB}" IsExpanded="True" >
+                            <TreeViewItem.Items>
+                                <TreeViewItem x:Name="TreeViewItemDB"  Header="データベース" Style="{DynamicResource TreeViewItemStyleTable}" MouseDoubleClick="TreeViewItem_MouseDoubleClick" >
+                                </TreeViewItem>
+                            </TreeViewItem.Items>
+                        </TreeViewItem>
+                    </TreeView>
+                </DockPanel>
+                <GridSplitter Grid.Column="0" Grid.RowSpan="2" Width="6"/>
+                <Grid Grid.Column="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TabControl x:Name="tabControlMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <TabItem Header="クエリ">
+                            <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}" Margin="0,0,0,0"/>
+                        </TabItem>
+                    </TabControl>
+                    <GridSplitter Grid.Column="0" Grid.Row="0" Height="4" Cursor="SizeNS" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
                               Visibility="{Binding Visibility, ElementName=listBoxLog}" Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" Margin="0,0,0,-4"/>
-                <ListBox x:Name="listBoxLog" Grid.Row="1" Margin="0,4,0,0" Visibility="{Binding IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, ElementName=menuItemLogWindow}" MinHeight="60" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
-                <Canvas Grid.Row="1" Width="32" Height="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-15,0,0" Visibility="Collapsed">
-                    <Polygon Fill="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
-                        <Polygon.Points>
-                            <Point X="0.5" Y="16"/>
-                            <Point X="0.5" Y="0"/>
-                            <Point X="16" Y="0"/>
-                            <Point X="32" Y="16"/>
-                        </Polygon.Points>
-                    </Polygon>
-                    <Polyline Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" StrokeThickness="1">
-                        <Polyline.Points>
-                            <Point X="0.5" Y="16"/>
-                            <Point X="0.5" Y="0"/>
-                            <Point X="16" Y="0"/>
-                            <Point X="32" Y="16"/>
-                        </Polyline.Points>
-                    </Polyline>
-                </Canvas>
-                <Canvas Grid.Row="1" Width="12" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,-13,0,0" Visibility="Collapsed">
-                    <Rectangle Canvas.Left="0" Canvas.Top="0" Width="12" Height="12"  StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                    <Line X1="3" Y1="3" X2="9" Y2="9" StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                    <Line X1="9" Y1="3" X2="3" Y2="9" StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                </Canvas>
+                    <ListBox x:Name="listBoxLog" Grid.Row="1" Margin="0,4,0,0" Visibility="{Binding IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, ElementName=menuItemLogWindow}" MinHeight="60" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                    <Canvas Grid.Row="1" Width="32" Height="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-15,0,0" Visibility="Collapsed">
+                        <Polygon Fill="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
+                            <Polygon.Points>
+                                <Point X="0.5" Y="16"/>
+                                <Point X="0.5" Y="0"/>
+                                <Point X="16" Y="0"/>
+                                <Point X="32" Y="16"/>
+                            </Polygon.Points>
+                        </Polygon>
+                        <Polyline Stroke="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" StrokeThickness="1">
+                            <Polyline.Points>
+                                <Point X="0.5" Y="16"/>
+                                <Point X="0.5" Y="0"/>
+                                <Point X="16" Y="0"/>
+                                <Point X="32" Y="16"/>
+                            </Polyline.Points>
+                        </Polyline>
+                    </Canvas>
+                    <Canvas Grid.Row="1" Width="12" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3,-13,0,0" Visibility="Collapsed">
+                        <Rectangle Canvas.Left="0" Canvas.Top="0" Width="12" Height="12"  StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                        <Line X1="3" Y1="3" X2="9" Y2="9" StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                        <Line X1="9" Y1="3" X2="3" Y2="9" StrokeThickness="1" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                    </Canvas>
+                </Grid>
             </Grid>
+        </DockPanel>
+        <Grid x:Name="gridLoading" Background="#7FFFFFFF" Visibility="Collapsed">
+            <TextBlock Text="データベースの情報を読み込んでいます..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
         </Grid>
-    </DockPanel>
+    </Grid>
 </Window>

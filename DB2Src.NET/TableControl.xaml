@@ -12,6 +12,8 @@
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <local:PgsqlColumnArrayToTextConverter x:Key="PgsqlColumnArrayToTextConverter"/>
+        <local:ForeignKeyRuleConverter x:Key="ForeignKeyRuleConverter"/>
         <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Width" Value="8"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -64,17 +66,6 @@
                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
                 </Trigger>
-                <!--
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsSelected" Value="true"/>
-                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
-                    </MultiTrigger.Conditions>
-                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
-                </MultiTrigger>
-                -->
                 <Trigger Property="IsEnabled" Value="false">
                     <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                 </Trigger>
@@ -111,8 +102,8 @@
                         <local:SortFieldListControl x:Name="sortFields" VerticalContentAlignment="Top" Margin="0,2" Target="{Binding Target, ElementName=userControl}" Height="Auto" TabIndex="2"/>
                     </DockPanel>
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                        <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0"/>
-	                    <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
+                        <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"/>
+                        <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </DockPanel>
                 <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2" IsTabStop="False" TabIndex="5" Background="Transparent"/>
@@ -127,7 +118,7 @@
                         <Button x:Name="buttonSearchWord" Margin="4,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleMiniSearch}" ToolTip="検索" Click="buttonSearchWord_Click"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">
-                        
+
                     </StackPanel>
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
@@ -256,6 +247,8 @@
                     <TextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2" Text="{Binding SelectedItem.Condition, ElementName=dataGridTrigger}"/>
                     <TextBlock Grid.Row="3" Text="処理："/>
                     <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Text="{Binding SelectedItem.Definition, ElementName=dataGridTrigger}"/>
+                    <TextBox x:Name="textBoxTriggerBodySQL" Grid.ColumnSpan="3" Grid.Row="4" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                    <local:SearchTextBoxControl Grid.ColumnSpan="3" Grid.Row="4" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTriggerBodySQL}" Visibility="Collapsed"/>
                 </Grid>
             </Grid>
         </TabItem>
@@ -267,24 +260,28 @@
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
                     <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表から参照"/></TextBlock>
-                    <DataGrid>
+                    <DataGrid x:Name="dataGridReferTo" IsReadOnly="True" ItemsSource="{Binding Target.ReferTo, ElementName=userControl}" AutoGenerateColumns="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="参照先"/>
-                            <DataGridTextColumn Header="制約名"/>
-                            <DataGridTextColumn Header="列"/>
+                            <!--<DataGridTextColumn Header="No" IsReadOnly="True"/>-->
+                            <DataGridTextColumn Header="制約名" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="列" Binding="{Binding Columns, Converter={StaticResource PgsqlColumnArrayToTextConverter}}"/>
+                            <DataGridTextColumn Header="参照先" Binding="{Binding ReferenceConstraint.Table.FullName}"/>
+                            <DataGridTextColumn Header="ON UPDATE" Binding="{Binding UpdateRule, Converter={StaticResource ForeignKeyRuleConverter}}" />
+                            <DataGridTextColumn Header="ON DELETE" Binding="{Binding DeleteRule, Converter={StaticResource ForeignKeyRuleConverter}}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
                 <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
                 <DockPanel Grid.Row="1">
                     <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表を参照"/></TextBlock>
-                    <DataGrid>
+                    <DataGrid x:Name="dataGridReferedBy" IsReadOnly="True" ItemsSource="{Binding Target.ReferFrom, ElementName=userControl}" AutoGenerateColumns="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="参照元"/>
-                            <DataGridTextColumn Header="制約名"/>
-                            <DataGridTextColumn Header="列"/>
+                            <!--<DataGridTextColumn Header="No" IsReadOnly="True"/>-->
+                            <DataGridTextColumn Header="参照元" Binding="{Binding Table.FullName}"/>
+                            <DataGridTextColumn Header="制約名" Binding="{Binding Name}"/>
+                            <DataGridTextColumn Header="列" Binding="{Binding Columns, Converter={StaticResource PgsqlColumnArrayToTextConverter}}"/>
+                            <DataGridTextColumn Header="ON UPDATE" Binding="{Binding UpdateRule, Converter={StaticResource ForeignKeyRuleConverter}}" />
+                            <DataGridTextColumn Header="ON DELETE" Binding="{Binding DeleteRule, Converter={StaticResource ForeignKeyRuleConverter}}" />
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -324,26 +321,26 @@
                             </StackPanel>
                         </ScrollViewer>
                         <Grid>
-                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" Margin="0,-1,0,1"/>
+                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"  IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
                             <local:SearchTextBoxControl x:Name="searchTextBoxSelectSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSelectSql}" FontFamily="Yu Gothic UI"/>
                         </Grid>
                     </DockPanel>
                 </TabItem>
                 <TabItem x:Name="tabItemInsertSql" Header="INSERT">
                     <Grid>
-                        <TextBox x:Name="textBoxInsertSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <TextBox x:Name="textBoxInsertSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxInsertSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxInsertSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tabItemUpdateSql" Header="UPDATE">
                     <Grid>
-                        <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxUpdateSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxUpdateSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tabItemDeleteSql" Header="DELETE">
                     <Grid>
-                        <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                        <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxDeleteSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxDeleteSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>

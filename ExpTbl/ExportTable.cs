@@ -99,6 +99,10 @@ namespace Db2Source
                     case "genconf":
                         _mode = ExportMode.GenerateConfig;
                         break;
+                    case "--help":
+                    case "-?":
+                        ShowUsage();
+                        return;
                     default:
                         ShowFatalError(true, string.Format("不明なコマンドです: {0}", args[0]));
                         return;

@@ -52,6 +52,7 @@ namespace Db2Source
                 return false;
             }
             Password = pass;
+            IsPasswordHidden = true;
             if (!testConnectoin)
             {
                 return true;
@@ -64,6 +65,7 @@ namespace Db2Source
             catch
             {
                 Password = null;
+                IsPasswordHidden = false;
                 return false;
             }
             return true;
@@ -232,6 +234,7 @@ namespace Db2Source
                         info.DatabaseName = prms[2];
                         info.UserName = prms[3];
                         info.Password = prms[4];
+                        info.IsPasswordHidden = true;
                         info.Name = info.GetDefaultName();
                         list.Add(info);
                     }

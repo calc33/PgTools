@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Runtime.InteropServices;
 //using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
@@ -335,7 +336,7 @@ namespace Db2Source
         /// </summary>
         /// <param name="sql"></param>
         /// <returns></returns>
-        public static string ToLowerSql(string sql)
+        public static string NormalizeSql(string sql)
         {
             if (string.IsNullOrEmpty(sql))
             {
@@ -395,7 +396,7 @@ namespace Db2Source
                         }
                         break;
                     default:
-                        buf[i] = char.ToLower(buf[i]);
+                        buf[i] = NormalizeIdentifierChar(buf[i]);
                         break;
                 }
             }
@@ -724,7 +725,7 @@ namespace Db2Source
             #endregion
         }
 
-        //private class PgDependCollection: IReadOnlyList<PgDepend>
+        //private class PgDependCollection : IReadOnlyList<PgDepend>
         //{
         //    private List<PgDepend> _items = new List<PgDepend>();
         //    private Dictionary<uint, List<PgDepend>> _oidToItem = null;
@@ -1168,7 +1169,7 @@ namespace Db2Source
                 idx.IsUnique = indisunique;
                 idx.IsImplicit = IsImplicit;
                 idx.IndexType = indextype;
-                idx.SqlDef = ToLowerSql(indexdef);
+                idx.SqlDef = NormalizeSql(indexdef);
                 Generated = idx;
                 return idx;
             }
@@ -1859,20 +1860,21 @@ namespace Db2Source
 //            }
 //            public void BeginFillReference(WorkingData working) { }
 //            public void EndFillReference(WorkingData working) { }
-//            public void SetDependency(WorkingData working)
+//            public Dependency ToDependency(WorkingData working)
 //            {
 //                SchemaObject obj = (Object.Generated as SchemaObject);
 //                SchemaObject robj = (RefObject.Generated as SchemaObject);
 //                if (obj == null || robj == null)
 //                {
-//                    return;
+//                    return null;
 //                }
-//                if (obj is Index)
-//                {
-//                    return;
-//                }
-//                obj.ReferTo.Add(robj);
-//                robj.ReferFrom.Add(obj);
+//                return new Dependency(obj, robj);
+//                //if (obj is Index)
+//                //{
+//                //    return;
+//                //}
+//                //obj.ReferTo.Add(robj);
+//                //robj.ReferFrom.Add(obj);
 //            }
 //        }
         private class PgTrigger: PgObject
@@ -1892,6 +1894,7 @@ namespace Db2Source
             //public short tgnargs;
             public short[] tgattr;
             //public byte[] tgargs;
+            public string triggerdef;
 #pragma warning restore 0649
             public PgClass Target;
             public PgProc Procedure;
@@ -1954,6 +1957,8 @@ namespace Db2Source
                     def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, Target.Schema?.nspname) + "()";
                 }
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true);
+                t.ProcedureSchema = Procedure.Schema?.nspname;
+                t.ProcedureName = Procedure.GetInternalName();
                 t.Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After;
                 t.TimingText = TimingToText[(int)t.Timing];
                 t.Event = 0;
@@ -1992,6 +1997,41 @@ namespace Db2Source
                 }
                 t.Orientation = ((tgtype & 1) != 0) ? TriggerOrientation.Row : TriggerOrientation.Statement;
                 t.OrientationText = ((tgtype & 1) != 0) ? "row" : "statement";
+                TokenizedSQL sql = new TokenizedSQL(triggerdef);
+                StringBuilder buf = new StringBuilder();
+                bool inWhen = false;
+                foreach (Token tk in sql.Tokens)
+                {
+                    if (tk.ID == TokenID.Identifier) {
+                        if (string.Equals(tk.Value, "when", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            inWhen = true;
+                            continue;
+                        }
+                        if (string.Equals(tk.Value, "execute", StringComparison.CurrentCultureIgnoreCase))
+                        {
+                            break;
+                        }
+                    }
+                    if (!inWhen)
+                    {
+                        continue;
+                    }
+                    if (tk.ID == TokenID.Identifier)
+                    {
+                        buf.Append(NormalizeIdentifier(tk.Value));
+                        
+                    }
+                    else
+                    {
+                        buf.Append(tk.Value);
+                    }
+                }
+                string when = buf.ToString().Trim();
+                if (!string.IsNullOrEmpty(when))
+                {
+                    t.Condition = when;
+                }
                 if (UpdateColumns != null)
                 {
                     foreach (PgAttribute a in UpdateColumns)
@@ -2074,7 +2114,7 @@ namespace Db2Source
             public PgType[] AllArgTypes;
             public Dictionary<int, string> ArgDefaults = new Dictionary<int, string>();
 
-            private string GetInternalName()
+            internal string GetInternalName()
             {
                 StringBuilder buf = new StringBuilder();
                 buf.Append(proname);
@@ -2369,7 +2409,7 @@ namespace Db2Source
 
         public override void LoadSchema(IDbConnection connection)
         {
-            Schemas.Clear();
+            //Clear();
             NpgsqlConnection conn = connection as NpgsqlConnection;
             LoadUserInfo(conn);
             WorkingData working = new WorkingData(this, conn);

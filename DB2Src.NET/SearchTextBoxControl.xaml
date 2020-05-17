@@ -6,8 +6,9 @@
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="80" d:DesignWidth="230" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+             d:DesignHeight="80" d:DesignWidth="230" ScrollViewer.VerticalScrollBarVisibility="Disabled" Loaded="UserControl_Loaded" IsVisibleChanged="UserControl_IsVisibleChanged">
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="ButtonStyleClose" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
@@ -99,46 +100,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ToggleButtonStyleFold" TargetType="{x:Type ToggleButton}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ToggleButton}">
-                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
-                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RenderTransformOrigin="0.5,0.5"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="Button.IsDefaulted" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
-                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
-                            </Trigger>
-                            <Trigger Property="IsChecked" Value="true">
-                                <Setter Property="RenderTransform" TargetName="contentPresenter" Value="{Binding Rotate90}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
     </UserControl.Resources>
     <StackPanel>
         <StackPanel.Background>
@@ -154,12 +115,14 @@
             <Button x:Name="buttonReverse" Content="⇄" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Padding="2" Height="20" Click="buttonReverse_Click" Focusable="False" IsTabStop="False" Style="{DynamicResource ButtonStyleDropDown}"/>
             <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" Style="{StaticResource ButtonStyleClose}" Click="buttonClose_Click"/>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Margin="0,1">
-            <ToggleButton x:Name="buttonFoldOption" HorizontalAlignment="Left" VerticalAlignment="Top" Content="▶" Padding="2,0" BorderThickness="0" Background="Transparent" Style="{DynamicResource ToggleButtonStyleFold}"/>
-            <StackPanel x:Name="stackPanelOptions">
-                <CheckBox x:Name="checkBoxWardwrap" Content="単語単位で検索" Margin="1"/>
-                <CheckBox x:Name="checkBoxCaseful" Content="大文字小文字を区別" Margin="1"/>
-                <CheckBox x:Name="checkBoxRegex" Content="正規表現を使用" Margin="1"/>
+        <StackPanel Orientation="Vertical" Margin="0,1">
+            <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
+            <StackPanel Margin="12,0,0,0">
+                <StackPanel x:Name="stackPanelOptions" Visibility="{Binding IsChecked, ElementName=checkBoxFoldOption, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <CheckBox x:Name="checkBoxWardwrap" Content="単語単位で検索" Margin="1"/>
+                    <CheckBox x:Name="checkBoxCaseful" Content="大文字小文字を区別" Margin="1"/>
+                    <CheckBox x:Name="checkBoxRegex" Content="正規表現を使用" Margin="1"/>
+                </StackPanel>
             </StackPanel>
         </StackPanel>
     </StackPanel>

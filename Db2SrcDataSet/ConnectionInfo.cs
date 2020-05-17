@@ -284,6 +284,8 @@ namespace Db2Source
         }
 
         [JsonIgnore]
+        public bool IsPasswordHidden { get; set; }
+        [JsonIgnore]
         public ExtraCommandCollecion ExtraCommands { get; } = new ExtraCommandCollecion();
 
         internal protected virtual void Load(Dictionary<string, string> data)
