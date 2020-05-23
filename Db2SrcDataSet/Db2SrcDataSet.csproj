@@ -71,10 +71,16 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Comment.cs" />
+    <Compile Include="ComplexType.cs" />
     <Compile Include="ConnectionInfo.cs" />
+    <Compile Include="Constraint.cs" />
     <Compile Include="Db2SrcDataSet.cs" />
     <Compile Include="Db2srcDataSet.UI.cs" />
+    <Compile Include="Dependency.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="Index.cs" />
+    <Compile Include="NamedObject.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.lex.cs" />
@@ -87,6 +93,15 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Schema.cs" />
+    <Compile Include="SchemaObject.cs" />
+    <Compile Include="Selectable.cs" />
+    <Compile Include="Sequence.cs" />
+    <Compile Include="StoredFunction.cs" />
+    <Compile Include="Table.cs" />
+    <Compile Include="Trigger.cs" />
+    <Compile Include="Type.cs" />
+    <Compile Include="View.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
