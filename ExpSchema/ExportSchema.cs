@@ -302,10 +302,26 @@ namespace Db2Source
                             _excludeSchemas.Add(v.ToLower());
                             break;
                         case "-E":
-                            _encoding = Encoding.GetEncoding(args[++i]);
+                            int cp;
+                            v = args[++i];
+                            if (int.TryParse(v, out cp))
+                            {
+                                _encoding = Encoding.GetEncoding(cp);
+                            }
+                            else
+                            {
+                                _encoding = Encoding.GetEncoding(v);
+                            }
                             break;
                         case "--encoding":
-                            _encoding = Encoding.GetEncoding(v);
+                            if (int.TryParse(v, out cp))
+                            {
+                                _encoding = Encoding.GetEncoding(cp);
+                            }
+                            else
+                            {
+                                _encoding = Encoding.GetEncoding(v);
+                            }
                             break;
                         case "-?":
                         case "--help":

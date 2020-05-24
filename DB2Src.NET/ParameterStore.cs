@@ -5,12 +5,147 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Data;
 
 namespace Db2Source
 {
+    public class DbTypeInfo
+    {
+        public DbType DbType { get; private set; }
+        public string Name { get; private set; }
+        private delegate object ParseDbType(string value);
+        private delegate string DbTypeToString(object value);
+        private ParseDbType _parse;
+        private DbTypeToString _valueToString;
+        private static object ParseString(string value)
+        {
+            return value;
+        }
+        private static object ParseBool(string value)
+        {
+            return bool.Parse(value);
+        }
+        private static object ParseSByte(string value)
+        {
+            return sbyte.Parse(value);
+        }
+        private static object ParseInt16(string value)
+        {
+            return short.Parse(value);
+        }
+        private static object ParseInt32(string value)
+        {
+            return int.Parse(value);
+        }
+        private static object ParseInt64(string value)
+        {
+            return long.Parse(value);
+        }
+        private static object ParseByte(string value)
+        {
+            return byte.Parse(value);
+        }
+        private static object ParseUInt16(string value)
+        {
+            return ushort.Parse(value);
+        }
+        private static object ParseUInt32(string value)
+        {
+            return uint.Parse(value);
+        }
+        private static object ParseUInt64(string value)
+        {
+            return ulong.Parse(value);
+        }
+        private static object ParseSingle(string value)
+        {
+            return float.Parse(value);
+        }
+        private static object ParseDouble(string value)
+        {
+            return double.Parse(value);
+        }
+        private static object ParseDecimal(string value)
+        {
+            return decimal.Parse(value);
+        }
+        private static object ParseDate(string value)
+        {
+            return DateTime.ParseExact(value, Db2SourceContext.DateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+        }
+        private static object ParseDateTime(string value)
+        {
+            return DateTime.ParseExact(value, Db2SourceContext.DateTimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+        }
+        private static string ObjectToString(object value)
+        {
+            return value?.ToString();
+        }
+        private static string DateToString(object value)
+        {
+            if (!(value is DateTime))
+            {
+                return null;
+            }
+            return ((DateTime)value).ToString(Db2SourceContext.DateFormat);
+        }
+        private static string DateTimeToString(object value)
+        {
+            if (!(value is DateTime))
+            {
+                return null;
+            }
+            return ((DateTime)value).ToString(Db2SourceContext.DateTimeFormat);
+        }
+        public object Parse(string value)
+        {
+            return _parse?.Invoke(value);
+        }
+        public string ValueToString(object value)
+        {
+            return _valueToString?.Invoke(value);
+        }
+        public static readonly DbTypeInfo[] DbTypeInfos = new DbTypeInfo[]
+        {
+            //new DbTypeInfo() {DbType = DbType.AnsiString, Name="AnsiString", _parse = ParseString, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Binary, Name="Binary", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Byte, Name="Byte", _parse = ParseByte, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.Boolean, Name="Boolean", _parse = ParseBool, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Currency, Name="Currency", _parse = ParseInt16, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.Date, Name="日付", _parse = ParseDate, _valueToString = DateToString },
+            new DbTypeInfo() {DbType = DbType.DateTime, Name="日付時刻", _parse = ParseDateTime, _valueToString = DateTimeToString },
+            new DbTypeInfo() {DbType = DbType.Decimal, Name="実数(Decimal)", _parse = ParseDecimal, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.Double, Name="実数(Double)", _parse = ParseDouble, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Guid, Name="Guid", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Int16, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.Int32, Name="整数(32bit)", _parse = ParseInt32, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.Int64, Name="整数(64bit)", _parse = ParseInt64, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Object, Name="Object", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.SByte, Name="Sbyte", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Single, Name="Single", _parse = ParseSingle, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.String, Name="文字列", _parse = ParseString, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Time, Name="Time", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.UInt16, Name="UInt16", _parse = ParseUInt16, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.UInt32, Name="符号なし整数(32bit)", _parse = ParseUInt32, _valueToString = ObjectToString },
+            new DbTypeInfo() {DbType = DbType.UInt64, Name="符号なし整数(64bit)", _parse = ParseUInt64, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.VarNumeric, Name="VarNumeric", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.AnsiStringFixedLength, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.StringFixedLength, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.Xml, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.DateTime2, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+            //new DbTypeInfo() {DbType = DbType.DateTimeOffset, Name="Int16", _parse = ParseInt16, _valueToString = ObjectToString },
+        };
+        private static Dictionary<DbType, DbTypeInfo> InitDbTypeToInto()
+        {
+            Dictionary<DbType, DbTypeInfo> ret = new Dictionary<DbType, DbTypeInfo>();
+            foreach (DbTypeInfo info in DbTypeInfos)
+            {
+                ret.Add(info.DbType, info);
+            }
+            return ret;
+        }
+        public static readonly Dictionary<DbType, DbTypeInfo> DbTypeToDbTypeInfo = InitDbTypeToInto();
+    }
+
     public class ParameterNameChangeEventArgs: EventArgs
     {
         public string OldValue { get; private set; }
