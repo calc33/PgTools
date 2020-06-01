@@ -12,7 +12,7 @@ namespace Db2Source
             l.Sort();
             foreach (Schema sc in l)
             {
-                TreeNode nodeSc = new TreeNode(sc.Name, null, typeof(Schema), 0, (sc.Name == CurrentSchema))
+                TreeNode nodeSc = new TreeNode(sc.Name, null, typeof(Schema), 0, (sc.Name == CurrentSchema), sc.IsHidden)
                 {
                     Target = sc
                 };
@@ -63,7 +63,7 @@ namespace Db2Source
                 List<TreeNode> lGrp;
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("表", "表 ({0})", typeof(Table), 0, false);
+                nodeGrp = new TreeNode("表", "表 ({0})", typeof(Table), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (Table t in tbls)
                 {
@@ -72,7 +72,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("ビュー", "ビュー ({0})", typeof(View), 0, false);
+                nodeGrp = new TreeNode("ビュー", "ビュー ({0})", typeof(View), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (View t in views)
                 {
@@ -81,7 +81,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("型", "型 ({0})", typeof(Type_), 0, false);
+                nodeGrp = new TreeNode("型", "型 ({0})", typeof(Type_), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (SchemaObject t in types)
                 {
@@ -90,7 +90,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("ストアド関数", "ストアド関数 ({0})", typeof(View), 0, false);
+                nodeGrp = new TreeNode("ストアド関数", "ストアド関数 ({0})", typeof(View), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (StoredFunction fn in funcs)
                 {
@@ -99,7 +99,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("トリガー関数", "トリガー関数 ({0})", typeof(View), 1, false);
+                nodeGrp = new TreeNode("トリガー関数", "トリガー関数 ({0})", typeof(View), 1, false, false);
                 lSc.Add(nodeGrp);
                 foreach (StoredFunction fn in trFuncs)
                 {
@@ -108,7 +108,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("シーケンス", "シーケンス ({0})", typeof(Sequence), 0, false);
+                nodeGrp = new TreeNode("シーケンス", "シーケンス ({0})", typeof(Sequence), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (Sequence t in seqs)
                 {

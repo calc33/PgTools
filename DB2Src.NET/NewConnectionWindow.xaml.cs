@@ -266,6 +266,7 @@ namespace Db2Source
             {
                 tb.Text = pb.Password;
             }
+            Target.Password = pb.Password;
             UpdateCheckBoxPasswordEnabled(tb);
         }
 

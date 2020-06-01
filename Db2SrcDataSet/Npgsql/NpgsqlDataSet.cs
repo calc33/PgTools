@@ -86,7 +86,15 @@ namespace Db2Source
 
         protected internal override bool IsHiddenSchema(string schemaName)
         {
-            return HiddenSchemaNames.ContainsKey(schemaName);
+            bool ret;
+            if (HiddenSchemaNames.TryGetValue(schemaName, out ret))
+            {
+                return ret;
+            }
+            string sc = schemaName.ToLower();
+            ret = (sc == "information_schema" || sc.StartsWith("pg_"));
+            HiddenSchemaNames.Add(schemaName, ret);
+            return ret;
         }
 
         private static List<string> GetParameterNames(string sql)

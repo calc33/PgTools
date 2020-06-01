@@ -503,7 +503,12 @@ namespace Db2Source
             /// </summary>
             public object Old(int index)
             {
-                return _old[index];
+                object ret = _old[index];
+                if (ret != Unchanged)
+                {
+                    return ret;
+                }
+                return _data[index];
             }
 
             public object[] GetKeys()

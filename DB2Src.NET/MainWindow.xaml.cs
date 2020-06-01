@@ -58,8 +58,15 @@ namespace Db2Source
             {
                 string path = Assembly.GetExecutingAssembly().Location;
                 NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
-                string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, obj.DatabaseName, obj.UserName);
-                Process.Start(path, args);
+                if (obj != null)
+                {
+                    string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, obj.DatabaseName, obj.UserName);
+                    Process.Start(path, args);
+                }
+                else
+                {
+                    Process.Start(path);
+                }
                 return;
             }
             if (info == null)

@@ -18,9 +18,10 @@ namespace Db2Source
         public bool ShowChildCount { get; set; }
         public Type TargetType { get; set; }
         public bool IsBold { get; set; }
+        public bool IsHidden { get; set; }
         public object Target { get; set; }
         public TreeNode[] Children { get; set; }
-        public TreeNode(string name, string nameBase, Type targetType, int styleIndex, bool isBold)
+        public TreeNode(string name, string nameBase, Type targetType, int styleIndex, bool isBold, bool isHidden)
         {
             Name = name;
             NameBase = nameBase;
@@ -28,6 +29,8 @@ namespace Db2Source
             Hint = null;
             IsGrouped = true;
             IsBold = isBold;
+            IsHidden = isHidden;
+            TargetType = targetType;
             ShowChildCount = (NameBase != null);
             Target = null;
         }
@@ -37,6 +40,7 @@ namespace Db2Source
             StyleIndex = 0;
             Hint = target.CommentText;
             IsGrouped = false;
+            IsHidden = false;
             ShowChildCount = false;
             TargetType = target.GetType();
             Target = target;

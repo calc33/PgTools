@@ -45,20 +45,20 @@ namespace Db2Source
             comboBoxEncoding.SelectedIndex = 0;
         }
 
-        private static int CompareSchemaByName(Schema item1, Schema item2)
-        {
-            if (item1 == null || item2 == null)
-            {
-                return (item1 != null ? 1 : 0) - (item2 != null ? 1 : 0);
-            }
-            int ret;
-            ret = (item1.IsHidden ? 1 : 0) - (item2.IsHidden ? 1 : 0);
-            if (ret != 0) {
-                return ret;
-            }
-            ret = string.Compare(item1.Name, item2.Name);
-            return ret;
-        }
+        //private static int CompareSchemaByName(Schema item1, Schema item2)
+        //{
+        //    if (item1 == null || item2 == null)
+        //    {
+        //        return (item1 != null ? 1 : 0) - (item2 != null ? 1 : 0);
+        //    }
+        //    int ret;
+        //    ret = (item1.IsHidden ? 1 : 0) - (item2.IsHidden ? 1 : 0);
+        //    if (ret != 0) {
+        //        return ret;
+        //    }
+        //    ret = string.Compare(item1.Name, item2.Name);
+        //    return ret;
+        //}
         private void UpdateWrapPanelSchemas()
         {
             wrapPanelSchemas.Children.Clear();
@@ -67,7 +67,8 @@ namespace Db2Source
                 return;
             }
             List<Schema> l = new List<Schema>(_dataSet.Schemas);
-            l.Sort(CompareSchemaByName);
+            //l.Sort(CompareSchemaByName);
+            l.Sort();
             foreach (Schema sc in l)
             {
                 CheckBox cb = new CheckBox();

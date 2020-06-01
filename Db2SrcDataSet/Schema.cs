@@ -20,11 +20,16 @@ namespace Db2Source
         }
         public Db2SourceContext Owner { get; private set; }
         public string Name { get { return Identifier; } }
+        private bool? _isHidden = null;
         public bool IsHidden
         {
             get
             {
-                return Owner.IsHiddenSchema(Name);
+                if (!_isHidden.HasValue)
+                {
+                    _isHidden = Owner.IsHiddenSchema(Name);
+                }
+                return _isHidden.Value;
             }
         }
         private NamedCollection[] _collections;
@@ -104,7 +109,12 @@ namespace Db2Source
                 return -1;
             }
             Schema sc = (Schema)obj;
-            int ret = string.Compare(Name, sc.Name);
+            int ret = (IsHidden ? 1 : 0) - (sc.IsHidden ? 1 : 0);
+            if (ret != 0)
+            {
+                return ret;
+            }
+            ret = string.Compare(Name, sc.Name);
             if (ret != 0)
             {
                 return ret;

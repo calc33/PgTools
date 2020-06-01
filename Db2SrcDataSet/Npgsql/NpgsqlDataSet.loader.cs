@@ -2334,6 +2334,7 @@ namespace Db2Source
                 PgDescriptions.EndFillReference(this);
                 //PgDepends.EndFillReference(this);
 
+                LoadFromPgNamespaces();
                 LoadFromPgClass();
                 LoadFromPgType();
                 LoadFromPgProc();
@@ -2346,6 +2347,16 @@ namespace Db2Source
                     foreach (Schema.CollectionIndex idx in Enum.GetValues(typeof(Schema.CollectionIndex)))
                     {
                         s.GetCollection(idx).Sort();
+                    }
+                }
+            }
+            private void LoadFromPgNamespaces()
+            {
+                foreach (PgNamespace ns in PgNamespaces)
+                {
+                    if (!Context.IsHiddenSchema(ns.nspname))
+                    {
+                        Context.RequireSchema(ns.nspname);
                     }
                 }
             }

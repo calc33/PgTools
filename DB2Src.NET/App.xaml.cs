@@ -167,10 +167,11 @@ namespace Db2Source
 
     public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo
     {
-        public override string GetDefaultName()
-        {
-            return "新しい接続...";
-        }
+        public const string DEFAULE_NAME = "新しい接続...";
+        //public override string GetDefaultName()
+        //{
+        //    return "新しい接続...";
+        //}
         public NewNpgsqlConnectionInfo(bool fromSetting) : base()
         {
             if (fromSetting)
@@ -180,7 +181,8 @@ namespace Db2Source
                 DatabaseName = App.Database;
                 UserName = App.Username;
             }
-            Name = GetDefaultName();
+            //Name = GetDefaultName();
+            Name = DEFAULE_NAME;
         }
     }
 

@@ -44,7 +44,14 @@ namespace Db2Source
             {
                 if (node.TargetType == typeof(Schema))
                 {
-                    item.Style = Resources["TreeViewItemStyleSchema"] as Style;
+                    if (node.IsHidden)
+                    {
+                        item.Style = Resources["TreeViewItemStyleHiddenSchema"] as Style;
+                    }
+                    else
+                    {
+                        item.Style = Resources["TreeViewItemStyleSchema"] as Style;
+                    }
                 }
                 else
                 {
