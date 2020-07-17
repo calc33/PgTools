@@ -101,29 +101,34 @@
             </Setter>
         </Style>
     </UserControl.Resources>
-    <StackPanel>
-        <StackPanel.Background>
-            <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
-        </StackPanel.Background>
-        <StackPanel Orientation="Horizontal" Margin="2" VerticalAlignment="Center">
-            <TextBox x:Name="textBoxSearch" MinWidth="150" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,5,0" KeyUp="textBoxSearch_KeyUp"/>
-            <Button x:Name="buttonSearch" Content="➡" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Width="20" Height="20" ToolTip="次を検索(F3)" RenderTransformOrigin="0.5,0.5" Click="buttonSearch_Click">
-                <Button.Tag>
-                    <sys:Int32>1</sys:Int32>
-                </Button.Tag>
-            </Button>
-            <Button x:Name="buttonReverse" Content="⇄" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Padding="2" Height="20" Click="buttonReverse_Click" Focusable="False" IsTabStop="False" Style="{DynamicResource ButtonStyleDropDown}"/>
-            <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" Style="{StaticResource ButtonStyleClose}" Click="buttonClose_Click"/>
-        </StackPanel>
-        <StackPanel Orientation="Vertical" Margin="0,1">
-            <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
-            <StackPanel Margin="12,0,0,0">
-                <StackPanel x:Name="stackPanelOptions" Visibility="{Binding IsChecked, ElementName=checkBoxFoldOption, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <CheckBox x:Name="checkBoxWardwrap" Content="単語単位で検索" Margin="1"/>
-                    <CheckBox x:Name="checkBoxCaseful" Content="大文字小文字を区別" Margin="1"/>
-                    <CheckBox x:Name="checkBoxRegex" Content="正規表現を使用" Margin="1"/>
+    <Grid>
+        <StackPanel>
+            <StackPanel.Background>
+                <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlColorKey}}"/>
+            </StackPanel.Background>
+            <StackPanel Orientation="Horizontal" Margin="2" VerticalAlignment="Center">
+                <TextBox x:Name="textBoxSearch" MinWidth="150" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,5,0" KeyUp="textBoxSearch_KeyUp"/>
+                <Button x:Name="buttonSearch" Content="➡" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Width="20" Height="20" ToolTip="次を検索(F3)" RenderTransformOrigin="0.5,0.5" Click="buttonSearch_Click">
+                    <Button.Tag>
+                        <sys:Int32>1</sys:Int32>
+                    </Button.Tag>
+                </Button>
+                <Button x:Name="buttonReverse" Content="⇄" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Padding="2" Height="20" Click="buttonReverse_Click" Focusable="False" IsTabStop="False" Style="{DynamicResource ButtonStyleDropDown}"/>
+                <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" Style="{StaticResource ButtonStyleClose}" Click="buttonClose_Click"/>
+            </StackPanel>
+            <StackPanel Orientation="Vertical" Margin="0,1">
+                <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
+                <StackPanel Margin="12,0,0,0">
+                    <StackPanel x:Name="stackPanelOptions" Visibility="{Binding IsChecked, ElementName=checkBoxFoldOption, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <CheckBox x:Name="checkBoxWardwrap" Content="単語単位で検索" Margin="1"/>
+                        <CheckBox x:Name="checkBoxCaseful" Content="大文字小文字を区別" Margin="1"/>
+                        <CheckBox x:Name="checkBoxRegex" Content="正規表現を使用" Margin="1"/>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
         </StackPanel>
-    </StackPanel>
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
+            <Button x:Name="buttonMovePos" Content="⇩" BorderThickness="0" Margin="2" Padding="2,0" Click="buttonMovePos_Click"/>
+        </StackPanel>
+    </Grid>
 </UserControl>

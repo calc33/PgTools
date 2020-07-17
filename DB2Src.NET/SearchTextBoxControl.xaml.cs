@@ -89,7 +89,15 @@ namespace Db2Source
             }
             ScrollBar sbV = sc.Template.FindName("PART_VerticalScrollBar", sc) as ScrollBar;
             ScrollBar sbH = sc.Template.FindName("PART_HorizontalScrollBar", sc) as ScrollBar;
-            
+
+            if (sbV != null)
+            {
+                sbV.Scroll += TargetScrollBar_Scroll;
+            }
+            if (sbH != null)
+            {
+                sbH.Scroll += TargetScrollBar_Scroll;
+            }
             double w = (sbV != null) && sbV.IsVisible ? sbV.ActualWidth : 0;
             double h = (sbH != null) && sbH.IsVisible ? sbH.ActualHeight : 0;
             Thickness m = new Thickness(
@@ -102,6 +110,15 @@ namespace Db2Source
                 Margin = m;
             }
         }
+
+        private void TargetScrollBar_Scroll(object sender, ScrollEventArgs e)
+        {
+            if (textBoxSearch.IsFocused)
+            {
+                Target.Focus();
+            }
+        }
+
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue != null)
@@ -124,6 +141,7 @@ namespace Db2Source
                 tb.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, Find_Executed));
                 tb.CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, FindNext_Executed));
                 tb.CommandBindings.Add(new CommandBinding(SearchCommands.FindPrevious, FindPrevious_Executed));
+                tb.IsInactiveSelectionHighlightEnabled = true;
                 UpdateMargin();
             }
         }
@@ -549,6 +567,20 @@ namespace Db2Source
             if (!IsVisible)
             {
                 SaveToRegistry();
+            }
+        }
+
+        private void buttonMovePos_Click(object sender, RoutedEventArgs e)
+        {
+            if (VerticalAlignment == VerticalAlignment.Top)
+            {
+                VerticalAlignment = VerticalAlignment.Bottom;
+                buttonMovePos.Content = "⇧";
+            }
+            else
+            {
+                VerticalAlignment = VerticalAlignment.Top;
+                buttonMovePos.Content = "⇩";
             }
         }
     }

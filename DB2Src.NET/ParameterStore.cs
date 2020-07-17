@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
+using System.Windows;
 
 namespace Db2Source
 {
@@ -70,11 +71,11 @@ namespace Db2Source
         }
         private static object ParseDate(string value)
         {
-            return DateTime.ParseExact(value, Db2SourceContext.DateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+            return DateTime.ParseExact(value, Db2SourceContext.ParseDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
         }
         private static object ParseDateTime(string value)
         {
-            return DateTime.ParseExact(value, Db2SourceContext.DateTimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+            return DateTime.ParseExact(value, Db2SourceContext.ParseDateTimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
         }
         private static string ObjectToString(object value)
         {
@@ -156,8 +157,15 @@ namespace Db2Source
             NewValue = newValue;
         }
     }
-    public class ParameterStore: IDataParameter, ICloneable
+    public class ParameterStore: DependencyObject, IDataParameter, ICloneable
     {
+        public static readonly DependencyProperty DbTypeProperty = DependencyProperty.Register("DbType", typeof(DbType), typeof(ParameterStore));
+        public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register("Direction", typeof(ParameterDirection), typeof(ParameterStore));
+        public static readonly DependencyProperty ParameterNameProperty = DependencyProperty.Register("ParameterName", typeof(string), typeof(ParameterStore));
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(object), typeof(ParameterStore));
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(ParameterStore));
+        public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParameterStore));
+
         public static ParameterStoreCollection AllParameters = new ParameterStoreCollection();
         public static ParameterStoreCollection GetParameterStores(IDbCommand command, ParameterStoreCollection stores, out bool modified)
         {
@@ -246,27 +254,31 @@ namespace Db2Source
             return p;
         }
 
-        private DbType _dbType;
         private DbTypeInfo _dbTypeInfo;
-        private ParameterDirection _direction;
         private bool _isNullable;
-        private string _parameterName;
         private string _sourceColumn;
         private DataRowVersion _sourceVersion;
         private object _value;
+
         public DbType DbType
         {
-            get { return _dbType; }
-            set
+            get { return (DbType)GetValue(DbTypeProperty); }
+            set { SetValue(DbTypeProperty, value); }
+        }
+
+        private void OnDbTypePropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            InvalidateDbTypeInfo();
+            DbParameter p = GetTarget();
+            if (p != null)
             {
-                _dbType = value;
-                _dbTypeInfo = null;
-                DbParameter p = GetTarget();
-                if (p != null)
-                {
-                    p.DbType = _dbType;
-                }
+                p.DbType = DbType;
             }
+        }
+
+        private void InvalidateDbTypeInfo()
+        {
+            _dbTypeInfo = null;
         }
         private void RequireDbTypeInfo()
         {
@@ -274,7 +286,7 @@ namespace Db2Source
             {
                 return;
             }
-            DbTypeInfo.DbTypeToDbTypeInfo.TryGetValue(_dbType, out _dbTypeInfo);
+            DbTypeInfo.DbTypeToDbTypeInfo.TryGetValue(DbType, out _dbTypeInfo);
         }
         public DbTypeInfo DbTypeInfo
         {
@@ -286,17 +298,19 @@ namespace Db2Source
         }
         public ParameterDirection Direction
         {
-            get { return _direction; }
-            set
+            get { return (ParameterDirection)GetValue(DirectionProperty); }
+            set { SetValue(DirectionProperty, value); }
+        }
+
+        private void OnDirectionPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DbParameter p = GetTarget();
+            if (p != null)
             {
-                _direction = value;
-                DbParameter p = GetTarget();
-                if (p != null)
-                {
-                    p.Direction = _direction;
-                }
+                p.Direction = Direction;
             }
         }
+
         public bool IsNullable
         {
             get { return _isNullable; }
@@ -313,31 +327,42 @@ namespace Db2Source
 
         public string ParameterName
         {
-            get { return _parameterName; }
-            set
-            {
-                if (_parameterName == value)
-                {
-                    return;
-                }
-                string oldName = _parameterName;
-                _parameterName = value;
-                DbParameter p = GetTarget();
-                if (p != null)
-                {
-                    if (!string.IsNullOrEmpty(value) && p.ParameterName != value)
-                    {
-                        _target.SetTarget(null);
-                    }
-                }
-                OnParameterNameChange(new ParameterNameChangeEventArgs(oldName, _parameterName));
-            }
+            get { return (string)GetValue(ParameterNameProperty); }
+            set { SetValue(ParameterNameProperty, value); }
         }
-        public event EventHandler<ParameterNameChangeEventArgs> ParameterNameChange;
-        protected void OnParameterNameChange(ParameterNameChangeEventArgs e)
+
+        public event EventHandler<DependencyPropertyChangedEventArgs> ParameterNameChange;
+
+        protected void OnParameterNamePropertyChange(DependencyPropertyChangedEventArgs e)
         {
             ParameterNameChange?.Invoke(this, e);
         }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            base.OnPropertyChanged(e);
+            if (e.Property == DbTypeProperty)
+            {
+                OnDbTypePropertyChanged(e);
+            }
+            if (e.Property == DirectionProperty)
+            {
+                OnDirectionPropertyChanged(e);
+            }
+            if (e.Property == ParameterNameProperty)
+            {
+                OnParameterNamePropertyChange(e);
+            }
+            if (e.Property == TextProperty)
+            {
+                OnTextPropertyChange(e);
+            }
+            if (e.Property == ValueProperty)
+            {
+                OnValuePropertyChanged(e);
+            }
+        }
+
         public string SourceColumn
         {
             get { return _sourceColumn; }
@@ -367,32 +392,69 @@ namespace Db2Source
 
         public object Value
         {
-            get { return _value; }
+            get { return GetValue(ValueProperty); }
             set
             {
-                _value = value;
-                DbParameter p = GetTarget();
-                if (p != null)
+                if (Value != value)
                 {
-                    p.Value = _value;
+                    SetValue(ValueProperty, value);
                 }
+                SetValue(TextProperty, DbTypeInfo?.ValueToString(value));
+                SetIsError(false);
             }
+        }
+
+        public event EventHandler<DependencyPropertyChangedEventArgs> ValueChanged;
+        private void OnValuePropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DbParameter p = GetTarget();
+            if (p != null)
+            {
+                p.Value = Value;
+            }
+            ValueChanged?.Invoke(this, e);
         }
         public string Text
         {
-            get
-            {
-                return DbTypeInfo?.ValueToString(Value);
-            }
+            get { return (string)GetValue(TextProperty); }
             set
             {
-                if (DbTypeInfo == null)
+                if (Text == value)
                 {
                     return;
                 }
-                Value = DbTypeInfo.Parse(value);
+                SetValue(TextProperty, value);
             }
         }
+        public event EventHandler<DependencyPropertyChangedEventArgs> TextChanged;
+        private void OnTextPropertyChange(DependencyPropertyChangedEventArgs e)
+        {
+            if (DbTypeInfo == null)
+            {
+                return;
+            }
+            try
+            {
+                object v = DbTypeInfo.Parse(Text);
+                SetValue(ValueProperty, v);
+                SetIsError(false);
+                string txt = DbTypeInfo?.ValueToString(Value);
+                if (Text != txt)
+                {
+                    SetValue(TextProperty, txt);
+                }
+            }
+            catch
+            {
+                SetIsError(true);
+            }
+            TextChanged?.Invoke(this, e);
+        }
+        private void SetIsError(bool value)
+        {
+            SetValue(IsErrorProperty, value);
+        }
+        public bool IsError { get { return (bool)GetValue(IsErrorProperty); } }
         public DbParameter Target
         {
             get
@@ -425,10 +487,10 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("parameter");
             }
-            _dbType = parameter.DbType;
-            _direction = parameter.Direction;
-            _isNullable = parameter.IsNullable;
-            _parameterName = parameter.ParameterName;
+            DbType = parameter.DbType;
+            Direction = parameter.Direction;
+            IsNullable = parameter.IsNullable;
+            ParameterName = parameter.ParameterName;
             _sourceColumn = parameter.SourceColumn;
             _sourceVersion = parameter.SourceVersion;
             _value = parameter.Value;
@@ -441,10 +503,10 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("parameterName");
             }
-            _dbType = DbType.String;
-            _direction = ParameterDirection.InputOutput;
-            _isNullable = true;
-            _parameterName = parameterName;
+            DbType = DbType.String;
+            Direction = ParameterDirection.InputOutput;
+            IsNullable = true;
+            ParameterName = parameterName;
             _sourceColumn = null;
             _sourceVersion = DataRowVersion.Current;
             _value = null;
@@ -502,11 +564,16 @@ namespace Db2Source
                 _nameDict = null;
             }
         }
-        private void ParameterStore_ParameterNameChange(object sender, ParameterNameChangeEventArgs e)
+        private void ParameterStore_ParameterNameChange(object sender, DependencyPropertyChangedEventArgs e)
         {
             InvalidateNameDict();
         }
 
+        public event EventHandler<DependencyPropertyChangedEventArgs> ParameterTextChanged;
+        private void ParameterStore_TextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            ParameterTextChanged?.Invoke(sender, e);
+        }
         public ParameterStore this[string name]
         {
             get
@@ -601,6 +668,7 @@ namespace Db2Source
             if (item != null)
             {
                 item.ParameterNameChange += ParameterStore_ParameterNameChange;
+                item.TextChanged += ParameterStore_TextChanged;
             }
             InvalidateNameDict();
         }
@@ -610,6 +678,7 @@ namespace Db2Source
             foreach (ParameterStore obj in _list)
             {
                 obj.ParameterNameChange -= ParameterStore_ParameterNameChange;
+                obj.TextChanged -= ParameterStore_TextChanged;
             }
             _list.Clear();
             InvalidateNameDict();

@@ -101,14 +101,14 @@ namespace Db2Source
                 buf.AppendLine();
                 return buf.ToString();
             }
-            public IDbCommand GetSqlCommand(Db2SourceContext dataSet)
+            public IDbCommand GetSqlCommand(Db2SourceContext dataSet, IDbConnection connection)
             {
                 string sql = GetSql(dataSet);
                 if (string.IsNullOrEmpty(sql))
                 {
                     return null;
                 }
-                IDbCommand cmd = dataSet.GetSqlCommand(sql, dataSet.Connection());
+                IDbCommand cmd = dataSet.GetSqlCommand(sql, connection);
                 return cmd;
             }
 
@@ -219,6 +219,10 @@ namespace Db2Source
                     l.Add(info);
                 }
                 return l.ToArray();
+            }
+            public override string ToString()
+            {
+                return TableName;
             }
         }
 
@@ -349,15 +353,18 @@ namespace Db2Source
             await dataSet.LoadSchemaAsync();
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
             TableInfo[] tbls = TableInfo.LoadFromConfigFile(configFile);
-            foreach (TableInfo tbl in tbls)
+            using (IDbConnection conn = dataSet.NewConnection())
             {
-                if (!activeSchemas.ContainsKey(tbl.Schema))
+                foreach (TableInfo tbl in tbls)
                 {
-                    continue;
-                }
-                using (IDbCommand cmd = tbl.GetSqlCommand(DataSet))
-                {
-                    ExportTbl(dataSet, baseDir, tbl, cmd, encoding);
+                    if (!activeSchemas.ContainsKey(tbl.Schema))
+                    {
+                        continue;
+                    }
+                    using (IDbCommand cmd = tbl.GetSqlCommand(DataSet, conn))
+                    {
+                        ExportTbl(dataSet, baseDir, tbl, cmd, encoding);
+                    }
                 }
             }
         }

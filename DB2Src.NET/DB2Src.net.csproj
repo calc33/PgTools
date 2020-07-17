@@ -95,6 +95,7 @@
     <Compile Include="AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Commands.cs" />
     <Compile Include="DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
     <Compile Include="ExportSchema.xaml.cs">

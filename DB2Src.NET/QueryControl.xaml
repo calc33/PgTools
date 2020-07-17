@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Db2Source"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Initialized="UserControl_Initialized">
+             d:DesignHeight="300" Initialized="UserControl_Initialized" Unloaded="UserControl_Unloaded" Width="488">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -23,7 +23,7 @@
                     <ColumnDefinition Width="auto"/>
                 </Grid.ColumnDefinitions>
                 <Grid>
-	                <TextBox x:Name="textBoxSql" VerticalScrollBarVisibility="Visible" TabIndex="0" AcceptsReturn="True" ToolTip="(SQLを入力してください)" HorizontalScrollBarVisibility="Auto"/>
+                    <TextBox x:Name="textBoxSql" VerticalScrollBarVisibility="Visible" TabIndex="0" AcceptsReturn="True" ToolTip="(SQLを入力してください)" HorizontalScrollBarVisibility="Auto"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSql}" FontFamily="Yu Gothic UI"/>
                 </Grid>
                 <GridSplitter x:Name="splitterParameters" Grid.Column="1" Width="4" HorizontalAlignment="Left"/>
@@ -32,7 +32,17 @@
                         <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}" />
                         <DataGridComboBoxColumn x:Name="dataGridColumnDbType" Header="型" SelectedValueBinding="{Binding DbType}" DisplayMemberPath="Name" SelectedValuePath="DbType" />
                         <DataGridCheckBoxColumn Header="Null" Binding="{Binding IsNull}"/>
-                        <DataGridTextColumn Header="値" Binding="{Binding Text}" MinWidth="64"/>
+                        <DataGridTextColumn Header="値" Binding="{Binding Text}" MinWidth="64">
+                            <DataGridTextColumn.CellStyle>
+                                <Style TargetType="{x:Type DataGridCell}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsError}" Value="True">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGridTextColumn.CellStyle>
+                        </DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

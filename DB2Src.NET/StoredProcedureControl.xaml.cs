@@ -296,7 +296,7 @@ namespace Db2Source
                 {
                     p.SetValue();
                 }
-                using (IDbConnection conn = ctx.Connection())
+                using (IDbConnection conn = ctx.NewConnection())
                 {
                     IDbCommand cmd = Target.DbCommand;
                     try
@@ -374,8 +374,13 @@ namespace Db2Source
 
         }
     }
-    public class ParamEditor
+    public class ParamEditor: DependencyObject
     {
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(string), typeof(ParamEditor));
+        public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParamEditor));
+        public static readonly DependencyProperty StringFormatProperty = DependencyProperty.Register("StringFormat", typeof(string), typeof(ParamEditor));
+        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(ParamEditor));
+        public static readonly DependencyProperty NewValueProperty = DependencyProperty.Register("NewValue", typeof(string), typeof(ParamEditor));
         private Parameter _parameter;
         private IDbDataParameter _dbParameter;
         public Parameter Parameter
@@ -481,10 +486,56 @@ namespace Db2Source
             }
         }
 
-        public string StringFormat { get; private set; }
-        public bool IsNull { get; set; }
-        public string Value { get; set; }
-        public string NewValue { get; set; }
+        public string StringFormat
+        {
+            get { return (string)GetValue(StringFormatProperty); }
+            private set { SetValue(StringFormatProperty, value); }
+        }
+        public bool IsNull
+        {
+            get { return (bool)GetValue(IsNullProperty); }
+            set { SetValue(IsNullProperty, value); }
+        }
+        public string Value
+        {
+            get { return (string)GetValue(ValueProperty); }
+            set { SetValue(ValueProperty, value); }
+        }
+
+        public string NewValue
+        {
+            get { return (string)GetValue(NewValueProperty); }
+            set { SetValue(NewValueProperty, value); }
+        }
+
+        private void ValuePropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Value) && IsNull)
+            {
+                IsNull = false;
+            }
+        }
+
+        private void IsNullPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (IsNull && !string.IsNullOrEmpty(Value))
+            {
+                Value = null;
+            }
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property == ValueProperty)
+            {
+                ValuePropertyChanged(e);
+            }
+            if (e.Property == IsNullProperty)
+            {
+                IsNullPropertyChanged(e);
+            }
+            base.OnPropertyChanged(e);
+        }
         //public ParamEditor() { }
         public ParamEditor(Parameter param)
         {

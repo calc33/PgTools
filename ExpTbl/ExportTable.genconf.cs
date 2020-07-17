@@ -88,7 +88,7 @@ namespace Db2Source
             await dataSet.LoadSchemaAsync();
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
             StringBuilder buf = new StringBuilder();
-            IDbConnection conn = dataSet.Connection();
+            IDbConnection conn = dataSet.NewConnection();
             IDbCommand cmdTbl = dataSet.GetSqlCommand(_tableSql, conn);
             IDbCommand cmdCol = dataSet.GetSqlCommand(Properties.Resources.ColumnSQL, conn);
             IDbCommand cmdKey = dataSet.GetSqlCommand(Properties.Resources.KeyConsSQL, conn);

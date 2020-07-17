@@ -118,6 +118,13 @@ namespace Db2Source
         /// </summary>
         Every
     }
+
+    public enum CaseRule
+    {
+        Lowercase,
+        Uppercase
+    }
+
     public abstract partial class Db2SourceContext: IComparable
     {
         public static bool IsSQLLoggingEnabled = false;
@@ -156,6 +163,12 @@ namespace Db2Source
         public static string[] TimeFormats { get; set; } = new string[] { "HH:mm:ss", "HH:mm" };
         public static string DateTimeFormat { get; set; } = "yyyy/MM/dd HH:mm:ss";
         public static string[] DateTimeFormats { get; set; } = new string[] { "yyyy/MM/dd HH:mm:ss", "yyyy/MM/dd HH:mm", "yyyy/MM/dd" };
+
+        public static string ParseDateFormat { get; set; } = "yyyy/M/d";
+        public static string ParseTimeFormat { get; set; } = "H:m:s";
+        public static string[] ParseTimeFormats { get; set; } = new string[] { "H:m:s", "H:m" };
+        public static string ParseDateTimeFormat { get; set; } = "yyyy/M/d H:m:s";
+        public static string[] ParseDateTimeFormats { get; set; } = new string[] { "yyyy/M/d H:m:s", "yyyy/M/d H:m", "yyyy/M/d" };
 
         public virtual Dictionary<string, PropertyInfo> BaseTypeToProperty { get { return null; } }
 
@@ -293,7 +306,7 @@ namespace Db2Source
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
         public int PreferedCharsPerLine { get; set; } = 80;
-        public IDbConnection Connection()
+        public IDbConnection NewConnection()
         {
             return ConnectionInfo?.NewConnection();
         }
@@ -462,6 +475,13 @@ namespace Db2Source
             buf.Append('\'');
             return buf.ToString();
         }
+
+        /// <summary>
+        /// SQLの記法(クオートの有無、大文字小文字など)を統一化して返す
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
+        public abstract string NormalizeSQL(string sql, CaseRule reservedRule, CaseRule identifierRule);
 
         public abstract SQLParts SplitSQL(string sql);
         //public abstract IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters);
@@ -668,7 +688,7 @@ namespace Db2Source
         public void LoadSchema()
         {
             Clear();
-            using (IDbConnection conn = Connection())
+            using (IDbConnection conn = NewConnection())
             {
                 LoadSchema(conn);
             }
@@ -752,7 +772,7 @@ namespace Db2Source
             string schnm = sch.Name;
             string objid = table.Identifier;
             Schema.CollectionIndex idx = table.GetCollectionIndex();
-            using (IDbConnection conn = Connection())
+            using (IDbConnection conn = NewConnection())
             {
                 LoadSchema(conn);
                 //LoadTable(schnm, objid, conn);
@@ -773,7 +793,7 @@ namespace Db2Source
             string schnm = sch.Name;
             string objid = view.Identifier;
             Schema.CollectionIndex idx = view.GetCollectionIndex();
-            using (IDbConnection conn = Connection())
+            using (IDbConnection conn = NewConnection())
             {
                 LoadSchema(conn);
                 //LoadView(schnm, objid, conn);
@@ -815,7 +835,7 @@ namespace Db2Source
 
         public void ExecSqls(IEnumerable<string> sqls)
         {
-            using (IDbConnection conn = Connection())
+            using (IDbConnection conn = NewConnection())
             {
                 foreach (string s in sqls)
                 {

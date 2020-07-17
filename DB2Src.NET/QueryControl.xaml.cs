@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -104,7 +106,7 @@ namespace Db2Source
         private void UpdateDataGridResult(SQLParts sqls)
         {
             Db2SourceContext ctx = CurrentDataSet;
-            using (IDbConnection conn = ctx.Connection())
+            using (IDbConnection conn = ctx.NewConnection())
             {
                 bool modified;
                 Parameters = ParameterStore.GetParameterStores(sqls.ParameterNames, Parameters, out modified);
@@ -113,6 +115,16 @@ namespace Db2Source
                     return;
                 }
 
+                foreach (ParameterStore p in Parameters)
+                {
+                    if (p.IsError)
+                    {
+                        dataGridParameters.Focus();
+                        dataGridParameters.SelectedItem = p;
+                        MessageBox.Show(string.Format("パラメータ{0}の値が不正です", p.ParameterName), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+                }
                 foreach (SQLPart sql in sqls.Items)
                 {
                     IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, conn);
@@ -153,6 +165,14 @@ namespace Db2Source
             }
         }
 
+        private void Parameters_ParameterTextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            IEnumerable temp = dataGridParameters.ItemsSource;
+            dataGridParameters.ItemsSource = null;
+            dataGridParameters.ItemsSource = temp;
+            //dataGridParameters.UpdateLayout();
+        }
+
         private void listBoxLogCommandCopy_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (listBoxLog.SelectedItems.Count == 0)
@@ -173,6 +193,12 @@ namespace Db2Source
         private void listBoxLogCommandSelAll_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             listBoxLog.SelectAll();
+            e.Handled = true;
+        }
+
+        private void textBoxSqlCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            textBoxSql.Text = CurrentDataSet.NormalizeSQL(textBoxSql.Text, CaseRule.Lowercase, CaseRule.Lowercase);
             e.Handled = true;
         }
 
@@ -205,16 +231,37 @@ namespace Db2Source
 
         private void UserControl_Initialized(object sender, EventArgs e)
         {
+            ParameterStore.AllParameters.ParameterTextChanged += Parameters_ParameterTextChanged;
             DataGridControllerResult = new DataGridController();
             //DataGridControllerResult.Context = CurrentDataSet;
             DataGridControllerResult.Grid = dataGridResult;
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, listBoxLogCommandCopy_Executed));
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.SelectAll, listBoxLogCommandSelAll_Executed));
+            textBoxSql.CommandBindings.Add(new CommandBinding(QueryCommands.NormalizeSQL, textBoxSqlCommandNormalizeSql_Executed));
         }
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
             DataGridCommands.CopyTable.Execute(null, dataGridResult);
+        }
+
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            ParameterStore.AllParameters.ParameterTextChanged -= Parameters_ParameterTextChanged;
+        }
+    }
+    public class IsErrorBrushConverter: IValueConverter
+    {
+        private static Brush RedBrush = new SolidColorBrush(Colors.Red);
+        //private static Brush NormalBrush = SystemColors.WindowTextBrush;
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (((value is bool) && (bool)value)) ? RedBrush : SystemColors.WindowTextBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

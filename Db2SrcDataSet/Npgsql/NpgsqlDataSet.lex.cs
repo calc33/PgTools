@@ -524,6 +524,76 @@ namespace Db2Source
             }
         }
 
+        private string NormalizeIdentifier(string value, CaseRule rule, bool noQuote)
+        {
+            string s = DequoteIdentifier(value);
+            switch (rule)
+            {
+                case CaseRule.Lowercase:
+                    s = s.ToLower();
+                    break;
+                case CaseRule.Uppercase:
+                    s = s.ToUpper();
+                    break;
+                default:
+                    throw new ArgumentException(string.Format("rule={0}に対する処理がありません", Enum.GetName(typeof(CaseRule), rule)));
+            }
+            if (!noQuote && NeedQuotedPgsqlIdentifier(s))
+            {
+                s = GetQuotedIdentifier(s);
+            }
+            return s;
+        }
+        private string NormalizeDefBody(string sql, CaseRule reservedRule, CaseRule identifierRule)
+        {
+            if (string.IsNullOrEmpty(sql))
+            {
+                return sql;
+            }
+            if (sql[0] != '$' || sql[sql.Length - 1] != '$')
+            {
+                return sql;
+            }
+            int p1 = sql.IndexOf('$', 1);
+            string mark1 = sql.Substring(0, p1 + 1);
+            int p2 = sql.LastIndexOf('$', sql.Length - 2);
+            string mark2 = sql.Substring(p2);
+            string body = sql.Substring(p1 + 1, p2 - p1 - 1);
+            body = NormalizeSQL(body, reservedRule, identifierRule);
+            return mark1 + body + mark2;
+        }
+
+        public override string NormalizeSQL(string sql, CaseRule reservedRule, CaseRule identifierRule)
+        {
+            StringBuilder buf = new StringBuilder();
+            TokenizedSQL tsql = new TokenizedSQL(sql);
+            bool noQuote = false;
+            foreach (Token t in tsql.Tokens)
+            {
+                switch(t.Kind)
+                {
+                    case TokenKind.Identifier:
+                        if (IsReservedWord(t.Value))
+                        {
+                            buf.Append(NormalizeIdentifier(t.Value, reservedRule, true));
+                        }
+                        else
+                        {
+                            buf.Append(NormalizeIdentifier(t.Value, identifierRule, noQuote));
+                        }
+                        break;
+                    case TokenKind.DefBody:
+                        buf.Append(NormalizeDefBody(t.Value, reservedRule, identifierRule));
+                        break;
+                    default:
+                        buf.Append(t.Value);
+                        break;
+                }
+                noQuote = (t.Kind == TokenKind.Operator) && (t.ID == TokenID.Colon);
+            }
+            return buf.ToString();
+        }
+
         public override SQLParts SplitSQL(string sql)
         {
             List<SQLPart> l = new List<SQLPart>();

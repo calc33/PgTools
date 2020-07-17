@@ -37,8 +37,8 @@
                     </StackPanel>
                     <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleSearch}" Click="buttonFetch_Click" HorizontalAlignment="Left" Width="34" Content="検索" DockPanel.Dock="Right" Margin="2,0" TabIndex="1"/>
                     <Grid>
-	                    <TextBox x:Name="textBoxCondition" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0"/>
-	                    <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
+                        <TextBox x:Name="textBoxCondition" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0"/>
+                        <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </DockPanel>
                 <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2" TabIndex="4"/>
@@ -150,7 +150,7 @@
                     <TextBox Grid.Column="1" Grid.Row="2" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2"/>
                     <TextBlock Grid.Row="3" Text="処理："/>
                     <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
-                    
+
                 </Grid>
             </Grid>
         </TabItem>
@@ -212,9 +212,9 @@
                             </StackPanel>
                         </ScrollViewer>
                         <Grid>
-	                        <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
+                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"/>
                             <local:SearchTextBoxControl x:Name="searchTextBoxSelectSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSelectSql}" FontFamily="Yu Gothic UI"/>
-	                    </Grid>
+                        </Grid>
                     </DockPanel>
                 </TabItem>
             </TabControl>

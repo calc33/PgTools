@@ -1364,7 +1364,7 @@ namespace Db2Source
             {
                 throw new NotSupportedException("Table is null");
             }
-            using (IDbConnection conn = Table.Context.Connection())
+            using (IDbConnection conn = Table.Context.NewConnection())
             {
                 Save(conn);
             }

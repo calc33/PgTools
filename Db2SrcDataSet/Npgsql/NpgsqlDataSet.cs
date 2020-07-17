@@ -47,9 +47,13 @@ namespace Db2Source
         }
         private static readonly Dictionary<string, bool> PgsqlReservedDict = InitPgsqlReservedDict();
         private static readonly Regex PgSqlIdentifierRegex = new Regex("^[_A-z][_$0-9A-z]*$");
+        public static bool IsReservedWord(string value)
+        {
+            return PgsqlReservedDict.ContainsKey(value.ToUpper());
+        }
         public static bool NeedQuotedPgsqlIdentifier(string value)
         {
-            return !PgSqlIdentifierRegex.IsMatch(value) || PgsqlReservedDict.ContainsKey(value.ToUpper());
+            return !PgSqlIdentifierRegex.IsMatch(value) || IsReservedWord(value);
         }
         public override bool NeedQuotedIdentifier(string value)
         {

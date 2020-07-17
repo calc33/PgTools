@@ -376,7 +376,7 @@ namespace Db2Source
             string sql = Target.GetSelectSQL(textBoxCondition.Text, orderby, limit, false, out offset);
             try
             {
-                using (IDbConnection conn = ctx.Connection())
+                using (IDbConnection conn = ctx.NewConnection())
                 {
                     using (IDbCommand cmd = ctx.GetSqlCommand(sql, conn))
                     {
@@ -493,6 +493,14 @@ namespace Db2Source
             dataGridResult.CommandBindings.Add(b);
             b = new CommandBinding(SearchCommands.FindPrevious, FindPreviousCommand_Executed);
             dataGridResult.CommandBindings.Add(b);
+            b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
+            textBoxCondition.CommandBindings.Add(b);
+        }
+
+        private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            textBoxCondition.Text = Target.Context.NormalizeSQL(textBoxCondition.Text, CaseRule.Lowercase, CaseRule.Lowercase);
+            e.Handled = true;
         }
 
         private void ButtonApply_Click(object sender, RoutedEventArgs e)

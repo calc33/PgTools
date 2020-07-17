@@ -508,6 +508,8 @@
                     <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
                     <Separator/>
                     <MenuItem Header="すべて選択(_A)" InputGestureText="Ctrl+A" Command="ApplicationCommands.SelectAll"/>
+                    <Separator/>
+                    <MenuItem Header="SQLを正規化(_R)" Command="local:QueryCommands.NormalizeSQL"/>
                 </MenuItem>
                 <MenuItem Header="検索(_S)">
                     <MenuItem Header="検索(_F)..." InputGestureText="Ctrl+F" Command="ApplicationCommands.Find"/>
