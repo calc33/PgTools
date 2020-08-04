@@ -133,6 +133,27 @@ namespace Db2Source
                 return null;
             }
             p0--;
+            TokenizedSQL tsql = new TokenizedSQL(sql.Substring(offset));
+            bool wasColon = false;
+            int seq = 1;
+            Dictionary<string, int> pdict = new Dictionary<string, int>();
+            foreach (Token token in tsql.Tokens)
+            {
+                if (wasColon && token.Kind == TokenKind.Identifier)
+                {
+                    // パラメータは内部的に数字に置換して実行し、
+                    // 置換後のSQLでの文字位置が返るため
+                    // そのままでは位置がずれてしまう
+                    int idx;
+                    if (!pdict.TryGetValue(token.Value, out idx))
+                    {
+                        idx = seq++;
+                        pdict.Add(token.Value, idx);
+                    }
+                    p0 += (token.Value.Length - idx.ToString().Length);
+                }
+                wasColon = (token.ID == TokenID.Colon);
+            }
             int n = sql.Length;
             int p;
             for (p = p0; p < n && !char.IsWhiteSpace(sql, p); p++) ;
