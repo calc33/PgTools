@@ -194,6 +194,14 @@ namespace Db2Source
                 delim = ", ";
             }
             buf.Append(')');
+            if (constraint.Deferrable)
+            {
+                buf.Append(" deferrable");
+            }
+            if (constraint.Deferred)
+            {
+                buf.Append(" initially deferred");
+            }
             buf.Append(postfix);
             if (addNewline)
             {
@@ -259,6 +267,14 @@ namespace Db2Source
             {
                 buf.Append(" on delete ");
                 buf.Append(rule);
+            }
+            if (constraint.Deferrable)
+            {
+                buf.Append(" deferrable");
+            }
+            if (constraint.Deferred)
+            {
+                buf.Append(" initially deferred");
             }
             buf.Append(postfix);
             if (addNewline)
@@ -644,7 +660,7 @@ namespace Db2Source
                 {
                     return new string[0];
                 }
-                ctx = before.Context;
+                //ctx = before.Context;
                 return new string[] { string.Format("alter table {0} drop column {1}", before.EscapedIdentifier(CurrentSchema), before.EscapedName) };
             }
             ctx = after.Context;

@@ -36,8 +36,13 @@ namespace Db2Source
         private void buttonSelectPath_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog dlg = new SaveFileDialog();
-            dlg.DefaultExt = ".sql";
-            dlg.Filter = "SQL File(*.sql)|*.sql";
+            PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
+            if (opt != null)
+            {
+                opt = comboBoxFormat.Items[0] as PgDumpFormatOption;
+            }
+            dlg.DefaultExt = opt.DefaultExt;
+            dlg.Filter = opt.DialogFilter;
             dlg.FileName = textBoxPath.Text;
             bool? b = dlg.ShowDialog(this);
             if (!b.HasValue || !b.Value)
@@ -45,6 +50,18 @@ namespace Db2Source
                 return;
             }
             textBoxPath.Text = dlg.FileName;
+        }
+        private void buttonSelectDir_Click(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog dlg = new FolderBrowserDialog();
+            dlg.Title = "出力先フォルダを選択";
+            dlg.SelectedPath = textBoxDir.Text;
+            DialogResult ret = dlg.ShowDialog(this);
+            if (ret != Db2Source.DialogResult.OK)
+            {
+                return;
+            }
+            textBoxDir.Text = dlg.SelectedPath;
         }
 
         private static bool IsChecked(ToggleButton button)
@@ -121,10 +138,28 @@ namespace Db2Source
             {
                 buf.Append(" -a");
             }
-            if (IsChecked(checkBoxCompress))
+            string fmt = comboBoxFormat.SelectedValue.ToString();
+            if (string.IsNullOrEmpty(fmt))
+            {
+                buf.Append(" -F");
+                buf.Append(fmt);
+            }
+            if (checkBoxCompress.IsEnabled && IsChecked(checkBoxCompress))
             {
                 buf.Append(" -Z ");
                 buf.Append(comboBoxCompressLevel.Text);
+            }
+            if (IsChecked(checkBoxBlobs))
+            {
+                buf.Append(" -b");
+            }
+            if (IsChecked(checkBoxClean))
+            {
+                buf.Append(" -c");
+            }
+            if (IsChecked(checkBoxCreate))
+            {
+                buf.Append(" -C");
             }
             if (IsChecked(radioButtonSchema))
             {
@@ -153,6 +188,43 @@ namespace Db2Source
                     buf.Append(" -T ");
                     buf.Append(tbl);
                 }
+            }
+            if (IsChecked(radioButtonExcludeTableData))
+            {
+                foreach (string tbl in SplitByWhiteSpace(textBoxExcludeTables.Text))
+                {
+                    buf.Append(" --exclude-table-data=");
+                    buf.Append(tbl);
+                }
+            }
+            if (IsChecked(checkBoxUseJob))
+            {
+                int nJob;
+                if (!int.TryParse(textBoxNumJobs.Text, out nJob))
+                {
+                    textBoxLog.AppendText("並列ジョブ数が不正です");
+                } else
+                {
+                    buf.Append(" -j ");
+                    buf.Append(nJob);
+                }
+            }
+            if (IsChecked(checkBoxLockTimeout))
+            {
+                int timeout;
+                if (!int.TryParse(textBoxLockTimeout.Text, out timeout))
+                {
+                    textBoxLog.AppendText("テーブルがロックされていた場合の待ち時間が不正です");
+                }
+                else
+                {
+                    buf.Append(" --lock-wait-timeout=");
+                    buf.Append(timeout);
+                }
+            }
+            if (IsChecked(checkBoxExportOid))
+            {
+                buf.Append(" -o");
             }
             return buf.ToString();
         }
@@ -227,16 +299,61 @@ namespace Db2Source
             Dispatcher.Invoke(UpdateTextBoxLog, DispatcherPriority.Normal);
         }
 
-        private void buttonExport_Click(object sender, RoutedEventArgs e)
+        private bool AnalyzeInput()
         {
-            if (string.IsNullOrEmpty(textBoxPath.Text))
+            PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
+            if (opt == null)
             {
-                MessageBox.Show(this, "出力先ファイルを指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
+                MessageBox.Show(this, "出力方式を指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
             }
-            string path = textBoxPath.Text;
+            string path;
+            if (opt.IsFile)
+            {
+                if (string.IsNullOrEmpty(textBoxPath.Text))
+                {
+                    MessageBox.Show(this, "出力ファイル名を指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    textBoxPath.Focus();
+                    return false;
+                }
+                path = textBoxPath.Text;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(textBoxDir.Text))
+                {
+                    MessageBox.Show(this, "出力先フォルダを指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    textBoxDir.Focus();
+                    return false;
+                }
+                path = textBoxDir.Text;
+            }
             _exportDir = IO.Path.GetDirectoryName(path);
             _exportFile = IO.Path.GetFileName(path);
+            int n;
+            if (IsChecked(checkBoxUseJob) && !int.TryParse(textBoxNumJobs.Text, out n))
+            {
+                MessageBox.Show(this, "並列ジョブ数が不正です", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                textBoxNumJobs.Focus();
+                textBoxNumJobs.SelectAll();
+                return false;
+            }
+            if (IsChecked(checkBoxLockTimeout) && !int.TryParse(textBoxLockTimeout.Text, out n))
+            {
+                MessageBox.Show(this, "ロック待ち秒数が不正です", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                textBoxLockTimeout.Focus();
+                textBoxLockTimeout.SelectAll();
+                return false;
+            }
+            return true;
+        }
+
+        private void buttonExport_Click(object sender, RoutedEventArgs e)
+        {
+            if (!AnalyzeInput())
+            {
+                return;
+            }
             buttonExport.IsEnabled = false;
             try
             {
@@ -265,6 +382,18 @@ namespace Db2Source
             {
                 UpdateButtonExportEnabled();
             }
+        }
+
+        private void buttonCheckCommandLine_Click(object sender, RoutedEventArgs e)
+        {
+            if (!AnalyzeInput())
+            {
+                return;
+            }
+            string cmd = "pg_dump " + GetCommandLineArgs();
+            textBoxLog.Clear();
+            textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
+            textBoxLog.AppendText(cmd + Environment.NewLine);
         }
 
         private void UpdateWrapPanelSchemas()
@@ -332,6 +461,96 @@ namespace Db2Source
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+    }
+    public class PgDumpFormatOption: DependencyObject
+    {
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(PgDumpFormatOption));
+        public static readonly DependencyProperty OptionProperty = DependencyProperty.Register("Option", typeof(string), typeof(PgDumpFormatOption));
+        public static readonly DependencyProperty CanCompressProperty = DependencyProperty.Register("CanCompress", typeof(bool), typeof(PgDumpFormatOption));
+        public static readonly DependencyProperty IsFileProperty = DependencyProperty.Register("IsFile", typeof(bool), typeof(PgDumpFormatOption));
+        public static readonly DependencyProperty DefaultExtProperty = DependencyProperty.Register("DefaultExt", typeof(string), typeof(PgDumpFormatOption));
+        public static readonly DependencyProperty DialogFilterProperty = DependencyProperty.Register("DialogFilter", typeof(string), typeof(PgDumpFormatOption));
+        public string Text
+        {
+            get
+            {
+                return (string)GetValue(TextProperty);
+            }
+            set
+            {
+                SetValue(TextProperty, value);
+            }
+        }
+        public string Option
+        {
+            get
+            {
+                return (string)GetValue(OptionProperty);
+            }
+            set
+            {
+                SetValue(OptionProperty, value);
+            }
+        }
+        public bool CanCompress
+        {
+            get
+            {
+                return (bool)GetValue(CanCompressProperty);
+            }
+            set
+            {
+                SetValue(CanCompressProperty, value);
+            }
+        }
+        public bool IsFile
+        {
+            get
+            {
+                return (bool)GetValue(IsFileProperty);
+            }
+            set
+            {
+                SetValue(IsFileProperty, value);
+            }
+        }
+        public bool IsDirectory
+        {
+            get
+            {
+                return !IsFile;
+            }
+            set
+            {
+                IsFile = !value;
+            }
+        }
+        public string DefaultExt
+        {
+            get
+            {
+                return (string)GetValue(DefaultExtProperty);
+            }
+            set
+            {
+                SetValue(DefaultExtProperty, value);
+            }
+        }
+        public string DialogFilter
+        {
+            get
+            {
+                return (string)GetValue(DialogFilterProperty);
+            }
+            set
+            {
+                SetValue(DialogFilterProperty, value);
+            }
+        }
+        public override string ToString()
+        {
+            return Text;
         }
     }
 }

@@ -7,43 +7,74 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         Title="ダンプを出力" Height="450" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
+    </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
-            <DockPanel Grid.Column="1" HorizontalAlignment="Stretch" Margin="2">
-                <TextBlock Text="出力先ファイル：" HorizontalAlignment="Right" VerticalAlignment="Center" DockPanel.Dock="Left"/>
-                <Button x:Name="buttonSelectPath" Content="選択..." VerticalAlignment="Center" DockPanel.Dock="Right" Padding="8,2" Margin="2,0" Click="buttonSelectPath_Click"/>
-                <TextBox x:Name="textBoxPath" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
-            </DockPanel>
+            <StackPanel>
+                <GroupBox Header="出力方式" Margin="2,0">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,2" HorizontalAlignment="Left">
+                            <ComboBox x:Name="comboBoxFormat" SelectedValuePath="Option" DisplayMemberPath="Text" SelectedIndex="0" MinWidth="80">
+                                <local:PgDumpFormatOption Text="テキスト" Option="p" CanCompress="True" IsFile="True" DefaultExt=".sql" DialogFilter="SQL File(*.sql)|*.sql"/>
+                                <local:PgDumpFormatOption Text="カスタム" Option="c" CanCompress="True" IsFile="True" DefaultExt=".pgdump" DialogFilter="カスタム(*.pgdump)|*.pgdump"/>
+                                <local:PgDumpFormatOption Text="ディレクトリ" Option="d" CanCompress="True" IsFile="False"/>
+                                <local:PgDumpFormatOption Text="tar形式" Option="t" CanCompress="False" IsFile="True" DefaultExt=".tar" DialogFilter="TARアーカイブ(*.tar)|*.tar"/>
+                            </ComboBox>
+                            <CheckBox x:Name="checkBoxCompress" Content="圧縮する" VerticalAlignment="Center" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}" Margin="4,0,0,0"/>
+                            <TextBlock Text="レベル：" VerticalAlignment="Center" Margin="4,0,0,0" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}"/>
+                            <ComboBox x:Name="comboBoxCompressLevel" SelectedIndex="5" VerticalAlignment="Center" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}">
+                                <ComboBox.Items>
+                                    <sys:Int32>0</sys:Int32>
+                                    <sys:Int32>1</sys:Int32>
+                                    <sys:Int32>2</sys:Int32>
+                                    <sys:Int32>3</sys:Int32>
+                                    <sys:Int32>4</sys:Int32>
+                                    <sys:Int32>5</sys:Int32>
+                                    <sys:Int32>6</sys:Int32>
+                                    <sys:Int32>7</sys:Int32>
+                                    <sys:Int32>8</sys:Int32>
+                                    <sys:Int32>9</sys:Int32>
+                                </ComboBox.Items>
+                            </ComboBox>
+                            <TextBlock Text="エンコーディング：" VerticalAlignment="Center" Margin="4,0,0,0"/>
+                            <ComboBox x:Name="comboBoxEncoding" IsEditable="True" MinWidth="100"/>
+                        </StackPanel>
+                        <DockPanel HorizontalAlignment="Stretch" Margin="0,2" Visibility="{Binding SelectedItem.IsFile, ElementName=comboBoxFormat, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Button x:Name="buttonSelectPath" Content="選択..." VerticalAlignment="Center" DockPanel.Dock="Right" Padding="8,2" Margin="2,0" Click="buttonSelectPath_Click"/>
+                            <TextBox x:Name="textBoxPath" ToolTip="(出力ファイル名)" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <DockPanel HorizontalAlignment="Stretch" Margin="0,2" Visibility="{Binding SelectedItem.IsDirectory, ElementName=comboBoxFormat, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <Button x:Name="buttonSelectDir" Content="選択..." VerticalAlignment="Center" DockPanel.Dock="Right" Padding="8,2" Margin="2,0" Click="buttonSelectDir_Click"/>
+                            <TextBox x:Name="textBoxDir" ToolTip="(出力先フォルダ)" HorizontalAlignment="Stretch" VerticalAlignment="Center"/>
+                        </DockPanel>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <GroupBox Header="出力内容" Margin="2">
+                <GroupBox Header="出力内容" Margin="2,0">
                     <StackPanel Orientation="Horizontal">
                         <RadioButton x:Name="radioButtonExportAll" Content="スキーマ+データ" IsChecked="True" Margin="2"/>
                         <RadioButton x:Name="radioButtonExportSchema" Content="スキーマのみ" Margin="2"/>
                         <RadioButton x:Name="radioButtonExportData" Content="データのみ" Margin="2"/>
                     </StackPanel>
                 </GroupBox>
-                <GroupBox Header="出力方式" Margin="2">
-                    <StackPanel Orientation="Horizontal">
-                        <CheckBox x:Name="checkBoxCompress" Content="圧縮する" VerticalAlignment="Center"/>
-                        <TextBlock Text="圧縮レベル：" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                        <ComboBox x:Name="comboBoxCompressLevel" SelectedIndex="5" VerticalAlignment="Center">
-                            <ComboBox.Items>
-                                <sys:Int32>0</sys:Int32>
-                                <sys:Int32>1</sys:Int32>
-                                <sys:Int32>2</sys:Int32>
-                                <sys:Int32>3</sys:Int32>
-                                <sys:Int32>4</sys:Int32>
-                                <sys:Int32>5</sys:Int32>
-                                <sys:Int32>6</sys:Int32>
-                                <sys:Int32>7</sys:Int32>
-                                <sys:Int32>8</sys:Int32>
-                                <sys:Int32>9</sys:Int32>
-                            </ComboBox.Items>
-                        </ComboBox>
-                    </StackPanel>
-                </GroupBox>
+                <Grid VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <CheckBox x:Name="checkBoxClean" Content="再作成前にデータベースオブジェクトを削除" Margin="2,1"/>
+                    <CheckBox x:Name="checkBoxCreate" Content="ダンプにデータベース生成用コマンドを含める" Grid.Row="1" Margin="2,1"/>
+                </Grid>
             </StackPanel>
-            <GroupBox Grid.Row="1" Grid.ColumnSpan="2" Header="出力対象を指定">
+            <GroupBox Grid.Row="1" Grid.ColumnSpan="2" Header="出力対象を指定" Padding="4,0">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -70,15 +101,54 @@
                         <Button Content="▼" DockPanel.Dock="Right" Style="{StaticResource ButtonStyleDropDown}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" BorderThickness="0,1,1,1" BorderBrush="{StaticResource TextBox.Static.Border}" IsEnabled="{Binding IsChecked, ElementName=radioButtonExcludeTable}"/>
                         <TextBox x:Name="textBoxExcludeTables" HorizontalAlignment="Stretch" BorderThickness="1,1,0,1" IsEnabled="{Binding IsChecked, ElementName=radioButtonExcludeTable}" ToolTip="(テーブル名。複数ある場合は空白で区切る)"/>
                     </DockPanel>
+                    <CheckBox x:Name="radioButtonExcludeTableData" Content="データ除外テーブルを指定：" Grid.Row="4" VerticalAlignment="Center" Margin="0,2"/>
+                    <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,2">
+                        <Button Content="▼" DockPanel.Dock="Right" Style="{StaticResource ButtonStyleDropDown}" VerticalAlignment="Stretch" VerticalContentAlignment="Center" BorderThickness="0,1,1,1" BorderBrush="{StaticResource TextBox.Static.Border}" IsEnabled="{Binding IsChecked, ElementName=radioButtonExcludeTableData}"/>
+                        <TextBox x:Name="textBoxExcludeTablesData" HorizontalAlignment="Stretch" BorderThickness="1,1,0,1" IsEnabled="{Binding IsChecked, ElementName=radioButtonExcludeTableData}" ToolTip="(テーブル名。複数ある場合は空白で区切る)"/>
+                    </DockPanel>
                 </Grid>
             </GroupBox>
+            <Grid>
+                <GroupBox Header="">
+                    <Grid  Margin="10,0,0,0" Visibility="{Binding IsChecked, ElementName=checkBoxFoldOption, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <CheckBox x:Name="checkBoxUseJob" Content="並列ジョブを使用" VerticalAlignment="Center" Margin="0,2"/>
+                            <TextBlock Margin="4,0,0,0" VerticalAlignment="Center" Text="ジョブ数：" />
+                            <TextBox x:Name="textBoxNumJobs" MinWidth="20" Margin="2" VerticalAlignment="Center" HorizontalContentAlignment="Right" Text="1" IsEnabled="{Binding IsChecked, ElementName=checkBoxUseJob}" Foreground="{Binding IsChecked, ElementName=checkBoxUseJob, Converter={StaticResource IsEnabledToColorConverter}}"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Grid.Row="1">
+                            <CheckBox x:Name="checkBoxLockTimeout" Content="テーブルがロックされていた場合" VerticalAlignment="Center" Margin="0,2"/>
+                            <TextBox x:Name="textBoxLockTimeout" Text="30" MinWidth="26" HorizontalContentAlignment="Right"  VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=checkBoxLockTimeout}" Foreground="{Binding IsChecked, ElementName=checkBoxLockTimeout, Converter={StaticResource IsEnabledToColorConverter}}"/>
+                            <TextBlock Text="秒待つ" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Grid.Row="2">
+                            <CheckBox x:Name="checkBoxBlobs" Content="ラージオブジェクトと共にダンプ" Margin="0,2"/>
+                        </StackPanel>
+                        <StackPanel Grid.Row="3">
+                            <CheckBox x:Name="checkBoxExportOid" Content="ダンプにOIDを含める" Grid.Column="1" Margin="0,2"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                <StackPanel Background="White" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="8,0">
+                    <CheckBox x:Name="checkBoxFoldOption" Content="詳細オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
+                </StackPanel>
+            </Grid>
             <StackPanel Margin="1" Orientation="Horizontal">
                 <Button x:Name="buttonExport" Content="出力" Padding="10,2" Margin="4,2" DockPanel.Dock="Left" Click="buttonExport_Click"/>
+                <Button x:Name="buttonCheckCommandLine" Content="コマンドライン確認" Padding="10,2" Margin="4,2" DockPanel.Dock="Left" Click="buttonCheckCommandLine_Click"/>
             </StackPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom">
             <DockPanel x:Name="dockPanelInput">
-                <TextBlock Text="入力：" DockPanel.Dock="Left"/>
+                <TextBlock Text="入力：" DockPanel.Dock="Left" Margin="8,0,0,0"/>
                 <TextBox x:Name="textBoxInput" KeyUp="textBoxInput_KeyUp" />
             </DockPanel>
             <StackPanel HorizontalAlignment="Right">

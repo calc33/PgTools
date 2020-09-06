@@ -191,7 +191,7 @@ namespace Db2Source
                 treeViewItemTop.Items.Clear();
                 return;
             }
-            Title = TitleBase + " - " + CurrentDataSet;
+            Title = TitleBase + " - " + CurrentDataSet?.ConnectionInfo?.GetDefaultName();
             UpdateTreeViewDB();
             UpdateTabControlsTarget();
             gridLoading.Visibility = Visibility.Collapsed;

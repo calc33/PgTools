@@ -104,6 +104,7 @@ namespace Db2Source
         public bool IsNullable { get; private set; } = false;
         public bool IsBoolean { get; private set; } = false;
         public bool IsNumeric { get; private set; } = false;
+        public bool IsDateTime { get; private set; } = false;
         public bool IsArray { get; private set; } = false;
         public Type FieldType { get; private set; }
         public bool IsDefaultDefined { get; set; } = false;
@@ -269,9 +270,10 @@ namespace Db2Source
                 ft = ft.GetGenericArguments()[0];
             }
             IsBoolean = ft == typeof(bool);
-            IsNumeric = ft == typeof(byte) || ft == typeof(sbyte) || ft == typeof(Int16) || ft == typeof(UInt16)
-                || ft == typeof(Int32) || ft == typeof(UInt32) || ft == typeof(Int64) || ft == typeof(UInt64)
+            IsNumeric = ft == typeof(byte) || ft == typeof(sbyte) || ft == typeof(short) || ft == typeof(ushort)
+                || ft == typeof(int) || ft == typeof(uint) || ft == typeof(long) || ft == typeof(ulong)
                 || ft == typeof(float) || ft == typeof(double) || ft == typeof(decimal);
+            IsDateTime = ft == typeof(DateTime);
             IsArray = ft == typeof(Array);
             FieldType = ft;
             _convert = ConvertNone;

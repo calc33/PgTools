@@ -22,12 +22,14 @@ namespace Db2Source
 
     public class Constraint : SchemaObject, IComparable, IConstraint
     {
-        internal Constraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName) : base(context, owner, schema, name, Schema.CollectionIndex.Constraints)
+        internal Constraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred) : base(context, owner, schema, name, Schema.CollectionIndex.Constraints)
         {
             _tableSchema = tableSchema;
             _tableName = tableName;
             _table = null;
             _isTemporaryName = isNoName;
+            _deferrable = deferrable;
+            _deferred = deferred;
         }
 
         public override string GetSqlType()
@@ -67,6 +69,8 @@ namespace Db2Source
         private Table _table;
         private string _tableSchema;
         private string _tableName;
+        private bool _deferrable;
+        private bool _deferred;
 
         private void InvalidateIsTemporaryName()
         {
@@ -158,6 +162,38 @@ namespace Db2Source
                 InvalidateTable();
             }
         }
+        public bool Deferrable
+        {
+            get
+            {
+                return _deferrable;
+            }
+            set
+            {
+                if (_deferrable == value)
+                {
+                    return;
+                }
+                _deferrable = value;
+                InvalidateTable();
+            }
+        }
+        public bool Deferred
+        {
+            get
+            {
+                return _deferred;
+            }
+            set
+            {
+                if (_deferred == value)
+                {
+                    return;
+                }
+                _deferred = value;
+                InvalidateTable();
+            }
+        }
         public override int CompareTo(object obj)
         {
             if (!(obj is Constraint))
@@ -177,8 +213,8 @@ namespace Db2Source
     public abstract class ColumnsConstraint : Constraint
     {
         public string[] Columns { get; set; }
-        internal ColumnsConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName)
-            : base(context, owner, schema, name, tableSchema, tableName, isNoName) { }
+        internal ColumnsConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred)
+            : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred) { }
     }
 
     public partial class KeyConstraint : ColumnsConstraint
@@ -187,8 +223,8 @@ namespace Db2Source
         public override ConstraintType ConstraintType { get { return _isPrimary ? ConstraintType.Primary : ConstraintType.Unique; } }
         public string[] ExtraInfo { get; set; }
 
-        public KeyConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isPrimary, bool isNoName)
-            : base(context, owner, schema, name, tableSchema, tableName, isNoName)
+        public KeyConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isPrimary, bool isNoName, bool deferrable, bool deferred)
+            : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred)
         {
             _isPrimary = isPrimary;
         }
@@ -296,8 +332,8 @@ namespace Db2Source
         //}
         public string[] ExtraInfo { get; set; }
 
-        public ForeignKeyConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, string refSchema, string refConstraint, ForeignKeyRule updateRule, ForeignKeyRule deleteRule, bool isNoName)
-            : base(context, owner, schema, name, tableSchema, tableName, isNoName)
+        public ForeignKeyConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, string refSchema, string refConstraint, ForeignKeyRule updateRule, ForeignKeyRule deleteRule, bool isNoName, bool deferrable, bool deferred)
+            : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred)
         {
             ReferenceSchemaName = refSchema;
             ReferenceConstraintName = refConstraint;
@@ -318,7 +354,7 @@ namespace Db2Source
         public string[] ExtraInfo { get; set; }
 
         public CheckConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, string condition, bool isNoName)
-            : base(context, owner, schema, name, tableSchema, tableName, isNoName)
+            : base(context, owner, schema, name, tableSchema, tableName, isNoName, false, false)
         {
             Condition = condition;
         }

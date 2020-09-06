@@ -1394,8 +1394,8 @@ namespace Db2Source
             public string conname;
             public uint connamespace;
             public char contype;
-            //public bool condeferrable;
-            //public bool condeferred;
+            public bool condeferrable;
+            public bool condeferred;
             //public bool convalidated;
             public uint conrelid;
             //public uint contypid;
@@ -1541,7 +1541,7 @@ namespace Db2Source
                         return cc;
                     case 'f': // 外部キー制約
                         ForeignKeyConstraint rc = new ForeignKeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname,
-                            RefConstraint?.Schema?.nspname, RefConstraint?.conname, CharToForeignKeyRule[confupdtype], CharToForeignKeyRule[confdeltype], false);
+                            RefConstraint?.Schema?.nspname, RefConstraint?.conname, CharToForeignKeyRule[confupdtype], CharToForeignKeyRule[confdeltype], false, condeferrable, condeferred);
                         rc.Columns = GetNameArray(Keys);
                         rc.RefColumns = GetNameArray(RefKeys);
                         Generated = rc;
@@ -1552,7 +1552,7 @@ namespace Db2Source
                         {
                             return null;
                         }
-                        KeyConstraint kc = new KeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname, contype == 'p', false);
+                        KeyConstraint kc = new KeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname, contype == 'p', false, condeferrable, condeferred);
                         kc.Columns = new string[Keys.Length];
                         for (int i = 0; i < Keys.Length; i++)
                         {

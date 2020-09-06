@@ -1,3 +1,3 @@
 select oid,
-  conname, connamespace, contype, conrelid, conindid, confrelid, confupdtype, confdeltype, conkey, confkey
+  conname, connamespace, contype, condeferrable, condeferred, conrelid, conindid, confrelid, confupdtype, confdeltype, conkey, confkey
 from pg_catalog.pg_constraint

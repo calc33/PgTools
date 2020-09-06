@@ -79,6 +79,15 @@ namespace Db2Source
         }
     }
 
+    public sealed class OverflowColumn
+    {
+        public static readonly NotSupportedColumn Value = new NotSupportedColumn();
+        public override string ToString()
+        {
+            return "(OVERFLOW)";
+        }
+    }
+
     public static class DataGridCommands
     {
         public static readonly RoutedCommand CopyTable = InitCopyTable();
@@ -681,6 +690,10 @@ namespace Db2Source
                     catch (NotSupportedException)
                     {
                         _data[i] = NotSupportedColumn.Value;
+                    }
+                    catch (OverflowException)
+                    {
+                        _data[i] = OverflowColumn.Value;
                     }
                 }
                 for (int i = 0; i < _old.Length; i++)
@@ -1454,6 +1467,13 @@ namespace Db2Source
                         style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
                         style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2.0, 1.0, 2.0, 1.0)));
                         c.ElementStyle = style;
+                    }
+                    if (info.IsDateTime)
+                    {
+                        if (string.IsNullOrEmpty(b.StringFormat))
+                        {
+                            b.StringFormat = Db2SourceContext.DateTimeFormat;
+                        }
                     }
                     col = c;
                 }
