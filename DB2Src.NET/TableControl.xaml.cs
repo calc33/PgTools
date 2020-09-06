@@ -378,7 +378,7 @@ namespace Db2Source
             {
                 using (IDbConnection conn = ctx.NewConnection())
                 {
-                    using (IDbCommand cmd = ctx.GetSqlCommand(sql, conn))
+                    using (IDbCommand cmd = ctx.GetSqlCommand(sql, null, conn))
                     {
                         UpdateDataGridResult(cmd);
                     }

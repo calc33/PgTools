@@ -567,10 +567,36 @@ namespace Db2Source
         {
             StringBuilder buf = new StringBuilder();
             TokenizedSQL tsql = new TokenizedSQL(sql);
-            bool noQuote = false;
+            bool wasLanguage = false;
+            bool isSqlDef = false;
             foreach (Token t in tsql.Tokens)
             {
-                switch(t.Kind)
+                if (t.Kind == TokenKind.Space || t.Kind == TokenKind.NewLine || t.Kind == TokenKind.Comment)
+                {
+                    continue;
+                }
+                if (wasLanguage && t.Kind == TokenKind.Identifier)
+                {
+                    string lang = t.Value.ToLower();
+                    if (lang == "plpgsql" || lang == "sql")
+                    {
+                        isSqlDef = true;
+                        break;
+                    }
+                }
+                wasLanguage = (t.Kind == TokenKind.Identifier && t.Value.ToLower() == "language");
+            }
+            bool noQuote = false;
+            Token holdedSpc = null;
+            foreach (Token t in tsql.Tokens)
+            {
+                // 行末の空白を除去
+                if (holdedSpc != null && t.Kind != TokenKind.NewLine)
+                {
+                    buf.Append(holdedSpc.Value);
+                }
+                holdedSpc = null;
+                switch (t.Kind)
                 {
                     case TokenKind.Identifier:
                         if (IsReservedWord(t.Value))
@@ -583,7 +609,22 @@ namespace Db2Source
                         }
                         break;
                     case TokenKind.DefBody:
-                        buf.Append(NormalizeDefBody(t.Value, reservedRule, identifierRule));
+                        if (isSqlDef)
+                        {
+                            buf.Append(NormalizeDefBody(t.Value, reservedRule, identifierRule));
+                        }
+                        else
+                        {
+                            buf.Append(t.Value);
+                        }
+                        break;
+                    case TokenKind.Space:
+                        // 行末の空白を除去(次のトークンを見て判断)
+                        holdedSpc = t;
+                        break;
+                    case TokenKind.NewLine:
+                        // 改行をCRLFに統一
+                        buf.AppendLine();
                         break;
                     default:
                         buf.Append(t.Value);

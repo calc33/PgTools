@@ -73,7 +73,7 @@ namespace Db2Source
             splitterParameters.Visibility = Visibility.Collapsed;
             dataGridColumnDbType.ItemsSource = DbTypeInfo.DbTypeInfos;
         }
-        private void AddLog(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice)
+        private LogListBoxItem NewLogListBoxItem(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice, Tuple<int, int> errorPos)
         {
             LogListBoxItem item = new LogListBoxItem();
             item.Time = DateTime.Now;
@@ -81,6 +81,12 @@ namespace Db2Source
             item.Message = text;
             item.Sql = sql;
             item.Parameters = parameters;
+            item.ErrorPosition = errorPos;
+            return item;
+        }
+        private void AddLog(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice, Tuple<int,int> errorPos = null)
+        {
+            LogListBoxItem item = NewLogListBoxItem(text, sql, parameters, status, notice, errorPos);
             item.RedoSql += Item_RedoSql;
             listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
@@ -89,6 +95,29 @@ namespace Db2Source
             {
                 tabControlResult.SelectedItem = tabItemLog;
             }
+            if (status == LogStatus.Error && errorPos != null)
+            {
+                item = NewLogListBoxItem(text, sql, parameters, status, notice, errorPos);
+                item.MouseDoubleClick += ListBoxErrors_MouseDoubleClick;
+                listBoxErrors.Items.Add(item);
+                listBoxErrors.SelectedItem = item;
+                listBoxErrors.ScrollIntoView(item);
+            }
+        }
+
+        private void ListBoxErrors_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            LogListBoxItem item = sender as LogListBoxItem;
+            if (item == null)
+            {
+                return;
+            }
+            if (item.ErrorPosition == null)
+            {
+                return;
+            }
+            textBoxSql.Select(item.ErrorPosition.Item1, item.ErrorPosition.Item2);
+            
         }
 
         private void Item_RedoSql(object sender, EventArgs e)
@@ -103,6 +132,10 @@ namespace Db2Source
             //Fetch();
         }
 
+        private void Command_Log(object sender, LogEventArgs e)
+        {
+            AddLog(e.Text, e.Sql, null, e.Status, false);
+        }
         private void UpdateDataGridResult(SQLParts sqls)
         {
             Db2SourceContext ctx = CurrentDataSet;
@@ -127,7 +160,7 @@ namespace Db2Source
                 }
                 foreach (SQLPart sql in sqls.Items)
                 {
-                    IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, conn);
+                    IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
                     ParameterStoreCollection stores = ParameterStore.GetParameterStores(cmd, Parameters, out modified);
                     DateTime start = DateTime.Now;
                     try
@@ -139,7 +172,7 @@ namespace Db2Source
                             {
                                 AddLog(string.Format("{0}行反映しました。", reader.RecordsAffected), null, null, LogStatus.Normal, true);
                             }
-                            else
+                            else if (0 < reader.FieldCount)
                             {
                                 tabControlResult.SelectedItem = tabItemDataGrid;
                             }
@@ -147,7 +180,8 @@ namespace Db2Source
                     }
                     catch (Exception t)
                     {
-                        AddLog(t.Message, sql.SQL, stores, LogStatus.Error, true);
+                        Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
+                        AddLog(t.Message, sql.SQL, stores, LogStatus.Error, true, errPos);
                         Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
                         return;
                     }
@@ -248,6 +282,11 @@ namespace Db2Source
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
             ParameterStore.AllParameters.ParameterTextChanged -= Parameters_ParameterTextChanged;
+        }
+
+        private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
+        {
+            listBoxLog.Items.Clear();
         }
     }
     public class IsErrorBrushConverter: IValueConverter

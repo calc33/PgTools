@@ -89,9 +89,9 @@ namespace Db2Source
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
             StringBuilder buf = new StringBuilder();
             IDbConnection conn = dataSet.NewConnection();
-            IDbCommand cmdTbl = dataSet.GetSqlCommand(_tableSql, conn);
-            IDbCommand cmdCol = dataSet.GetSqlCommand(Properties.Resources.ColumnSQL, conn);
-            IDbCommand cmdKey = dataSet.GetSqlCommand(Properties.Resources.KeyConsSQL, conn);
+            IDbCommand cmdTbl = dataSet.GetSqlCommand(_tableSql, null, conn);
+            IDbCommand cmdCol = dataSet.GetSqlCommand(Properties.Resources.ColumnSQL, null, conn);
+            IDbCommand cmdKey = dataSet.GetSqlCommand(Properties.Resources.KeyConsSQL, null, conn);
             try
             {
                 IDbDataParameter pC = cmdCol.Parameters[0] as IDbDataParameter;

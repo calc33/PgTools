@@ -13,6 +13,18 @@ namespace Db2Source
     {
         public NpgsqlDataSet(NpgsqlConnectionInfo info) : base(info) { }
 
+        public override IDbConnection NewConnection()
+        {
+            NpgsqlConnection ret = base.NewConnection() as NpgsqlConnection;
+            ret.Notice += NpgsqlConnection_Notice;
+            return ret;
+        }
+
+        private void NpgsqlConnection_Notice(object sender, NpgsqlNoticeEventArgs e)
+        {
+            //OnLog(e.Notice.Detail, LogStatus.Aux, null);
+        }
+
         public new static readonly Dictionary<Type, NpgsqlDbType> TypeToDbType = new Dictionary<Type, NpgsqlDbType>()
         {
             { typeof(string), NpgsqlDbType.Text },
@@ -126,14 +138,46 @@ namespace Db2Source
             }
             return l;
         }
+
+        private class LogConverter
+        {
+            public EventHandler<LogEventArgs> Log;
+            private void OnLog(object sender, string message)
+            {
+                Log?.Invoke(sender, new LogEventArgs(message, LogStatus.Aux, null));
+            }
+            public void Notice(object sender, NpgsqlNoticeEventArgs e)
+            {
+                OnLog(sender, e.Notice.Detail);
+            }
+            public void Command_Disposed(object sender, EventArgs e)
+            {
+                Log = null;
+            }
+            public static LogConverter NewLogConverter(NpgsqlCommand command, EventHandler<LogEventArgs> logEvent)
+            {
+                if (logEvent == null)
+                {
+                    return null;
+                }
+                LogConverter conv = new LogConverter();
+                conv.Log = logEvent;
+                command.Disposed += conv.Command_Disposed;
+                command.Connection.Notice += conv.Notice;
+                return conv;
+            }
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
-        public override IDbCommand GetSqlCommand(string sqlCommand, IDbConnection connection)
+        public override IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection)
         {
             if (connection != null && !(connection is NpgsqlConnection))
             {
                 throw new ArgumentException("connectoin");
             }
+            NpgsqlConnection conn = connection as NpgsqlConnection;
             NpgsqlCommand cmd = new NpgsqlCommand(sqlCommand, connection as NpgsqlConnection);
+            LogConverter.NewLogConverter(cmd, logEvent);
             foreach (string s in GetParameterNames(sqlCommand))
             {
                 NpgsqlParameter p = new NpgsqlParameter(s, DbType.String);
@@ -144,7 +188,7 @@ namespace Db2Source
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
-        public override IDbCommand GetSqlCommand(string sqlCommand, IDbConnection connection, IDbTransaction transaction)
+        public override IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
         {
             if (connection != null && !(connection is NpgsqlConnection))
             {
@@ -154,7 +198,9 @@ namespace Db2Source
             {
                 throw new ArgumentException("transaction");
             }
+            NpgsqlConnection conn = (NpgsqlConnection)connection;
             NpgsqlCommand cmd = new NpgsqlCommand(sqlCommand, connection as NpgsqlConnection, transaction as NpgsqlTransaction);
+            LogConverter.NewLogConverter(cmd, logEvent);
             foreach (string s in GetParameterNames(sqlCommand))
             {
                 NpgsqlParameter p = new NpgsqlParameter(s, DbType.String);
@@ -163,8 +209,9 @@ namespace Db2Source
             }
             return cmd;
         }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
-        public override IDbCommand GetSqlCommand(StoredFunction function, IDbConnection connection, IDbTransaction transaction)
+        public override IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
         {
             if (connection != null && !(connection is NpgsqlConnection))
             {
@@ -202,6 +249,7 @@ namespace Db2Source
             NpgsqlCommand cmd = new NpgsqlCommand(buf.ToString(), connection as NpgsqlConnection, transaction as NpgsqlTransaction);
             cmd.CommandType = CommandType.Text;
             cmd.Parameters.AddRange(l.ToArray());
+            LogConverter.NewLogConverter(cmd, logEvent);
             return cmd;
         }
 

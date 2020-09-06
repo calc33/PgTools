@@ -196,7 +196,7 @@ namespace Db2Source
             return _list.GetEnumerator();
         }
     }
-    public abstract class ConnectionInfo: IComparable
+    public abstract partial class ConnectionInfo: IComparable
     {
         private static Dictionary<string, Type> _databaseTypeToType = new Dictionary<string, Type>();
         public static void RegisterDatabaseType(string databaseType, Type type)
@@ -228,7 +228,7 @@ namespace Db2Source
             {
                 return null;
             }
-            ConstructorInfo ctor = t.GetConstructor(new Type[0]);
+            ConstructorInfo ctor = t.GetConstructor(Type.EmptyTypes);
             if (ctor == null)
             {
                 return null;
@@ -293,6 +293,10 @@ namespace Db2Source
             ServerName = data["ServerName"];
             UserName = data["UserName"];
             CryptedPassword = data["Password"];
+        }
+        internal protected virtual void Load(IDataReader reader)
+        {
+
         }
         //internal protected virtual void Save(Dictionary<string, string> data)
         //{
@@ -385,8 +389,29 @@ namespace Db2Source
         }
     }
 
-    public sealed class ConnectionList: IList<ConnectionInfo>
+    public sealed partial class ConnectionList: IList<ConnectionInfo>
     {
+        private static string InitDefaultConnectionListPath()
+        {
+            string path = System.IO.Path.Combine(Db2SourceContext.AppDataDir, "ConnectionList.db");
+            return path;
+        }
+        public static string DefaultConnectionListPath = InitDefaultConnectionListPath();
+        private static List<Type> _connectionInfoClasses = new List<Type>();
+        public static void Register(Type connectionInfoType)
+        {
+            if (connectionInfoType == null)
+            {
+                throw new ArgumentNullException("connectionInfoType");
+            }
+            //if (!connectionInfoType.IsAssignableFrom(typeof(ConnectionInfo)))
+            if (!connectionInfoType.IsSubclassOf(typeof(ConnectionInfo)))
+            {
+                throw new ArgumentException(string.Format("ConnectionInfo型を継承していないクラスです: {0}", connectionInfoType.FullName));
+            }
+            _connectionInfoClasses.Add(connectionInfoType);
+        }
+
         [JsonIgnore]
         public string Path { get; private set; }
         private List<ConnectionInfo> _list = new List<ConnectionInfo>();
@@ -401,76 +426,73 @@ namespace Db2Source
             Path = path;
             Load();
         }
+        public ConnectionList()
+        {
+            Path = DefaultConnectionListPath;
+            Load();
+        }
 
-        private List<ConnectionInfo> LoadInternal(string json)
-        {
-            List<Dictionary<string, string>> dicts = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
-            List<ConnectionInfo> l = new List<ConnectionInfo>();
-            foreach (Dictionary<string, string> d in dicts)
-            {
-                ConnectionInfo info = ConnectionInfo.NewConnectionInfo(d["Name"]);
-                if (info == null)
-                {
-                    info = new InvalidConnectionInfo(d["Name"]);
-                }
-                info.Load(d);
-                l.Add(info);
-            }
-            //l.Sort(ConnectionInfo.CompareByName);
-            return l;
-        }
-        private static readonly TimeSpan LOAD_TIMEOUT = new TimeSpan(0, 0, 10); //10秒
-        private FileStream OpenStream(FileMode mode, FileAccess access, FileShare share)
-        {
-            DateTime timeout = DateTime.Now + LOAD_TIMEOUT;
-            FileStream s = null;
-            while (s == null && DateTime.Now <= timeout)
-            {
-                try
-                {
-                    s = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.None);
-                }
-                catch (IOException)
-                {
-                    return null;
-                }
-                catch (SecurityException)
-                {
-                    // タイムアウトまでリトライ
-                    if (timeout < DateTime.Now)
-                    {
-                        throw;
-                    }
-                    Thread.Sleep(1);
-                }
-            }
-            return s;
-        }
-        private void LoadFromFileInternal()
-        {
-            if (!File.Exists(Path))
-            {
-                _list = new List<ConnectionInfo>();
-                return;
-            }
-
-            FileStream s = OpenStream(FileMode.Open, FileAccess.Read, FileShare.None);
-            if (s == null)
-            {
-                _list = new List<ConnectionInfo>();
-                return;
-            }
-            using (StreamReader sr = new StreamReader(s, Encoding.UTF8))
-            {
-                string js = null;
-                js = sr.ReadToEnd();
-                _list = LoadInternal(js);
-            }
-        }
+        //private List<ConnectionInfo> LoadInternal(string json)
+        //{
+        //    List<Dictionary<string, string>> dicts = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
+        //    List<ConnectionInfo> l = new List<ConnectionInfo>();
+        //    foreach (Dictionary<string, string> d in dicts)
+        //    {
+        //        ConnectionInfo info = ConnectionInfo.NewConnectionInfo(d["Name"]);
+        //        if (info == null)
+        //        {
+        //            info = new InvalidConnectionInfo(d["Name"]);
+        //        }
+        //        info.Load(d);
+        //        l.Add(info);
+        //    }
+        //    //l.Sort(ConnectionInfo.CompareByName);
+        //    return l;
+        //}
+        //private static readonly TimeSpan LOAD_TIMEOUT = new TimeSpan(0, 0, 10); //10秒
+        //private FileStream OpenStream(FileMode mode, FileAccess access, FileShare share)
+        //{
+        //    DateTime timeout = DateTime.Now + LOAD_TIMEOUT;
+        //    FileStream s = null;
+        //    while (s == null && DateTime.Now <= timeout)
+        //    {
+        //        try
+        //        {
+        //            s = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.None);
+        //        }
+        //        catch (IOException)
+        //        {
+        //            return null;
+        //        }
+        //        catch (SecurityException)
+        //        {
+        //            // タイムアウトまでリトライ
+        //            if (timeout < DateTime.Now)
+        //            {
+        //                throw;
+        //            }
+        //            Thread.Sleep(1);
+        //        }
+        //    }
+        //    return s;
+        //}
         public void Load()
         {
-            LoadFromFileInternal();
-            MergeByContent(_list, NpgsqlConnectionInfo.GetKnownConnectionInfos());
+            LoadInternal();
+            foreach (Type t in _connectionInfoClasses)
+            {
+                MethodInfo mi = t.GetMethod("GetKnownConnectionInfos", BindingFlags.Static | BindingFlags.Public);
+                if (mi == null)
+                {
+                    continue;
+                }
+                ConnectionInfo[] infos = mi.Invoke(null, null) as ConnectionInfo[];
+                if (infos == null)
+                {
+                    continue;
+                }
+                MergeByContent(_list, infos);
+            }
             _backlist = new List<ConnectionInfo>(_list);
         }
 
@@ -585,7 +607,7 @@ namespace Db2Source
             {
                 js = sr.ReadToEnd();
             }
-            List<ConnectionInfo> newList = LoadInternal(js);
+            List<ConnectionInfo> newList = LoadInternal();
             Merge(_list, newList, _backlist);
             _list.Sort(ConnectionInfo.CompareByName);
         }
@@ -594,28 +616,28 @@ namespace Db2Source
         /// </summary>
         public void Save()
         {
-            FileStream s = null;
-            if (File.Exists(Path))
-            {
-                s = OpenStream(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-                if (s == null)
-                {
-                    return;
-                }
-                Sync(s);
-                s.Seek(0, SeekOrigin.Begin);
-                s.SetLength(0);
-            }
-            else
-            {
-                s = new FileStream(Path, FileMode.Create, FileAccess.Write, FileShare.None);
-            }
-            using (StreamWriter sw = new StreamWriter(s, Encoding.UTF8))
-            {
-                sw.Write(JsonConvert.SerializeObject(_list));
-            }
+            //FileStream s = null;
+            //if (File.Exists(Path))
+            //{
+            //    s = OpenStream(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            //    if (s == null)
+            //    {
+            //        return;
+            //    }
+            //    Sync(s);
+            //    s.Seek(0, SeekOrigin.Begin);
+            //    s.SetLength(0);
+            //}
+            //else
+            //{
+            //    s = new FileStream(Path, FileMode.Create, FileAccess.Write, FileShare.None);
+            //}
+            //using (StreamWriter sw = new StreamWriter(s, Encoding.UTF8))
+            //{
+            //    sw.Write(JsonConvert.SerializeObject(_list));
+            //}
         }
-        public ConnectionInfo this[int index] { get { return _list[index]; } }
+        public ConnectionInfo this[int index] { get { return _list[index]; } set { _list[index] = value; } }
         public ConnectionInfo this[string name]
         {
             get

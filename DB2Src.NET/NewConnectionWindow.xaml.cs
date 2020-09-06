@@ -22,13 +22,13 @@ namespace Db2Source
     /// </summary>
     public partial class NewConnectionWindow: Window
     {
-        public static DependencyProperty ConnectionListProperty = DependencyProperty.Register("ConnectionList", typeof(List<ConnectionInfo>), typeof(NewConnectionWindow));
+        public static DependencyProperty ConnectionListProperty = DependencyProperty.Register("ConnectionList", typeof(ConnectionList), typeof(NewConnectionWindow));
         public static DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ConnectionInfo), typeof(NewConnectionWindow));
-        public List<ConnectionInfo> ConnectionList
+        public ConnectionList ConnectionList
         {
             get
             {
-                return (List<ConnectionInfo>)GetValue(ConnectionListProperty);
+                return (ConnectionList)GetValue(ConnectionListProperty);
             }
             set
             {
@@ -297,6 +297,7 @@ namespace Db2Source
                 MessageBox.Show(t.Message, "接続エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+            ConnectionList.Save();
             DialogResult = true;
         }
 
@@ -329,7 +330,8 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            List<ConnectionInfo> l = new List<ConnectionInfo>(NpgsqlConnectionInfo.GetKnownConnectionInfos());
+            ConnectionList.Register(typeof(NpgsqlConnectionInfo));
+            ConnectionList l = new ConnectionList();
             ConnectionInfo info0 = new NewNpgsqlConnectionInfo(true);
             info0.FillStoredPassword(false);
             l.Insert(0, info0);

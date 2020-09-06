@@ -220,31 +220,6 @@ namespace Db2Source
                 ShowUsage();
             }
         }
-        private static string GetPasswordFromPgPass(string host, int port, string database, string username)
-        {
-            string path = NpgsqlConnectionInfo.GetPgPassConfPath();
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-            string line = string.Format("{0}:{1}:{2}:{3}:", host, port, database, username);
-            try
-            {
-                foreach (string s in File.ReadLines(path, Encoding.Default))
-                {
-                    if (s.StartsWith(line, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        return s.Substring(line.Length);
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-            return null;
-        }
-
         public static void ShowFatalError(bool condition, string message)
         {
             if (!condition)

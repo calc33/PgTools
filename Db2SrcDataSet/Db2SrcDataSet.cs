@@ -127,6 +127,16 @@ namespace Db2Source
 
     public abstract partial class Db2SourceContext: IComparable
     {
+        private static string InitAppDataDir()
+        {
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Db2Src.net");
+            if (!Directory.Exists(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            return dir;
+        }
+        public static string AppDataDir = InitAppDataDir();
         public static bool IsSQLLoggingEnabled = false;
         private static string _logPath = null;
         private static object _logLock = new object();
@@ -136,7 +146,7 @@ namespace Db2Source
             {
                 return;
             }
-            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Db2Src.net");
+            string dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Db2Src.net", "log");
             Directory.CreateDirectory(dir);
             _logPath = Path.Combine(dir, string.Format("npgsql-{0}.txt", Process.GetCurrentProcess().Id));
         }
@@ -306,7 +316,7 @@ namespace Db2Source
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
         public int PreferedCharsPerLine { get; set; } = 80;
-        public IDbConnection NewConnection()
+        public virtual IDbConnection NewConnection()
         {
             return ConnectionInfo?.NewConnection();
         }
@@ -805,9 +815,9 @@ namespace Db2Source
             return newObj;
         }
 
-        public abstract IDbCommand GetSqlCommand(string sqlCommand, IDbConnection connection);
-        public abstract IDbCommand GetSqlCommand(string sqlCommand, IDbConnection connection, IDbTransaction transaction);
-        public abstract IDbCommand GetSqlCommand(StoredFunction function, IDbConnection connection, IDbTransaction transaction);
+        public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection);
+        public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
+        public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
 
         public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
         public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix);
@@ -839,7 +849,7 @@ namespace Db2Source
             {
                 foreach (string s in sqls)
                 {
-                    using (IDbCommand cmd = GetSqlCommand(s, conn))
+                    using (IDbCommand cmd = GetSqlCommand(s, null, conn))
                     {
                         OnLog(s, LogStatus.Aux, null);
                         try

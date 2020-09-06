@@ -101,14 +101,14 @@ namespace Db2Source
                 buf.AppendLine();
                 return buf.ToString();
             }
-            public IDbCommand GetSqlCommand(Db2SourceContext dataSet, IDbConnection connection)
+            public IDbCommand GetSqlCommand(Db2SourceContext dataSet, EventHandler<LogEventArgs> logEvent, IDbConnection connection)
             {
                 string sql = GetSql(dataSet);
                 if (string.IsNullOrEmpty(sql))
                 {
                     return null;
                 }
-                IDbCommand cmd = dataSet.GetSqlCommand(sql, connection);
+                IDbCommand cmd = dataSet.GetSqlCommand(sql, logEvent, connection);
                 return cmd;
             }
 
@@ -361,7 +361,7 @@ namespace Db2Source
                     {
                         continue;
                     }
-                    using (IDbCommand cmd = tbl.GetSqlCommand(DataSet, conn))
+                    using (IDbCommand cmd = tbl.GetSqlCommand(DataSet, null, conn))
                     {
                         ExportTbl(dataSet, baseDir, tbl, cmd, encoding);
                     }

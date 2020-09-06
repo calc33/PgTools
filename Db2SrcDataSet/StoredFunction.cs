@@ -459,7 +459,7 @@ namespace Db2Source
             {
                 return;
             }
-            _dbCommand = Context.GetSqlCommand(this, null, null);
+            _dbCommand = Context.GetSqlCommand(this, null, null, null);
             for (int i = 0; i < _dbCommand.Parameters.Count; i++)
             {
                 Parameters[i].DbParameter = _dbCommand.Parameters[i] as IDbDataParameter;

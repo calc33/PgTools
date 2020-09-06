@@ -18,6 +18,7 @@ namespace Db2Source
         public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(LogListBoxItem));
         public static readonly DependencyProperty SqlProperty = DependencyProperty.Register("Sql", typeof(string), typeof(LogListBoxItem));
         public static readonly DependencyProperty ParametersProperty = DependencyProperty.Register("Parameters", typeof(ParameterStoreCollection), typeof(LogListBoxItem));
+        public static readonly DependencyProperty ErrorPositionProperty = DependencyProperty.Register("ErrorPosition", typeof(Tuple<int,int>), typeof(LogListBoxItem));
         public static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
         private static readonly Dictionary<LogStatus, Brush> LogStatusToBrush = new Dictionary<LogStatus, Brush>()
         {
@@ -79,6 +80,21 @@ namespace Db2Source
             set
             {
                 SetValue(ParametersProperty, value);
+            }
+        }
+        /// <summary>
+        /// エラーの発生位置(文字数)+選択するキーワードの文字列長 のタプル
+        /// エラー箇所の選択表示が不要な場合はnull
+        /// </summary>
+        public Tuple<int,int> ErrorPosition
+        {
+            get
+            {
+                return (Tuple<int, int>)GetValue(ErrorPositionProperty);
+            }
+            set
+            {
+                SetValue(ErrorPositionProperty, value);
             }
         }
         private void TimePropertyChanged(DependencyPropertyChangedEventArgs e)
