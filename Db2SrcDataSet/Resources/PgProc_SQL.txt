@@ -1,5 +1,5 @@
 select p.oid,
-  p.proname, p.pronamespace, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+  p.proname, p.pronamespace, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
   p.proargnames, p.prosrc,
   l.lanname, pg_get_userbyid(p.proowner) as ownername
 from pg_catalog.pg_proc p

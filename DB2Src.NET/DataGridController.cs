@@ -1656,14 +1656,14 @@ namespace Db2Source
             return s;
         }
 
-        public DataGridCellInfo GetSelectedCell()
+        public DataGridCellInfo? GetSelectedCell()
         {
             IList<DataGridCellInfo> l = Grid.SelectedCells;
             if (0 < l.Count)
             {
                 return l[0];
             }
-            return new DataGridCellInfo(null, null);
+            return null;
         }
 
         public bool GetCurentCellPosition(out int row, out int column)
@@ -1674,13 +1674,13 @@ namespace Db2Source
             {
                 return false;
             }
-            DataGridCellInfo info = GetSelectedCell();
-            if (!info.IsValid)
+            DataGridCellInfo? info = GetSelectedCell();
+            if (!info.HasValue || !info.Value.IsValid)
             {
                 return false;
             }
-            row = Grid.Items.IndexOf(info.Item);
-            column = info.Column.DisplayIndex;
+            row = Grid.Items.IndexOf(info.Value.Item);
+            column = info.Value.Column.DisplayIndex;
             return true;
         }
 

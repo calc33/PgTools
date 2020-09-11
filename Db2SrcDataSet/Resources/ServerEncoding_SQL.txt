@@ -1,0 +1,2 @@
+﻿select pg_encoding_to_char(db.encoding) from pg_database db
+where db.datname = current_database()

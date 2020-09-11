@@ -6,7 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="ダンプを出力" Height="450" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded">
+        Title="ダンプを出力" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
@@ -40,7 +40,7 @@
                                 </ComboBox.Items>
                             </ComboBox>
                             <TextBlock Text="エンコーディング：" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                            <ComboBox x:Name="comboBoxEncoding" IsEditable="True" MinWidth="100"/>
+                            <ComboBox x:Name="comboBoxEncoding" MinWidth="100"/>
                         </StackPanel>
                         <DockPanel HorizontalAlignment="Stretch" Margin="0,2" Visibility="{Binding SelectedItem.IsFile, ElementName=comboBoxFormat, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <Button x:Name="buttonSelectPath" Content="選択..." VerticalAlignment="Center" DockPanel.Dock="Right" Padding="8,2" Margin="2,0" Click="buttonSelectPath_Click"/>

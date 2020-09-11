@@ -2090,7 +2090,7 @@ namespace Db2Source
             //public bool prosecdef;
             //public bool proleakproof;
             //public bool proisstrict;
-            //public bool proretset;
+            public bool proretset;
             //public char provolatile;
             //public short pronargs;
             //public short pronargdefaults;
@@ -2212,6 +2212,10 @@ namespace Db2Source
                 {
                     fn.BaseType = fn.DataType;
                 }
+                if (proretset)
+                {
+                    fn.DataType = "setof " + fn.DataType;
+                }
                 fn.Language = lanname;
                 PgType[] args = AllArgTypes != null ? AllArgTypes : ArgTypes;
                 if (args != null)
@@ -2290,6 +2294,7 @@ namespace Db2Source
             public WorkingData(NpgsqlDataSet context, NpgsqlConnection connection)
             {
                 Context = context;
+                context.LoadEncodings(connection);
                 PgNamespaces = PgNamespace.Load(connection, null, OidToObject);
                 PgTablespaces = PgTablespace.Load(connection, null, OidToObject);
                 PgClasses = PgClass.Load(connection, null, OidToObject);

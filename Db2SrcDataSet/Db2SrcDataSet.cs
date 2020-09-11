@@ -515,6 +515,11 @@ namespace Db2Source
         public abstract string GetSQL(RangeType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string GetSQL(BasicType type, string prefix, string postfix, int indent, bool addNewline);
 
+        protected abstract void LoadEncodings(IDbConnection connection);
+        public abstract string GetServerEncoding();
+        public abstract string GetClientEncoding();
+        public abstract string[] GetEncodings();
+
         public static Type GetCommonType(object a, object b)
         {
             if (a == null && b == null)

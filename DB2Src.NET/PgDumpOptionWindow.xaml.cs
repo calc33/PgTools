@@ -26,7 +26,23 @@ namespace Db2Source
     /// </summary>
     public partial class PgDumpOptionWindow : Window
     {
-        public Db2SourceContext DataSet { get; set; }
+        private Db2SourceContext _dataSet;
+        public Db2SourceContext DataSet
+        {
+            get
+            {
+                return _dataSet;
+            }
+            set
+            {
+                if (_dataSet == value)
+                {
+                    return;
+                }
+                _dataSet = value;
+                DataSetChanged();
+            }
+        }
 
         public PgDumpOptionWindow()
         {
@@ -125,6 +141,12 @@ namespace Db2Source
             StringBuilder buf = new StringBuilder();
             NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
             buf.AppendFormat("-h {0} -p {1} -d {2} -U {3}", info.ServerName, info.ServerPort, info.DatabaseName, info.UserName);
+            string s = comboBoxEncoding.SelectedValue.ToString();
+            if (!string.IsNullOrEmpty(s))
+            {
+                buf.Append(" -E ");
+                buf.Append(s);
+            }
             if (!string.IsNullOrEmpty(_exportFile))
             {
                 buf.Append(" -f ");
@@ -438,10 +460,38 @@ namespace Db2Source
             }
         }
 
+        private void UpdateComboBoxEncoding()
+        {
+            List<Tuple<string, string>> l = new List<Tuple<string, string>>();
+            if (DataSet == null)
+            {
+                l.Add(new Tuple<string, string>(string.Empty, "既定値"));
+                return;
+            }
+            else
+            {
+                l.Add(new Tuple<string, string>(string.Empty, string.Format("既定値({0})", DataSet.GetServerEncoding())));
+                foreach (string s in DataSet.GetEncodings())
+                {
+                    l.Add(new Tuple<string, string>(s, s));
+                }
+            }
+            comboBoxEncoding.DisplayMemberPath = "Item2";
+            comboBoxEncoding.SelectedValuePath = "Item1";
+            comboBoxEncoding.ItemsSource = l;
+            comboBoxEncoding.SelectedValue = string.Empty;
+        }
+
+        private void DataSetChanged()
+        {
+            UpdateComboBoxEncoding();
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateWrapPanelSchemas();
             UpdateButtonExportEnabled();
+            UpdateComboBoxEncoding();
         }
 
         private void textBoxInput_KeyUp(object sender, KeyEventArgs e)

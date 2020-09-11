@@ -1,0 +1,1 @@
+﻿select pg_client_encoding()

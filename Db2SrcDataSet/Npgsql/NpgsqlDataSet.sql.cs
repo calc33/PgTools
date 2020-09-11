@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
+using Npgsql;
 
 namespace Db2Source
 {
@@ -845,5 +846,54 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+
+        private string _serverEncoding;
+        private string _clientEncoding;
+        private string[] _encodings;
+        private string GetStringFromSQL(string sql, NpgsqlConnection connection)
+        {
+            using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
+            {
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return reader.GetString(0);
+                    }
+                }
+            }
+            return null;
+        }
+        protected override void LoadEncodings(IDbConnection connection)
+        {
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            _clientEncoding = GetStringFromSQL(DataSet.Properties.Resources.ClientEncoding_SQL, conn);
+            _serverEncoding = GetStringFromSQL(DataSet.Properties.Resources.ServerEncoding_SQL, conn);
+            using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.GetEncodings_SQL, conn))
+            {
+                using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                {
+                    List<string> l = new List<string>();
+                    while (reader.Read())
+                    {
+                        l.Add(reader.GetString(0));
+                    }
+                    _encodings = l.ToArray();
+                }
+            }
+        }
+        public override string GetServerEncoding()
+        {
+            return _serverEncoding;
+        }
+        public override string GetClientEncoding()
+        {
+            return _clientEncoding;
+        }
+        public override string[] GetEncodings()
+        {
+            return _encodings;
+        }
+
     }
 }
