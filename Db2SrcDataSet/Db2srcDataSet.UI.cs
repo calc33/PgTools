@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Reflection;
@@ -81,6 +82,8 @@ namespace Db2Source
     {
         SchemaObject Target { get; set; }
         string SelectedTabKey { get; set; }
+        void OnTabClosing(object sender, ref bool cancel);
+        void OnTabClosed(object sender);
     }
 
     partial class SchemaObject

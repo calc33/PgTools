@@ -145,6 +145,38 @@ namespace Db2Source
             return ret;
         }
         public static readonly Dictionary<DbType, DbTypeInfo> DbTypeToDbTypeInfo = InitDbTypeToInto();
+        private static Dictionary<string, DbTypeInfo> InitTypeNameToDbTypeInfo()
+        {
+            Dictionary<string, DbTypeInfo> ret = new Dictionary<string, DbTypeInfo>();
+            foreach (DbTypeInfo info in DbTypeInfos)
+            {
+                ret.Add(info.DbType.ToString().ToLower(), info);
+            }
+            return ret;
+        }
+        public static readonly Dictionary<string, DbTypeInfo> TypeNameToDbTypeInfo = InitTypeNameToDbTypeInfo();
+        public static DbTypeInfo GetDbTypeInfo(DbType type)
+        {
+            DbTypeInfo ret;
+            if (!DbTypeToDbTypeInfo.TryGetValue(type, out ret))
+            {
+                return null;
+            }
+            return ret;
+        }
+        public static DbTypeInfo GetDbTypeInfo(string typeName)
+        {
+            if (string.IsNullOrEmpty(typeName))
+            {
+                return null;
+            }
+            DbTypeInfo ret;
+            if (!TypeNameToDbTypeInfo.TryGetValue(typeName.ToLower(), out ret))
+            {
+                return null;
+            }
+            return ret;
+        }
     }
 
     public class ParameterNameChangeEventArgs: EventArgs

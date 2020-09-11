@@ -373,6 +373,10 @@ namespace Db2Source
         {
 
         }
+
+        public void OnTabClosing(object sender, ref bool cancel) { }
+
+        public void OnTabClosed(object sender) { }
     }
     public class ParamEditor: DependencyObject
     {

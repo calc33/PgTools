@@ -351,6 +351,20 @@ namespace Db2Source
         }
         public void Fetch()
         {
+            if (DataGridControllerResult.IsModified)
+            {
+                MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                switch (ret)
+                {
+                    case MessageBoxResult.Yes:
+                        DataGridControllerResult.Save();
+                        break;
+                    case MessageBoxResult.No:
+                        break;
+                    case MessageBoxResult.Cancel:
+                        return;
+                }
+            }
             if (Target == null)
             {
                 return;
@@ -686,6 +700,28 @@ namespace Db2Source
         {
             ApplicationCommands.Find.Execute(null, dataGridResult);
         }
+
+        public void OnTabClosing(object sender, ref bool cancel)
+        {
+            if (!DataGridControllerResult.IsModified)
+            {
+                return;
+            }
+            MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+            switch (ret)
+            {
+                case MessageBoxResult.Yes:
+                    DataGridControllerResult.Save();
+                    break;
+                case MessageBoxResult.No:
+                    break;
+                case MessageBoxResult.Cancel:
+                    cancel = true;
+                    break;
+            }
+        }
+
+        public void OnTabClosed(object sender) { }
     }
 
     public class NotNullTextConverter: IValueConverter

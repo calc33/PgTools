@@ -873,6 +873,21 @@ namespace Db2Source
                 }
             }
         }
+
+        public virtual DbType ToDbType(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            DbType ret;
+            if (!TypeToDbType.TryGetValue(type, out ret))
+            {
+                throw new ArgumentException();
+            }
+            return ret;
+        }
+
         public Db2SourceContext(ConnectionInfo info)
         {
             ConnectionInfo = info;

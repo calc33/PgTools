@@ -571,5 +571,10 @@ namespace Db2Source
             win.DataSet = CurrentDataSet;
             win.ShowDialog();
         }
+
+        private void menuItemQueryHistory_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

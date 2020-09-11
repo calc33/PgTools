@@ -518,6 +518,7 @@
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
                     <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
+                    <MenuItem x:Name="menuItemQueryHistory" Header="クエリ履歴"/>
                     <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
                     <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>

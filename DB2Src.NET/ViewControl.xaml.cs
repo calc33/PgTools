@@ -364,5 +364,9 @@ namespace Db2Source
         {
             DataGridCommands.CopyTable.Execute(null, dataGridResult);
         }
+
+        public void OnTabClosing(object sender, ref bool cancel) { }
+
+        public void OnTabClosed(object sender) { }
     }
 }

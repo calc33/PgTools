@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,8 @@ namespace Db2Source
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(QueryControl));
 
         private ParameterStoreCollection _parameters = new ParameterStoreCollection();
+        private string _historyPath = System.IO.Path.Combine(Db2SourceContext.AppDataDir, "History",
+            string.Format("{0:yyMMddHHmmss}-{1}.sql", DateTime.Now, System.Diagnostics.Process.GetCurrentProcess().Id));
         private void UpdateDataGridParameters()
         {
             dataGridParameters.ItemsSource = null;
@@ -136,6 +139,16 @@ namespace Db2Source
         {
             AddLog(e.Text, e.Sql, null, e.Status, false);
         }
+        private void AddToHistory(SQLPart sql, ParameterStoreCollection parameters)
+        {
+            QueryStore q = new QueryStore(sql.SQL, parameters);
+            string dir = System.IO.Path.GetDirectoryName(_historyPath);
+            Directory.CreateDirectory(dir);
+            using (StreamWriter wr = new StreamWriter(_historyPath, true, Encoding.UTF8))
+            {
+                q.WriteToStream(wr);
+            }
+        }
         private void UpdateDataGridResult(SQLParts sqls)
         {
             Db2SourceContext ctx = CurrentDataSet;
@@ -177,6 +190,7 @@ namespace Db2Source
                                 tabControlResult.SelectedItem = tabItemDataGrid;
                             }
                         }
+                        AddToHistory(sql, stores);
                     }
                     catch (Exception t)
                     {

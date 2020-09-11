@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Globalization;
@@ -30,7 +31,15 @@ namespace Db2Source
             {
                 return;
             }
+            ISchemaObjectControl ctrl = item.Content as ISchemaObjectControl;
+            bool cancel = false;
+            ctrl?.OnTabClosing(sender, ref cancel);
+            if (cancel)
+            {
+                return;
+            }
             tab.Items.Remove(item);
+            ctrl?.OnTabClosed(sender);
         }
 
         private static object _threadExceptionsLock = new object();

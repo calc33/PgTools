@@ -53,7 +53,7 @@ namespace Db2Source
         {
             SaveFileDialog dlg = new SaveFileDialog();
             PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
-            if (opt != null)
+            if (opt == null)
             {
                 opt = comboBoxFormat.Items[0] as PgDumpFormatOption;
             }
@@ -161,7 +161,7 @@ namespace Db2Source
                 buf.Append(" -a");
             }
             string fmt = comboBoxFormat.SelectedValue.ToString();
-            if (string.IsNullOrEmpty(fmt))
+            if (!string.IsNullOrEmpty(fmt))
             {
                 buf.Append(" -F");
                 buf.Append(fmt);

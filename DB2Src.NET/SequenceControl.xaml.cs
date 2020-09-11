@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace Db2Source
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Sequence), typeof(SequenceControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(SequenceControl));
+
         public Sequence Target
         {
             get
@@ -177,5 +179,9 @@ namespace Db2Source
             //Db2SourceContext ctx = Target.Context;
             //ctx.Revert(Target);
         }
+
+        public void OnTabClosing(object sender, ref bool cancel) { }
+
+        public void OnTabClosed(object sender) { }
     }
 }
