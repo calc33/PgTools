@@ -17,7 +17,7 @@
                 <GroupBox Header="出力方式" Margin="2,0">
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,2" HorizontalAlignment="Left">
-                            <ComboBox x:Name="comboBoxFormat" SelectedValuePath="Option" DisplayMemberPath="Text" SelectedIndex="0" MinWidth="80">
+                            <ComboBox x:Name="comboBoxFormat" SelectedValuePath="Option" DisplayMemberPath="Text" SelectedIndex="0" MinWidth="80" SelectionChanged="comboBoxFormat_SelectionChanged">
                                 <local:PgDumpFormatOption Text="テキスト" Option="p" CanCompress="True" IsFile="True" DefaultExt=".sql" DialogFilter="SQL File(*.sql)|*.sql"/>
                                 <local:PgDumpFormatOption Text="カスタム" Option="c" CanCompress="True" IsFile="True" DefaultExt=".pgdump" DialogFilter="カスタム(*.pgdump)|*.pgdump"/>
                                 <local:PgDumpFormatOption Text="ディレクトリ" Option="d" CanCompress="True" IsFile="False"/>

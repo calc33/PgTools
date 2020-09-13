@@ -512,6 +512,20 @@ namespace Db2Source
         {
             Close();
         }
+
+        private void comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(textBoxPath.Text))
+            {
+                return;
+            }
+            PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
+            if (opt == null || !opt.IsFile)
+            {
+                return;
+            }
+            textBoxPath.Text = System.IO.Path.ChangeExtension(textBoxPath.Text, opt.DefaultExt);
+        }
     }
     public class PgDumpFormatOption: DependencyObject
     {
