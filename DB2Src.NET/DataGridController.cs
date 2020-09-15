@@ -1,19 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using WinForm = System.Windows.Forms;
 
 namespace Db2Source
@@ -248,6 +247,24 @@ namespace Db2Source
             IsModified = false;
         }
 
+        private static readonly Brush ModifiedBackgroundBrush = new SolidColorBrush(Color.FromRgb(255, 255, 192));
+        public class ModifiedColorConverter: IValueConverter
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                if ((bool)value)
+                {
+                    return ModifiedBackgroundBrush;
+                }
+                return null;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;
         protected void OnGridPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -402,7 +419,7 @@ namespace Db2Source
             return CompareKey(item1.GetOldKeys(), item2.GetOldKeys());
         }
 
-        public class Row: IList<object>, IComparable, IChangeSetRow
+        public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
         {
             private static readonly object Unchanged = new object();
             private DataGridController _owner;
@@ -494,6 +511,34 @@ namespace Db2Source
                     return FlagsToChangeKind[_added ? 1 : 0, _deleted ? 1 : 0, (_hasChanges.HasValue && _hasChanges.Value) ? 1 : 0];
                 }
             }
+            public class ModifiedCollection
+            {
+                private Row _owner;
+
+                public bool this[int index]
+                {
+                    get
+                    {
+                        return _owner.IsModified(index);
+                    }
+                }
+                public ModifiedCollection(Row owner)
+                {
+                    _owner = owner;
+                }
+            }
+            private ModifiedCollection _modified;
+
+            internal void OnPropertyChanged(string propertyName)
+            {
+                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            public ModifiedCollection Modified
+            {
+                get { return _modified; }
+            }
             /// <summary>
             /// i番目の項目が変更されていれば IsModified(i) が true を返す
             /// </summary>
@@ -505,7 +550,13 @@ namespace Db2Source
                 }
                 return _old[index] != Unchanged && !Equals(_old[index], _data[index]);
             }
-
+            public bool IsAdded
+            {
+                get
+                {
+                    return _added;
+                }
+            }
             public bool IsChecked { get; set; }
             /// <summary>
             /// Old[i] で i番目の項目の読み込み時の値を返す
@@ -571,6 +622,8 @@ namespace Db2Source
                     _data[index] = v;
                     _hasChanges = null;
                     _owner?.OnCellValueChanged(new CellValueChangedEventArgs(this, index));
+                    OnPropertyChanged(string.Format("[{0}]", index));
+                    OnPropertyChanged("Modified");
                 }
             }
             public int Count
@@ -676,6 +729,7 @@ namespace Db2Source
             public Row(DataGridController owner, IDataReader reader)
             {
                 _owner = owner;
+                _modified = new ModifiedCollection(this);
                 _added = false;
                 _deleted = false;
                 _data = new object[reader.FieldCount];
@@ -705,6 +759,7 @@ namespace Db2Source
             public Row(DataGridController owner)
             {
                 _owner = owner;
+                _modified = new ModifiedCollection(this);
                 _added = true;
                 _deleted = false;
                 _data = new object[owner.Fields.Length];
@@ -721,6 +776,7 @@ namespace Db2Source
             }
             public Row()
             {
+                _modified = new ModifiedCollection(this);
                 _added = true;
                 _deleted = false;
                 _data = new object[0];
@@ -1474,6 +1530,13 @@ namespace Db2Source
                         {
                             b.StringFormat = Db2SourceContext.DateTimeFormat;
                         }
+                    }
+                    {
+                        Setter setter = new Setter(Control.BackgroundProperty, new Binding(string.Format("Modified[{0}]", i)) { Converter = new ModifiedColorConverter() });
+                        Style style = Grid.CellStyle;
+                        style = (style != null) ? new Style(typeof(DataGridCell), style) : style = new Style(typeof(DataGridCell));
+                        style.Setters.Add(setter);
+                        c.CellStyle = style;
                     }
                     col = c;
                 }

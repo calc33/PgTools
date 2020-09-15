@@ -532,6 +532,7 @@ namespace Db2Source
 
         private void ButtonRevert_Click(object sender, RoutedEventArgs e)
         {
+            DataGridControllerResult.Revert();
             Fetch();
         }
 
@@ -572,15 +573,27 @@ namespace Db2Source
                 {
                     return;
                 }
-                foreach (DataGridController.Row row in dataGridResult.SelectedItems)
+                foreach (DataGridCellInfo cell in dataGridResult.SelectedCells)
                 {
+                    DataGridController.Row row = cell.Item as DataGridController.Row;
                     selected.Add(row);
                 }
+                selected.Sort();
+                for (int i = selected.Count - 1; 0 < i; i--)
+                {
+                    if (selected[i] == selected[i - 1])
+                    {
+                        selected.RemoveAt(i);
+                    }
+                }
             }
-            ret = MessageBox.Show(string.Format("{0}行を削除しますか?", selected.Count), "削除", MessageBoxButton.YesNo, MessageBoxImage.Question);
-            if (ret != MessageBoxResult.Yes)
+            else
             {
-                return;
+                ret = MessageBox.Show(string.Format("チェックを入れた{0}行を削除しますか?", selected.Count), "削除", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
             }
             foreach (DataGridController.Row row in selected)
             {

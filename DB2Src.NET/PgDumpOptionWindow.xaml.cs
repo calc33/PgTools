@@ -515,6 +515,10 @@ namespace Db2Source
 
         private void comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (textBoxPath == null)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(textBoxPath.Text))
             {
                 return;
