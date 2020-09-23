@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -172,6 +173,45 @@ namespace Db2Source
         {
             AnalyzeArguments(e.Args);
         }
+
+        private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button button = sender as Button;
+            DataGrid grid = button.TemplatedParent as DataGrid;
+            if (grid == null)
+            {
+                return;
+            }
+            SelectColumnWindow win = new SelectColumnWindow();
+            win.Closed += SelectColumnWindow_Closed;
+            win.Grid = grid;
+            win.UpdateLayout();
+            Point p = button.PointToScreen(new Point(button.ActualWidth - win.Width, button.ActualHeight));
+            win.HorizontalAlignment = HorizontalAlignment.Right;
+            win.Left = p.X;
+            win.Top = p.Y;
+            win.Show();
+            Panel pnl = win.Content as Panel;
+            p = button.PointToScreen(new Point(button.ActualWidth - (win.ActualWidth + pnl.ActualWidth) / 2 - 3, button.ActualHeight));
+            win.Left = p.X;
+            win.Top = p.Y;
+        }
+
+        private void SelectColumnWindow_Closed(object sender, EventArgs e)
+        {
+            SelectColumnWindow win = sender as SelectColumnWindow;
+            DataGrid grid = win.Grid;
+            DataGridColumn col = win.SelectedColumn;
+            object row = grid.CurrentItem;
+            if (row == null && 0 < grid.Items.Count)
+            {
+                row = grid.Items[0];
+            }
+            if (row != null && col != null)
+            {
+                grid.ScrollIntoView(row, col);
+            }
+        }
     }
 
     public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo
@@ -212,6 +252,23 @@ namespace Db2Source
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return (value != null && (bool)value) ? SystemColors.ControlTextBrush : SystemColors.GrayTextBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class ItemsSourceToColumnFilterButtonVisiblityConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ICollection source = value as ICollection;
+            if (source != null && 0 < source.Count)
+            {
+                return Visibility.Visible;
+            }
+            return Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

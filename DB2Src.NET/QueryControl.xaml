@@ -67,7 +67,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True"/>
+                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" Style="{DynamicResource DataGridStyleResult}"/>
                 </DockPanel>
             </TabItem>
         </TabControl>

@@ -1392,7 +1392,12 @@ namespace Db2Source
                 foreach (ColumnInfo info in Fields)
                 {
                     Column c = table.Columns[info.Name];
-                    if (c != null && !string.IsNullOrEmpty(c.DefaultValue))
+                    if (c == null)
+                    {
+                        continue;
+                    }
+                    info.HiddenLevel = c.HiddenLevel;
+                    if (!string.IsNullOrEmpty(c.DefaultValue))
                     {
                         info.IsDefaultDefined = true;
                         info.DefaultValue = info.ParseValue(c.DefaultValue);
@@ -1531,6 +1536,7 @@ namespace Db2Source
                             b.StringFormat = Db2SourceContext.DateTimeFormat;
                         }
                     }
+                    if (editable)
                     {
                         Setter setter = new Setter(Control.BackgroundProperty, new Binding(string.Format("Modified[{0}]", i)) { Converter = new ModifiedColorConverter() });
                         Style style = Grid.CellStyle;
@@ -2300,7 +2306,7 @@ namespace Db2Source
             {
                 return ModifiedBrush;
             }
-            return SystemColors.ControlBrush;
+            return Brushes.Transparent;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

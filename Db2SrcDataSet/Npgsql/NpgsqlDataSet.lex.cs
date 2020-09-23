@@ -223,6 +223,7 @@ namespace Db2Source
             private string _sql;
             public string Sql { get { return _sql; } }
             public Token[] Tokens { get; private set; }
+            public Token Selected { get; set; }
 
             public string Extract(Token startToken, Token endToken)
             {
@@ -239,8 +240,26 @@ namespace Db2Source
                 return dict;
             }
             private static readonly Dictionary<char, bool> IdentifierEndChars = InitIdentifierEndChars();
-            //private void Lex
-            private void Lex()
+            
+            private void AddToken(List<Token> tokens, int selectedPos, Token token)
+            {
+                tokens.Add(token);
+                if (token.ID == TokenID.Space)
+                {
+                    if (token.StartPos < selectedPos && selectedPos < token.EndPos)
+                    {
+                        Selected = token;
+                    }
+                }
+                else
+                {
+                    if (token.StartPos <= selectedPos && selectedPos <= token.EndPos)
+                    {
+                        Selected = token;
+                    }
+                }
+            }
+            private void Lex(int selectedPos)
             {
                 List<Token> tokens = new List<Token>();
                 try
@@ -262,7 +281,7 @@ namespace Db2Source
                         }
                         if (p0 < p)
                         {
-                            tokens.Add(new Token(this, isNewLine ? TokenKind.NewLine : TokenKind.Space, TokenID.Space, p0, p));
+                            AddToken(tokens, selectedPos, new Token(this, isNewLine ? TokenKind.NewLine : TokenKind.Space, TokenID.Space, p0, p));
                         }
                         if (!(p < n))
                         {
@@ -285,7 +304,7 @@ namespace Db2Source
                                 {
                                     p++;
                                 }
-                                tokens.Add(new Token(this, TokenKind.Identifier, TokenID.Identifier, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Identifier, TokenID.Identifier, p0, p));
                                 break;
                             case '\'':
                                 for (p++; p < n && _sql[p] != '\''; p++)
@@ -299,7 +318,7 @@ namespace Db2Source
                                 {
                                     p++;
                                 }
-                                tokens.Add(new Token(this, TokenKind.Literal, TokenID.Literal, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Literal, TokenID.Literal, p0, p));
                                 break;
                             case '(':
                             case ')':
@@ -314,36 +333,36 @@ namespace Db2Source
                             case '%':
                             case '&':
                                 p++;
-                                tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 break;
                             case ':':
                                 c2 = _sql[p + 1];
                                 if(c2 == ':')
                                 {
                                     p += 2;
-                                    tokens.Add(new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case ';':
                                 p++;
-                                tokens.Add(new Token(this, TokenKind.Semicolon, c, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Semicolon, c, p0, p));
                                 break;
                             case '<':
                                 c2 = _sql[p + 1];
                                 if (c2 == '=' || c2 == '<' || c2 == '>')
                                 {
                                     p += 2;
-                                    tokens.Add(new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '>':
@@ -351,12 +370,12 @@ namespace Db2Source
                                 if (c2 == '=' || c2 == '>')
                                 {
                                     p += 2;
-                                    tokens.Add(new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '~':
@@ -364,19 +383,19 @@ namespace Db2Source
                                 if (c2 == '*')
                                 {
                                     p += 2;
-                                    tokens.Add(new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '/':
                                 if (_sql[p + 1] != '*')
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 }
                                 else
                                 {
@@ -390,14 +409,14 @@ namespace Db2Source
                                             break;
                                         }
                                     }
-                                    tokens.Add(new Token(this, TokenKind.Comment, TokenID.Comment, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Comment, TokenID.Comment, p0, p));
                                 }
                                 break;
                             case '-':
                                 if (_sql[p + 1] != '-')
                                 {
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Comment, c, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Comment, c, p0, p));
                                 }
                                 else
                                 {
@@ -407,7 +426,7 @@ namespace Db2Source
                                         p++;
                                     }
                                     p++;
-                                    tokens.Add(new Token(this, TokenKind.Operator, TokenID.Comment, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, TokenID.Comment, p0, p));
                                 }
                                 break;
                             case '$':
@@ -423,7 +442,7 @@ namespace Db2Source
                                         break;
                                     }
                                 }
-                                tokens.Add(new Token(this, TokenKind.DefBody, TokenID.DefBody, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.DefBody, TokenID.DefBody, p0, p));
                                 break;
                             case '!':
                                 c2 = _sql[p + 1];
@@ -431,27 +450,27 @@ namespace Db2Source
                                 {
                                     case '=':
                                         p += 2;
-                                        tokens.Add(new Token(this, TokenKind.Operator, "<>", p0, p));
+                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "<>", p0, p));
                                         break;
                                     case '~':
                                         if (_sql[p + 2] == '*')
                                         {
                                             p += 3;
-                                            tokens.Add(new Token(this, TokenKind.Operator, "!~*", p0, p));
+                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!~*", p0, p));
                                         }
                                         else
                                         {
                                             p += 2;
-                                            tokens.Add(new Token(this, TokenKind.Operator, "!~", p0, p));
+                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!~", p0, p));
                                         }
                                         break;
                                     case '!':
                                         p += 2;
-                                        tokens.Add(new Token(this, TokenKind.Operator, "!!", p0, p));
+                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!!", p0, p));
                                         break;
                                     default:
                                         p++;
-                                        tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                         break;
                                 }
                                 break;
@@ -463,21 +482,21 @@ namespace Db2Source
                                         if (_sql[p + 2] == '/')
                                         {
                                             p += 3;
-                                            tokens.Add(new Token(this, TokenKind.Operator, "||/", p0, p));
+                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "||/", p0, p));
                                         }
                                         else
                                         {
                                             p += 2;
-                                            tokens.Add(new Token(this, TokenKind.Operator, "||", p0, p));
+                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "||", p0, p));
                                         }
                                         break;
                                     case '/':
                                         p += 2;
-                                        tokens.Add(new Token(this, TokenKind.Operator, "|/", p0, p));
+                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "|/", p0, p));
                                         break;
                                     default:
                                         p++;
-                                        tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                         break;
                                 }
                                 break;
@@ -490,13 +509,13 @@ namespace Db2Source
                             case '{':
                             case '}':
                                 p++;
-                                tokens.Add(new Token(this, TokenKind.Operator, c, p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
                                 break;
                             default:
                                 if (char.IsDigit(_sql, p))
                                 {
                                     for (p++; p < n && (char.IsNumber(_sql, p) || _sql[p] == '.'); p++) ;
-                                    tokens.Add(new Token(this, TokenKind.Numeric, '0', p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Numeric, '0', p0, p));
                                     break;
                                 }
                                 for (p++; p < n && !char.IsWhiteSpace(_sql, p) && !IdentifierEndChars.ContainsKey(_sql[p]); p++)
@@ -506,7 +525,7 @@ namespace Db2Source
                                         p++;
                                     }
                                 }
-                                tokens.Add(new Token(this, TokenKind.Identifier, 'A', p0, p));
+                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Identifier, 'A', p0, p));
                                 break;
                         }
                     }
@@ -520,7 +539,12 @@ namespace Db2Source
             public TokenizedSQL(string sql)
             {
                 _sql = sql;
-                Lex();
+                Lex(-1);
+            }
+            public TokenizedSQL(string sql, int selectedPos)
+            {
+                _sql = sql;
+                Lex(selectedPos);
             }
         }
 

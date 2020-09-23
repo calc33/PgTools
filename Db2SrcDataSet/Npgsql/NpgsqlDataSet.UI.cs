@@ -163,5 +163,15 @@ namespace Db2Source
             }
             return new Tuple<int, int>(p0 - offset, p - p0);
         }
+        public override Tuple<int, int> GetWordAt(string sql, int position)
+        {
+            TokenizedSQL tsql = new TokenizedSQL(sql, position);
+            Token sel = tsql.Selected;
+            if (sel == null)
+            {
+                return null;
+            }
+            return new Tuple<int, int>(sel.StartPos, sel.EndPos - sel.StartPos + 1);
+        }
     }
 }

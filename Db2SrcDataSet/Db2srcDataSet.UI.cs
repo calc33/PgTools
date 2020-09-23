@@ -76,6 +76,14 @@ namespace Db2Source
         /// <param name="offset">テキストボックスに記載しているSQLが実行したSQLの一部であった場合、記載部分の開始位置</param>
         /// <returns>位置の取得に成功した場合(開始位置, 単語の長さ)、失敗した場合はnullを返す。</returns>
         public abstract Tuple<int, int> GetErrorPosition(Exception t, string sql, int offset);
+
+        /// <summary>
+        /// SQLの文字位置を指定し、そこにある単語を文字位置範囲で返す
+        /// </summary>
+        /// <param name="sql">テキストボックスに記載しているSQL</param>
+        /// <param name="position">テキストボックス上のキャレットの位置</param>
+        /// <returns>単語の取得に成功した場合(開始位置, 単語の長さ)、失敗した場合はnullを返す。</returns>
+        public abstract Tuple<int, int> GetWordAt(string sql, int position);
     }
 
     public interface ISchemaObjectControl
@@ -101,9 +109,18 @@ namespace Db2Source
             return "Function";
         }
     }
+
+    public enum HiddenLevel
+    {
+        Visible,
+        Hidden,
+        SystemInternal
+    }
+
     public class ColumnInfo
     {
         public string Name { get; private set; }
+        public HiddenLevel HiddenLevel { get; set; } = HiddenLevel.Visible;
         public bool IsNullable { get; private set; } = false;
         public bool IsBoolean { get; private set; } = false;
         public bool IsNumeric { get; private set; } = false;

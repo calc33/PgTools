@@ -10,6 +10,9 @@
         {
             return "Type";
         }
+
+        public TypeReferenceCollection ReferFrom { get; } = new TypeReferenceCollection();
+
         internal ComplexType(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName) { }
     }
 }

@@ -49,7 +49,7 @@ namespace Db2Source
                 List<string> flds = new List<string>();
                 foreach (Column c in tbl.Columns)
                 {
-                    if (c.IsHidden || IgnoreFields.Contains(c.Name))
+                    if (c.HiddenLevel != HiddenLevel.Visible || IgnoreFields.Contains(c.Name))
                     {
                         continue;
                     }

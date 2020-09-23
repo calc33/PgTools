@@ -123,7 +123,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell"/>
+                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}"/>
                 </DockPanel>
             </Grid>
         </TabItem>

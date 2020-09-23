@@ -125,6 +125,14 @@ namespace Db2Source
         Uppercase
     }
 
+    public enum NewLineRule
+    {
+        None,
+        Lf,
+        Cr,
+        Crlf
+    }
+
     public abstract partial class Db2SourceContext: IComparable
     {
         private static string InitAppDataDir()
@@ -199,6 +207,109 @@ namespace Db2Source
         }
         public ConnectionInfo ConnectionInfo { get; private set; }
         public SourceSchemaOption ExportSchemaOption { get; set; } = SourceSchemaOption.OmitCurrent;
+
+        public NewLineRule NewLineRule { get; set; } = NewLineRule.None;
+
+        public static readonly Dictionary<NewLineRule, string> NewLineRuleToNewLine = new Dictionary<NewLineRule, string>()
+        { 
+            { NewLineRule.None, null },
+            { NewLineRule.Cr, "\r" },
+            { NewLineRule.Lf, "\n" },
+            { NewLineRule.Crlf, "\r\n" },
+        };
+
+        public string GetNewLine()
+        {
+            if (NewLineRule == NewLineRule.None)
+            {
+                return Environment.NewLine;
+            }
+            string nl = null;
+            if (NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            {
+                return nl;
+            }
+            return Environment.NewLine;
+        }
+        public string NormalizeNewLine(StringBuilder value)
+        {
+            if (NewLineRule == NewLineRule.None)
+            {
+                return value.ToString();
+            }
+            StringBuilder buf = new StringBuilder(value.Length);
+            string nl = null;
+            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            {
+                return value.ToString();
+            }
+            bool wasCR = false;
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+                if (c == '\n')
+                {
+                    buf.Append(nl);
+                }
+                else
+                {
+                    if (wasCR)
+                    {
+                        buf.Append(nl);
+                    }
+                    if (c != '\r')
+                    {
+                        buf.Append(c);
+                    }
+                }
+                wasCR = (c == '\r');
+            }
+            if (wasCR)
+            {
+                buf.Append(nl);
+            }
+            return buf.ToString();
+        }
+
+        public string NormalizeNewLine(string value)
+        {
+            if (NewLineRule == NewLineRule.None)
+            {
+                return value;
+            }
+            StringBuilder buf = new StringBuilder(value.Length);
+            string nl = null;
+            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            {
+                return value;
+            }
+            bool wasCR = false;
+            foreach (char c in value)
+            {
+                if (c == '\n')
+                {
+                    buf.Append(nl);
+                }
+                else
+                {
+                    if (wasCR)
+                    {
+                        buf.Append(nl);
+                    }
+                    if (c != '\r')
+                    {
+                        buf.Append(c);
+                    }
+                }
+                wasCR = (c == '\r');
+            }
+            if (wasCR)
+            {
+                buf.Append(nl);
+            }
+            return buf.ToString();
+        }
+
         protected internal virtual bool IsHiddenSchema(string schemaName)
         {
             return false;
@@ -820,6 +931,27 @@ namespace Db2Source
             return newObj;
         }
 
+        public ComplexType Revert(ComplexType type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException("type");
+            }
+            Schema sch = type.Schema;
+            string schnm = sch.Name;
+            string objid = type.Identifier;
+            Schema.CollectionIndex idx = type.GetCollectionIndex();
+            using (IDbConnection conn = NewConnection())
+            {
+                LoadSchema(conn);
+                //LoadView(schnm, objid, conn);
+                //LoadColumn(schnm, objid, conn);
+                //LoadComment(schnm, objid, conn);
+            }
+            ComplexType newObj = sch.GetCollection(idx)[objid] as ComplexType;
+            OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, type));
+            return newObj;
+        }
         public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection);
         public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
         public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);

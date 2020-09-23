@@ -11,6 +11,7 @@ ExpSch [OPTIONS]... [Directory]
   -n, --schema=SCHEMA      指名したスキーマのみをダンプ
   -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
   --no-tablespaces         テーブルスペースの割り当てを出力しません
+  --newline=[CR|LF|CRLF]   出力時の改行コードを統一します
 接続オプション
   -d, --dbname=データベース名  ダンプするデータベース
   -h, --host=HOSTNAME      データベースサーバのホストまたはソケットディレクトリです

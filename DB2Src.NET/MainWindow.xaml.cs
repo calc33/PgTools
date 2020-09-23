@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -110,6 +111,29 @@ namespace Db2Source
                 {
                     tabControlMain.Items.RemoveAt(i);
                 }
+            }
+        }
+
+        public static void TabBecomeVisible(FrameworkElement element)
+        {
+            if (element == null)
+            {
+                return;
+            }
+            if (element is Window)
+            {
+                return;
+            }
+            TabBecomeVisible(element.Parent as FrameworkElement);
+            if (!(element is TabItem))
+            {
+                return;
+            }
+            TabItem tab = element as TabItem;
+            TabControl ctrl = tab.Parent as TabControl;
+            if (ctrl != null && ctrl.SelectedItem != tab)
+            {
+                ctrl.SelectedItem = tab;
             }
         }
 
@@ -413,6 +437,7 @@ namespace Db2Source
             RegisterSchemaObjectControl(typeof(View), typeof(ViewControl));
             RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
             RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
+            RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
             TitleBase = Title;
         }
 
@@ -575,6 +600,25 @@ namespace Db2Source
         private void menuItemQueryHistory_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void window_Closing(object sender, CancelEventArgs e)
+        {
+            foreach (TabItem c in tabControlMain.Items)
+            {
+                ISchemaObjectControl obj = c.Content as ISchemaObjectControl;
+                if (obj == null)
+                {
+                    continue;
+                }
+                bool f = e.Cancel;
+                obj.OnTabClosing(sender, ref f);
+                e.Cancel = f;
+                if (e.Cancel)
+                {
+                    return;
+                }
+            }
         }
     }
 }

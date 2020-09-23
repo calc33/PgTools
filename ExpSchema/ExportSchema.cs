@@ -226,9 +226,9 @@ namespace Db2Source
                         {
                             if (append)
                             {
-                                sw.WriteLine();
+                                sw.Write(DataSet.GetNewLine());
                             }
-                            sw.Write(buf.ToString());
+                            sw.Write(DataSet.NormalizeNewLine(buf));
                         }
                         exported[path] = true;
                     }
@@ -245,6 +245,13 @@ namespace Db2Source
         private static List<string> _schemas = new List<string>();
         private static List<string> _excludeSchemas = new List<string>();
         private static Encoding _encoding = Encoding.UTF8;
+        private static NewLineRule _newLine = NewLineRule.None;
+        private static readonly Dictionary<string, NewLineRule> ArgToNewLineRule = new Dictionary<string, NewLineRule>()
+        {
+            { "cr", NewLineRule.Cr },
+            { "lf", NewLineRule.Lf },
+            { "crlf", NewLineRule.Crlf },
+        };
         public static void AnalyzeArguments(string[] args)
         {
             try
@@ -323,11 +330,23 @@ namespace Db2Source
                                 _encoding = Encoding.GetEncoding(v);
                             }
                             break;
+                        case "--newline":
+                            if (!ArgToNewLineRule.TryGetValue(v.ToLower(), out _newLine))
+                            {
+                                Console.Error.WriteLine(string.Format("不明な改行指定です: {0}", v));
+                                Environment.Exit(1);
+                            }
+                            break;
                         case "-?":
                         case "--help":
                             _showUsage = true;
                             break;
                         default:
+                            if (a.StartsWith("-"))
+                            {
+                                Console.Error.WriteLine(string.Format("不明なオプションです: {0}", a));
+                                Environment.Exit(1);
+                            }
                             _exportDir = a;
                             break;
                     }
@@ -420,7 +439,7 @@ namespace Db2Source
                 }
             }
             ExportSchema obj = new ExportSchema();
-            obj.DataSet = new NpgsqlDataSet(info);
+            obj.DataSet = new NpgsqlDataSet(info) { NewLineRule = _newLine };
             if (_exportDir == null)
             {
                 _exportDir = Environment.CurrentDirectory;

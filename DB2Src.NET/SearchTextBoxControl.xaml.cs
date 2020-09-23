@@ -55,6 +55,7 @@ namespace Db2Source
         {
             if (IsVisible)
             {
+                textBoxSearch.SelectAll();
                 textBoxSearch.Focus();
                 _needFocusTextBoxSearch = false;
             }
@@ -90,14 +91,6 @@ namespace Db2Source
             ScrollBar sbV = sc.Template.FindName("PART_VerticalScrollBar", sc) as ScrollBar;
             ScrollBar sbH = sc.Template.FindName("PART_HorizontalScrollBar", sc) as ScrollBar;
 
-            if (sbV != null)
-            {
-                sbV.Scroll += TargetScrollBar_Scroll;
-            }
-            if (sbH != null)
-            {
-                sbH.Scroll += TargetScrollBar_Scroll;
-            }
             double w = (sbV != null) && sbV.IsVisible ? sbV.ActualWidth : 0;
             double h = (sbH != null) && sbH.IsVisible ? sbH.ActualHeight : 0;
             Thickness m = new Thickness(
@@ -111,11 +104,80 @@ namespace Db2Source
             }
         }
 
-        private void TargetScrollBar_Scroll(object sender, ScrollEventArgs e)
+        private void TextBox_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
-            if (textBoxSearch.IsFocused)
+            if (Target != null && !Target.IsFocused)
             {
                 Target.Focus();
+            }
+        }
+
+        private void TextBox_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (Target != null && !Target.IsFocused)
+            {
+                Target.Focus();
+            }
+        }
+
+        private void RemoveTextBoxHandler(TextBox textBox)
+        {
+            if (textBox == null)
+            {
+                return;
+            }
+            for (int i = textBox.CommandBindings.Count - 1; 0 <= i; i--)
+            {
+                ICommand cmd = textBox.CommandBindings[i].Command;
+                if (cmd == ApplicationCommands.Find || cmd == SearchCommands.FindNext || cmd == SearchCommands.FindPrevious)
+                {
+                    textBox.CommandBindings.RemoveAt(i);
+                }
+            }
+            textBox.PreviewMouseWheel -= TextBox_PreviewMouseWheel;
+            textBox.PreviewMouseDown -= TextBox_PreviewMouseDown;
+        }
+        private void AddTextBoxHandler(TextBox textBox)
+        {
+            if (textBox == null)
+            {
+                return;
+            }
+            textBox.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, Find_Executed));
+            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, FindNext_Executed));
+            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindPrevious, FindPrevious_Executed));
+            textBox.IsInactiveSelectionHighlightEnabled = true;
+            textBox.PreviewMouseWheel += TextBox_PreviewMouseWheel;
+            textBox.PreviewMouseDown += TextBox_PreviewMouseDown;
+            textBox.MouseDoubleClick += TextBox_MouseDoubleClick;
+            textBox.PreviewMouseDoubleClick += TextBox_MouseDoubleClick;
+        }
+
+        private void TextBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != MouseButton.Left)
+            {
+                return;
+            }
+            TextBox tb = e.Source as TextBox;
+            if (tb == null)
+            {
+                return;
+            }
+            int p = tb.GetCharacterIndexFromPoint(e.MouseDevice.GetPosition(tb), true);
+            Tuple<int, int> ret;
+            if (tb.SelectionLength == 0)
+            {
+                ret = GetWordAt(tb.Text, p);
+            }
+            else
+            {
+                ret = GetLineAt(tb.Text, p, false);
+            }
+            if (ret != null)
+            {
+                tb.Select(ret.Item1, ret.Item2);
+                e.Handled = true;
             }
         }
 
@@ -125,23 +187,13 @@ namespace Db2Source
             {
                 TextBox tb = (TextBox)e.OldValue;
                 _textBoxToSearchTextBoxControl.Remove(tb);
-                for (int i = tb.CommandBindings.Count - 1; 0 <= i; i--)
-                {
-                    ICommand cmd = tb.CommandBindings[i].Command;
-                    if (cmd == ApplicationCommands.Find || cmd == SearchCommands.FindNext || cmd == SearchCommands.FindPrevious)
-                    {
-                        tb.CommandBindings.RemoveAt(i);
-                    }
-                }
+                RemoveTextBoxHandler(tb);
             }
             if (e.NewValue != null)
             {
                 TextBox tb = (TextBox)e.NewValue;
                 _textBoxToSearchTextBoxControl[tb] = this;
-                tb.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, Find_Executed));
-                tb.CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, FindNext_Executed));
-                tb.CommandBindings.Add(new CommandBinding(SearchCommands.FindPrevious, FindPrevious_Executed));
-                tb.IsInactiveSelectionHighlightEnabled = true;
+                AddTextBoxHandler(tb);
                 UpdateMargin();
             }
         }
@@ -185,12 +237,228 @@ namespace Db2Source
             }
         }
 
+        public static Tuple<int, int> GetWordAt(string value, int position)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+            //List<string> l = new List<string>();
+            Tuple<int, int> target = null;
+            int p = position;
+            for (int i = 0, n = value.Length; i < n;)
+            {
+                int i0 = i;
+                char c = value[i];
+                if (char.IsWhiteSpace(value, i))
+                {
+                    for (i++; i < n && char.IsWhiteSpace(value, i); i++) ;
+                    //l.Add(value.Substring(i0, i - i0));
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+                else if (char.GetUnicodeCategory(c) == System.Globalization.UnicodeCategory.CurrencySymbol)
+                {
+                    i++;
+                    if (char.IsDigit(value, i))
+                    {
+                        for (; i < n && char.IsDigit(value, i); i++) ;
+                    }
+                    else
+                    {
+                        for (; i < n && value[i] == c; i++) ;
+                    }
+                    //l.Add(value.Substring(i0, i - i0));
+                    target = new Tuple<int, int>(i0, i - i0);
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+                else if (".+-".IndexOf(c) != -1)
+                {
+                    i++;
+                    if (char.IsDigit(value, i))
+                    {
+                        for (; i < n && char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1); i++) ;
+                    }
+                    else
+                    {
+                        for (; i < n && value[i] == c; i++) ;
+                    }
+                    target = new Tuple<int, int>(i0, i - i0);
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+                else if (char.IsDigit(value, i))
+                {
+                    for (i++; i < n && char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1); i++) ;
+                    //l.Add(value.Substring(i0, i - i0));
+                    target = new Tuple<int, int>(i0, i - i0);
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+                else if (char.IsLetter(value, i) || c == '_')
+                {
+                    for (; i < n && (char.IsLetter(value, i) || value[i] == '_'); i++)
+                    {
+                        if (char.IsSurrogate(value, i))
+                        {
+                            i++;
+                        }
+                    }
+                    //l.Add(value.Substring(i0, i - i0));
+                    target = new Tuple<int, int>(i0, i - i0);
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+                else
+                {
+                    for (i++; i < n && value[i] == c; i++) ;
+                    //l.Add(value.Substring(i0, i - i0));
+                    target = new Tuple<int, int>(i0, i - i0);
+                    if (p < i)
+                    {
+                        return target;
+                    }
+                }
+            }
+            return target;
+        }
+
+        private static Tuple<int, int> _GetLineWithoutNL(string value, int position)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+            Tuple<int, int> target = null;
+            int p = position;
+            int i0 = 0;
+            for (int i = 0, n = value.Length; i < n; i++)
+            {
+                if (char.IsSurrogate(value, i))
+                {
+                    i++;
+                    continue;
+                }
+                char c = value[i];
+                if (c == '\r' || c == '\n')
+                {
+                    if (position < i)
+                    {
+                        return new Tuple<int, int>(i0, i - i0);
+                    }
+                    i0 = i + 1;
+                }
+            }
+            return target;
+        }
+        private static Tuple<int, int> _GetLineWithNL(string value, int position)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return null;
+            }
+            //List<string> l = new List<string>();
+            Tuple<int, int> target = null;
+            int p = position;
+            int i0 = 0;
+            bool wasCR = false;
+            for (int i = 0, n = value.Length; i < n; i++)
+            {
+                if (char.IsSurrogate(value, i))
+                {
+                    i++;
+                    continue;
+                }
+                char c = value[i];
+                if (c == '\n')
+                {
+                    if (position <= i)
+                    {
+                        return new Tuple<int, int>(i0, i - i0 + 1);
+                    }
+                    i0 = i + 1;
+                }
+                else if (wasCR)
+                {
+                    if (position < i)
+                    {
+                        return new Tuple<int, int>(i0, i - i0);
+                    }
+                    i0 = i;
+                }
+                wasCR = (c == '\r');
+            }
+            return target;
+        }
+
+        public static Tuple<int, int> GetLineAt(string value, int position, bool includeNewLine)
+        {
+            if (includeNewLine)
+            {
+                return _GetLineWithNL(value, position);
+            }
+            else
+            {
+                return _GetLineWithoutNL(value, position);
+            }
+        }
+
         private void TextBoxSearch_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            if (textBoxSearch.IsVisible && _needFocusTextBoxSearch)
+            if (!textBoxSearch.IsVisible)
+            {
+                return;
+            }
+            if (!_needFocusTextBoxSearch)
+            {
+                return;
+            }
+            try
             {
                 textBoxSearch.Focus();
-                textBoxSearch.SelectAll();
+                try
+                {
+                    //if (!string.IsNullOrEmpty(textBoxSearch.Text))
+                    //{
+                    //    return;
+                    //}
+                    if (Target == null)
+                    {
+                        return;
+                    }
+                    string s = Target.SelectedText;
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        string txt = Target.Text;
+                        Tuple<int, int> ret = GetWordAt(txt, Target.SelectionStart);
+                        if (ret != null)
+                        {
+                            s = txt.Substring(ret.Item1, ret.Item2);
+                        }
+                    }
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        textBoxSearch.Text = s;
+                    }
+                }
+                finally
+                {
+                    textBoxSearch.SelectAll();
+                }
+            }
+            finally
+            {
                 _needFocusTextBoxSearch = false;
             }
         }
@@ -334,8 +602,6 @@ namespace Db2Source
         private void AdjustControlPosition(TextBox textBox)
         {
             Rect rS = GetSelectionFirstLineRect(textBox);
-            rS.X -= textBox.HorizontalOffset;
-            rS.Y -= textBox.VerticalOffset;
             FrameworkElement parent = Parent as FrameworkElement;
             double x = 0;
             double y = 0;

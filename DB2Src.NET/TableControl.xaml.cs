@@ -29,6 +29,7 @@ namespace Db2Source
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(TableControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(TableControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(TableControl));
+        public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl));
 
         public Table Target
         {
@@ -101,6 +102,18 @@ namespace Db2Source
             set
             {
                 SetValue(DataGridResultMaxHeightProperty, value);
+            }
+        }
+
+        public HiddenLevel VisibleLevel
+        {
+            get
+            {
+                return (HiddenLevel)GetValue(VisibleLevelProperty);
+            }
+            set
+            {
+                SetValue(VisibleLevelProperty, value);
             }
         }
 
@@ -307,7 +320,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(Target.GetKeyConditionSQL(string.Empty, string.Empty, 0), string.Empty, null, false);
+            textBoxSelectSql.Text = Target.GetSelectSQL(Target.GetKeyConditionSQL(string.Empty, string.Empty, 0), string.Empty, null, VisibleLevel);
         }
 
         private void UpdateTextBoxInsertSql()
@@ -387,7 +400,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(textBoxCondition.Text, orderby, limit, false, out offset);
+            string sql = Target.GetSelectSQL(textBoxCondition.Text, orderby, limit, VisibleLevel, out offset);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection())
@@ -720,7 +733,9 @@ namespace Db2Source
             {
                 return;
             }
-            MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+            MainWindow.TabBecomeVisible(this);
+            MessageBoxResult ret = MessageBox.Show(string.Format("\"{0}\"の変更が保存されていません。保存しますか?", Target.DisplayName),
+                "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             switch (ret)
             {
                 case MessageBoxResult.Yes:

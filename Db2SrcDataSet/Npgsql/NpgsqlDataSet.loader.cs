@@ -1111,7 +1111,7 @@ namespace Db2Source
                 foreach (PgAttribute a in Columns)
                 {
                     Column c = a.ToColumn(context);
-                    if (!c.IsHidden)
+                    if (c.HiddenLevel == HiddenLevel.Visible)
                     {
                         c.Index = i++;
                     }
@@ -1131,7 +1131,7 @@ namespace Db2Source
                 foreach (PgAttribute a in Columns)
                 {
                     Column c = a.ToColumn(context);
-                    if (!c.IsHidden)
+                    if (c.HiddenLevel == HiddenLevel.Visible)
                     {
                         c.Index = i++;
                     }
@@ -1150,7 +1150,7 @@ namespace Db2Source
                 foreach (PgAttribute a in Columns)
                 {
                     Column c = a.ToColumn(context);
-                    if (!c.IsHidden)
+                    if (c.HiddenLevel == HiddenLevel.Visible)
                     {
                         c.Index = i++;
                     }
@@ -1368,7 +1368,7 @@ namespace Db2Source
                     case 'b':   // 基本型
                         return ToBasicType(context);
                     case 'c':   // 複合型
-                        return null;
+                        return null;    // PgClassで生成する
                     case 'd':   // 派生型
                         return null;
                     case 'e':   // 列挙型
@@ -1728,7 +1728,7 @@ namespace Db2Source
                 c.IsSupportedType = (t != null);
                 if (attnum <= 0)
                 {
-                    c.IsHidden = true;
+                    c.HiddenLevel = (attname == "oid") ? HiddenLevel.Hidden : HiddenLevel.SystemInternal;
                     c.Index = attnum;
                 }
                 Generated = c;
@@ -2340,8 +2340,8 @@ namespace Db2Source
                 //PgDepends.EndFillReference(this);
 
                 LoadFromPgNamespaces();
-                LoadFromPgClass();
                 LoadFromPgType();
+                LoadFromPgClass();
                 LoadFromPgProc();
                 LoadFromPgConstraint();
                 LoadFromPgTrigger();

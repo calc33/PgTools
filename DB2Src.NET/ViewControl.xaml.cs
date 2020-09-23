@@ -227,7 +227,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(string.Empty, string.Empty, null, false);
+            textBoxSelectSql.Text = Target.GetSelectSQL(string.Empty, string.Empty, null, HiddenLevel.Visible);
         }
 
         public void Fetch(string condition)
@@ -259,7 +259,7 @@ namespace Db2Source
                 limit = l;
             }
             int offset;
-            string sql = Target.GetSelectSQL(textBoxCondition.Text, string.Empty, limit, false, out offset);
+            string sql = Target.GetSelectSQL(textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection())
