@@ -101,7 +101,7 @@ namespace Db2Source
                     bool matched = true;
                     for (int i = 0; i < target.Length; i++)
                     {
-                        if (string.Compare(target[i], entries[i], true) != 0 && entries[i] == "*")
+                        if (string.Compare(target[i], entries[i], true) != 0 && entries[i] != "*")
                         {
                             matched = false;
                             break;

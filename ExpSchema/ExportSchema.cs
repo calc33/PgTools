@@ -333,8 +333,7 @@ namespace Db2Source
                         case "--newline":
                             if (!ArgToNewLineRule.TryGetValue(v.ToLower(), out _newLine))
                             {
-                                Console.Error.WriteLine(string.Format("不明な改行指定です: {0}", v));
-                                Environment.Exit(1);
+                                ShowArgumentError(string.Format("不明な改行指定です: {0}", v));
                             }
                             break;
                         case "-?":
@@ -344,8 +343,7 @@ namespace Db2Source
                         default:
                             if (a.StartsWith("-"))
                             {
-                                Console.Error.WriteLine(string.Format("不明なオプションです: {0}", a));
-                                Environment.Exit(1);
+                                ShowArgumentError(string.Format("不明なオプションです: {0}", a));
                             }
                             _exportDir = a;
                             break;
@@ -361,34 +359,12 @@ namespace Db2Source
                 ShowUsage();
             }
         }
-        private static string GetPasswordFromPgPass(string host, int port, string database, string username)
-        {
-            string path = Path.Combine(Environment.GetEnvironmentVariable("APPDATA"), "postgresql", "pgpass.conf");
-            if (!File.Exists(path))
-            {
-                return null;
-            }
-            string line = string.Format("{0}:{1}:{2}:{3}:", host, port, database, username);
-            try
-            {
-                foreach (string s in File.ReadLines(path, Encoding.Default))
-                {
-                    if (s.StartsWith(line, StringComparison.CurrentCultureIgnoreCase))
-                    {
-                        return s.Substring(line.Length);
-                    }
-                }
-            }
-            catch
-            {
-                return null;
-            }
-            return null;
-        }
 
         public static void ShowArgumentError(string message)
         {
-
+            Console.Error.WriteLine(message);
+            Console.Error.Flush();
+            Environment.Exit(1);
         }
         public static void ShowUsage()
         {
@@ -397,13 +373,57 @@ namespace Db2Source
             Environment.Exit(1);
         }
 
+        private static string ReadPassword()
+        {
+            Console.Error.Write("パスワード: ");
+            Console.Error.Flush();
+
+            StringBuilder buf = new StringBuilder();
+            for (;;)
+            {
+                ConsoleKeyInfo k = Console.ReadKey(true);
+                switch (k.Key)
+                {
+                    case ConsoleKey.Enter:
+                        Console.Out.WriteLine();
+                        return buf.ToString();
+                    case ConsoleKey.Backspace:
+                        if (buf.Length == 0)
+                        {
+                            Console.Beep();
+                            break;
+                        }
+                        buf.Length--;
+                        break;
+                    default:
+                        char c = k.KeyChar;
+                        if (char.IsControl(c))
+                        {
+                            Console.Beep();
+                            break;
+                        }
+                        if (char.IsLetter(k.KeyChar))
+                        {
+                            if (Console.CapsLock ^ ((k.Modifiers & ConsoleModifiers.Shift) != 0))
+                            {
+                                c = char.ToUpper(c);
+                            }
+                            else
+                            {
+                                c = char.ToLower(c);
+                            }
+                        }
+                        buf.Append(c);
+                        break;
+                }
+            }
+            //return null;
+        }
         private static IDbConnection TryLogin(NpgsqlConnectionInfo info)
         {
             if (info.Password == null)
             {
-                Console.Error.Write("パスワード: ");
-                Console.Error.Flush();
-                info.Password = Console.In.ReadLine();
+                info.Password = ReadPassword();
             }
             for (int i = 0; i < 3; i++)
             {
@@ -414,9 +434,7 @@ namespace Db2Source
                 }
                 catch
                 {
-                    Console.Error.Write("パスワード: ");
-                    Console.Error.Flush();
-                    info.Password = Console.In.ReadLine();
+                    info.Password = ReadPassword();
                 }
             }
             return null;
@@ -429,7 +447,7 @@ namespace Db2Source
             info.ServerPort = _port;
             info.DatabaseName = _database;
             info.UserName = _username;
-            info.Password = GetPasswordFromPgPass(_hostname, _port, _database, _username);
+            info.FillStoredPassword(false);
             using (IDbConnection conn = TryLogin(info))
             {
                 if (conn == null)

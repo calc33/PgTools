@@ -104,6 +104,7 @@
     <Compile Include="Commands.cs" />
     <Compile Include="DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
+    <Compile Include="ErrorListBoxItem.cs" />
     <Compile Include="ExportSchema.xaml.cs">
       <DependentUpon>ExportSchema.xaml</DependentUpon>
     </Compile>

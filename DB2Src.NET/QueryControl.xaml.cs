@@ -87,6 +87,13 @@ namespace Db2Source
             item.ErrorPosition = errorPos;
             return item;
         }
+        private ErrorListBoxItem NewErrorListBoxItem(string text, Tuple<int, int> errorPos)
+        {
+            ErrorListBoxItem item = new ErrorListBoxItem();
+            item.Message = text;
+            item.ErrorPosition = errorPos;
+            return item;
+        }
         private void AddLog(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice, Tuple<int,int> errorPos = null)
         {
             LogListBoxItem item = NewLogListBoxItem(text, sql, parameters, status, notice, errorPos);
@@ -100,17 +107,18 @@ namespace Db2Source
             }
             if (status == LogStatus.Error && errorPos != null)
             {
-                item = NewLogListBoxItem(text, sql, parameters, status, notice, errorPos);
-                item.MouseDoubleClick += ListBoxErrors_MouseDoubleClick;
-                listBoxErrors.Items.Add(item);
-                listBoxErrors.SelectedItem = item;
-                listBoxErrors.ScrollIntoView(item);
+                ErrorListBoxItem err = NewErrorListBoxItem(text, errorPos);
+                err.MouseDoubleClick += ListBoxErrors_MouseDoubleClick;
+                listBoxErrors.Items.Add(err);
+                listBoxErrors.SelectedItem = err;
+                listBoxErrors.ScrollIntoView(err);
+                listBoxErrors.Visibility = Visibility.Visible;
             }
         }
 
         private void ListBoxErrors_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            LogListBoxItem item = sender as LogListBoxItem;
+            ErrorListBoxItem item = sender as ErrorListBoxItem;
             if (item == null)
             {
                 return;
@@ -120,7 +128,10 @@ namespace Db2Source
                 return;
             }
             textBoxSql.Select(item.ErrorPosition.Item1, item.ErrorPosition.Item2);
-            
+            int l = textBoxSql.GetLineIndexFromCharacterIndex(item.ErrorPosition.Item1);
+            textBoxSql.ScrollToLine(l);
+            textBoxSql.Focus();
+
         }
 
         private void Item_RedoSql(object sender, EventArgs e)
@@ -270,6 +281,8 @@ namespace Db2Source
                 AddLog("SQLがありません。", null, null, LogStatus.Error, true);
                 return;
             }
+            listBoxErrors.Items.Clear();
+            listBoxErrors.Visibility = Visibility.Collapsed;
             UpdateDataGridResult(parts);
         }
         private void buttonFetch_Click(object sender, RoutedEventArgs e)

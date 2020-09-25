@@ -522,6 +522,7 @@ namespace Db2Source
             dataGridResult.CommandBindings.Add(b);
             b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
             textBoxCondition.CommandBindings.Add(b);
+            VisibleLevel = HiddenLevel.Hidden;
         }
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)

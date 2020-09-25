@@ -117,6 +117,12 @@ namespace Db2Source
         SystemInternal
     }
 
+    public class HiddenLevelDisplayItem
+    {
+        public HiddenLevel Level { get; set; }
+        public string Name { get; set; }
+    }
+
     public class ColumnInfo
     {
         public string Name { get; private set; }

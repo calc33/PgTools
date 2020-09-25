@@ -818,7 +818,7 @@ namespace Db2Source
             int w = 0;
             foreach (Column c in Columns.AllColumns)
             {
-                if (c.HiddenLevel < visibleLevel)
+                if (visibleLevel < c.HiddenLevel)
                 {
                     continue;
                 }

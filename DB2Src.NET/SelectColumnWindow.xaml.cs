@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,6 +51,22 @@ namespace Db2Source
             }
         }
 
+        private void UpdateWidth()
+        {
+            Typeface font = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+            Size s = Size.Empty;
+            foreach (DataGridColumn c in Grid.Columns)
+            {
+                if (c.Header == null)
+                {
+                    continue;
+                }
+                FormattedText txt = new FormattedText(c.Header.ToString(), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, font, FontSize, Foreground);
+                s = new Size(Math.Max(s.Width, txt.Width), Math.Max(s.Height, txt.Height));
+            }
+            //listBoxColumns.MinWidth = s.Width + 31;    // 10(ListBoxItemのPadding+BorderTickness) + 17(Scrollbar.Width) + 4(Border類のサイズ)
+            listBoxColumns.Width = s.Width + 36; // +5だけ余裕をみておく
+        }
         private void UpdateFilter()
         {
             string key = textBoxFilter.Text?.ToUpper();
@@ -76,6 +93,7 @@ namespace Db2Source
 
         private void GridPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
+            UpdateWidth();
             UpdateFilter();
         }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)

@@ -1542,6 +1542,11 @@ namespace Db2Source
                         Style style = Grid.CellStyle;
                         style = (style != null) ? new Style(typeof(DataGridCell), style) : style = new Style(typeof(DataGridCell));
                         style.Setters.Add(setter);
+                        if (info.HiddenLevel != HiddenLevel.Visible)
+                        {
+                            style.Setters.Add(new Setter(Control.ForegroundProperty, SystemColors.GrayTextBrush));
+                            c.IsReadOnly = true;
+                        }
                         c.CellStyle = style;
                     }
                     col = c;

@@ -237,13 +237,58 @@ namespace Db2Source
             Environment.Exit(1);
         }
 
+        private static string ReadPassword()
+        {
+            Console.Error.Write("パスワード: ");
+            Console.Error.Flush();
+
+            StringBuilder buf = new StringBuilder();
+            for (;;)
+            {
+                ConsoleKeyInfo k = Console.ReadKey(true);
+                switch (k.Key)
+                {
+                    case ConsoleKey.Enter:
+                        Console.Out.WriteLine();
+                        return buf.ToString();
+                    case ConsoleKey.Backspace:
+                        if (buf.Length == 0)
+                        {
+                            Console.Beep();
+                            break;
+                        }
+                        buf.Length--;
+                        break;
+                    default:
+                        char c = k.KeyChar;
+                        if (char.IsControl(c))
+                        {
+                            Console.Beep();
+                            break;
+                        }
+                        if (char.IsLetter(k.KeyChar))
+                        {
+                            if (Console.CapsLock ^ ((k.Modifiers & ConsoleModifiers.Shift) != 0))
+                            {
+                                c = char.ToUpper(c);
+                            }
+                            else
+                            {
+                                c = char.ToLower(c);
+                            }
+                        }
+                        buf.Append(c);
+                        break;
+                }
+            }
+            //return null;
+        }
+
         private static IDbConnection TryLogin(NpgsqlConnectionInfo info)
         {
             if (info.Password == null)
             {
-                Console.Error.Write("パスワード: ");
-                Console.Error.Flush();
-                info.Password = Console.In.ReadLine();
+                info.Password = ReadPassword();
             }
             for (int i = 0; i < 3; i++)
             {
@@ -254,9 +299,7 @@ namespace Db2Source
                 }
                 catch
                 {
-                    Console.Error.Write("パスワード: ");
-                    Console.Error.Flush();
-                    info.Password = Console.In.ReadLine();
+                    info.Password = ReadPassword();
                 }
             }
             return null;

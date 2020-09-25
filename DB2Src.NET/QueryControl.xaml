@@ -17,7 +17,7 @@
         </Grid.RowDefinitions>
         <DockPanel Margin="0,0,0,4">
             <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleExec}" Click="buttonFetch_Click" HorizontalAlignment="Left" Content="実行" DockPanel.Dock="Right" Margin="2,0" TabIndex="1" VerticalAlignment="Top" MinWidth="40" MinHeight="50"/>
-            <ListBox x:Name="listBoxErrors" DockPanel.Dock="Bottom"/>
+            <ListBox x:Name="listBoxErrors" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -67,7 +67,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" Style="{DynamicResource DataGridStyleResult}"/>
+                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible"/>
                 </DockPanel>
             </TabItem>
         </TabControl>

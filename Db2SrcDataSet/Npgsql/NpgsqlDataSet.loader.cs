@@ -2340,8 +2340,8 @@ namespace Db2Source
                 //PgDepends.EndFillReference(this);
 
                 LoadFromPgNamespaces();
-                LoadFromPgType();
                 LoadFromPgClass();
+                LoadFromPgType();
                 LoadFromPgProc();
                 LoadFromPgConstraint();
                 LoadFromPgTrigger();

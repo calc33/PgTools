@@ -97,12 +97,13 @@ namespace Db2Source
         }
         public void SetColumns(string[] columns)
         {
-            if (columns == null)
+            if (Target == null)
             {
                 return;
             }
-            if (Target == null)
+            if (columns == null)
             {
+                AddNewFieldControl(null, Order.Asc);
                 return;
             }
             stackPanelMain.Children.Clear();

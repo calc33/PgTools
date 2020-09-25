@@ -46,7 +46,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" IsReadOnly="True" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}"/>
+                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" IsReadOnly="True" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible"/>
                 </DockPanel>
             </Grid>
         </TabItem>

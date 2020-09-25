@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Db2Source"
+             xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Name="userControl" x:Class="Db2Source.TableControl"
              mc:Ignorable="d"
@@ -99,6 +100,16 @@
                     </StackPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <TextBlock DockPanel.Dock="Left" Text="並び順：" VerticalAlignment="Center"/>
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                            <TextBlock Text="システム項目：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="6,0,0,0"/>
+                            <ComboBox x:Name="comboBoxSystemColumn" Grid.Column="1" VerticalAlignment="Center" Margin="0,1" DisplayMemberPath="Name" SelectedValuePath="Level" SelectedValue="{Binding VisibleLevel, ElementName=userControl}" MinWidth="85">
+                                <ComboBox.Items>
+                                    <local2:HiddenLevelDisplayItem Level="Visible" Name="表示しない" />
+                                    <local2:HiddenLevelDisplayItem Level="Hidden" Name="OIDを表示" />
+                                    <local2:HiddenLevelDisplayItem Level="SystemInternal" Name="すべて表示" />
+                                </ComboBox.Items>
+                            </ComboBox>
+                        </StackPanel>
                         <local:SortFieldListControl x:Name="sortFields" VerticalContentAlignment="Top" Margin="0,2" Target="{Binding Target, ElementName=userControl}" Height="Auto" TabIndex="2"/>
                     </DockPanel>
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
@@ -123,7 +134,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}"/>
+                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}" CellStyle="{DynamicResource DataGridCellStyle1}" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible"/>
                 </DockPanel>
             </Grid>
         </TabItem>
