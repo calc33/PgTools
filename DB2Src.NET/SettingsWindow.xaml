@@ -1,0 +1,42 @@
+﻿<Window x:Class="Db2Source.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Db2Source"
+        xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        Title="SettingsWindow" Height="300" Width="300">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="1*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Text="システム項目の表示：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+        <ComboBox x:Name="comboBoxSystemColumn" Grid.Column="1" SelectedIndex="0" VerticalAlignment="Center" Margin="0,1">
+            <ComboBox.Items>
+                <ComboBoxItem Content="表示しない">
+                    <ComboBoxItem.Tag>
+                        <local2:HiddenLevel>Visible</local2:HiddenLevel>
+                    </ComboBoxItem.Tag>
+                </ComboBoxItem>
+                <ComboBoxItem Content="OIDのみ">
+                    <ComboBoxItem.Tag>
+                        <local2:HiddenLevel>Hidden</local2:HiddenLevel>
+                    </ComboBoxItem.Tag>
+                </ComboBoxItem>
+                <ComboBoxItem Content="すべて表示">
+                    <ComboBoxItem.Tag>
+                        <local2:HiddenLevel>SystemInternal</local2:HiddenLevel>
+                    </ComboBoxItem.Tag>
+                </ComboBoxItem>
+            </ComboBox.Items>
+        </ComboBox>
+    </Grid>
+</Window>

@@ -1497,14 +1497,16 @@ namespace Db2Source
                 DataGridCheckBoxColumn chk = new DataGridCheckBoxColumn();
                 chk.Binding = new Binding("IsChecked");
                 Grid.Columns.Add(chk);
-                CommandBinding b;
-                b = new CommandBinding(ApplicationCommands.SelectAll, SelectAllCommand_Executed);
-                Grid.CommandBindings.Add(b);
-                b = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(b);
                 _columnToDataIndex.Add(chk, -1);
             }
 
+            {
+                CommandBinding cb;
+                cb = new CommandBinding(ApplicationCommands.SelectAll, SelectAllCommand_Executed);
+                Grid.CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
+                Grid.CommandBindings.Add(cb);
+            }
             int i = 0;
             foreach (ColumnInfo info in Fields)
             {

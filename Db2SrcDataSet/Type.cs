@@ -41,18 +41,68 @@ namespace Db2Source
     {
         private List<TypeReference> _list = new List<TypeReference>();
 
-        public TypeReference this[int index] { get => _list[index]; set => _list[index] = value; }
-        object IList.this[int index] { get => ((IList)_list)[index]; set => ((IList)_list)[index] = value; }
+        public TypeReference this[int index]
+        {
+            get
+            {
+                return _list[index];
+            }
+            set
+            {
+                _list[index] = value;
+            }
+        }
+        object IList.this[int index]
+        {
+            get
+            {
+                return ((IList)_list)[index];
+            }
+            set
+            {
+                ((IList)_list)[index] = value;
+            }
+        }
 
-        public int Count => _list.Count;
+        public int Count
+        {
+            get
+            {
+                return _list.Count;
+            }
+        }
 
-        public bool IsReadOnly => ((IList<TypeReference>)_list).IsReadOnly;
+        public bool IsReadOnly
+        {
+            get
+            {
+                return ((IList<TypeReference>)_list).IsReadOnly;
+            }
+        }
 
-        public object SyncRoot => ((IList)_list).SyncRoot;
+        public object SyncRoot
+        {
+            get
+            {
+                return ((IList)_list).SyncRoot;
+            }
+        }
 
-        public bool IsSynchronized => ((IList)_list).IsSynchronized;
+        public bool IsSynchronized
+        {
+            get
+            {
+                return ((IList)_list).IsSynchronized;
+            }
+        }
 
-        public bool IsFixedSize => ((IList)_list).IsFixedSize;
+        public bool IsFixedSize
+        {
+            get
+            {
+                return ((IList)_list).IsFixedSize;
+            }
+        }
 
         public void Add(TypeReference item)
         {
