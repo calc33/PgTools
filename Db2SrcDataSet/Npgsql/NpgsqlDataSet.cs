@@ -235,6 +235,8 @@ namespace Db2Source
                 }
                 buf.Append(':');
                 buf.Append(p.Name);
+                buf.Append("::");
+                buf.Append(p.BaseType);
                 NpgsqlDbType t;
                 if (!TypeToDbType.TryGetValue(p.ValueType, out t))
                 {

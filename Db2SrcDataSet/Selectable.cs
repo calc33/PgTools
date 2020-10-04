@@ -810,12 +810,12 @@ namespace Db2Source
             }
             return false;
         }
-        public string GetSelectSQL(string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel)
         {
             StringBuilder buf = new StringBuilder();
             string delim = "  ";
-            buf.AppendLine("select");
             int w = 0;
+            string a = string.IsNullOrEmpty(alias) ? string.Empty : alias + ".";
             foreach (Column c in Columns.AllColumns)
             {
                 if (visibleLevel < c.HiddenLevel)
@@ -834,14 +834,27 @@ namespace Db2Source
                     buf.Append("  ");
                     w = 2;
                 }
+                buf.Append(a);
                 string s = c.EscapedName;
                 buf.Append(s);
                 w += s.Length;
                 delim = ", ";
             }
-            buf.AppendLine();
+            return buf.ToString();
+        }
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.AppendLine("select");
+            buf.AppendLine(GetColumnsSQL(alias, visibleLevel));
             buf.Append("from ");
-            buf.AppendLine(EscapedIdentifier(null));
+            buf.Append(EscapedIdentifier(null));
+            if (!string.IsNullOrEmpty(alias))
+            {
+                buf.Append(" as ");
+                buf.Append(alias);
+            }
+            buf.AppendLine();
             whereOffset = buf.Length;
             if (!string.IsNullOrEmpty(where))
             {
@@ -862,12 +875,12 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
             int whereOffset = 0;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             if (0 < where.Length)
@@ -879,14 +892,14 @@ namespace Db2Source
                     buf.AppendLine(where[i]);
                 }
             }
-            return GetSelectSQL(buf.ToString(), orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, buf.ToString(), orderBy, limit, visibleLevel, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
             int whereOffset = 0;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
-        public string GetSelectSQL(string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
             StringBuilder bufO = new StringBuilder();
             if (0 < orderBy.Length)
@@ -898,9 +911,9 @@ namespace Db2Source
                     bufO.Append(orderBy[i]);
                 }
             }
-            return GetSelectSQL(where, bufO.ToString(), limit, visibleLevel);
+            return GetSelectSQL(alias, where, bufO.ToString(), limit, visibleLevel);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
             if (0 < where.Length)
@@ -922,12 +935,12 @@ namespace Db2Source
                     bufO.Append(orderBy[i]);
                 }
             }
-            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), bufO.ToString(), limit, visibleLevel, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
             int whereOffset = 0;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
     }
 }

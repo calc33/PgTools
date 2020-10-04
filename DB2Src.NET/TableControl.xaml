@@ -323,9 +323,9 @@
                             <StackPanel Margin="2" Orientation="Horizontal">
                                 <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
                                     <StackPanel Orientation="Horizontal" Margin="2,2">
-                                        <TextBlock Text="{Binding Target.Name, ElementName=userControl}" MinWidth="32"/>
+                                        <TextBlock Text="{Binding JoinTables[0].Name, ElementName=userControl}" MinWidth="32"/>
                                         <TextBlock Text=" as "/>
-                                        <TextBox x:Name="textBoxAlias0" MinWidth="16"/>
+                                        <TextBox x:Name="textBoxAlias0" Text="{Binding JoinTables[0].Alias, ElementName=userControl}" MinWidth="16"/>
                                     </StackPanel>
                                 </Border>
                                 <Button Style="{DynamicResource ButtonStyleAdd}" Margin="2,0"/>

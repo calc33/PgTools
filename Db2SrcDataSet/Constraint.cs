@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Db2Source
 {
@@ -331,6 +332,40 @@ namespace Db2Source
         //    }
         //}
         public string[] ExtraInfo { get; set; }
+
+        public string Description
+        {
+            get
+            {
+                StringBuilder buf = new StringBuilder();
+                string prefix = "(";
+                foreach (string c in Columns)
+                {
+                    buf.Append(prefix);
+                    buf.Append(c);
+                    prefix = ", ";
+                }
+                buf.Append(") => ");
+                if (!string.IsNullOrEmpty(ReferenceSchemaName) && ReferenceSchemaName != SchemaName)
+                {
+                    buf.Append(ReferenceSchemaName);
+                    buf.Append('.');
+                }
+                buf.Append(ReferenceTableName);
+                if (ReferenceConstraint == null || ReferenceConstraint.ConstraintType != ConstraintType.Primary)
+                {
+                    prefix = "(";
+                    foreach (string c in RefColumns)
+                    {
+                        buf.Append(prefix);
+                        buf.Append(c);
+                        prefix = ", ";
+                    }
+                    buf.Append(")");
+                }
+                return buf.ToString();
+            }
+        }
 
         public ForeignKeyConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, string refSchema, string refConstraint, ForeignKeyRule updateRule, ForeignKeyRule deleteRule, bool isNoName, bool deferrable, bool deferred)
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred)

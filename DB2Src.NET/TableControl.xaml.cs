@@ -26,6 +26,7 @@ namespace Db2Source
     public partial class TableControl: UserControl, ISchemaObjectControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableControl));
+        public static readonly DependencyProperty JoinTablesProperty = DependencyProperty.Register("JoinTables", typeof(JoinTableCollection), typeof(TableControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(TableControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(TableControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(TableControl));
@@ -53,6 +54,19 @@ namespace Db2Source
                 SetValue(TargetProperty, value);
             }
         }
+
+        public JoinTableCollection JoinTables
+        {
+            get
+            {
+                return (JoinTableCollection)GetValue(JoinTablesProperty);
+            }
+            set
+            {
+                SetValue(JoinTablesProperty, value);
+            }
+        }
+
         public string SelectedTabKey
         {
             get
@@ -120,6 +134,7 @@ namespace Db2Source
         public TableControl()
         {
             InitializeComponent();
+            JoinTables = new JoinTableCollection();
         }
 
         private void UpdateIsTargetModified()
@@ -140,6 +155,8 @@ namespace Db2Source
         }
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
+            JoinTables.Clear();
+            JoinTables.Add(new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root });
             //dataGridColumns.ItemsSource = Target.Columns;
             Target.PropertyChanged += Target_PropertyChanged;
             Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
@@ -320,7 +337,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(Target.GetKeyConditionSQL(string.Empty, string.Empty, 0), string.Empty, null, VisibleLevel);
+            textBoxSelectSql.Text = Target.GetSelectSQL(null, Target.GetKeyConditionSQL(string.Empty, string.Empty, 0), string.Empty, null, VisibleLevel);
         }
 
         private void UpdateTextBoxInsertSql()
@@ -400,7 +417,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(textBoxCondition.Text, orderby, limit, VisibleLevel, out offset);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection())

@@ -87,6 +87,7 @@
     <Compile Include="Dependency.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Index.cs" />
+    <Compile Include="JoinTable.cs" />
     <Compile Include="NamedObject.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.cs" />
