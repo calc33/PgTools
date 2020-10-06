@@ -135,6 +135,9 @@
     <Compile Include="SelectColumnWindow.xaml.cs">
       <DependentUpon>SelectColumnWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SelectRefConstraintWindow.xaml.cs">
+      <DependentUpon>SelectRefConstraintWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SequenceControl.xaml.cs">
       <DependentUpon>SequenceControl.xaml</DependentUpon>
     </Compile>
@@ -207,6 +210,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SelectColumnWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SelectRefConstraintWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

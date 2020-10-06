@@ -1258,26 +1258,7 @@ namespace Db2Source
             }
             _keyFields = l.ToArray();
         }
-        //private void UpdateFieldComment()
-        //{
-        //    if (Table == null)
-        //    {
-        //        return;
-        //    }
-        //    if (Fields == null || Fields.Length == 0)
-        //    {
-        //        return;
-        //    }
-        //    foreach (FieldInfo f in Fields)
-        //    {
-        //        Column c = Table.Columns[f.Name];
-        //        if (c == null)
-        //        {
-        //            continue;
-        //        }
-        //        f.Comment = c.CommentText;
-        //    }
-        //}
+
         public ColumnInfo[] KeyFields
         {
             get

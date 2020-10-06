@@ -177,7 +177,8 @@ namespace Db2Source
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
-            DataGrid grid = button.TemplatedParent as DataGrid;
+            ScrollViewer sb = button.TemplatedParent as ScrollViewer;
+            DataGrid grid = sb?.TemplatedParent as DataGrid;
             if (grid == null)
             {
                 return;
@@ -276,5 +277,4 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-
 }

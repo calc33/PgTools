@@ -1166,13 +1166,13 @@
                                                     </Grid.ColumnDefinitions>
                                                     <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Column="1" Maximum="{TemplateBinding ScrollableWidth}" Orientation="Horizontal" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
                                                 </Grid>
+                                                <Button x:Name="PART_ColumnSearchButton" Focusable="False" Content="▸" BorderThickness="0" ToolTip="項目を検索" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" BorderBrush="{TemplateBinding BorderBrush}" Grid.Column="2" Click="GridSelectColumnButton_Click" Background="{x:Null}"/>
                                             </Grid>
                                         </ControlTemplate>
                                     </ScrollViewer.Template>
                                     <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                                 </ScrollViewer>
                             </Border>
-                            <Button Width="18" Height="18"  ToolTip="項目を検索" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="{Binding ItemsSource, Converter={StaticResource ItemsSourceToColumnFilterButtonVisiblityConverter}, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" Style="{DynamicResource ButtonStyleMicroSearch}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{TemplateBinding BorderBrush}" Click="GridSelectColumnButton_Click"/>
                         </Grid>
                     </ControlTemplate>
                 </Setter.Value>
