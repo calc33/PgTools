@@ -193,7 +193,7 @@ namespace Db2Source
             win.Top = p.Y;
             win.Show();
             Panel pnl = win.Content as Panel;
-            p = button.PointToScreen(new Point(button.ActualWidth - (win.ActualWidth + pnl.ActualWidth) / 2 - 3, button.ActualHeight));
+            p = button.PointToScreen(new Point(button.ActualWidth - (win.ActualWidth + pnl.ActualWidth) / 2, button.ActualHeight));
             win.Left = p.X;
             win.Top = p.Y;
         }

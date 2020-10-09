@@ -187,8 +187,6 @@ namespace Db2Source
             base.OnPropertyChanged(e);
         }
 
-        private bool _closing = false;
-
         private void CommitSelection()
         {
             SelectedColumn = listBoxColumns.SelectedItem as DataGridColumn;
@@ -196,12 +194,23 @@ namespace Db2Source
             {
                 return;
             }
-            _closing = true;
+            Close();
+        }
+        private void CancelSelection()
+        {
+            SelectedColumn = null;
             Close();
         }
         private void listBoxColumns_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             CommitSelection();
+        }
+
+        private bool _closing = false;
+
+        private void window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _closing = true;
         }
 
         private void window_Deactivated(object sender, EventArgs e)
@@ -240,6 +249,10 @@ namespace Db2Source
                     break;
                 case Key.Enter:
                     CommitSelection();
+                    e.Handled = true;
+                    break;
+                case Key.Escape:
+                    CancelSelection();
                     e.Handled = true;
                     break;
             }
