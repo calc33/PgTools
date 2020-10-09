@@ -236,11 +236,21 @@ namespace Db2Source
             try
             {
                 StringBuilder buf = new StringBuilder();
+                if (IsChecked(checkBoxSourceDropReferredCons))
+                {
+                    foreach (ForeignKeyConstraint f in Target.ReferFrom)
+                    {
+                        buf.Append(ctx.GetDropSQL(f, string.Empty, ";", 0, false, true));
+                    }
+                    if (0 < buf.Length)
+                    {
+                        buf.AppendLine();
+                    }
+                }
                 if (IsChecked(checkBoxSourceMain))
                 {
                     buf.AppendLine(ctx.GetSQL(Target, string.Empty, ";", 0, true, IsChecked(checkBoxSourceKeyCons)));
                 }
-                string consBase = string.Format("alter table {0} add ", Target.EscapedIdentifier(null));
                 List<Constraint> list = new List<Constraint>(Target.Constraints);
                 list.Sort();
                 int lastLength = buf.Length;
@@ -252,25 +262,25 @@ namespace Db2Source
                             if (!IsChecked(checkBoxSourceMain) && IsChecked(checkBoxSourceKeyCons))
                             {
                                 // 本体ソース内で出力しているので本体を出力しない場合のみ
-                                buf.Append(ctx.GetSQL(c, consBase, ";", 0, true));
+                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
                             }
                             break;
                         case ConstraintType.Unique:
                             if (IsChecked(checkBoxSourceKeyCons))
                             {
-                                buf.Append(ctx.GetSQL(c, consBase, ";", 0, true));
+                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
                             }
                             break;
                         case ConstraintType.ForeignKey:
                             if (IsChecked(checkBoxSourceRefCons))
                             {
-                                buf.Append(ctx.GetSQL(c, consBase, ";", 0, true));
+                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
                             }
                             break;
                         case ConstraintType.Check:
                             if (IsChecked(checkBoxSourceCons))
                             {
-                                buf.Append(ctx.GetSQL(c, consBase, ";", 0, true));
+                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
                             }
                             break;
                     }
@@ -317,6 +327,18 @@ namespace Db2Source
                     foreach (Index i in Target.Indexes)
                     {
                         buf.Append(ctx.GetSQL(i, string.Empty, ";", 0, true));
+                    }
+                    if (lastLength < buf.Length)
+                    {
+                        buf.AppendLine();
+                    }
+                }
+                if (IsChecked(checkBoxSourceReferredCons))
+                {
+                    lastLength = buf.Length;
+                    foreach (ForeignKeyConstraint f in Target.ReferFrom)
+                    {
+                        buf.Append(ctx.GetSQL(f, string.Empty, ";", 0, true, true));
                     }
                     if (lastLength < buf.Length)
                     {
@@ -460,7 +482,7 @@ namespace Db2Source
             UpdateTextBoxSource();
         }
 
-        private void checkBoxSource_Unhecked(object sender, RoutedEventArgs e)
+        private void checkBoxSource_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxSource();
         }

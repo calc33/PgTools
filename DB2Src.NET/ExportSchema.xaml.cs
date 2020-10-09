@@ -102,7 +102,6 @@ namespace Db2Source
                 return;
             }
             buffer.AppendLine(DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
-            string consBase = string.Format("alter table {0} add ", table.EscapedIdentifier(null));
             List<Constraint> list = new List<Constraint>(table.Constraints);
             list.Sort();
             int lastLength = buffer.Length;
@@ -114,13 +113,13 @@ namespace Db2Source
                         // 本体ソース内で出力している
                         break;
                     case ConstraintType.Unique:
-                        buffer.Append(DataSet.GetSQL(c, consBase, ";", 0, true));
+                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.ForeignKey:
-                        buffer.Append(DataSet.GetSQL(c, consBase, ";", 0, true));
+                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.Check:
-                        buffer.Append(DataSet.GetSQL(c, consBase, ";", 0, true));
+                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                 }
             }
