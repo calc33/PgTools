@@ -295,7 +295,7 @@ namespace Db2Source
                 row.Read(reader, idxList);
             }
         }
-        public override IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld)
+        private static NpgsqlDbType GetNpgsqlDbType(ColumnInfo info)
         {
             Type t = info.FieldType;
             if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
@@ -307,11 +307,27 @@ namespace Db2Source
             {
                 dbt = NpgsqlDbType.Text;
             }
-            NpgsqlParameter param = new NpgsqlParameter(isOld ? "old_" + info.Name : info.Name, dbt);
-            param.SourceColumn = info.Name;
-            param.SourceVersion = isOld ? DataRowVersion.Original : DataRowVersion.Current;
+            return dbt;
+        }
+        private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
+        {
+            parameter.IsNullable = info.IsNullable;
+            parameter.Value = (value != null) ? value : DBNull.Value;
+        }
+        public override IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld)
+        {
+            NpgsqlParameter param = parameters[isOld ? "old_" + info.Name : info.Name] as NpgsqlParameter;
+            param.NpgsqlDbType = GetNpgsqlDbType(info);
             param.IsNullable = info.IsNullable;
             param.Value = (value != null) ? value : DBNull.Value;
+            return param;
+        }
+        public override IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld)
+        {
+            NpgsqlParameter param = new NpgsqlParameter(isOld ? "old_" + info.Name : info.Name, GetNpgsqlDbType(info));
+            param.SourceColumn = info.Name;
+            param.SourceVersion = isOld ? DataRowVersion.Original : DataRowVersion.Current;
+            ApplyParameterByFieldInfo(param, info, value);
             return param;
         }
 

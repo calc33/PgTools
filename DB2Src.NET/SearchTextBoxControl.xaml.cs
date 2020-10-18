@@ -137,6 +137,7 @@ namespace Db2Source
             textBox.PreviewMouseWheel -= TextBox_PreviewMouseWheel;
             textBox.PreviewMouseDown -= TextBox_PreviewMouseDown;
         }
+
         private void AddTextBoxHandler(TextBox textBox)
         {
             if (textBox == null)
@@ -282,7 +283,7 @@ namespace Db2Source
                     i++;
                     if (char.IsDigit(value, i))
                     {
-                        for (; i < n && char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1); i++) ;
+                        for (; i < n && (char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1)); i++) ;
                     }
                     else
                     {
@@ -296,7 +297,7 @@ namespace Db2Source
                 }
                 else if (char.IsDigit(value, i))
                 {
-                    for (i++; i < n && char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1); i++) ;
+                    for (i++; i < n && (char.IsDigit(value, i) || (".,-".IndexOf(value[i]) != -1)); i++) ;
                     //l.Add(value.Substring(i0, i - i0));
                     target = new Tuple<int, int>(i0, i - i0);
                     if (p < i)

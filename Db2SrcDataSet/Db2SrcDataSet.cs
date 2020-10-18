@@ -717,6 +717,7 @@ namespace Db2Source
         };
         //public static readonly Dictionary<DbType, Type> DbTypeToType = InitDbTypeToType();
 
+        public abstract IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld);
         public abstract IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld);
         public NamedCollection<Schema> Schemas { get; } = new NamedCollection<Schema>();
         public SchemaObjectCollection<SchemaObject> Objects { get; private set; }

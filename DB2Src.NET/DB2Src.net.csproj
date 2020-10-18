@@ -122,6 +122,9 @@
       <DependentUpon>QueryControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="QueryStore.cs" />
+    <Compile Include="RecordViewerWindow.xaml.cs">
+      <DependentUpon>RecordViewerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Registry.cs" />
     <Compile Include="RegUtil.cs" />
     <Compile Include="RegUtil.win32.cs" />
@@ -198,6 +201,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="QueryControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RecordViewerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -571,6 +571,14 @@ namespace Db2Source
                 return _data[index];
             }
 
+            public DataGridController Owner
+            {
+                get
+                {
+                    return _owner;
+                }
+            }
+
             public object[] GetKeys()
             {
                 if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
@@ -603,6 +611,24 @@ namespace Db2Source
                     ret[i] = o;
                 }
                 return ret;
+            }
+
+            public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
+            {
+                if (constraint == null)
+                {
+                    throw new ArgumentNullException("constraint");
+                }
+                if (_owner == null)
+                {
+                    return null;
+                }
+                List<ColumnInfo> ret = new List<ColumnInfo>(constraint.Columns.Length);
+                foreach (string col in constraint.Columns)
+                {
+                    ret.Add(_owner.GetFieldByName(col));
+                }
+                return ret.ToArray();
             }
 
             #region IList<T>の実装

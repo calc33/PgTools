@@ -790,6 +790,59 @@ namespace Db2Source
         }
 
         public void OnTabClosed(object sender) { }
+
+        private bool HasReferenceRecord(DataGridCellInfo cell)
+        {
+            ColumnInfo col = cell.Column.Header as ColumnInfo;
+            DataGridController.Row row = cell.Item as DataGridController.Row;
+            if (col == null || row == null)
+            {
+                return false;
+            }
+            if (row[col.Index] == null)
+            {
+                return false;
+            }
+            foreach (Constraint c in Target.Constraints)
+            {
+                ForeignKeyConstraint fc = c as ForeignKeyConstraint;
+                if (fc == null)
+                {
+                    continue;
+                }
+                foreach (string s in fc.Columns)
+                {
+                    if (string.Compare(s, col.Name, true) == 0)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        private void dataGridResult_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            DataGridCellInfo cur = dataGridResult.CurrentCell;
+            if (cur == null)
+            {
+                return;
+            }
+            ColumnInfo col = cur.Column.Header as ColumnInfo;
+            DataGridController.Row row = cur.Item as DataGridController.Row;
+            FrameworkElement cell = cur.Column.GetCellContent(row);
+
+            if (col == null || row == null || cell == null)
+            {
+                return;
+            }
+            RecordViewerWindow win = new RecordViewerWindow();
+            win.Table = Target;
+            win.Column = col;
+            win.Row = row;
+            App.ShowNearby(win, cell, NearbyLocation.DownLeft, new Thickness(0, -2, 0, -2));
+            e.Handled = true;
+        }
     }
 
     public class NotNullTextConverter: IValueConverter
