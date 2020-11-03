@@ -179,45 +179,45 @@ namespace Db2Source
             DateTime start = DateTime.Now;
             try
             {
+                IDbTransaction txn = command.Connection.BeginTransaction();
                 try
                 {
-                    IDbTransaction txn = command.Connection.BeginTransaction();
-                    try
+                    command.Transaction = txn;
+                    using (IDataReader reader = command.ExecuteReader())
                     {
-                        command.Transaction = txn;
-                        using (IDataReader reader = command.ExecuteReader())
+                        IEnumerable l = dataGridParameters.ItemsSource;
+                        dataGridParameters.ItemsSource = null;
+                        dataGridParameters.ItemsSource = l;
+                        DataGridControllerResult.Load(reader);
+                        if (0 <= reader.RecordsAffected)
                         {
-                            IEnumerable l = dataGridParameters.ItemsSource;
-                            dataGridParameters.ItemsSource = null;
-                            dataGridParameters.ItemsSource = l;
-                            DataGridControllerResult.Load(reader);
-                            if (0 <= reader.RecordsAffected)
-                            {
-                                AddLog(string.Format("{0}行反映しました。", reader.RecordsAffected), null, LogStatus.Normal, true);
-                            }
-                            else
-                            {
-                                tabControlResult.SelectedItem = tabItemDataGrid;
-                            }
+                            AddLog(string.Format("{0}行反映しました。", reader.RecordsAffected), null, LogStatus.Normal, true);
                         }
-                        txn.Commit();
+                        else
+                        {
+                            tabControlResult.SelectedItem = tabItemDataGrid;
+                        }
                     }
-                    catch
-                    {
-                        txn.Rollback();
-                        throw;
-                    }
-                    finally
-                    {
-                        command.Transaction = null;
-                        txn.Dispose();
-                    }
+                    txn.Commit();
                 }
-                catch (Exception t)
+                catch
                 {
-                    MessageBox.Show(t.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
+                    txn.Rollback();
+                    throw;
                 }
+                finally
+                {
+                    command.Transaction = null;
+                    txn.Dispose();
+                }
+            }
+            catch (Exception t)
+            {
+                Db2SourceContext ctx = Target.Context;
+                string msg = ctx.GetExceptionMessage(t);
+                AddLog(msg, command.CommandText, LogStatus.Error, true);
+                //MessageBox.Show(msg, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
             }
             finally
             {
@@ -306,7 +306,7 @@ namespace Db2Source
                     }
                     catch (Exception t)
                     {
-                        ctx.OnLog(t.Message, LogStatus.Error, Target.FullName);
+                        ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.FullName);
                     }
                     finally
                     {
@@ -316,7 +316,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(t.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(ctx.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
@@ -377,6 +377,11 @@ namespace Db2Source
         public void OnTabClosing(object sender, ref bool cancel) { }
 
         public void OnTabClosed(object sender) { }
+
+        private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
+        {
+            listBoxLog.Items.Clear();
+        }
     }
     public class ParamEditor: DependencyObject
     {

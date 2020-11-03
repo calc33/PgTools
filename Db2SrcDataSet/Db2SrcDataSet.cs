@@ -472,6 +472,42 @@ namespace Db2Source
             }
             return objectName;
         }
+        public object Eval(string expression)
+        {
+            using (IDbConnection conn = NewConnection())
+            {
+                return Eval(expression, conn);
+            }
+        }
+        public abstract object Eval(string expression, IDbConnection connection);
+        /// <summary>
+        /// SQL文中に表示する値
+        /// </summary>
+        /// <param name="column"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public virtual string GetImmediatedStr(ColumnInfo column, object value)
+        {
+            if (value == null || value is DBNull)
+            {
+                return "NULL";
+            }
+            if (column.IsNumeric)
+            {
+                return value.ToString();
+            }
+            if (column.IsDateTime)
+            {
+                DateTime dt = Convert.ToDateTime(value);
+                if (dt.TimeOfDay == TimeSpan.Zero)
+                {
+                    return string.Format("TO_DATE('{0:yyyy-M-d}', 'YYYY-MM-DD')", dt);
+                }
+                return string.Format("TO_DATE('{0:yyyy-M-d HH:mm:ss}', 'YYYY-MM-DD HH:MI:SS')", dt);
+            }
+            return ToLiteralStr(value.ToString());
+        }
+
         /// <summary>
         /// objectNameで指定した識別子の前に、必要に応じてスキーマを付加して返す
         /// 必要に応じて識別子にクオートを付加
@@ -974,8 +1010,60 @@ namespace Db2Source
 
         public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
         public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix);
+        /// <summary>
+        /// データ付でINSERT文を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="charPerLine"></param>
+        /// <param name="postfix"></param>
+        /// <param name="data">項目と値の組み合わせを渡す</param>
+        /// <returns></returns>
+        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data);
         public abstract string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix);
+        /// <summary>
+        /// データ付でUPDATE文を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="where"></param>
+        /// <param name="indent"></param>
+        /// <param name="charPerLine"></param>
+        /// <param name="postfix"></param>
+        /// <param name="data">項目と値の組み合わせを渡す</param>
+        /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
+        /// <returns></returns>
+        public abstract string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys);
         public abstract string GetDeleteSql(Table table, string where, int indent, int charPerLine, string postfix);
+        /// <summary>
+        /// 条件文付でDELETE文を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="where"></param>
+        /// <param name="indent"></param>
+        /// <param name="charPerLine"></param>
+        /// <param name="postfix"></param>
+        /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
+        /// <returns></returns>
+        public abstract string GetDeleteSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> keys);
+
+        /// <summary>
+        /// COPY文(PostgreSQL固有SQL文)の宣言部分を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="postfix"></param>
+        /// <param name="columns">出力する項目の順番を指定する</param>
+        /// <returns></returns>
+        public abstract string GetCopySql(Table table, int indent, string postfix, ColumnInfo[] columns);
+        /// <summary>
+        /// COPY文(PostgreSQL固有SQL文)のデータ部分を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="columns">出力する項目の順番を指定する</param>
+        /// <param name="data">出力するデータの配列</param>
+        /// <returns></returns>
+        public abstract string GetCopyDataSql(Table table, ColumnInfo[] columns, object[][] data);
 
         private int _changeLogDisabledLevel = 0;
         public bool IsChangeLogDisabled()

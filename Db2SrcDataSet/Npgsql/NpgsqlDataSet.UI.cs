@@ -173,5 +173,22 @@ namespace Db2Source
             }
             return new Tuple<int, int>(sel.StartPos, sel.EndPos - sel.StartPos + 1);
         }
+        private static string GetExceptionMessage(Npgsql.PostgresException t)
+        {
+            return t.MessageText + Environment.NewLine + Environment.NewLine + t.Where;
+        }
+        /// <summary>
+        /// 例外のダイアログ出力用メッセージを取得
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public override string GetExceptionMessage(Exception t)
+        {
+            if (t is Npgsql.PostgresException)
+            {
+                return GetExceptionMessage((Npgsql.PostgresException)t);
+            }
+            return t.Message;
+        }
     }
 }

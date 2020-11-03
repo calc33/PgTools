@@ -317,6 +317,22 @@ namespace Db2Source
                 return l;
             }
         }
+        public ForeignKeyConstraint[] GetForeignKeysForColumn(string columnName)
+        {
+            List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>();
+            foreach (ForeignKeyConstraint c in ReferTo)
+            {
+                foreach (string col in c.Columns)
+                {
+                    if (col == columnName)
+                    {
+                        l.Add(c);
+                        break;
+                    }
+                }
+            }
+            return l.ToArray();
+        }
         public override void InvalidateConstraints()
         {
             Constraints.Invalidate();

@@ -199,12 +199,27 @@ namespace Db2Source
                 IDataReader reader = null;
                 try
                 {
+                    Style style = FindResource("DataGridCellRefColumnStyle") as Style;
                     reader = command.ExecuteReader();
                     DataGridControllerResult.Load(reader, Target);
+                    foreach (DataGridColumn c in dataGridResult.Columns)
+                    {
+                        ColumnInfo info = c.Header as ColumnInfo;
+                        if (info == null)
+                        {
+                            continue;
+                        }
+                        if (info.ForeignKeys == null || info.ForeignKeys.Length == 0)
+                        {
+                            continue;
+                        }
+                        c.CellStyle = style;
+                    }
                 }
                 catch (Exception t)
                 {
-                    Target.Context.OnLog(t.Message, LogStatus.Error, command.CommandText);
+                    Db2SourceContext ctx = Target.Context;
+                    ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, command.CommandText);
                     return;
                 }
             }
@@ -452,7 +467,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                ctx.OnLog(t.Message, LogStatus.Error, sql);
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, sql);
                 Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, ctx, offset);
             }
             finally
@@ -578,7 +593,8 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                Target.Context.OnLog(t.Message, LogStatus.Error, Target.Context.LastSql);
+                Db2SourceContext ctx = Target.Context;
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.Context.LastSql);
                 return;
             }
         }
@@ -658,7 +674,8 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                Target.Context.OnLog(t.Message, LogStatus.Error, Target.Context.LastSql);
+                Db2SourceContext ctx = Target.Context;
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.Context.LastSql);
                 return;
             }
             dataGridResult.ItemsSource = null;
@@ -821,16 +838,18 @@ namespace Db2Source
             return false;
         }
 
-        private void dataGridResult_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        private void DataGridCellRefColumnStyleButton_Click(object sender, RoutedEventArgs e)
         {
-            DataGridCellInfo cur = dataGridResult.CurrentCell;
+            Button btn = sender as Button;
+            DataGridCell cur = btn.TemplatedParent as DataGridCell;
             if (cur == null)
             {
                 return;
             }
             ColumnInfo col = cur.Column.Header as ColumnInfo;
-            DataGridController.Row row = cur.Item as DataGridController.Row;
-            FrameworkElement cell = cur.Column.GetCellContent(row);
+            DataGridController.Row row = cur.DataContext as DataGridController.Row;
+
+            FrameworkElement cell = cur.Content as FrameworkElement;
 
             if (col == null || row == null || cell == null)
             {
@@ -841,7 +860,6 @@ namespace Db2Source
             win.Column = col;
             win.Row = row;
             App.ShowNearby(win, cell, NearbyLocation.DownLeft, new Thickness(0, -2, 0, -2));
-            e.Handled = true;
         }
     }
 
@@ -938,6 +956,20 @@ namespace Db2Source
             }
             ForeignKeyRule rule = (ForeignKeyRule)value;
             return _ruleToText[rule];
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class RefButtonVisibilityConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
+            //return (cell.DataContext == null) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

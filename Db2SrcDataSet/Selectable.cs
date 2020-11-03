@@ -277,6 +277,17 @@ namespace Db2Source
                 OnPropertyChanged(e);
             }
         }
+        public object EvalDefaultValue()
+        {
+            try
+            {
+                return Context.Eval(DefaultValue);
+            }
+            catch
+            {
+                return null;
+            }
+        }
         private bool _notNull;
         public bool NotNull
         {

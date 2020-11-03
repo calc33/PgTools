@@ -503,7 +503,12 @@
                     <Separator/>
                     <MenuItem Header="切り取り(_T)" InputGestureText="Ctrl+X" Command="ApplicationCommands.Cut"/>
                     <MenuItem Header="コピー(_C)" InputGestureText="Ctrl+C" Command="ApplicationCommands.Copy"/>
-                    <MenuItem Header="表をコピー(_V)" InputGestureText="Ctrl+Shift+C" Command="local:DataGridCommands.CopyTable"/>
+                    <MenuItem Header="表をコピー(_V)">
+                        <MenuItem Header="タイトル+データ(_T)" InputGestureText="Ctrl+Shift+T" Command="local:DataGridCommands.CopyTable"/>
+                        <MenuItem Header="データのみ(_D)" InputGestureText="Ctrl+Shift+D" Command="local:DataGridCommands.CopyTableContent"/>
+                        <MenuItem Header="_INSERT文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert"/>
+                        <MenuItem Header="_COPY文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsCopy"/>
+                    </MenuItem>
                     <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
                     <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
                     <Separator/>
@@ -523,6 +528,8 @@
                     <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
                     <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
+                    <Separator/>
+                    <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click"/>
                 </MenuItem>
             </Menu>
             <Grid>
@@ -585,7 +592,13 @@
                     </TabControl>
                     <GridSplitter Grid.Column="0" Grid.Row="0" Height="4" Cursor="SizeNS" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
                               Visibility="{Binding Visibility, ElementName=listBoxLog}" Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" Margin="0,0,0,-4"/>
-                    <ListBox x:Name="listBoxLog" Grid.Row="1" Margin="0,4,0,0" Visibility="{Binding IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, ElementName=menuItemLogWindow}" MinHeight="60" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                    <ListBox x:Name="listBoxLog" Grid.Row="1" Margin="0,4,0,0" Visibility="{Binding IsChecked, Converter={StaticResource BooleanToVisibilityConverter}, ElementName=menuItemLogWindow}" MinHeight="60" ScrollViewer.VerticalScrollBarVisibility="Visible" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="menuItemClearLog" Header="ログを消去" Click="menuItemClearLog_Click"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
                     <Canvas Grid.Row="1" Width="32" Height="16" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-15,0,0" Visibility="Collapsed">
                         <Polygon Fill="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}">
                             <Polygon.Points>

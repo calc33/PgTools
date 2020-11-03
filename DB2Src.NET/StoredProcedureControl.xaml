@@ -37,7 +37,13 @@
                 <DockPanel Grid.Row="1" Grid.ColumnSpan="2">
                     <TabControl x:Name="tabControlResult" Grid.Row="1" TabIndex="2">
                         <TabItem x:Name="tabItemLog" Header="状況" TabIndex="3">
-                            <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch"/>
+                            <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch">
+                                <ListBox.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem x:Name="menuItemClearLog" Header="ログを消去" Click="menuItemClearLog_Click"/>
+                                    </ContextMenu>
+                                </ListBox.ContextMenu>
+                            </ListBox>
                         </TabItem>
                         <TabItem x:Name="tabItemDataGrid" Header="結果" TabIndex="5">
                             <DockPanel>

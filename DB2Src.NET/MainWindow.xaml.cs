@@ -620,5 +620,16 @@ namespace Db2Source
                 }
             }
         }
+
+        private void menuItemOption_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
+        {
+            listBoxLog.Items.Clear();
+            menuItemLogWindow.IsChecked = false;
+        }
     }
 }

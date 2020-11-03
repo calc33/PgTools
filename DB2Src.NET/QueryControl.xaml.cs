@@ -206,7 +206,7 @@ namespace Db2Source
                     catch (Exception t)
                     {
                         Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
-                        AddLog(t.Message, sql.SQL, stores, LogStatus.Error, true, errPos);
+                        AddLog(CurrentDataSet.GetExceptionMessage(t), sql.SQL, stores, LogStatus.Error, true, errPos);
                         Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
                         return;
                     }

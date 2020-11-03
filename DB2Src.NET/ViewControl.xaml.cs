@@ -158,7 +158,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(t.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(Target.Context.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -272,8 +272,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                //MessageBox.Show(t.Message, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
-                ctx.OnLog(t.Message, LogStatus.Error, sql);
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, sql);
                 Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, ctx, offset);
             }
             finally

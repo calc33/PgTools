@@ -84,6 +84,12 @@ namespace Db2Source
         /// <param name="position">テキストボックス上のキャレットの位置</param>
         /// <returns>単語の取得に成功した場合(開始位置, 単語の長さ)、失敗した場合はnullを返す。</returns>
         public abstract Tuple<int, int> GetWordAt(string sql, int position);
+        /// <summary>
+        /// 例外のダイアログ出力用メッセージを取得
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
+        public abstract string GetExceptionMessage(Exception t);
     }
 
     public interface ISchemaObjectControl
@@ -134,6 +140,8 @@ namespace Db2Source
         public bool IsArray { get; private set; } = false;
         public Type FieldType { get; private set; }
         public bool IsDefaultDefined { get; set; } = false;
+        public Column Column { get; set; }
+        public ForeignKeyConstraint[] ForeignKeys { get; set; }
         public string Comment { get; set; }
         //初期値についてはContext側に問い合わせてトリガーでセットするのかとかいろいろ取得する方向で
         public object DefaultValue { get; set; }
@@ -164,6 +172,7 @@ namespace Db2Source
             }
             throw new ArgumentException("value");
         }
+
         public object ConvertValue(object value)
         {
             if (value == null)

@@ -90,9 +90,31 @@ namespace Db2Source
     public static class DataGridCommands
     {
         public static readonly RoutedCommand CopyTable = InitCopyTable();
+        public static readonly RoutedCommand CopyTableContent = InitCopyTableContent();
+        public static readonly RoutedCommand CopyTableAsInsert = InitCopyTableAsInsert();
+        public static readonly RoutedCommand CopyTableAsCopy = InitCopyTableAsCopy();
+
         private static RoutedCommand InitCopyTable()
         {
             RoutedCommand ret = new RoutedCommand("表をコピー", typeof(DataGrid));
+            ret.InputGestures.Add(new KeyGesture(Key.T, ModifierKeys.Control | ModifierKeys.Shift));
+            return ret;
+        }
+        private static RoutedCommand InitCopyTableContent()
+        {
+            RoutedCommand ret = new RoutedCommand("表をコピー(データのみ)", typeof(DataGrid));
+            ret.InputGestures.Add(new KeyGesture(Key.D, ModifierKeys.Control | ModifierKeys.Shift));
+            return ret;
+        }
+        private static RoutedCommand InitCopyTableAsInsert()
+        {
+            RoutedCommand ret = new RoutedCommand("表をINSERT文形式でコピー", typeof(DataGrid));
+            ret.InputGestures.Add(new KeyGesture(Key.I, ModifierKeys.Control | ModifierKeys.Shift));
+            return ret;
+        }
+        private static RoutedCommand InitCopyTableAsCopy()
+        {
+            RoutedCommand ret = new RoutedCommand("表をCOPY文形式でコピー", typeof(DataGrid));
             ret.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
             return ret;
         }
@@ -418,6 +440,19 @@ namespace Db2Source
             }
             return CompareKey(item1.GetOldKeys(), item2.GetOldKeys());
         }
+        public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
+        {
+            if (constraint == null)
+            {
+                throw new ArgumentNullException("constraint");
+            }
+            List<ColumnInfo> ret = new List<ColumnInfo>(constraint.Columns.Length);
+            foreach (string col in constraint.Columns)
+            {
+                ret.Add(GetFieldByName(col));
+            }
+            return ret.ToArray();
+        }
 
         public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
         {
@@ -623,12 +658,7 @@ namespace Db2Source
                 {
                     return null;
                 }
-                List<ColumnInfo> ret = new List<ColumnInfo>(constraint.Columns.Length);
-                foreach (string col in constraint.Columns)
-                {
-                    ret.Add(_owner.GetFieldByName(col));
-                }
-                return ret.ToArray();
+                return _owner.GetForeignKeyColumns(constraint);
             }
 
             #region IList<T>の実装
@@ -1403,12 +1433,14 @@ namespace Db2Source
                     {
                         continue;
                     }
+                    info.Column = c;
                     info.HiddenLevel = c.HiddenLevel;
                     if (!string.IsNullOrEmpty(c.DefaultValue))
                     {
                         info.IsDefaultDefined = true;
-                        info.DefaultValue = info.ParseValue(c.DefaultValue);
+                        info.DefaultValue = c.EvalDefaultValue();
                     }
+                    info.ForeignKeys = table.GetForeignKeysForColumn(info.Name);
                 }
             }
             finally
@@ -1512,6 +1544,12 @@ namespace Db2Source
                 cb = new CommandBinding(ApplicationCommands.SelectAll, SelectAllCommand_Executed);
                 Grid.CommandBindings.Add(cb);
                 cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
+                Grid.CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
+                Grid.CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
+                Grid.CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
                 Grid.CommandBindings.Add(cb);
             }
             int i = 0;
@@ -1691,8 +1729,7 @@ namespace Db2Source
         private ColumnIndexInfo[] GetColumnsByDisplayIndex()
         {
             List<ColumnIndexInfo> cols = new List<ColumnIndexInfo>();
-            int c0 = Grid.IsReadOnly ? 1 : 0;
-            for (int c = c0; c < Grid.Columns.Count; c++)
+            for (int c = 0; c < Grid.Columns.Count; c++)
             {
                 DataGridColumn col = Grid.Columns[c];
                 int p;
@@ -2074,7 +2111,7 @@ namespace Db2Source
             return false;
         }
 
-        private string[][] GetCellData()
+        private string[][] GetCellData(bool includesHeader)
         {
             List<string[]> data = new List<string[]>();
             ColumnIndexInfo[] cols = GetColumnsByDisplayIndex();
@@ -2082,12 +2119,15 @@ namespace Db2Source
             {
                 return new string[0][];
             }
-            List<string> lH = new List<string>();
-            foreach (ColumnIndexInfo info in cols)
+            if (includesHeader)
             {
-                lH.Add(info.Column?.Header?.ToString());
+                List<string> lH = new List<string>();
+                foreach (ColumnIndexInfo info in cols)
+                {
+                    lH.Add(info.Column?.Header?.ToString());
+                }
+                data.Add(lH.ToArray());
             }
-            data.Add(lH.ToArray());
             foreach (object row in Grid.ItemsSource)
             {
                 if (!(row is Row))
@@ -2106,10 +2146,10 @@ namespace Db2Source
             return data.ToArray();
         }
 
-        private void CopyTableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void DoCopyTable(bool includesHeader)
         {
             //DataGrid gr = sender as DataGrid;
-            string[][] data = GetCellData();
+            string[][] data = GetCellData(includesHeader);
             if (data.Length == 0)
             {
                 return;
@@ -2169,6 +2209,26 @@ namespace Db2Source
             //obj.SetData(DataFormats.Html, html);
             obj.SetData(DataFormats.CommaSeparatedValue, csv);
             Clipboard.SetDataObject(obj);
+        }
+
+        private void CopyTableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DoCopyTable(true);
+        }
+        private void CopyTableContentCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DoCopyTable(false);
+        }
+        private void CopyTableAsInsertCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Table == null)
+            {
+                return;
+            }
+        }
+        private void CopyTableAsCopyCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+
         }
 
         private void SelectAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)

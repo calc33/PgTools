@@ -229,12 +229,13 @@ namespace Db2Source
             List<NpgsqlParameter> l = new List<NpgsqlParameter>();
             foreach (Parameter p in function.Parameters)
             {
+                string pName = p.Name ?? p.Index.ToString();
                 if (needComma)
                 {
                     buf.Append(", ");
                 }
                 buf.Append(':');
-                buf.Append(p.Name);
+                buf.Append(pName);
                 buf.Append("::");
                 buf.Append(p.BaseType);
                 NpgsqlDbType t;
@@ -242,7 +243,7 @@ namespace Db2Source
                 {
                     t = NpgsqlDbType.Text;
                 }
-                NpgsqlParameter np = new NpgsqlParameter(p.Name, t);
+                NpgsqlParameter np = new NpgsqlParameter(pName, t);
                 np.Direction = p.Direction;
                 l.Add(np);
                 needComma = true;
@@ -309,7 +310,44 @@ namespace Db2Source
             }
             return dbt;
         }
-        private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
+        public override object Eval(string expression, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            using (IDbCommand cmd = GetSqlCommand("select " + expression, null, connection))
+            {
+                return cmd.ExecuteScalar();
+            }
+        }
+
+        public override string GetImmediatedStr(ColumnInfo column, object value)
+        {
+            if (value == null || value is DBNull)
+            {
+                return "null";
+            }
+            if (column.IsNumeric)
+            {
+                return base.GetImmediatedStr(column, value);
+            }
+            if (column.IsDateTime)
+            {
+                if (column.Column == null)
+                {
+                    DateTime dt = Convert.ToDateTime(value);
+                    if (dt.TimeOfDay == TimeSpan.Zero)
+                    {
+                        return string.Format("TO_DATE('{0:yyyy-M-d}', 'YYYY-MM-DD')", dt);
+                    }
+                    return string.Format("TO_DATE('{0:yyyy-M-d HH:mm:ss}', 'YYYY-MM-DD HH:MI:SS')", dt);
+                }
+            }
+            return ToLiteralStr(value.ToString());
+        }
+
+    private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
         {
             parameter.IsNullable = info.IsNullable;
             parameter.Value = (value != null) ? value : DBNull.Value;
@@ -389,6 +427,84 @@ namespace Db2Source
             buf.AppendLine(postfix);
             return buf.ToString();
         }
+        /// <summary>
+        /// データ付でINSERT文を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="charPerLine"></param>
+        /// <param name="postfix"></param>
+        /// <param name="data">項目と値の組み合わせを渡す</param>
+        /// <returns></returns>
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data)
+        {
+            string spc = new string(' ', indent);
+            StringBuilder bufF = new StringBuilder();
+            StringBuilder bufP = new StringBuilder();
+            bool needComma = false;
+            bufF.Append(spc);
+            bufF.Append("  ");
+            bufP.Append(spc);
+            bufP.Append("  ");
+            int w = spc.Length + 2;
+            Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
+            foreach (ColumnInfo info in data.Keys){
+                name2col.Add(info.Name, info);
+            }
+            foreach (Column c in table.Columns)
+            {
+                if (!name2col.ContainsKey(c.Name))
+                {
+                    // dataにない項目は出力しない
+                    continue;
+                }
+                if (needComma)
+                {
+                    bufF.Append(',');
+                    bufP.Append(',');
+                    w++;
+                    if (charPerLine <= w)
+                    {
+                        bufF.AppendLine();
+                        bufF.Append(spc);
+                        bufF.Append("  ");
+                        bufP.AppendLine();
+                        bufP.Append(spc);
+                        bufP.Append("  ");
+                        w = spc.Length + 2;
+                    }
+                    else
+                    {
+                        bufF.Append(' ');
+                        bufP.Append(' ');
+                        w++;
+                    }
+                }
+                string col = GetEscapedIdentifier(c.Name);
+                ColumnInfo info = name2col[c.Name];
+                object v = data[info];
+                string val = GetImmediatedStr(info, v);
+                w += Math.Max(col.Length, val.Length);
+                bufF.Append(col);
+                bufP.Append(val);
+                needComma = true;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(spc);
+            buf.Append("insert into ");
+            buf.Append(table.EscapedIdentifier(CurrentSchema));
+            buf.AppendLine(" (");
+            buf.Append(bufF);
+            buf.AppendLine();
+            buf.Append(spc);
+            buf.AppendLine(") values (");
+            buf.Append(bufP);
+            buf.AppendLine();
+            buf.Append(spc);
+            buf.Append(")");
+            buf.AppendLine(postfix);
+            return buf.ToString();
+        }
         public override string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix)
         {
             string spc = new string(' ', indent);
@@ -428,6 +544,49 @@ namespace Db2Source
             return buf.ToString();
         }
 
+        public override string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// 条件文付でDELETE文を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="where"></param>
+        /// <param name="indent"></param>
+        /// <param name="charPerLine"></param>
+        /// <param name="postfix"></param>
+        /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
+        /// <returns></returns>
+        public override string GetDeleteSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> keys)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// COPY文(PostgreSQL固有SQL文)の宣言部分を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="postfix"></param>
+        /// <param name="columns">出力する項目の順番を指定する</param>
+        /// <returns></returns>
+        public override string GetCopySql(Table table, int indent, string postfix, ColumnInfo[] columns)
+        {
+            throw new NotImplementedException();
+        }
+        /// <summary>
+        /// COPY文(PostgreSQL固有SQL文)のデータ部分を生成する
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="indent"></param>
+        /// <param name="columns">出力する項目の順番を指定する</param>
+        /// <param name="data">出力するデータの配列</param>
+        /// <returns></returns>
+        public override string GetCopyDataSql(Table table, ColumnInfo[] columns, object[][] data)
+        {
+            throw new NotImplementedException();
+        }
         private void ExecuteInsert(IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
             Table tbl = owner.Table;
