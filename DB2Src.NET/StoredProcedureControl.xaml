@@ -26,10 +26,10 @@
                     <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" Style="{DynamicResource ButtonStyleExec}" Click="buttonFetch_Click" HorizontalAlignment="Left" MinWidth="40" MaxHeight="50" Content="実行" DockPanel.Dock="Right" Margin="2,0"/>
                     <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}" />
+                            <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}"  MinWidth="64"/>
                             <DataGridCheckBoxColumn Header="Null" Binding="{Binding IsNull}"/>
-                            <DataGridTextColumn Header="値(実行前)" Binding="{Binding Value}"/>
-                            <DataGridTextColumn Header="値(実行後)" IsReadOnly="True" Binding="{Binding NewValue}"/>
+                            <DataGridTextColumn x:Name="dataGridParameterValue" Header="値(実行前)" Binding="{Binding Value}" MinWidth="64"/>
+                            <DataGridTextColumn x:Name="dataGridParameterNewValue" Header="値(実行後)" IsReadOnly="True" Binding="{Binding NewValue}" MinWidth="64"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
@@ -68,7 +68,7 @@
                         <TextBlock Text="所有者："/>
                         <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
                     </StackPanel>
-                    <TextBlock Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1"/>
+                    <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
                     <StackPanel Orientation="Horizontal">
                         <Button x:Name="buttonApplySchema" Margin="1,2,1,0" ToolTip="コメントの変更をDBに適用" Style="{DynamicResource ButtonStyleApply}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" VerticalAlignment="Top" Click="buttonApplySchema_Click"/>
                         <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="コメントの変更を取消し" Style="{DynamicResource ButtonStyleRevert}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>

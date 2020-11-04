@@ -190,5 +190,13 @@ namespace Db2Source
             }
             return t.Message;
         }
+
+        public override bool AllowOutputParameter
+        {
+            get
+            {
+                return false;
+            }
+        }
     }
 }

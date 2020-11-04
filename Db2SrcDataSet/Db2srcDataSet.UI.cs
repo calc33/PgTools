@@ -90,6 +90,7 @@ namespace Db2Source
         /// <param name="t"></param>
         /// <returns></returns>
         public abstract string GetExceptionMessage(Exception t);
+        public abstract bool AllowOutputParameter { get; }
     }
 
     public interface ISchemaObjectControl

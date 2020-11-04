@@ -320,6 +320,9 @@
   <ItemGroup>
     <None Include="Resources\Usage.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="doc\image\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

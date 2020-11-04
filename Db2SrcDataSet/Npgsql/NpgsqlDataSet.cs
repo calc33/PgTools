@@ -222,13 +222,17 @@ namespace Db2Source
                 throw new ArgumentException("transaction");
             }
             StringBuilder buf = new StringBuilder();
-            buf.Append("select ");
+            buf.Append("select * from ");
             buf.Append(GetEscapedIdentifier(function.SchemaName, function.Name, null));
             buf.Append("(");
             bool needComma = false;
             List<NpgsqlParameter> l = new List<NpgsqlParameter>();
             foreach (Parameter p in function.Parameters)
             {
+                if (p.Direction == ParameterDirection.Output)
+                {
+                    continue;
+                }
                 string pName = p.Name ?? p.Index.ToString();
                 if (needComma)
                 {

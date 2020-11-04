@@ -150,14 +150,63 @@ namespace Db2Source
         {
             private StoredFunction _owner;
             private List<Parameter> _items;
-            protected internal void OnParameterChantged(CollectionOperationEventArgs<Parameter> e)
+            private Dictionary<string, Parameter> _nameToItem = null;
+            private object _nameToItemLock = new object();
+            protected internal void OnParameterChanged(CollectionOperationEventArgs<Parameter> e)
             {
+                InvalidateNameToItem();
                 _owner.OnParameterChantged(e);
             }
             internal ParameterCollection(StoredFunction owner)
             {
                 _owner = owner;
                 _items = new List<Parameter>();
+            }
+            private void InvalidateNameToItem()
+            {
+                _nameToItem = null;
+            }
+            private void RequireNameToItem()
+            {
+                if (_nameToItem != null)
+                {
+                    return;
+                }
+                lock (_nameToItemLock)
+                {
+                    if (_nameToItem != null)
+                    {
+                        return;
+                    }
+                    Dictionary<string, Parameter> dict = new Dictionary<string, Parameter>();
+                    foreach (Parameter p in _items)
+                    {
+                        if (string.IsNullOrEmpty(p.Name))
+                        {
+                            continue;
+                        }
+                        dict[p.Name.ToLower()] = p;
+                    }
+                    _nameToItem = dict;
+                }
+            }
+
+            public Parameter this[string name]
+            {
+                get
+                {
+                    if (string.IsNullOrEmpty(name))
+                    {
+                        return null;
+                    }
+                    RequireNameToItem();
+                    Parameter p;
+                    if (!_nameToItem.TryGetValue(name.ToLower(), out p))
+                    {
+                        return null;
+                    }
+                    return p;
+                }
             }
             #region Interfaceの実装
 
@@ -176,7 +225,7 @@ namespace Db2Source
                     }
                     CollectionOperationEventArgs<Parameter> e = new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Update, index, value, _items[index]);
                     _items[index] = value;
-                    OnParameterChantged(e);
+                    OnParameterChanged(e);
                 }
             }
 
@@ -195,7 +244,7 @@ namespace Db2Source
                     }
                     CollectionOperationEventArgs<Parameter> e = new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Update, index, (Parameter)value, _items[index]);
                     ((IList)_items)[index] = value;
-                    OnParameterChantged(e);
+                    OnParameterChanged(e);
                 }
             }
 
@@ -242,20 +291,20 @@ namespace Db2Source
             int IList.Add(object value)
             {
                 int ret = ((IList)_items).Add(value);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, ret, (Parameter)value, null));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, ret, (Parameter)value, null));
                 return ret;
             }
 
             public void Add(Parameter item)
             {
                 int ret = ((IList)_items).Add(item);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, ret, item, null));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, ret, item, null));
             }
 
             public void Clear()
             {
                 _items.Clear();
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Clear, -1, null, null));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Clear, -1, null, null));
             }
 
             public bool Contains(object value)
@@ -296,19 +345,19 @@ namespace Db2Source
             public void Insert(int index, object value)
             {
                 ((IList)_items).Insert(index, value);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, index, (Parameter)value, null));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, index, (Parameter)value, null));
             }
 
             public void Insert(int index, Parameter item)
             {
                 ((IList<Parameter>)_items).Insert(index, item);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, index, item, null));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Add, index, item, null));
             }
 
             public void Remove(object value)
             {
                 ((IList)_items).Remove(value);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, -1, null, (Parameter)value));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, -1, null, (Parameter)value));
             }
 
             public bool Remove(Parameter item)
@@ -316,7 +365,7 @@ namespace Db2Source
                 bool ret = _items.Remove(item);
                 if (ret)
                 {
-                    OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, -1, null, item));
+                    OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, -1, null, item));
                 }
                 return ret;
             }
@@ -325,7 +374,7 @@ namespace Db2Source
             {
                 Parameter old = _items[index];
                 _items.RemoveAt(index);
-                OnParameterChantged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, index, null, old));
+                OnParameterChanged(new CollectionOperationEventArgs<Parameter>("Parameters", CollectionOperation.Remove, index, null, old));
             }
 
             IEnumerator IEnumerable.GetEnumerator()
@@ -366,6 +415,18 @@ namespace Db2Source
             }
         }
 
+        public bool HasOutputParameter()
+        {
+            foreach (Parameter p in Parameters)
+            {
+                if (p.Direction == ParameterDirection.InputOutput || p.Direction == ParameterDirection.Output)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public Type ValueType { get; set; }
         public ParameterCollection Parameters { get; private set; }
         public event EventHandler<CollectionOperationEventArgs<Parameter>> ParameterChantged;
@@ -403,7 +464,13 @@ namespace Db2Source
                 {
                     if (needComma)
                     {
-                        buf.Append(',');
+                        buf.Append(", ");
+                    }
+                    string s = p.DirectionStr;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        buf.Append(s);
+                        buf.Append(' ');
                     }
                     buf.Append(p.Name);
                     buf.Append(' ');
@@ -462,7 +529,12 @@ namespace Db2Source
             _dbCommand = Context.GetSqlCommand(this, null, null, null);
             for (int i = 0; i < _dbCommand.Parameters.Count; i++)
             {
-                Parameters[i].DbParameter = _dbCommand.Parameters[i] as IDbDataParameter;
+                IDbDataParameter pS = _dbCommand.Parameters[i] as IDbDataParameter;
+                Parameter pD = Parameters[pS.ParameterName];
+                if (pD != null)
+                {
+                    pD.DbParameter = pS;
+                }
             }
         }
         public IDbCommand DbCommand

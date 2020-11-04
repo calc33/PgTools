@@ -164,10 +164,19 @@ namespace Db2Source
 
         private void UpdateDataGridParameters()
         {
+            if (!Target.Context.AllowOutputParameter)
+            {
+                dataGridParameterValue.Header = "値";
+                dataGridParameterNewValue.Visibility = Visibility.Collapsed;
+            }
             List<ParamEditor> list = new List<ParamEditor>();
             IDbCommand cmd = Target.DbCommand;
             foreach (Parameter p in Target.Parameters)
             {
+                if (p.DbParameter == null)
+                {
+                    continue;
+                }
                 ParamEditor ed = new ParamEditor(p);
                 ed.RevertValue();
                 list.Add(ed);
@@ -430,14 +439,17 @@ namespace Db2Source
         }
         private string GetStrValue()
         {
+            if (DbParameter == null)
+            {
+                return null;
+            }
             if (DbParameter.Value == null)
             {
                 return null;
             }
-            string fmt = Parameter?.StringFormat;
-            if (!string.IsNullOrEmpty(fmt))
+            if (!string.IsNullOrEmpty(StringFormat))
             {
-                fmt = "{0:" + fmt + "}";
+                string fmt = "{0:" + StringFormat + "}";
                 return string.Format(fmt, DbParameter.Value);
             }
             else
@@ -447,11 +459,19 @@ namespace Db2Source
         }
         public void RevertValue()
         {
+            if (DbParameter == null)
+            {
+                return;
+            }
             IsNull = ((DbParameter.Value == null) || (DbParameter.Value is DBNull));
             Value = GetStrValue();
         }
         public void SetValue()
         {
+            if (DbParameter == null)
+            {
+                return;
+            }
             if (IsNull)
             {
                 DbParameter.Value = DBNull.Value;
