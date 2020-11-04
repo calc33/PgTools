@@ -320,8 +320,9 @@
   <ItemGroup>
     <None Include="Resources\Usage.txt" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="doc\image\" />
+    <None Include="doc\image\appmain01.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
