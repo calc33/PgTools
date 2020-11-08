@@ -118,6 +118,13 @@ namespace Db2Source
             App.Current.Shutdown();
         }
 
+        private static ConnectionList InitConnections()
+        {
+            ConnectionList.Register(typeof(NpgsqlConnectionInfo));
+            return new ConnectionList();
+        }
+        public static readonly ConnectionList Connections = InitConnections();
+
         public static bool HasConnectionInfo { get; private set; } = false;
         public static string Hostname { get; private set; } = "localhost";
         public static int Port { get; private set; } = 5432;
@@ -212,7 +219,7 @@ namespace Db2Source
         {
             AnalyzeArguments(e.Args);
         }
-        
+
         private static Rect GetWorkingAreaOf(FrameworkElement element)
         {
             Point p = element.PointToScreen(new Point());

@@ -10,7 +10,8 @@ using System.Threading;
 
 namespace Db2Source
 {
-    public class NpgsqlConnectionInfo: ConnectionInfo
+    [StoreConnection("NpgsqlConnectionInfo")]
+    public partial class NpgsqlConnectionInfo: ConnectionInfo
     {
         private const int DEFAULT_PGSQL_PORT = 5432;
         private const string DEFAULT_PGSQL_DBNAME = "postgres";
@@ -80,7 +81,7 @@ namespace Db2Source
                 EscapeForPgPass(username), EscapeForPgPass(password));
         }
 
-        private static string GetStoredPassword(string host, int port, string database, string username)
+        private static string[] GetPgPassEntry(string host, int port, string database, string username)
         {
             string path = GetPgPassConfPath();
             if (!File.Exists(path))
@@ -109,7 +110,7 @@ namespace Db2Source
                     }
                     if (matched)
                     {
-                        return entries[4];
+                        return entries;
                     }
                 }
             }
@@ -119,16 +120,28 @@ namespace Db2Source
             }
             return null;
         }
+        private static bool HasStoredPassword(string host, int port, string database, string username)
+        {
+            string[] entry = GetPgPassEntry(host, port, database, username);
+            return (entry != null);
+        }
+        private static string GetStoredPassword(string host, int port, string database, string username)
+        {
+            string[] entries = GetPgPassEntry(host, port, database, username);
+            if (entries == null)
+            {
+                return null;
+            }
+            return entries[4];
+        }
 
         public override bool FillStoredPassword(bool testConnectoin)
         {
-            string pass = GetStoredPassword(ServerName, ServerPort, DatabaseName, UserName);
-            if (pass == null)
+            IsPasswordHidden = HasStoredPassword(ServerName, ServerPort, DatabaseName, UserName);
+            if (IsPasswordHidden)
             {
-                return false;
+                Password = null;
             }
-            Password = pass;
-            IsPasswordHidden = true;
             if (!testConnectoin)
             {
                 return true;
@@ -326,10 +339,42 @@ namespace Db2Source
         }
         private const string DATABASE_TYPE = "Npgsql";
         private const string DATABASE_DESC = "Postgres(NpgSql)";
+        private int _serverPort;
+        private string _databaseName;
         [InputField("ポート", 15)]
-        public int ServerPort { get; set; }
+        public int ServerPort
+        {
+            get
+            {
+                return _serverPort;
+            }
+            set
+            {
+                if (_serverPort == value)
+                {
+                    return;
+                }
+                _serverPort = value;
+                KeyPropertyChanged();
+            }
+        }
         [InputField("データベース名", 16)]
-        public string DatabaseName { get; set; }
+        public string DatabaseName
+        {
+            get
+            {
+                return _databaseName;
+            }
+            set
+            {
+                if (_databaseName == value)
+                {
+                    return;
+                }
+                _databaseName = value;
+                KeyPropertyChanged();
+            }
+        }
         public override string DatabaseType
         {
             get { return DATABASE_TYPE; }
@@ -346,6 +391,20 @@ namespace Db2Source
             return string.Format("{0}@{1}{2}{3}", UserName, ServerName, sPort, sDb);
         }
 
+        protected override string GetCryptedPassword()
+        {
+            if (string.IsNullOrEmpty(Password))
+            {
+                return null;
+            }
+            if (GetStoredPassword(ServerName, ServerPort, DatabaseName, UserName) == Password)
+            {
+                // パスワードがpgpass.confにある場合は書き出さない
+                return null;
+            }
+            return base.GetCryptedPassword();
+        }
+
         public override Db2SourceContext NewDataSet()
         {
             return new NpgsqlDataSet(this);
@@ -357,14 +416,41 @@ namespace Db2Source
             DatabaseName = "postgres";
             UserName = "postgres";
         }
-        public override string ToConnectionString()
+
+        public NpgsqlConnectionInfo(string connectionString)
         {
-            return string.Format("Host={0};Database={1};Port={2};Username={3};Password={4};Persist Security Info=True;Application Name=DB2Src.net",
-                ServerName, DatabaseName, ServerPort, UserName, Password);
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder(connectionString);
+            ServerName = builder.Host;
+            DatabaseName = builder.Database;
+            ServerPort = builder.Port;
+            UserName = builder.Username;
+            Password = builder.Password;
+        }
+        public override string ToConnectionString(bool includePassord)
+        {
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
+            builder.Host = ServerName;
+            builder.Database = DatabaseName;
+            builder.Port = ServerPort;
+            builder.Username = UserName;
+            if (includePassord)
+            {
+                if (!string.IsNullOrEmpty(Password))
+                {
+                    builder.Password = Password;
+                    builder.PersistSecurityInfo = true;
+                }
+            }
+            string pgpass = GetPgPassConfPath();
+            if (File.Exists(pgpass))
+            {
+                builder.Passfile = pgpass;
+            }
+            return builder.ToString();
         }
         public override IDbConnection NewConnection()
         {
-            NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString());
+            NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString(true));
             try
             {
                 conn.Open();

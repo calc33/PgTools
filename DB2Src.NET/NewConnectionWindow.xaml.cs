@@ -330,8 +330,7 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            ConnectionList.Register(typeof(NpgsqlConnectionInfo));
-            ConnectionList l = new ConnectionList();
+            ConnectionList l = App.Connections;
             ConnectionInfo info0 = new NewNpgsqlConnectionInfo(true);
             info0.FillStoredPassword(false);
             l.Insert(0, info0);

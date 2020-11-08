@@ -84,6 +84,8 @@ namespace Db2Source
             }
             info = win.Target;
             Connect(info);
+            App.Connections.Merge(info);
+            App.Connections.Save();
         }
         private void UpdateTabControlsTarget()
         {
@@ -112,6 +114,21 @@ namespace Db2Source
                     tabControlMain.Items.RemoveAt(i);
                 }
             }
+        }
+
+        private void UpdateMenuItemOpenDb()
+        {
+            MenuItemOpenDb.Items.Clear();
+            MenuItem mi;
+            foreach (ConnectionInfo info in App.Connections)
+            {
+                mi = new MenuItem() { Header = info.Name, Tag = info };
+                mi.Click += MenuItemOpenDb_Click;
+                MenuItemOpenDb.Items.Add(mi);
+            }
+            mi = new MenuItem() { Header = "新しい接続..." };
+            mi.Click += MenuItemOpenDb_Click;
+            MenuItemOpenDb.Items.Add(mi);
         }
 
         public static void TabBecomeVisible(FrameworkElement element)
@@ -419,17 +436,7 @@ namespace Db2Source
 
         private void window_Initialized(object sender, EventArgs e)
         {
-            MenuItemOpenDb.Items.Clear();
-            MenuItem mi;
-            foreach (ConnectionInfo info in NpgsqlConnectionInfo.GetKnownConnectionInfos())
-            {
-                mi = new MenuItem() { Header = info.Name, Tag = info };
-                mi.Click += MenuItemOpenDb_Click;
-                MenuItemOpenDb.Items.Add(mi);
-            }
-            mi = new MenuItem() { Header = "新しい接続..." };
-            mi.Click += MenuItemOpenDb_Click;
-            MenuItemOpenDb.Items.Add(mi);
+            UpdateMenuItemOpenDb();
 
             treeViewItemTop.Items.Clear();
 
@@ -568,6 +575,8 @@ namespace Db2Source
             }
             info = win.Target;
             Connect(info);
+            App.Connections.Merge(info);
+            App.Connections.Save();
             menuItemPsql.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPsql.Tag.ToString()));
             menuItemPgdump.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPgdump.Tag.ToString()));
         }
@@ -630,6 +639,13 @@ namespace Db2Source
         {
             listBoxLog.Items.Clear();
             menuItemLogWindow.IsChecked = false;
+        }
+
+        private void menuItemEditConnections_Click(object sender, RoutedEventArgs e)
+        {
+            EditConnectionListWindow win = new EditConnectionListWindow();
+            win.ShowDialog();
+            UpdateMenuItemOpenDb();
         }
     }
 }

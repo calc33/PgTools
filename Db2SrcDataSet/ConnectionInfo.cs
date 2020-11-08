@@ -242,8 +242,10 @@ namespace Db2Source
         }
         public virtual void SavePassword() { }
 
+        [JsonIgnore]
         public string Name { get; set; }
 
+        [JsonIgnore]
         public virtual string Description
         {
             get
@@ -258,15 +260,51 @@ namespace Db2Source
         /// <summary>
         /// データベースの種別を識別する文字列
         /// </summary>
+        [JsonIgnore]
         public abstract string DatabaseType { get; }
         /// <summary>
         /// 画面に表示する際のデータベース名称
         /// </summary>
+        [JsonIgnore]
         public abstract string DatabaseDesc { get; }
+
+        private string _serverName;
+        private string _userName;
         [InputField("サーバー", 10)]
-        public string ServerName { get; set; }
+        public string ServerName
+        {
+            get
+            {
+                return _serverName;
+            }
+            set
+            {
+                if (_serverName == value)
+                {
+                    return;
+                }
+                _serverName = value;
+                KeyPropertyChanged();
+            }
+        }
         [InputField("ユーザー", 20)]
-        public string UserName { get; set; }
+        public string UserName
+        {
+            get
+            {
+                return _userName;
+            }
+            set
+            {
+                if (_userName == value)
+                {
+                    return;
+                }
+                _userName = value;
+                KeyPropertyChanged();
+            }
+        }
+
         [InputField("パスワード", 30, true)]
         [JsonIgnore]
         public string Password { get; set; }
@@ -287,6 +325,11 @@ namespace Db2Source
         public bool IsPasswordHidden { get; set; }
         [JsonIgnore]
         public ExtraCommandCollecion ExtraCommands { get; } = new ExtraCommandCollecion();
+
+        public virtual void Merge(ConnectionInfo item)
+        {
+            Password = item.Password;
+        }
 
         internal protected virtual void Load(Dictionary<string, string> data)
         {
@@ -362,7 +405,7 @@ namespace Db2Source
         {
             return Name;
         }
-        public abstract string ToConnectionString();
+        public abstract string ToConnectionString(bool includePassord);
         public abstract IDbConnection NewConnection();
         public static int CompareByName(ConnectionInfo item1, ConnectionInfo item2)
         {
@@ -389,27 +432,67 @@ namespace Db2Source
         }
     }
 
-    public sealed partial class ConnectionList: IList<ConnectionInfo>
+    public sealed partial class ConnectionList: IList<ConnectionInfo>, IList
     {
+        public class ConnectionInfoClassCollection: IReadOnlyList<Type>
+        {
+            private List<Type> _list = new List<Type>();
+
+            public void Add(Type type)
+            {
+                if (type == null)
+                {
+                    throw new ArgumentNullException("connectionInfoType");
+                }
+                if (!type.IsSubclassOf(typeof(ConnectionInfo)))
+                {
+                    throw new ArgumentException(string.Format("ConnectionInfo型を継承していないクラスです: {0}", type.FullName));
+                }
+                _list.Add(type);
+            }
+            public bool Remove(Type type)
+            {
+                return _list.Remove(type);
+            }
+
+            #region IReadOnlyList
+            public Type this[int index]
+            {
+                get
+                {
+                    return _list[index];
+                }
+            }
+
+            public int Count
+            {
+                get
+                {
+                    return _list.Count;
+                }
+            }
+
+            public IEnumerator<Type> GetEnumerator()
+            {
+                return _list.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _list.GetEnumerator();
+            }
+            #endregion
+        }
         private static string InitDefaultConnectionListPath()
         {
             string path = System.IO.Path.Combine(Db2SourceContext.AppDataDir, "ConnectionList.db");
             return path;
         }
-        public static string DefaultConnectionListPath = InitDefaultConnectionListPath();
-        private static List<Type> _connectionInfoClasses = new List<Type>();
+        public static readonly string DefaultConnectionListPath = InitDefaultConnectionListPath();
+        public static readonly ConnectionInfoClassCollection ConnectionInfoTypes = new ConnectionInfoClassCollection();
         public static void Register(Type connectionInfoType)
         {
-            if (connectionInfoType == null)
-            {
-                throw new ArgumentNullException("connectionInfoType");
-            }
-            //if (!connectionInfoType.IsAssignableFrom(typeof(ConnectionInfo)))
-            if (!connectionInfoType.IsSubclassOf(typeof(ConnectionInfo)))
-            {
-                throw new ArgumentException(string.Format("ConnectionInfo型を継承していないクラスです: {0}", connectionInfoType.FullName));
-            }
-            _connectionInfoClasses.Add(connectionInfoType);
+            ConnectionInfoTypes.Add(connectionInfoType);
         }
 
         [JsonIgnore]
@@ -432,67 +515,9 @@ namespace Db2Source
             Load();
         }
 
-        //private List<ConnectionInfo> LoadInternal(string json)
-        //{
-        //    List<Dictionary<string, string>> dicts = JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(json);
-        //    List<ConnectionInfo> l = new List<ConnectionInfo>();
-        //    foreach (Dictionary<string, string> d in dicts)
-        //    {
-        //        ConnectionInfo info = ConnectionInfo.NewConnectionInfo(d["Name"]);
-        //        if (info == null)
-        //        {
-        //            info = new InvalidConnectionInfo(d["Name"]);
-        //        }
-        //        info.Load(d);
-        //        l.Add(info);
-        //    }
-        //    //l.Sort(ConnectionInfo.CompareByName);
-        //    return l;
-        //}
-        //private static readonly TimeSpan LOAD_TIMEOUT = new TimeSpan(0, 0, 10); //10秒
-        //private FileStream OpenStream(FileMode mode, FileAccess access, FileShare share)
-        //{
-        //    DateTime timeout = DateTime.Now + LOAD_TIMEOUT;
-        //    FileStream s = null;
-        //    while (s == null && DateTime.Now <= timeout)
-        //    {
-        //        try
-        //        {
-        //            s = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.None);
-        //        }
-        //        catch (IOException)
-        //        {
-        //            return null;
-        //        }
-        //        catch (SecurityException)
-        //        {
-        //            // タイムアウトまでリトライ
-        //            if (timeout < DateTime.Now)
-        //            {
-        //                throw;
-        //            }
-        //            Thread.Sleep(1);
-        //        }
-        //    }
-        //    return s;
-        //}
         public void Load()
         {
-            LoadInternal();
-            foreach (Type t in _connectionInfoClasses)
-            {
-                MethodInfo mi = t.GetMethod("GetKnownConnectionInfos", BindingFlags.Static | BindingFlags.Public);
-                if (mi == null)
-                {
-                    continue;
-                }
-                ConnectionInfo[] infos = mi.Invoke(null, null) as ConnectionInfo[];
-                if (infos == null)
-                {
-                    continue;
-                }
-                MergeByContent(_list, infos);
-            }
+            _list = LoadInternal();
             _backlist = new List<ConnectionInfo>(_list);
         }
 
@@ -525,6 +550,10 @@ namespace Db2Source
 
         private void Merge(List<ConnectionInfo> currentList, List<ConnectionInfo> newList, List<ConnectionInfo> oldList)
         {
+            if (newList == null)
+            {
+                return;
+            }
             Dictionary<string, int> curDict = new Dictionary<string, int>();
             Dictionary<string, ConnectionInfo> oldDict = new Dictionary<string, ConnectionInfo>();
             for (int i = 0; i < currentList.Count; i++)
@@ -611,31 +640,31 @@ namespace Db2Source
             Merge(_list, newList, _backlist);
             _list.Sort(ConnectionInfo.CompareByName);
         }
+        public ConnectionInfo Merge(ConnectionInfo item)
+        {
+            int p = IndexOf(item);
+            if (p != -1)
+            {
+                return this[p];
+            }
+            for (int i = 0; i < _list.Count; i++)
+            {
+                ConnectionInfo info = _list[i];
+                if (info.ContentEquals(item))
+                {
+                    info.Merge(item);
+                    return info;
+                }
+            }
+            _list.Add(item);
+            return item;
+        }
         /// <summary>
         /// 
         /// </summary>
         public void Save()
         {
-            //FileStream s = null;
-            //if (File.Exists(Path))
-            //{
-            //    s = OpenStream(FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            //    if (s == null)
-            //    {
-            //        return;
-            //    }
-            //    Sync(s);
-            //    s.Seek(0, SeekOrigin.Begin);
-            //    s.SetLength(0);
-            //}
-            //else
-            //{
-            //    s = new FileStream(Path, FileMode.Create, FileAccess.Write, FileShare.None);
-            //}
-            //using (StreamWriter sw = new StreamWriter(s, Encoding.UTF8))
-            //{
-            //    sw.Write(JsonConvert.SerializeObject(_list));
-            //}
+            SaveInternal();
         }
         public ConnectionInfo this[int index] { get { return _list[index]; } set { _list[index] = value; } }
         public ConnectionInfo this[string name]
@@ -667,6 +696,43 @@ namespace Db2Source
             get
             {
                 return false;
+            }
+        }
+
+        public bool IsFixedSize
+        {
+            get
+            {
+                return ((IList)_list).IsFixedSize;
+            }
+        }
+
+        public object SyncRoot
+        {
+            get
+            {
+                return ((IList)_list).SyncRoot;
+            }
+        }
+
+        public bool IsSynchronized
+        {
+            get
+            {
+                return ((IList)_list).IsSynchronized;
+            }
+        }
+
+        object IList.this[int index]
+        {
+            get
+            {
+                return ((IList)_list)[index];
+            }
+
+            set
+            {
+                ((IList)_list)[index] = value;
             }
         }
 
@@ -732,6 +798,36 @@ namespace Db2Source
         {
             _list.RemoveAt(index);
         }
+
+        public int Add(object value)
+        {
+            return ((IList)_list).Add(value);
+        }
+
+        public bool Contains(object value)
+        {
+            return ((IList)_list).Contains(value);
+        }
+
+        public int IndexOf(object value)
+        {
+            return ((IList)_list).IndexOf(value);
+        }
+
+        public void Insert(int index, object value)
+        {
+            ((IList)_list).Insert(index, value);
+        }
+
+        public void Remove(object value)
+        {
+            ((IList)_list).Remove(value);
+        }
+
+        public void CopyTo(Array array, int index)
+        {
+            ((IList)_list).CopyTo(array, index);
+        }
         #endregion
     }
     public class InvalidConnectionInfo: ConnectionInfo
@@ -744,6 +840,7 @@ namespace Db2Source
             _databaseType = string.Format("Unknown:{0}", databaseType);
             _databaseDesc = string.Format("不明な種別({0})", databaseType);
         }
+        [JsonIgnore]
         public override string DatabaseType
         {
             get
@@ -752,6 +849,7 @@ namespace Db2Source
             }
         }
 
+        [JsonIgnore]
         public override string DatabaseDesc
         {
             get
@@ -770,7 +868,7 @@ namespace Db2Source
             return null;
         }
 
-        public override string ToConnectionString()
+        public override string ToConnectionString(bool includePassord)
         {
             return null;
         }

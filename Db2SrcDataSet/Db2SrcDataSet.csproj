@@ -90,6 +90,7 @@
     <Compile Include="JoinTable.cs" />
     <Compile Include="NamedObject.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.cs" />
+    <Compile Include="Npgsql\NpgsqlConnectionInfo.db.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.lex.cs" />
     <Compile Include="Npgsql\NpgsqlDataSet.loader.cs" />

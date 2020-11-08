@@ -496,6 +496,7 @@
                     <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
                         <MenuItem Header="Postgres(NpgSql)"/>
                     </MenuItem>
+                    <MenuItem x:Name="menuItemEditConnections" Header="接続リストの整理(_M)" Click="menuItemEditConnections_Click"/>
                     <MenuItem x:Name="buttonQuit" Header="終了(_X)" Click="buttonQuit_Click"/>
                 </MenuItem>
                 <MenuItem Header="編集(_E)">
