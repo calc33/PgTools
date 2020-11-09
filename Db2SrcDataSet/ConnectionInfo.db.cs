@@ -5,9 +5,11 @@ using System.Data.SQLite;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.Win32;
 
 namespace Db2Source
 {
@@ -76,13 +78,114 @@ namespace Db2Source
             return fld.ToUpper();
         }
 
+        private static byte[] Key = new byte[] {
+            250, 151, 40, 155, 24, 116, 106, 193,
+            81, 184, 33, 22, 49, 177, 163, 109,
+            237, 245, 155, 252, 26, 230, 77, 146,
+            89, 248, 13, 204, 27, 233, 170, 45 };
+        private static byte[] IV = new byte[] {
+            36, 37, 252, 136, 216, 97, 24, 192,
+            39, 90, 13, 76, 209, 162, 21, 170 };
+
+        private static string CryptStr(Aes aes, byte[] data)
+        {
+            ICryptoTransform crypto = aes.CreateEncryptor();
+            byte[] b = crypto.TransformFinalBlock(data, 0, data.Length);
+            return Convert.ToBase64String(b);
+        }
+
+        private static byte[] DecryptStr(Aes aes, string data)
+        {
+            
+            byte[] b = Convert.FromBase64String(data);
+            ICryptoTransform crypto = aes.CreateDecryptor();
+            return crypto.TransformFinalBlock(b, 0, b.Length);
+        }
+        private static byte[] DecryptStr(string data)
+        {
+            return DecryptStr(Aes, data);
+        }
+
+        private static Type _appType = null;
+        private static Type GetAppType()
+        {
+            if (_appType != null)
+            {
+                return _appType;
+            }
+            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (Type t in asm.GetTypes())
+                {
+                    if (t.Name == "App")
+                    {
+                        _appType = t;
+                        return _appType;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static Aes CreateAes()
+        {
+            Aes aes = Aes.Create();
+            aes.Key = Key;
+            aes.IV = IV;
+            Type t = GetAppType();
+            if (t == null)
+            {
+                return aes;
+            }
+            t = t.BaseType;
+            MethodInfo m = t.GetMethod("GetResourceStream", BindingFlags.Static | BindingFlags.Public);
+            object res = m.Invoke(null, new object[] { new Uri("pack://application:,,,/app.ico") });
+            PropertyInfo p = res.GetType().GetProperty("Stream");
+            Stream s = p.GetValue(res) as Stream;
+            byte[] b = new byte[s.Length];
+            s.Read(b, 0, b.Length);
+            int n = b.Length / 2;
+            SHA256 sha = SHA256.Create();
+            aes.Key = sha.ComputeHash(b, 0, n);
+            byte[] b2 = new byte[aes.IV.Length];
+            Array.Copy(sha.ComputeHash(b, n, b.Length - n), b2, b2.Length);
+            aes.IV = b2;
+            RegistryKey reg = Registry.CurrentUser.CreateSubKey(@"Software\Db2Src", true);
+            object k = reg.GetValue("Key");
+            if (k == null)
+            {
+                Aes aes2 = Aes.Create();
+                reg.SetValue("Key", CryptStr(aes, aes2.IV));
+                aes.IV = aes2.IV;
+            }
+            else
+            {
+                aes.IV = DecryptStr(aes, k.ToString());
+            }
+            return aes;
+        }
+        private static Aes _aes = null;
+        private static Aes Aes
+        {
+            get
+            {
+                if (_aes == null)
+                {
+                    _aes = CreateAes();
+                }
+                return _aes;
+            }
+        }
+
         /// <summary>
         /// ConnectionInfo.dbに保存するためのパスワード文字列
         /// </summary>
         /// <returns></returns>
         protected virtual string GetCryptedPassword()
         {
-            return CryptedPassword;
+            ICryptoTransform crypt = Aes.CreateEncryptor();
+            byte[] b = Encoding.UTF8.GetBytes(Password);
+            return Convert.ToBase64String(crypt.TransformFinalBlock(b, 0, b.Length));
         }
 
         private SQLiteCommand GetInsertSqlCommand(SQLiteConnection connection)
@@ -255,6 +358,10 @@ namespace Db2Source
                     }
                     cmd.Parameters.Add(new SQLiteParameter("@" + f, o));
                 }
+                buf.AppendLine("  PASSWORD = @PASSWORD,");
+                string pass = GetCryptedPassword();
+                cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", string.IsNullOrEmpty(pass) ? (object)DBNull.Value : pass));
+
                 buf.Append("  LAST_MODIFIED = ");
                 buf.Append(DateTime.Now.ToOADate());
                 buf.AppendLine();
@@ -429,6 +536,10 @@ namespace Db2Source
                         }
                         p.SetValue(this, Convert.ChangeType(o, t));
                     }
+                }
+                if (!string.IsNullOrEmpty(Password))
+                {
+                    Password = Encoding.UTF8.GetString(DecryptStr(Password));
                 }
                 Name = GetDefaultName();
             }

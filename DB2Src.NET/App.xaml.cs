@@ -123,7 +123,18 @@ namespace Db2Source
             ConnectionList.Register(typeof(NpgsqlConnectionInfo));
             return new ConnectionList();
         }
-        public static readonly ConnectionList Connections = InitConnections();
+        private static ConnectionList _connections;
+        public static ConnectionList Connections
+        {
+            get
+            {
+                if (_connections == null)
+                {
+                    _connections = InitConnections();
+                }
+                return _connections;
+            }
+        }
 
         public static bool HasConnectionInfo { get; private set; } = false;
         public static string Hostname { get; private set; } = "localhost";
