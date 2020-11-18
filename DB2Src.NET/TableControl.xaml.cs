@@ -374,7 +374,10 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(null, Target.GetKeyConditionSQL(string.Empty, string.Empty, 0), string.Empty, null, VisibleLevel);
+            string alias = JoinTables[0].Alias;
+            string where = Target.GetKeyConditionSQL(alias, string.Empty, 0);
+            textBoxSelectSql.Text = JoinTables.GetSelectSQL(where, string.Empty, null, VisibleLevel);
+            //textBoxSelectSql.Text = Target.GetSelectSQL(alias, where, string.Empty, null, VisibleLevel);
         }
 
         private void UpdateTextBoxInsertSql()
@@ -733,6 +736,35 @@ namespace Db2Source
             }
         }
 
+        private void UpdateButtonAddJoinContextMenu()
+        {
+            Dictionary<JoinTable, List<ForeignKeyConstraint>> dict = new Dictionary<JoinTable, List<ForeignKeyConstraint>>();
+            foreach (JoinTable join in JoinTables)
+            {
+                Table tbl = join.Table as Table;
+                if (tbl == null)
+                {
+                    continue;
+                }
+                List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>(tbl.ReferTo);
+                dict.Add(join, l);
+            }
+            foreach (JoinTable join in JoinTables)
+            {
+                if (join.Referrer == null)
+                {
+                    continue;
+                }
+                List<ForeignKeyConstraint> l;
+                if (dict.TryGetValue(join.Referrer, out l))
+                {
+                    l.Remove(join.JoinBy);
+                }
+            }
+            buttonAddJoinContextMenu.Items.Clear();
+
+        }
+
         private void buttonFilterColumns_Click(object sender, RoutedEventArgs e)
         {
             ColumnFilterWindow w = GetColumnFilterWindow();
@@ -860,6 +892,16 @@ namespace Db2Source
             win.Column = col;
             win.Row = row;
             App.ShowNearby(win, cell, NearbyLocation.DownLeft, new Thickness(0, -2, 0, -2));
+        }
+
+        private void textBoxAlias0_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            Dispatcher.Invoke(UpdateTextBoxSelectSql, DispatcherPriority.Normal);
+        }
+
+        private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateButtonAddJoinContextMenu();
         }
     }
 

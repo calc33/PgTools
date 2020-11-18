@@ -20,7 +20,7 @@ IF "%TDBG%" GTR "%TREL%" (
 
 :COPY
 CMD /C %SIGN% bin\Release\ExpSch.exe
-XCOPY /Y /EXCLUDE:ignore.txt bin\Release\* ..\Release\
+XCOPY /S /Y /EXCLUDE:ignore.txt bin\Release\* ..\Release\
 
 :END
 PAUSE

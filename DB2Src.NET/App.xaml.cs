@@ -108,7 +108,7 @@ namespace Db2Source
         }
         private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show(e.Exception.Message, "エラー2", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(e.Exception.ToString(), "エラー2", MessageBoxButton.OK, MessageBoxImage.Error);
             e.Handled = true;
         }
 

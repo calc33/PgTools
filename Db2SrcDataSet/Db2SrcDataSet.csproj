@@ -107,6 +107,7 @@
     <Compile Include="SchemaObject.cs" />
     <Compile Include="Selectable.cs" />
     <Compile Include="Sequence.cs" />
+    <Compile Include="Setting.cs" />
     <Compile Include="StoredFunction.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="Trigger.cs" />

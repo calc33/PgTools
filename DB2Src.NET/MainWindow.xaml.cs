@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -646,6 +647,220 @@ namespace Db2Source
             EditConnectionListWindow win = new EditConnectionListWindow();
             win.ShowDialog();
             UpdateMenuItemOpenDb();
+        }
+
+        private struct TabIndexRange
+        {
+            public ScrollViewer Viewer;
+            public TabPanel Panel;
+            /// <summary>
+            /// 一部だけでも入っているTabIndexの最小値
+            /// </summary>
+            public int PartialMin;
+            /// <summary>
+            /// 完全に入っているTabIndexの最小値
+            /// </summary>
+            public int FullMin;
+            /// <summary>
+            /// 完全に入っているTabIndexの最大値
+            /// </summary>
+            public int FullMax;
+            /// <summary>
+            /// 一部だけでも入っているTabIndexの最大値
+            /// </summary>
+            public int PartialMax;
+            public TabIndexRange(TabControl tabControl)
+            {
+                ControlTemplate tmpl = tabControl.Template as ControlTemplate;
+                Viewer = tmpl.FindName("tabPanelScrollViewer", tabControl) as ScrollViewer;
+                Panel = tmpl.FindName("headerPanel", tabControl) as TabPanel;
+                PartialMin = int.MaxValue;
+                FullMin = int.MaxValue;
+                FullMax = -1;
+                PartialMax = -1;
+                int n = tabControl.Items.Count;
+                for (int i = 0; i < n; i++)
+                {
+                    TabItem item = tabControl.Items[i] as TabItem;
+                    Point[] p = new Point[] { new Point(0, 0), new Point(item.ActualWidth + 1, item.ActualHeight + 1) };
+                    p[0] = item.TranslatePoint(p[0], Viewer);
+                    p[1] = item.TranslatePoint(p[1], Viewer);
+                    if (Viewer.ActualWidth <= p[1].X)
+                    {
+                        Normalize();
+                        return;
+                    }
+                    if (p[0].X < Viewer.ActualWidth && 0 < p[1].X)
+                    {
+                        PartialMin = Math.Min(PartialMin, i);
+                        PartialMax = i;
+                    }
+                    if (0 <= p[0].X && p[1].X < Viewer.ActualWidth)
+                    {
+                        FullMin = Math.Min(FullMin, i);
+                        FullMax = i;
+                    }
+                }
+                Normalize();
+            }
+            public void Normalize()
+            {
+                PartialMin = Math.Min(PartialMin, PartialMax);
+                FullMin = Math.Min(FullMin, FullMax);
+            }
+        }
+
+        private static void ScrollTabItemAsLeft(TabControl tabControl, ScrollViewer viewer, TabPanel panel, int index)
+        {
+            if (index < 0 || tabControl.Items.Count <= index)
+            {
+                return;
+            }
+            TabPanel pnl = tabControl.FindName("headerPanel") as TabPanel;
+            TabItem item = tabControl.Items[index] as TabItem;
+            Point p = item.TranslatePoint(new Point(), panel);
+            viewer.ScrollToHorizontalOffset(p.X);
+        }
+        private static void ScrollTabItemAsRight(TabControl tabControl, ScrollViewer viewer, TabPanel panel, int index)
+        {
+            if (index < 0 || tabControl.Items.Count <= index)
+            {
+                return;
+            }
+            TabItem item = tabControl.Items[index] as TabItem;
+            Point p1 = item.TranslatePoint(new Point(item.ActualWidth + 1, item.ActualHeight + 1), panel);
+            double x0 = p1.X - viewer.ActualWidth;
+            Point p0 = item.TranslatePoint(new Point(), panel);
+            int i0 = index;
+            for (int i = index - 1; 0 <= i; i--)
+            {
+                item = tabControl.Items[i] as TabItem;
+                Point p = item.TranslatePoint(new Point(), panel);
+                if (p.X < x0)
+                {
+                    break;
+                }
+                i0 = i;
+                p0 = p;
+                if (p.X == x0)
+                {
+                    break;
+                }
+            }
+            viewer.ScrollToHorizontalOffset(p0.X);
+        }
+        private static void ScrollTabItemToVisible(TabControl tabControl)
+        {
+            TabIndexRange range = new TabIndexRange(tabControl);
+            if (range.PartialMin == -1 || range.PartialMax == -1)
+            {
+                return;
+            }
+            int index = tabControl.SelectedIndex;
+            if (range.FullMin <= index && index <= range.FullMax)
+            {
+                return;
+            }
+            if (index <= range.PartialMin)
+            {
+                ScrollTabItemAsLeft(tabControl, range.Viewer, range.Panel, index);
+                return;
+            }
+            if (range.PartialMax <= index)
+            {
+                ScrollTabItemAsRight(tabControl, range.Viewer, range.Panel, index);
+            }
+            return;
+        }
+        private void ScrollTabItemToVisible()
+        {
+            ScrollTabItemToVisible(tabControlMain);
+        }
+
+        private void buttonScrollLeft_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = (sender as Button);
+            TabControl tab = btn.TemplatedParent as TabControl;
+            TabIndexRange range = new TabIndexRange(tab);
+            ScrollTabItemAsRight(tab, range.Viewer, range.Panel, range.FullMin);
+            TabIndexRange range2 = new TabIndexRange(tab);
+            if (0 < range.FullMin && range.FullMin == range2.FullMin)
+            {
+                ScrollTabItemAsRight(tab, range.Viewer, range.Panel, range.FullMin - 1);
+            }
+        }
+
+        private void buttonScrollRight_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = (sender as Button);
+            TabControl tab = btn.TemplatedParent as TabControl;
+            TabIndexRange range = new TabIndexRange(tab);
+            ScrollTabItemAsLeft(tab, range.Viewer, range.Panel, range.FullMax);
+            TabIndexRange range2 = new TabIndexRange(tab);
+            if (range.FullMax < tab.Items.Count - 1 && range.FullMax == range2.FullMax)
+            {
+                ScrollTabItemAsLeft(tab, range.Viewer, range.Panel, range.FullMax + 1);
+            }
+        }
+
+        private bool _isTabControlMainSelectionChanged = false;
+        private void InvalidateTabControlMainSelection()
+        {
+            _isTabControlMainSelectionChanged = true;
+        }
+        private void UpdateTabControlMainSelection()
+        {
+            if (!_isTabControlMainSelectionChanged)
+            {
+                return;
+            }
+            _isTabControlMainSelectionChanged = false;
+            ScrollTabItemToVisible();
+        }
+
+        private void tabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            InvalidateTabControlMainSelection();
+        }
+
+        private void tabControlMain_LayoutUpdated(object sender, EventArgs e)
+        {
+            UpdateTabControlMainSelection();
+        }
+
+        private void UpdateButtonScrollSearchTabItemContextMenu(Button button)
+        {
+            ContextMenu menu = button.ContextMenu;
+            menu.PlacementTarget = button;
+            //menu.Placement = PlacementMode.Bottom;
+            menu.Items.Clear();
+            foreach (TabItem item in tabControlMain.Items)
+            {
+                MenuItem mi = new MenuItem()
+                {
+                    Header = item.Header,
+                    Tag = item,
+                };
+                mi.Click += searchTabItemMenu_Click;
+                menu.Items.Add(mi);
+            }
+        }
+        private void buttonScrollSearchTabItem_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            UpdateButtonScrollSearchTabItemContextMenu(btn);
+            btn.ContextMenu.IsOpen = true;
+        }
+
+        private void buttonScrollSearchTabItem_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            Button btn = sender as Button;
+            UpdateButtonScrollSearchTabItemContextMenu(btn);
+        }
+
+        private void searchTabItemMenu_Click(object sender, RoutedEventArgs e)
+        {
+            tabControlMain.SelectedItem = (sender as MenuItem).Tag;
         }
     }
 }

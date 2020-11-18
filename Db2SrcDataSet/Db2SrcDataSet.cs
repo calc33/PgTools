@@ -188,6 +188,31 @@ namespace Db2Source
         public static string ParseDateTimeFormat { get; set; } = "yyyy/M/d H:m:s";
         public static string[] ParseDateTimeFormats { get; set; } = new string[] { "yyyy/M/d H:m:s", "yyyy/M/d H:m", "yyyy/M/d" };
 
+        private SettingCollection InitSettings()
+        {
+            SettingCollection l = new SettingCollection();
+            l.Add(new RedirectedPropertySetting<string>("DateFormat", "日付書式(表示)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<string>("TimeFormat", "時刻書式(表示)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<string>("DateTimeFormat", "日時書式(表示)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<string>("ParseDateFormat", "日付書式(入力)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<string[]>("ParseTimeFormats", "時刻書式(入力)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<string[]>("ParseDateTimeFormats", "日時書式(入力)", typeof(Db2SourceContext)));
+            l.Add(new RedirectedPropertySetting<NewLineRule>("NewLineRule", "改行文字", this));
+            return l;
+        }
+        private SettingCollection _settings = null;
+        public virtual SettingCollection Settings
+        {
+            get
+            {
+                if (_settings == null)
+                {
+                    _settings = InitSettings();
+                }
+                return _settings;
+            }
+        }
+
         public virtual Dictionary<string, PropertyInfo> BaseTypeToProperty { get { return null; } }
 
         public string Name
