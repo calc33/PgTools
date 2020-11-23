@@ -69,13 +69,7 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <!--<ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>-->
                             <Canvas x:Name="contentPresenter" Width="6" Height="3" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                                <Polygon Fill="{TemplateBinding Foreground}">
-                                    <Polygon.Points>
-                                        <Point X="0" Y="0"/>
-                                        <Point X="6" Y="0"/>
-                                        <Point X="3" Y="3"/>
-                                    </Polygon.Points>
-                                </Polygon>
+                                <Path x:Name="pathTriangle" Fill="{TemplateBinding Foreground}" Data="M0,0 L6,0 L3,3 z"/>
                             </Canvas>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -94,6 +88,7 @@
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
                                 <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                                <Setter Property="Fill" TargetName="pathTriangle" Value="{StaticResource Button.Disabled.Foreground}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>

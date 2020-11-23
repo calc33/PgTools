@@ -144,6 +144,9 @@
     <Compile Include="SelectRefConstraintWindow.xaml.cs">
       <DependentUpon>SelectRefConstraintWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SelectTabItemWindow.xaml.cs">
+      <DependentUpon>SelectTabItemWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SequenceControl.xaml.cs">
       <DependentUpon>SequenceControl.xaml</DependentUpon>
     </Compile>
@@ -174,6 +177,7 @@
     <Compile Include="ColumnFilter.xaml.cs">
       <DependentUpon>ColumnFilter.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WindowLocator.cs" />
     <Compile Include="WindowUtility.cs" />
     <Page Include="AwaitWindow.xaml">
       <SubType>Designer</SubType>
@@ -228,6 +232,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SelectRefConstraintWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SelectTabItemWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

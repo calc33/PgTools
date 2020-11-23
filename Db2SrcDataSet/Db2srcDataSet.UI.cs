@@ -66,6 +66,26 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+        public static string UnescapedHeaderText(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            StringBuilder buf = new StringBuilder();
+            bool wasEsc = false;
+            foreach (char c in value)
+            {
+                if (!wasEsc && c == '_')
+                {
+                    wasEsc = true;
+                    continue;
+                }
+                buf.Append(c);
+                wasEsc = false;
+            }
+            return buf.ToString();
+        }
 
         public abstract TreeNode[] GetVisualTree();
         /// <summary>

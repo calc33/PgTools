@@ -93,6 +93,8 @@ namespace Db2Source
         public static readonly RoutedCommand CopyTableContent = InitCopyTableContent();
         public static readonly RoutedCommand CopyTableAsInsert = InitCopyTableAsInsert();
         public static readonly RoutedCommand CopyTableAsCopy = InitCopyTableAsCopy();
+        public static readonly RoutedCommand CheckAll = InitCheckAll();
+        public static readonly RoutedCommand UncheckAll = InitUncheckAll();
 
         private static RoutedCommand InitCopyTable()
         {
@@ -116,6 +118,16 @@ namespace Db2Source
         {
             RoutedCommand ret = new RoutedCommand("表をCOPY文形式でコピー", typeof(DataGrid));
             ret.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
+            return ret;
+        }
+        private static RoutedCommand InitCheckAll()
+        {
+            RoutedCommand ret = new RoutedCommand("すべてチェック", typeof(DataGrid));
+            return ret;
+        }
+        private static RoutedCommand InitUncheckAll()
+        {
+            RoutedCommand ret = new RoutedCommand("すべてチェックをはずす", typeof(DataGrid));
             return ret;
         }
     }
@@ -253,11 +265,6 @@ namespace Db2Source
         private void UpdateIsModified()
         {
             Rows.TrimDeletedRows();
-            if (0 < Rows.DeletedRows.Count)
-            {
-                IsModified = true;
-                return;
-            }
             foreach (Row row in Rows)
             {
                 if (row.ChangeKind != ChangeKind.None)
@@ -460,8 +467,8 @@ namespace Db2Source
             private DataGridController _owner;
             private object[] _data;
             private object[] _old;
-            private bool _added = false;
-            private bool _deleted = false;
+            internal bool _added = false;
+            internal bool _deleted = false;
             private bool? _hasChanges = null;
             private void UpdateHasChanges()
             {
@@ -492,11 +499,15 @@ namespace Db2Source
                 }
                 _hasChanges = false;
                 _added = false;
-                _deleted = false;
                 if (_owner != null)
                 {
                     _owner.Rows.InvalidateKeyToRow();
+                    if (_deleted)
+                    {
+                        _owner.Rows.Remove(this);
+                    }
                 }
+                _deleted = false;
             }
             internal void RevertChanges()
             {
@@ -509,18 +520,44 @@ namespace Db2Source
                 }
                 _hasChanges = false;
             }
+
+            public bool IsDeleted
+            {
+                get
+                {
+                    return _deleted;
+                }
+                set
+                {
+                    if (_deleted == value)
+                    {
+                        return;
+                    }
+                    _deleted = value;
+                    OnPropertyChanged("IsDeleted");
+                    if (_deleted)
+                    {
+                        _owner?.OnRowDeleted(new RowChangedEventArgs(this));
+                    }
+                    else
+                    {
+                        _owner?.OnRowUndeleted(new RowChangedEventArgs(this));
+                    }
+                }
+            }
+
             /// <summary>
             /// DeletedRowsに追加する必要がある場合はtrueを返す
             /// </summary>
             /// <returns></returns>
             internal bool BecomeDeleted()
             {
-                _deleted = true;
+                IsDeleted = true;
                 return !_added;
             }
             internal void BecomeUndeleted()
             {
-                _deleted = false;
+                IsDeleted = false;
             }
 
             private static ChangeKind[,,] InitFlagsToChangeKind()
@@ -915,7 +952,7 @@ namespace Db2Source
             private List<Row> _list = new List<Row>();
             private Dictionary<object[], Row> _keyToRow = null;
             private Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
-            private List<Row> _deletedRows = new List<Row>();
+            //private List<Row> _deletedRows = new List<Row>();
             private List<Row> _temporaryRows = new List<Row>();
 
             private void RequireKeyToRow()
@@ -966,8 +1003,10 @@ namespace Db2Source
 
             public void AcceptChanges()
             {
-                foreach (Row r in _list)
+                // AcceptChanges()内で_listの内容を削除する可能性があるため_listを逆順サーチ
+                for (int i = _list.Count - 1; 0 <= i; i--)
                 {
+                    Row r = _list[i];
                     r.AcceptChanges();
                 }
                 foreach (Row r in _temporaryRows)
@@ -978,7 +1017,7 @@ namespace Db2Source
                         _list.Add(r);
                     }
                 }
-                _deletedRows = new List<Row>();
+                //_deletedRows = new List<Row>();
                 _temporaryRows = new List<Row>();
                 //_modifiedRowsDict = new Dictionary<object[], Row>();
             }
@@ -994,38 +1033,22 @@ namespace Db2Source
                             _list.RemoveAt(i);
                             break;
                         case ChangeKind.Modify:
+                        case ChangeKind.Delete:
                             item.RevertChanges();
                             break;
                     }
                 }
-                for (int i = _deletedRows.Count - 1; 0 <= i; i--)
-                {
-                    Row item = _deletedRows[i];
-                    if (item.ChangeKind == ChangeKind.Delete)
-                    {
-                        Add(item);
-                        item.RevertChanges();
-                    }
-                }
-                _deletedRows.Clear();
                 _temporaryRows.Clear();
             }
 
-            public ICollection<Row> DeletedRows
-            {
-                get { return _deletedRows; }
-            }
-            ICollection<IChangeSetRow> IChangeSetRows.DeletedRows
-            {
-                get { return (ICollection<IChangeSetRow>)_deletedRows; }
-            }
             internal void TrimDeletedRows()
             {
-                for (int i = _deletedRows.Count - 1; 0 <= i; i--)
+                for (int i = _list.Count - 1; 0 <= i; i--)
                 {
-                    if (_deletedRows[i].ChangeKind == ChangeKind.None)
+                    Row row = _list[i];
+                    if (row._added && row._deleted)
                     {
-                        _deletedRows.RemoveAt(i);
+                        _list.RemoveAt(i);
                     }
                 }
             }
@@ -1133,11 +1156,6 @@ namespace Db2Source
                 Row item = _list[index];
                 _list.RemoveAt(index);
                 InvalidateKeyToRow();
-                if (item.BecomeDeleted())
-                {
-                    _deletedRows.Add(item);
-                }
-                _owner?.OnRowDeleted(new RowChangedEventArgs(item));
             }
 
             public void Add(Row item)
@@ -1154,7 +1172,6 @@ namespace Db2Source
 
             public void Clear()
             {
-                _deletedRows.AddRange(_list);
                 _list.Clear();
                 InvalidateKeyToRow();
                 _oldKeyToRow.Clear();
@@ -1180,11 +1197,6 @@ namespace Db2Source
                 Row row = _list[i];
                 _list.RemoveAt(i);
                 InvalidateKeyToRow();
-                if (row.BecomeDeleted())
-                {
-                    _deletedRows.Add(row);
-                }
-                _owner?.OnRowDeleted(new RowChangedEventArgs(row));
                 return true;
             }
 
@@ -1255,11 +1267,6 @@ namespace Db2Source
                 Row row = _list[i];
                 _list.RemoveAt(i);
                 InvalidateKeyToRow();
-                if (row.BecomeDeleted())
-                {
-                    _deletedRows.Add(row);
-                }
-                _owner?.OnRowDeleted(new RowChangedEventArgs(row));
                 return;
             }
 
@@ -1534,9 +1541,11 @@ namespace Db2Source
             if (editable)
             {
                 DataGridCheckBoxColumn chk = new DataGridCheckBoxColumn();
-                chk.Binding = new Binding("IsChecked");
+                chk.Binding = new Binding("IsDeleted");
                 Grid.Columns.Add(chk);
                 _columnToDataIndex.Add(chk, -1);
+                chk.CellStyle = Application.Current.FindResource("DataGridCheckBoxCellStyle") as Style;
+                chk.HeaderStyle = Application.Current.FindResource("DataGridCheckBoxColumnHeaderStyle") as Style;
             }
 
             {
@@ -1551,6 +1560,13 @@ namespace Db2Source
                 Grid.CommandBindings.Add(cb);
                 cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
                 Grid.CommandBindings.Add(cb);
+                if (editable)
+                {
+                    cb = new CommandBinding(DataGridCommands.CheckAll, CheckAllCommand_Executed, CheckAllCommand_CanExecute);
+                    Grid.CommandBindings.Add(cb);
+                    cb = new CommandBinding(DataGridCommands.UncheckAll, UncheckAllCommand_Executed, UncheckAllCommand_CanExecute);
+                    Grid.CommandBindings.Add(cb);
+                }
             }
             int i = 0;
             foreach (ColumnInfo info in Fields)
@@ -1628,6 +1644,7 @@ namespace Db2Source
         {
             DataGrid gr = sender as DataGrid;
             e.CanExecute = (gr != null) && (0 < gr.Columns.Count);
+            e.Handled = true;
         }
         private static readonly char[] TabTextEscapedChars = new char[] { '\t', '\n', '\r', '"' };
         private static readonly char[] CsvEscapedChars = new char[] { '\n', '\r', '"', ',' };
@@ -2213,14 +2230,17 @@ namespace Db2Source
 
         private void CopyTableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            e.Handled = true;
             DoCopyTable(true);
         }
         private void CopyTableContentCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            e.Handled = true;
             DoCopyTable(false);
         }
         private void CopyTableAsInsertCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            e.Handled = true;
             if (Table == null)
             {
                 return;
@@ -2228,7 +2248,7 @@ namespace Db2Source
         }
         private void CopyTableAsCopyCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-
+            e.Handled = true;
         }
 
         private void SelectAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -2301,18 +2321,57 @@ namespace Db2Source
                 string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
             }
         }
+        private void CheckAllCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            DataGrid gr = sender as DataGrid;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.Handled = true;
+        }
+        private void CheckAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DataGrid gr = e.Source as DataGrid;
+            if (gr == null || gr.IsReadOnly)
+            {
+                return;
+            }
+            foreach (object item in gr.Items)
+            {
+                if (!(item is Row))
+                {
+                    continue;
+                }
+                //((Row)item).IsChecked = true;
+                ((Row)item).IsDeleted = true;
+            }
+        }
+        private void UncheckAllCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            DataGrid gr = sender as DataGrid;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.Handled = true;
+        }
+        private void UncheckAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DataGrid gr = e.Source as DataGrid;
+            if (gr == null || gr.IsReadOnly)
+            {
+                return;
+            }
+            foreach (object item in gr.Items)
+            {
+                if (!(item is Row))
+                {
+                    continue;
+                }
+                //((Row)item).IsChecked = false;
+                ((Row)item).IsDeleted = false;
+            }
+        }
 
         public Row[] GetChanges()
         {
             List<Row> list = new List<Row>();
             foreach (Row r in Rows)
-            {
-                if (r.ChangeKind != ChangeKind.None)
-                {
-                    list.Add(r);
-                }
-            }
-            foreach (Row r in Rows.DeletedRows)
             {
                 if (r.ChangeKind != ChangeKind.None)
                 {

@@ -7,8 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="28.866" d:DesignWidth="300" Height="24" Initialized="UserControl_Initialized">
     <DockPanel>
-        <Button x:Name="buttonScrolllRight" DockPanel.Dock="Right" Content="&gt;" Margin="1,0" Click="buttonScrolllRight_Click"/>
-        <Button x:Name="buttonScrolllLeft" DockPanel.Dock="Right" Content="&lt;" Margin="1,0" Click="buttonScrolllLeft_Click"/>
+        <Button x:Name="buttonScrolllRight" DockPanel.Dock="Right" Style="{DynamicResource ButtonStyleMicroRight}" Margin="0" BorderThickness="0" Click="buttonScrolllRight_Click"/>
+        <Button x:Name="buttonScrolllLeft" DockPanel.Dock="Right" Style="{DynamicResource ButtonStyleMicroLeft}"  Margin="0" BorderThickness="0" Click="buttonScrolllLeft_Click"/>
         <ScrollViewer x:Name="scrollViewerMain" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden" ScrollChanged="scrollViewerMain_ScrollChanged">
             <StackPanel x:Name="stackPanelMain" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
                 <!--<local:SortFieldControl Columns="{Binding Target.Columns, ElementName=userControl}"/>-->

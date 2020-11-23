@@ -77,7 +77,6 @@ namespace Db2Source
         IChangeSetRow FingRowByOldKey(object[] key);
         void AcceptChanges();
         void RevertChanges();
-        ICollection<IChangeSetRow> DeletedRows { get; }
         ICollection<IChangeSetRow> TemporaryRows { get; }
 
     }

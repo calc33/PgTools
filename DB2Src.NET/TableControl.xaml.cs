@@ -191,6 +191,7 @@ namespace Db2Source
             }
             textBlockWarningLimit.Visibility = flag ? Visibility.Visible : Visibility.Collapsed;
         }
+
         private void UpdateDataGridResult(IDbCommand command)
         {
             DateTime start = DateTime.Now;
@@ -213,6 +214,9 @@ namespace Db2Source
                         {
                             continue;
                         }
+                        style = new Style(typeof(DataGridCell), style);
+                        Setter setter = new Setter(Control.BackgroundProperty, new Binding(string.Format("Modified[{0}]", info.Index)) { Converter = new DataGridController.ModifiedColorConverter() });
+                        style.Setters.Add(setter);
                         c.CellStyle = style;
                     }
                 }
@@ -792,7 +796,10 @@ namespace Db2Source
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
-            DataGridCommands.CopyTable.Execute(null, dataGridResult);
+            //DataGridCommands.CopyTable.Execute(null, dataGridResult);
+            Button btn = sender as Button;
+            btn.ContextMenu.PlacementTarget = btn;
+            btn.ContextMenu.IsOpen = true;
         }
 
         //private WeakReference<SearchDataGridTextWindow> _searchDataGridTextWindow = null;
@@ -891,7 +898,7 @@ namespace Db2Source
             win.Table = Target;
             win.Column = col;
             win.Row = row;
-            App.ShowNearby(win, cell, NearbyLocation.DownLeft, new Thickness(0, -2, 0, -2));
+            App.ShowNearby(win, cell, NearbyLocation.DownLeft);
         }
 
         private void textBoxAlias0_TextChanged(object sender, TextChangedEventArgs e)

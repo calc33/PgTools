@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -132,6 +133,70 @@ namespace Db2Source
             MenuItemOpenDb.Items.Add(mi);
         }
 
+        private DataGrid FindDataGridRecursive(DependencyObject obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+            if (obj is DataGrid)
+            {
+                DataGrid gr = (DataGrid)obj;
+                return gr.IsVisible ? gr : null;
+            }
+            if (obj is TabControl)
+            {
+                return FindDataGridRecursive(((TabControl)obj).SelectedItem as TabItem);
+            }
+            if (obj is ContentControl)
+            {
+                return FindDataGridRecursive(((ContentControl)obj).Content as DependencyObject);
+            }
+            if (obj is Panel)
+            {
+                foreach (object elem in LogicalTreeHelper.GetChildren(obj))
+                {
+                    if (!(elem is DependencyObject))
+                    {
+                        return null;
+                    }
+                    DataGrid ret = FindDataGridRecursive((DependencyObject)elem);
+                    if (ret != null)
+                    {
+                        return ret;
+                    }
+                }
+                return null;
+            }
+            return null;
+        }
+
+        private DataGrid GetActiveDataGrid()
+        {
+            FrameworkElement elem = tabControlMain.SelectedItem as FrameworkElement;
+            if (elem == null)
+            {
+                return null;
+            }
+            return FindDataGridRecursive(tabControlMain);
+        }
+
+        private static CommandBinding FindCommandBinding(DataGrid grid, ICommand command)
+        {
+            if (grid == null)
+            {
+                return null;
+            }
+            foreach (CommandBinding b in grid.CommandBindings)
+            {
+                if (b.Command == command)
+                {
+                    return b;
+                }
+            }
+            return null;
+        }
+
         public static void TabBecomeVisible(FrameworkElement element)
         {
             if (element == null)
@@ -159,7 +224,7 @@ namespace Db2Source
         {
             TabItem item = new TabItem();
             item.Content = element;
-            item.Header = Db2SourceContext.EscapedHeaderText(header);
+            item.Header = new TextBlock() { Text = header };
             item.Style = tabItemStyle;
             parent.Items.Add(item);
             return item;
@@ -186,7 +251,7 @@ namespace Db2Source
                     return null;
                 }
                 TabItem item = NewTabItem(tabControlMain, target.FullName, ctrl, tabItemStyle);
-                item.Tag = this;
+                item.Tag = target;
                 return item;
             }
         }
@@ -580,6 +645,89 @@ namespace Db2Source
             App.Connections.Save();
             menuItemPsql.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPsql.Tag.ToString()));
             menuItemPgdump.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPgdump.Tag.ToString()));
+            {
+                CommandBinding cb;
+                cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
+                CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
+                CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
+                CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
+                CommandBindings.Add(cb);
+            }
+
+        }
+
+        private void CopyTableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            e.CanExecute = (gr != null) && DataGridCommands.CopyTable.CanExecute(null, gr);
+            e.Handled = true;
+        }
+        private void CopyTableCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            if (gr == null)
+            {
+                return;
+            }
+            DataGridCommands.CopyTable.Execute(null, gr);
+            e.Handled = true;
+        }
+
+
+        private void CopyTableContentCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            if (gr == null)
+            {
+                return;
+            }
+            DataGridCommands.CopyTableContent.Execute(null, gr);
+            e.Handled = true;
+        }
+
+        private void CopyTableAsInsertCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            if (gr == null)
+            {
+                return;
+            }
+            DataGridCommands.CopyTableAsInsert.Execute(null, gr);
+            e.Handled = true;
+        }
+
+        private void CopyTableAsCopyCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            if (gr == null)
+            {
+                return;
+            }
+            DataGridCommands.CopyTableAsCopy.Execute(null, gr);
+            e.Handled = true;
         }
 
         private void menuItemPsql_Click(object sender, RoutedEventArgs e)
@@ -828,39 +976,193 @@ namespace Db2Source
             UpdateTabControlMainSelection();
         }
 
-        private void UpdateButtonScrollSearchTabItemContextMenu(Button button)
-        {
-            ContextMenu menu = button.ContextMenu;
-            menu.PlacementTarget = button;
-            //menu.Placement = PlacementMode.Bottom;
-            menu.Items.Clear();
-            foreach (TabItem item in tabControlMain.Items)
-            {
-                MenuItem mi = new MenuItem()
-                {
-                    Header = item.Header,
-                    Tag = item,
-                };
-                mi.Click += searchTabItemMenu_Click;
-                menu.Items.Add(mi);
-            }
-        }
         private void buttonScrollSearchTabItem_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
-            UpdateButtonScrollSearchTabItemContextMenu(btn);
-            btn.ContextMenu.IsOpen = true;
+            SelectTabItemWindow win = new SelectTabItemWindow();
+            win.TabControl = tabControlMain;
+            win.Closed += SelectTabItemWindow_Closed;
+            App.ShowNearby(win, btn, NearbyLocation.DownRight);
         }
 
-        private void buttonScrollSearchTabItem_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        private void SelectTabItemWindow_Closed(object sender, EventArgs e)
         {
-            Button btn = sender as Button;
-            UpdateButtonScrollSearchTabItemContextMenu(btn);
+            SelectTabItemWindow win = sender as SelectTabItemWindow;
+            TabItem sel = win.SelectedItem;
+            if (sel == null)
+            {
+                return;
+            }
+            tabControlMain.SelectedItem = sel;
         }
 
-        private void searchTabItemMenu_Click(object sender, RoutedEventArgs e)
+        private T FindVisualParent<T>(DependencyObject item) where T: FrameworkElement
         {
-            tabControlMain.SelectedItem = (sender as MenuItem).Tag;
+            if (item == null)
+            {
+                return null;
+            }
+            if (item is T)
+            {
+                return (T)item;
+            }
+            DependencyObject obj;
+            if (item is Visual)
+            {
+                obj = VisualTreeHelper.GetParent(item);
+            }
+            else
+            {
+                PropertyInfo prop = item.GetType().GetProperty("Parent");
+                obj = prop?.GetValue(item) as DependencyObject;
+            }
+            while (obj != null)
+            {
+                if (obj is Visual)
+                {
+                    obj = VisualTreeHelper.GetParent(obj);
+                }
+                else
+                {
+                    PropertyInfo prop = obj.GetType().GetProperty("Parent");
+                    obj = prop?.GetValue(obj) as DependencyObject;
+                }
+                if (obj is T)
+                {
+                    return (T)obj;
+                }
+            }
+            return null;
+        }
+        private TabItem _movingTabItem = null;
+        private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (_movingTabItem != null)
+            {
+                if (e.MouseDevice.LeftButton == MouseButtonState.Released)
+                {
+                    _movingTabItem = null;
+                }
+                return;
+            }
+            TabItem item = e.Source as TabItem;
+            if (item == null)
+            {
+                return;
+            }
+            if (e.MouseDevice.LeftButton == MouseButtonState.Pressed)
+            {
+                ScrollViewer sv = FindVisualParent<ScrollViewer>(item);
+                if (sv != null && !sv.IsMouseCaptured)
+                {
+                    Mouse.Capture(sv);
+                }
+                _movingTabItem = item;
+            }
+        }
+
+        private void MoveTabItem(TabItem goal)
+        {
+            if (_movingTabItem == null)
+            {
+                return;
+            }
+            if (_movingTabItem == goal)
+            {
+                return;
+            }
+            TabControl tab = _movingTabItem.Parent as TabControl;
+            int goalPos = tab.Items.IndexOf(goal);
+            int i = tab.Items.IndexOf(_movingTabItem);
+            bool sel = _movingTabItem.IsSelected;
+            tab.Items.RemoveAt(i);
+            tab.Items.Insert(goalPos, _movingTabItem);
+            if (sel)
+            {
+                tab.SelectedItem = _movingTabItem;
+            }
+        }
+        private void tabPanelScrollViewer_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_movingTabItem == null)
+            {
+                return;
+            }
+
+            ScrollViewer viewer = sender as ScrollViewer;
+            if (viewer == null)
+            {
+                return;
+            }
+            if (e.MouseDevice.LeftButton == MouseButtonState.Pressed && !viewer.IsMouseCaptured)
+            {
+                viewer.CaptureMouse();
+            }
+            FrameworkElement parent = VisualTreeHelper.GetParent(viewer) as FrameworkElement;
+            Point p = e.MouseDevice.GetPosition(parent);
+            double dx = 0;
+            if (p.X < 0)
+            {
+                dx = p.X;
+            }
+            else if (viewer.ActualWidth < p.X)
+            {
+                dx = p.X - viewer.ActualWidth;
+            }
+            TabControl tab = _movingTabItem.Parent as TabControl;
+            TabItem goal;
+            if (dx == 0)
+            {
+                HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
+                if (ret == null)
+                {
+                    return;
+                }
+                goal = FindVisualParent<TabItem>(ret.VisualHit);
+                double x = e.MouseDevice.GetPosition(goal).X;
+                if (x < 0 || _movingTabItem.ActualWidth < x)
+                {
+                    // 移動した結果マウスの位置が選択しているタブの範囲外になって振動を起こさないように
+                    goal = null;
+                }
+            }
+            else if (dx < 0)
+            {
+                TabIndexRange range = new TabIndexRange(tab);
+                goal = tab.Items[Math.Max(0, range.PartialMin - 1)] as TabItem;
+            }
+            else
+            {
+                TabIndexRange range = new TabIndexRange(tab);
+                goal = tab.Items[Math.Min(range.PartialMax + 1, tab.Items.Count - 1)] as TabItem;
+            }
+            if (goal == null || goal.Parent != _movingTabItem.Parent)
+            {
+                return;
+            }
+            MoveTabItem(goal);
+        }
+
+        private void tabPanelScrollViewer_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            ScrollViewer viewer = sender as ScrollViewer;
+            if (viewer != null && viewer.IsMouseCaptured)
+            {
+                viewer.ReleaseMouseCapture();
+            }
+            _movingTabItem = null;
+        }
+
+        private void tabPanelScrollViewer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            _movingTabItem = null;
+            ScrollViewer viewer = sender as ScrollViewer;
+            HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
+            if (ret == null)
+            {
+                return;
+            }
+            _movingTabItem = FindVisualParent<TabItem>(ret.VisualHit);
         }
     }
 }

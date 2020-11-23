@@ -54,8 +54,16 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DataGridCell}">
                         <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <Grid>
+                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Border x:Name="strikeout" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
+                            </Grid>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsDeleted}" Value="true">
+                                <Setter Property="Visibility" Value="Visible" TargetName="strikeout"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -88,13 +96,7 @@
                         <Border x:Name="border" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" SnapsToDevicePixels="true" VerticalAlignment="Stretch">
                             <Grid Margin="{TemplateBinding Padding}" >
                                 <Canvas HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Width="6" Height="6">
-                                    <Polygon x:Name="triangle" Fill="{TemplateBinding Foreground}">
-                                        <Polygon.Points>
-                                            <Point X="1" Y="6"/>
-                                            <Point X="6" Y="6"/>
-                                            <Point X="6" Y="1"/>
-                                        </Polygon.Points>
-                                    </Polygon>
+                                    <Path  x:Name="triangle" Fill="{TemplateBinding Foreground}" Data="M1,6 L6,6 L6,1 z"/>
                                 </Canvas>
                             </Grid>
                         </Border>
@@ -130,9 +132,17 @@
                         <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
                             <DockPanel>
                                 <Button DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Style="{StaticResource ButtonStyleRef}" Click="DataGridCellRefColumnStyleButton_Click" Visibility="{Binding Content.Text, Converter={StaticResource RefButtonVisibilityConverter}, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False"/>
-                                <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Grid>
+                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    <Border x:Name="strikeout" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
+                                </Grid>
                             </DockPanel>
                         </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsDeleted}" Value="true">
+                                <Setter Property="Visibility" Value="Visible" TargetName="strikeout"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -203,7 +213,14 @@
                         <Button x:Name="buttonApply" Margin="2,2,1,2" Padding="2" Style="{DynamicResource ButtonStyleApply}" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
                         <Button x:Name="buttonRevert" Margin="1,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleRollback}" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9"/>
                         <Button x:Name="buttonFilterColumns" Margin="2,2,4,2" Padding="4,2" Content="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
-                        <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                        <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click">
+                            <Button.ContextMenu>
+                                <ContextMenu Placement="Bottom" PlacementTarget="{Binding ElementName=buttonCopyAll, Mode=OneWay}">
+                                    <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding ElementName=dataGridResult, Mode=OneWay}"/>
+                                    <MenuItem Header="データのみ(_D)" Command="local:DataGridCommands.CopyTableContent" CommandTarget="{Binding ElementName=dataGridResult, Mode=OneWay}"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
                         <Button x:Name="buttonSearchWord" Margin="4,2,2,2" Padding="2" Style="{DynamicResource ButtonStyleMiniSearch}" ToolTip="検索" Click="buttonSearchWord_Click"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right">

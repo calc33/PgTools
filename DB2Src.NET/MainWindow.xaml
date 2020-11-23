@@ -442,52 +442,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="ButtonStyleFilterKind" TargetType="{x:Type Button}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
-                            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Ellipse Canvas.Left="-6" Canvas.Top="-6" Width="10" Height="10" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                <Line X1="-3" Y1="1" X2="-8" Y2="7" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Canvas.Left="2" Canvas.Top="4">
-                                    <Polygon.Points>
-                                        <Point X="0" Y="0"/>
-                                        <Point X="4" Y="0"/>
-                                        <Point X="2" Y="4"/>
-                                    </Polygon.Points>
-                                </Polygon>
-                            </Canvas>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsDefaulted" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style x:Key="TabControlStyleSingleLine" TargetType="{x:Type TabControl}">
             <Setter Property="Padding" Value="2"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -513,14 +467,10 @@
                                     <StackPanel Orientation="Horizontal">
                                         <Button x:Name="buttonScrollLeft" Style="{DynamicResource ButtonStyleMicroLeft}" VerticalContentAlignment="Center" BorderThickness="0" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollLeft_Click" Height="26" VerticalAlignment="Top"/>
                                         <Button x:Name="buttonScrollRight" Style="{DynamicResource ButtonStyleMicroRight}"  VerticalContentAlignment="Center" BorderThickness="0" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollRight_Click"/>
-                                        <Button x:Name="buttonScrollSearchTabItem" Style="{DynamicResource ButtonStyleMicroDropDown}" VerticalContentAlignment="Bottom" BorderThickness="0" Visibility="{Binding ActualWidth, ElementName=tabPanelScrollViewer}" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollSearchTabItem_Click" ContextMenuOpening="buttonScrollSearchTabItem_ContextMenuOpening" Padding="2">
-                                            <Button.ContextMenu>
-                                                <ContextMenu Placement="Bottom"/>
-                                            </Button.ContextMenu>
-                                        </Button>
+                                        <Button x:Name="buttonScrollSearchTabItem" Style="{DynamicResource ButtonStyleMicroDropDown}" VerticalContentAlignment="Bottom" BorderThickness="0" Visibility="{Binding ActualWidth, ElementName=tabPanelScrollViewer}" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollSearchTabItem_Click" Padding="2"/>
                                     </StackPanel>
                                 </Border>
-                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" MouseMove="tabPanelScrollViewer_MouseMove" PreviewMouseDown="tabPanelScrollViewer_PreviewMouseDown" MouseUp="tabPanelScrollViewer_PreviewMouseUp" AllowDrop="True">
                                     <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
                                 </ScrollViewer>
                             </DockPanel>
@@ -585,8 +535,8 @@
                     <MenuItem Header="表をコピー(_V)">
                         <MenuItem Header="タイトル+データ(_T)" InputGestureText="Ctrl+Shift+T" Command="local:DataGridCommands.CopyTable"/>
                         <MenuItem Header="データのみ(_D)" InputGestureText="Ctrl+Shift+D" Command="local:DataGridCommands.CopyTableContent"/>
-                        <MenuItem Header="_INSERT文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert"/>
-                        <MenuItem Header="_COPY文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsCopy"/>
+                        <MenuItem Header="_INSERT文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert" Visibility="Collapsed"/>
+                        <MenuItem Header="_COPY文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsCopy" Visibility="Collapsed"/>
                     </MenuItem>
                     <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
                     <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
@@ -631,13 +581,7 @@
                                     <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16">
                                         <Ellipse Canvas.Left="3" Canvas.Top="1" Width="10" Height="10" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                                         <Line X1="6" Y1="9" X2="1" Y2="14" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                        <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Canvas.Left="10" Canvas.Top="12">
-                                            <Polygon.Points>
-                                                <Point X="0" Y="0"/>
-                                                <Point X="4" Y="0"/>
-                                                <Point X="2" Y="4"/>
-                                            </Polygon.Points>
-                                        </Polygon>
+                                        <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
                                 <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" />
@@ -665,7 +609,10 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TabControl x:Name="tabControlMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
-                        <TabItem Header="クエリ">
+                        <TabItem>
+                            <TabItem.Header>
+                                <TextBlock Text="クエリ"/>
+                            </TabItem.Header>
                             <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}" Margin="0,0,0,0"/>
                         </TabItem>
                     </TabControl>

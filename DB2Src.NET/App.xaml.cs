@@ -16,45 +16,6 @@ using System.Windows.Threading;
 namespace Db2Source
 {
     /// <summary>
-    /// ShowNearby で表示位置の指定に使用
-    /// </summary>
-    public enum NearbyLocation
-    {
-        /// <summary>
-        /// 下側に表示、左揃え
-        /// </summary>
-        DownLeft,
-        /// <summary>
-        /// 下側に表示、右揃え
-        /// </summary>
-        DownRight,
-        /// <summary>
-        /// 上側に表示、左揃え
-        /// </summary>
-        UpLeft,
-        /// <summary>
-        /// 上側に表示、右揃え
-        /// </summary>
-        UpRight,
-        /// <summary>
-        /// 左側に表示、上揃え
-        /// </summary>
-        LeftSideTop,
-        /// <summary>
-        /// 左側に表示、下揃え
-        /// </summary>
-        LeftSideBottom,
-        /// <summary>
-        /// 右側に表示、上揃え
-        /// </summary>
-        RightSideTop,
-        /// <summary>
-        /// 右側に表示、下揃え
-        /// </summary>
-        RightSideBottom,
-    }
-
-    /// <summary>
     /// App.xaml の相互作用ロジック
     /// </summary>
     public partial class App: Application
@@ -321,20 +282,10 @@ namespace Db2Source
             }
             return r0;
         }
-        public static void ShowNearby(Window window, FrameworkElement element, NearbyLocation location, Thickness margin)
+        public static void ShowNearby(Window window, FrameworkElement element, NearbyLocation location)
         {
-            Rect workingArea = GetWorkingAreaOf(element);
-            window.UpdateLayout();
-            Rect rE = new Rect(element.PointToScreen(new Point()), element.PointToScreen(new Point(element.ActualWidth, element.ActualHeight)));
-            Size sW = new Size(window.Width, window.Height);
-            Rect ret = TryLocate(window, sW, margin, rE, location, workingArea);
-            window.Left = ret.Left;
-            window.Top = ret.Top;
+            WindowLocator.LocateNearby(element, window, location);
             window.Show();
-            sW = new Size(window.ActualWidth, window.ActualHeight);
-            ret = TryLocate(window, sW, margin, rE, location, workingArea);
-            window.Left = ret.Left;
-            window.Top = ret.Top;
         }
 
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
@@ -349,7 +300,7 @@ namespace Db2Source
             SelectColumnWindow win = new SelectColumnWindow();
             win.Closed += SelectColumnWindow_Closed;
             win.Grid = grid;
-            ShowNearby(win, button, NearbyLocation.DownRight, new Thickness(0));
+            ShowNearby(win, button, NearbyLocation.DownRight);
         }
 
         private void SelectColumnWindow_Closed(object sender, EventArgs e)

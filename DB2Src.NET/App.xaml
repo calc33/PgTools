@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
              StartupUri="MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
     <Application.Resources>
@@ -173,8 +174,8 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <Grid Margin="{TemplateBinding Padding}" >
                                 <Canvas Grid.Row="0" Width="14" Height="14" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" >
-                                    <Ellipse Height="10" Stroke="{TemplateBinding Foreground}" Width="10" StrokeThickness="2"/>
-                                    <Line X1="8" Y1="8" X2="14" Y2="14" Stroke="{TemplateBinding Foreground}" StrokeThickness="2"/>
+                                    <Ellipse x:Name="ellipse" Height="10" Stroke="{TemplateBinding Foreground}" Width="10" StrokeThickness="2"/>
+                                    <Line x:Name="line" X1="8" Y1="8" X2="14" Y2="14" Stroke="{TemplateBinding Foreground}" StrokeThickness="2"/>
                                 </Canvas>
                             </Grid>
                         </Border>
@@ -193,6 +194,8 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="Stroke" TargetName="ellipse" Value="{StaticResource Button.Disabled.Foreground}"/>
+                                <Setter Property="Stroke" TargetName="line" Value="{StaticResource Button.Disabled.Foreground}"/>
                                 <!--<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>-->
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -215,14 +218,8 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <Grid Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="12">
-                                    <Line X1="1" Y1="3" X2="9" Y2="3" StrokeThickness="2" Stroke="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                                    <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}">
-                                        <Polygon.Points>
-                                            <Point X="1" Y="6"/>
-                                            <Point X="9" Y="6"/>
-                                            <Point X="5" Y="11"/>
-                                        </Polygon.Points>
-                                    </Polygon>
+                                    <Line x:Name="line" X1="1" Y1="3" X2="9" Y2="3" StrokeThickness="2" Stroke="{TemplateBinding Foreground}"/>
+                                    <Path x:Name="pathTriangle" Fill="{TemplateBinding Foreground}" Data="M1,6 L9,6 L5,11"/>
                                 </Canvas>
                             </Grid>
                         </Border>
@@ -241,6 +238,8 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="Stroke" TargetName="line" Value="{StaticResource Button.Disabled.Foreground}"/>
+                                <Setter Property="Fill" TargetName="pathTriangle" Value="{StaticResource Button.Disabled.Foreground}"/>
                                 <!--<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>-->
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -263,13 +262,7 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <Grid Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="10">
-                                    <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}">
-                                        <Polygon.Points>
-                                            <Point X="8" Y="1"/>
-                                            <Point X="8" Y="9"/>
-                                            <Point X="2" Y="5"/>
-                                        </Polygon.Points>
-                                    </Polygon>
+                                    <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M8,1 L8,9 L2,5 z"/>
                                 </Canvas>
                             </Grid>
                         </Border>
@@ -288,6 +281,7 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="Fill" TargetName="pathArrow" Value="{StaticResource Button.Disabled.Foreground}"/>
                                 <!--<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>-->
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -310,13 +304,7 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <Grid Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="10">
-                                    <Polygon Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}">
-                                        <Polygon.Points>
-                                            <Point X="2" Y="1"/>
-                                            <Point X="2" Y="9"/>
-                                            <Point X="8" Y="5"/>
-                                        </Polygon.Points>
-                                    </Polygon>
+                                    <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M2,1 L2,9 L8,5 z"/>
                                 </Canvas>
                             </Grid>
                         </Border>
@@ -335,6 +323,7 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="Fill" TargetName="pathArrow" Value="{StaticResource Button.Disabled.Foreground}"/>
                                 <!--<Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>-->
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -356,29 +345,8 @@
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
                             <Canvas Width="16" Height="16" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                <Path x:Name="pathArc" Stroke="{TemplateBinding Foreground}" StrokeThickness="2">
-                                    <Path.Data>
-                                        <PathGeometry>
-                                            <PathFigure StartPoint="8,4" IsClosed="False" IsFilled="False">
-                                                <PathFigure.Segments>
-                                                    <ArcSegment Point="13,9" IsLargeArc="True" Size="5,5"/>
-                                                </PathFigure.Segments>
-                                            </PathFigure>
-                                        </PathGeometry>
-                                    </Path.Data>
-                                </Path>
-                                <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}">
-                                    <Path.Data>
-                                        <PathGeometry>
-                                            <PathFigure StartPoint="13,4" IsClosed="True" IsFilled="True">
-                                                <PathFigure.Segments>
-                                                    <LineSegment Point="8,0"/>
-                                                    <LineSegment Point="8,9"/>
-                                                </PathFigure.Segments>
-                                            </PathFigure>
-                                        </PathGeometry>
-                                    </Path.Data>
-                                </Path>
+                                <Path x:Name="pathArc" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
+                                <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M13,4 L8,0 L8,9 z"/>
                                 <Ellipse Canvas.Left="3" Canvas.Top="3" Width="10" Height="10" />
                             </Canvas>
                         </Border>
@@ -601,29 +569,8 @@
                             <StackPanel Orientation="Horizontal">
                                 <!--<ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>-->
                                 <Canvas x:Name="contentCanvas" Width="16" Height="16" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                    <Path x:Name="pathArc" Stroke="{TemplateBinding Foreground}" StrokeThickness="2">
-                                        <Path.Data>
-                                            <PathGeometry>
-                                                <PathFigure StartPoint="8,4" IsClosed="False" IsFilled="False">
-                                                    <PathFigure.Segments>
-                                                        <ArcSegment Point="13,9" IsLargeArc="True" Size="5,5"/>
-                                                    </PathFigure.Segments>
-                                                </PathFigure>
-                                            </PathGeometry>
-                                        </Path.Data>
-                                    </Path>
-                                    <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}">
-                                        <Path.Data>
-                                            <PathGeometry>
-                                                <PathFigure StartPoint="12,4" IsClosed="True" IsFilled="True">
-                                                    <PathFigure.Segments>
-                                                        <LineSegment Point="8,0"/>
-                                                        <LineSegment Point="8,8"/>
-                                                    </PathFigure.Segments>
-                                                </PathFigure>
-                                            </PathGeometry>
-                                        </Path.Data>
-                                    </Path>
+                                    <Path x:Name="pathArc" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
+                                    <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M12,4 L8,0 L8,8 z"/>
                                     <Ellipse Canvas.Left="3" Canvas.Top="3" Width="10" Height="10" />
                                 </Canvas>
                             </StackPanel>
@@ -671,17 +618,7 @@
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" >
-                                    <Polygon Stroke="{TemplateBinding Foreground}" Fill="{TemplateBinding Foreground}">
-                                        <Polygon.Points>
-                                            <Point X="6" Y="1"/>
-                                            <Point X="4" Y="12"/>
-                                            <Point X="7" Y="12"/>
-                                            <Point X="6" Y="18"/>
-                                            <Point X="14" Y="9"/>
-                                            <Point X="10" Y="9"/>
-                                            <Point X="14" Y="1"/>
-                                        </Polygon.Points>
-                                    </Polygon>
+                                    <Path Stroke="{TemplateBinding Foreground}" Fill="{TemplateBinding Foreground}" Data="M6,1 L4,12 L7,12 L6,18 L14,9 L10,9 L14,1 z"/>
                                 </Canvas>
                                 <ContentPresenter x:Name="contentPresenter" Grid.Row="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                             </Grid>
@@ -724,14 +661,8 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
-                            <Canvas x:Name="Triangle" Width="6" Height="3" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Polygon Fill="{TemplateBinding Foreground}">
-                                    <Polygon.Points>
-                                        <Point X="0" Y="0"/>
-                                        <Point X="6" Y="0"/>
-                                        <Point X="3" Y="3"/>
-                                    </Polygon.Points>
-                                </Polygon>
+                            <Canvas Width="6" Height="3" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Path x:Name="pathTriangle" Fill="{TemplateBinding Foreground}" Data="M0,0 L6,0 L3,3 z"/>
                             </Canvas>
                             <!--<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>-->
                         </Border>
@@ -750,58 +681,7 @@
                             <Trigger Property="IsEnabled" Value="false">
                                 <Setter Property="Background" TargetName="border" Value="{StaticResource ComboBox.Disabled.Background}"/>
                                 <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource ComboBox.Disabled.Border}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        <Style x:Key="ButtonStyleHideGroup" TargetType="{x:Type Button}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
-            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-            <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <Setter Property="Padding" Value="1"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
-                            <Grid Margin="{TemplateBinding Padding}" >
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="*"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Canvas Grid.Row="0" Width="6" Height="6" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" >
-                                    <Polygon Stroke="{TemplateBinding Foreground}" Fill="{TemplateBinding Foreground}">
-                                        <Polygon.Points>
-                                            <Point X="0" Y="1"/>
-                                            <Point X="6" Y="1"/>
-                                            <Point X="3" Y="5"/>
-                                        </Polygon.Points>
-                                    </Polygon>
-                                </Canvas>
-                                <ContentPresenter x:Name="contentPresenter" Grid.Row="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsDefaulted" Value="true">
-                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="true">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
-                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                                <Setter Property="Fill" TargetName="pathTriangle" Value="{StaticResource Button.Disabled.Foreground}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -845,13 +725,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Canvas x:Name="optionMarkGrid"  Width="6" Height="6" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" Margin="1" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
-                                <Polygon x:Name="optionMark" Fill="{TemplateBinding Foreground}">
-                                    <Polygon.Points>
-                                        <Point X="1" Y="0"/>
-                                        <Point X="1" Y="6"/>
-                                        <Point X="5" Y="3"/>
-                                    </Polygon.Points>
-                                </Polygon>
+                                <Path x:Name="optionMark" Fill="{TemplateBinding Foreground}" Data="M1,0 L1,6 L5,3 z" />
                             </Canvas>
                             <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Grid>
@@ -1214,7 +1088,7 @@
                         <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
                             <Grid>
                                 <ScrollViewer x:Name="PART_ContentHost" Focusable="false" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
-                                <TextBlock x:Name="textBlockCue" Text="{TemplateBinding ToolTip}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey} }" Visibility="Collapsed" />
+                                <TextBlock x:Name="textBlockCue" Text="{TemplateBinding ToolTip}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Visibility="Collapsed" />
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -1318,6 +1192,70 @@
                     <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
                 </MultiTrigger>
             </Style.Triggers>
+        </Style>
+        <Style x:Key="DataGridCheckBoxCellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Right" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="SizeWE"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DataGridCheckBoxColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                        <Grid>
+                            <Themes:DataGridHeaderBorder BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" IsClickable="{TemplateBinding CanUserSort}" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" Padding="{TemplateBinding Padding}" SortDirection="{TemplateBinding SortDirection}" SeparatorBrush="{TemplateBinding SeparatorBrush}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}" ToolTip="チェックした行を削除します">
+                                <Themes:DataGridHeaderBorder.ContextMenu>
+                                    <ContextMenu Placement="Bottom">
+                                        <MenuItem Header="すべてチェック" Command="local:DataGridCommands.CheckAll"/>
+                                        <MenuItem Header="すべてチェックをはずす" Command="local:DataGridCommands.UncheckAll"/>
+                                    </ContextMenu>
+                                </Themes:DataGridHeaderBorder.ContextMenu>
+                                <Canvas Width="16" Height="16">
+                                    <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1" Data="M0,3.5 L15,3.5 M4.5,3.5 L4.5,2.5 C4.5,0.5 4.5,0.5 6.5,0.5 L8.5,0.5 C10.5,0.5 10.5,0.5 10.5,2.5 L10.5,3.5 M4.5,5.5 L4.5,13.5 M7.5,5.5 L7.5,13.5 M10.5,5.5 L10.5,13.5 M1.5,3.5 L1.5,13.5 C1.5,15.5 1.5,15.5 3.5,15.5 L11.5,15.5 C13.5,15.5 13.5,15.5 13.5,13.5 L13.5,3.5"/>
+                                </Canvas>    
+                            </Themes:DataGridHeaderBorder>
+                            <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                            <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Application.Resources>
 </Application>
