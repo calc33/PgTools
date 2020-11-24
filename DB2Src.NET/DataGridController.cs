@@ -519,6 +519,7 @@ namespace Db2Source
                     }
                 }
                 _hasChanges = false;
+                _deleted = false;
             }
 
             public bool IsDeleted

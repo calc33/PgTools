@@ -631,64 +631,6 @@ namespace Db2Source
             DataGridControllerResult.NewRow();
         }
 
-        private void buttonDelete_Click(object sender, RoutedEventArgs e)
-        {
-            List<DataGridController.Row> selected = new List<DataGridController.Row>();
-            foreach (DataGridController.Row row in DataGridControllerResult.Rows)
-            {
-                if (row.IsChecked)
-                {
-                    selected.Add(row);
-                }
-            }
-            MessageBoxResult ret;
-            if (selected.Count == 0)
-            {
-                ret = MessageBox.Show("チェックを入れた行がありません。選択中の行を削除しますか?", "削除", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (ret != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-                foreach (DataGridCellInfo cell in dataGridResult.SelectedCells)
-                {
-                    DataGridController.Row row = cell.Item as DataGridController.Row;
-                    selected.Add(row);
-                }
-                selected.Sort();
-                for (int i = selected.Count - 1; 0 < i; i--)
-                {
-                    if (selected[i] == selected[i - 1])
-                    {
-                        selected.RemoveAt(i);
-                    }
-                }
-            }
-            else
-            {
-                ret = MessageBox.Show(string.Format("チェックを入れた{0}行を削除しますか?", selected.Count), "削除", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (ret != MessageBoxResult.Yes)
-                {
-                    return;
-                }
-            }
-            foreach (DataGridController.Row row in selected)
-            {
-                DataGridControllerResult.Rows.Remove(row);
-            }
-            try
-            {
-                DataGridControllerResult.Save();
-            }
-            catch (Exception t)
-            {
-                Db2SourceContext ctx = Target.Context;
-                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.Context.LastSql);
-                return;
-            }
-            dataGridResult.ItemsSource = null;
-            dataGridResult.ItemsSource = DataGridControllerResult.Rows;
-        }
-
         private void dataGridTrigger_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             Trigger t = dataGridTrigger.SelectedItem as Trigger;

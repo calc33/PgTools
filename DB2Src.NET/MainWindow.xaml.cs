@@ -222,7 +222,7 @@ namespace Db2Source
 
         public static TabItem NewTabItem(TabControl parent, string header, UIElement element, Style tabItemStyle)
         {
-            TabItem item = new TabItem();
+            MovableTabItem item = new MovableTabItem();
             item.Content = element;
             item.Header = new TextBlock() { Text = header };
             item.Style = tabItemStyle;
@@ -1034,18 +1034,39 @@ namespace Db2Source
             }
             return null;
         }
-        private TabItem _movingTabItem = null;
+        private MovableTabItem _movingTabItem = null;
+        internal MovableTabItem MovingTabItem
+        {
+            get { return _movingTabItem; }
+            set
+            {
+                if (_movingTabItem == value)
+                {
+                    return;
+                }
+                if (_movingTabItem != null)
+                {
+                    _movingTabItem.IsMoving = false;
+                }
+                _movingTabItem = value;
+                if (_movingTabItem != null)
+                {
+                    _movingTabItem.IsMoving = true;
+                }
+            }
+        }
+
         private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if (_movingTabItem != null)
+            if (MovingTabItem != null)
             {
                 if (e.MouseDevice.LeftButton == MouseButtonState.Released)
                 {
-                    _movingTabItem = null;
+                    MovingTabItem = null;
                 }
                 return;
             }
-            TabItem item = e.Source as TabItem;
+            MovableTabItem item = e.Source as MovableTabItem;
             if (item == null)
             {
                 return;
@@ -1057,34 +1078,34 @@ namespace Db2Source
                 {
                     Mouse.Capture(sv);
                 }
-                _movingTabItem = item;
+                MovingTabItem = item;
             }
         }
 
         private void MoveTabItem(TabItem goal)
         {
-            if (_movingTabItem == null)
+            if (MovingTabItem == null)
             {
                 return;
             }
-            if (_movingTabItem == goal)
+            if (MovingTabItem == goal)
             {
                 return;
             }
-            TabControl tab = _movingTabItem.Parent as TabControl;
+            TabControl tab = MovingTabItem.Parent as TabControl;
             int goalPos = tab.Items.IndexOf(goal);
-            int i = tab.Items.IndexOf(_movingTabItem);
-            bool sel = _movingTabItem.IsSelected;
+            int i = tab.Items.IndexOf(MovingTabItem);
+            bool sel = MovingTabItem.IsSelected;
             tab.Items.RemoveAt(i);
-            tab.Items.Insert(goalPos, _movingTabItem);
+            tab.Items.Insert(goalPos, MovingTabItem);
             if (sel)
             {
-                tab.SelectedItem = _movingTabItem;
+                tab.SelectedItem = MovingTabItem;
             }
         }
         private void tabPanelScrollViewer_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_movingTabItem == null)
+            if (MovingTabItem == null)
             {
                 return;
             }
@@ -1109,8 +1130,8 @@ namespace Db2Source
             {
                 dx = p.X - viewer.ActualWidth;
             }
-            TabControl tab = _movingTabItem.Parent as TabControl;
-            TabItem goal;
+            TabControl tab = MovingTabItem.Parent as TabControl;
+            MovableTabItem goal;
             if (dx == 0)
             {
                 HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
@@ -1118,9 +1139,9 @@ namespace Db2Source
                 {
                     return;
                 }
-                goal = FindVisualParent<TabItem>(ret.VisualHit);
+                goal = FindVisualParent<MovableTabItem>(ret.VisualHit);
                 double x = e.MouseDevice.GetPosition(goal).X;
-                if (x < 0 || _movingTabItem.ActualWidth < x)
+                if (x < 0 || MovingTabItem.ActualWidth < x)
                 {
                     // 移動した結果マウスの位置が選択しているタブの範囲外になって振動を起こさないように
                     goal = null;
@@ -1129,14 +1150,14 @@ namespace Db2Source
             else if (dx < 0)
             {
                 TabIndexRange range = new TabIndexRange(tab);
-                goal = tab.Items[Math.Max(0, range.PartialMin - 1)] as TabItem;
+                goal = tab.Items[Math.Max(0, range.PartialMin - 1)] as MovableTabItem;
             }
             else
             {
                 TabIndexRange range = new TabIndexRange(tab);
-                goal = tab.Items[Math.Min(range.PartialMax + 1, tab.Items.Count - 1)] as TabItem;
+                goal = tab.Items[Math.Min(range.PartialMax + 1, tab.Items.Count - 1)] as MovableTabItem;
             }
-            if (goal == null || goal.Parent != _movingTabItem.Parent)
+            if (goal == null || goal.Parent != MovingTabItem.Parent)
             {
                 return;
             }
@@ -1150,19 +1171,34 @@ namespace Db2Source
             {
                 viewer.ReleaseMouseCapture();
             }
-            _movingTabItem = null;
+            MovingTabItem = null;
         }
 
         private void tabPanelScrollViewer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            _movingTabItem = null;
+            MovingTabItem = null;
             ScrollViewer viewer = sender as ScrollViewer;
             HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
             if (ret == null)
             {
                 return;
             }
-            _movingTabItem = FindVisualParent<TabItem>(ret.VisualHit);
+            MovingTabItem = FindVisualParent<MovableTabItem>(ret.VisualHit);
+        }
+    }
+    public class MovableTabItem: TabItem
+    {
+        public static readonly DependencyProperty IsMovingProperty = DependencyProperty.Register("IsMoving", typeof(bool), typeof(MovableTabItem));
+        public bool IsMoving
+        {
+            get
+            {
+                return (bool)GetValue(IsMovingProperty);
+            }
+            set
+            {
+                SetValue(IsMovingProperty, value);
+            }
         }
     }
 }

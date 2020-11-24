@@ -609,12 +609,12 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TabControl x:Name="tabControlMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
-                        <TabItem>
-                            <TabItem.Header>
+                        <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}">
+                            <local:MovableTabItem.Header>
                                 <TextBlock Text="クエリ"/>
-                            </TabItem.Header>
+                            </local:MovableTabItem.Header>
                             <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}" Margin="0,0,0,0"/>
-                        </TabItem>
+                        </local:MovableTabItem>
                     </TabControl>
                     <GridSplitter Grid.Column="0" Grid.Row="0" Height="4" Cursor="SizeNS" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
                               Visibility="{Binding Visibility, ElementName=listBoxLog}" Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" Margin="0,0,0,-4"/>

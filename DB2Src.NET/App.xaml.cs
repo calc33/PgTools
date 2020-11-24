@@ -6,12 +6,16 @@ using System.Configuration;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.Windows.Themes;
 
 namespace Db2Source
 {
@@ -316,6 +320,124 @@ namespace Db2Source
             if (row != null && col != null)
             {
                 grid.ScrollIntoView(row, col);
+            }
+        }
+
+        private void DataGridCheckBoxColumnHeaderStyleButton_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            DataGrid grid = FindVisualParent<DataGrid>(btn);
+            ContextMenu menu = btn.ContextMenu;
+            menu.Placement = PlacementMode.Bottom;
+            //menu.PlacementTarget = VisualTreeHelper.GetParent(btn) as UIElement;
+            menu.PlacementTarget = btn;
+            menu.Tag = grid;
+            menu.IsOpen = true;
+        }
+
+        public static T FindVisualParent<T>(DependencyObject item) where T : FrameworkElement
+        {
+            if (item == null)
+            {
+                return null;
+            }
+            if (item is T)
+            {
+                return (T)item;
+            }
+            DependencyObject obj;
+            if (item is Visual)
+            {
+                obj = VisualTreeHelper.GetParent(item);
+            }
+            else
+            {
+                PropertyInfo prop = item.GetType().GetProperty("Parent");
+                obj = prop?.GetValue(item) as DependencyObject;
+            }
+            while (obj != null)
+            {
+                if (obj is Visual)
+                {
+                    obj = VisualTreeHelper.GetParent(obj);
+                }
+                else
+                {
+                    PropertyInfo prop = obj.GetType().GetProperty("Parent");
+                    obj = prop?.GetValue(obj) as DependencyObject;
+                }
+                if (obj is T)
+                {
+                    return (T)obj;
+                }
+            }
+            return null;
+        }
+
+        private void DataGridCheckBoxColumnHeaderStyleBorder_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
+            {
+                return;
+            }
+            //DataGridHeaderBorder border = sender as DataGridHeaderBorder;
+            //ContextMenu menu = border.ContextMenu;
+            Button btn = sender as Button;
+            ContextMenu menu = btn.ContextMenu;
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = VisualTreeHelper.GetParent(btn) as UIElement;
+            menu.IsOpen = true;
+            e.Handled = true;
+        }
+
+        private void DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            //DataGridHeaderBorder border = sender as DataGridHeaderBorder;
+            //DataGrid grid = FindVisualParent<DataGrid>(border);
+            //ContextMenu menu = border.ContextMenu;
+            Button btn = sender as Button;
+            DataGrid grid = FindVisualParent<DataGrid>(btn);
+            ContextMenu menu = btn.ContextMenu;
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = VisualTreeHelper.GetParent(btn) as UIElement;
+            menu.Tag = grid;
+        }
+
+        private void MenuItemCheckAll_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menu = sender as MenuItem;
+            DataGrid gr = (menu.Parent as ContextMenu)?.Tag as DataGrid;
+            if (gr == null || gr.IsReadOnly)
+            {
+                return;
+            }
+            foreach (object item in gr.Items)
+            {
+                if (!(item is DataGridController.Row))
+                {
+                    continue;
+                }
+                //((DataGridController.Row)item).IsChecked = true;
+                ((DataGridController.Row)item).IsDeleted = true;
+            }
+        }
+
+        private void MenuItemUncheckAll_Click(object sender, RoutedEventArgs e)
+        {
+            MenuItem menu = sender as MenuItem;
+            DataGrid gr = (menu.Parent as ContextMenu)?.Tag as DataGrid;
+            if (gr == null || gr.IsReadOnly)
+            {
+                return;
+            }
+            foreach (object item in gr.Items)
+            {
+                if (!(item is DataGridController.Row))
+                {
+                    continue;
+                }
+                //((DataGridController.Row)item).IsChecked = false;
+                ((DataGridController.Row)item).IsDeleted = false;
             }
         }
     }
