@@ -451,9 +451,9 @@ namespace Db2Source
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
         public int PreferedCharsPerLine { get; set; } = 80;
-        public virtual IDbConnection NewConnection()
+        public virtual IDbConnection NewConnection(bool withOpening)
         {
-            return ConnectionInfo?.NewConnection();
+            return ConnectionInfo?.NewConnection(withOpening);
         }
         public abstract bool NeedQuotedIdentifier(string value);
         protected static string GetQuotedIdentifier(string value)
@@ -498,7 +498,7 @@ namespace Db2Source
         }
         public object Eval(string expression)
         {
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 return Eval(expression, conn);
             }
@@ -890,7 +890,7 @@ namespace Db2Source
         public void LoadSchema()
         {
             Clear();
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 LoadSchema(conn);
             }
@@ -974,7 +974,7 @@ namespace Db2Source
             string schnm = sch.Name;
             string objid = table.Identifier;
             Schema.CollectionIndex idx = table.GetCollectionIndex();
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 LoadSchema(conn);
                 //LoadTable(schnm, objid, conn);
@@ -995,7 +995,7 @@ namespace Db2Source
             string schnm = sch.Name;
             string objid = view.Identifier;
             Schema.CollectionIndex idx = view.GetCollectionIndex();
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 LoadSchema(conn);
                 //LoadView(schnm, objid, conn);
@@ -1017,7 +1017,7 @@ namespace Db2Source
             string schnm = sch.Name;
             string objid = type.Identifier;
             Schema.CollectionIndex idx = type.GetCollectionIndex();
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 LoadSchema(conn);
                 //LoadView(schnm, objid, conn);
@@ -1110,7 +1110,7 @@ namespace Db2Source
 
         public void ExecSqls(IEnumerable<string> sqls)
         {
-            using (IDbConnection conn = NewConnection())
+            using (IDbConnection conn = NewConnection(true))
             {
                 foreach (string s in sqls)
                 {

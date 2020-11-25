@@ -353,7 +353,7 @@ namespace Db2Source
             await dataSet.LoadSchemaAsync();
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
             TableInfo[] tbls = TableInfo.LoadFromConfigFile(configFile);
-            using (IDbConnection conn = dataSet.NewConnection())
+            using (IDbConnection conn = dataSet.NewConnection(true))
             {
                 foreach (TableInfo tbl in tbls)
                 {

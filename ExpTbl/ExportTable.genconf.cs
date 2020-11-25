@@ -88,7 +88,7 @@ namespace Db2Source
             await dataSet.LoadSchemaAsync();
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
             StringBuilder buf = new StringBuilder();
-            IDbConnection conn = dataSet.NewConnection();
+            IDbConnection conn = dataSet.NewConnection(true);
             IDbCommand cmdTbl = dataSet.GetSqlCommand(_tableSql, null, conn);
             IDbCommand cmdCol = dataSet.GetSqlCommand(Properties.Resources.ColumnSQL, null, conn);
             IDbCommand cmdKey = dataSet.GetSqlCommand(Properties.Resources.KeyConsSQL, null, conn);
@@ -117,7 +117,7 @@ namespace Db2Source
                         l.Add(new TableInfo() { Oid = id, Schema = sch, TableName = tbl });
                     }
                 }
-                for(int i = 0; i < l.Count; i++)
+                for (int i = 0; i < l.Count; i++)
                 {
                     TableInfo info = l[i];
                     SortedList<int, string> lCol = new SortedList<int, string>();

@@ -294,7 +294,7 @@ namespace Db2Source
             {
                 try
                 {
-                    IDbConnection conn = info.NewConnection();
+                    IDbConnection conn = info.NewConnection(true);
                     return conn;
                 }
                 catch

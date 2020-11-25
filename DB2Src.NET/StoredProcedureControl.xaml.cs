@@ -305,7 +305,7 @@ namespace Db2Source
                 {
                     p.SetValue();
                 }
-                using (IDbConnection conn = ctx.NewConnection())
+                using (IDbConnection conn = ctx.NewConnection(true))
                 {
                     IDbCommand cmd = Target.DbCommand;
                     try

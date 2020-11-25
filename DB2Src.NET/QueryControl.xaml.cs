@@ -163,7 +163,7 @@ namespace Db2Source
         private void UpdateDataGridResult(SQLParts sqls)
         {
             Db2SourceContext ctx = CurrentDataSet;
-            using (IDbConnection conn = ctx.NewConnection())
+            using (IDbConnection conn = ctx.NewConnection(true))
             {
                 bool modified;
                 Parameters = ParameterStore.GetParameterStores(sqls.ParameterNames, Parameters, out modified);

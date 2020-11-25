@@ -148,7 +148,7 @@ namespace Db2Source
             }
             try
             {
-                IDbConnection conn = NewConnection();
+                IDbConnection conn = NewConnection(true);
                 conn.Dispose();
             }
             catch
@@ -448,12 +448,15 @@ namespace Db2Source
             }
             return builder.ToString();
         }
-        public override IDbConnection NewConnection()
+        public override IDbConnection NewConnection(bool withOpening)
         {
             NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString(true));
             try
             {
-                conn.Open();
+                if (withOpening)
+                {
+                    conn.Open();
+                }
                 return conn;
             }
             catch

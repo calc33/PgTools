@@ -13,9 +13,9 @@ namespace Db2Source
     {
         public NpgsqlDataSet(NpgsqlConnectionInfo info) : base(info) { }
 
-        public override IDbConnection NewConnection()
+        public override IDbConnection NewConnection(bool withOpening)
         {
-            NpgsqlConnection ret = base.NewConnection() as NpgsqlConnection;
+            NpgsqlConnection ret = base.NewConnection(withOpening) as NpgsqlConnection;
             ret.Notice += NpgsqlConnection_Notice;
             return ret;
         }

@@ -406,7 +406,7 @@ namespace Db2Source
             return Name;
         }
         public abstract string ToConnectionString(bool includePassord);
-        public abstract IDbConnection NewConnection();
+        public abstract IDbConnection NewConnection(bool withOpening);
         public static int CompareByName(ConnectionInfo item1, ConnectionInfo item2)
         {
             if (item1 == null || item2 == null)
@@ -858,7 +858,7 @@ namespace Db2Source
             }
         }
 
-        public override IDbConnection NewConnection()
+        public override IDbConnection NewConnection(bool withOpening)
         {
             return null;
         }

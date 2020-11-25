@@ -90,7 +90,7 @@ namespace Db2Source
                 //prms.Add(dataSet.CreateParameterByFieldInfo(col, Row[col.Index], false));
                 join = " and ";
             }
-            using (IDbConnection conn = dataSet.NewConnection())
+            using (IDbConnection conn = dataSet.NewConnection(true))
             {
                 using (IDbCommand cmd = dataSet.GetSqlCommand(refTbl.GetSelectSQL(string.Empty, buf.ToString(), string.Empty, null, HiddenLevel.Visible), null, conn))
                 {

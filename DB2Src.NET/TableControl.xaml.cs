@@ -464,7 +464,7 @@ namespace Db2Source
             string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset);
             try
             {
-                using (IDbConnection conn = ctx.NewConnection())
+                using (IDbConnection conn = ctx.NewConnection(true))
                 {
                     using (IDbCommand cmd = ctx.GetSqlCommand(sql, null, conn))
                     {

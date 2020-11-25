@@ -289,7 +289,7 @@ namespace Db2Source
             try
             {
                 Target.Name = Target.GetDefaultName();
-                IDbConnection conn = Target.NewConnection();
+                IDbConnection conn = Target.NewConnection(true);
                 Result = conn;
             }
             catch (Exception t)
@@ -308,7 +308,7 @@ namespace Db2Source
 
         private void buttonTest_Click(object sender, RoutedEventArgs e)
         {
-            using (IDbConnection conn = Target.NewConnection())
+            using (IDbConnection conn = Target.NewConnection(false))
             {
                 try
                 {
