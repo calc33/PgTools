@@ -374,14 +374,36 @@ namespace Db2Source
             return null;
         }
 
+        //public static T FindFirstVisualChild<T>(DependencyObject item) where T: DependencyObject
+        //{
+        //    int n = VisualTreeHelper.GetChildrenCount(item);
+        //    List<DependencyObject> l = new List<DependencyObject>();
+        //    for (int i = 0; i < n; i++)
+        //    {
+        //        DependencyObject obj = VisualTreeHelper.GetChild(item, i);
+        //        if (obj is T)
+        //        {
+        //            return (T)obj;
+        //        }
+        //        l.Add(obj);
+        //    }
+        //    foreach (DependencyObject obj in l)
+        //    {
+        //        DependencyObject ret = FindFirstVisualChild<T>(obj);
+        //        if (ret is T)
+        //        {
+        //            return (T)ret;
+        //        }
+        //    }
+        //    return null;
+        //}
+
         private void DataGridCheckBoxColumnHeaderStyleBorder_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ChangedButton != System.Windows.Input.MouseButton.Left)
             {
                 return;
             }
-            //DataGridHeaderBorder border = sender as DataGridHeaderBorder;
-            //ContextMenu menu = border.ContextMenu;
             Button btn = sender as Button;
             ContextMenu menu = btn.ContextMenu;
             menu.Placement = PlacementMode.Bottom;
@@ -392,9 +414,6 @@ namespace Db2Source
 
         private void DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
-            //DataGridHeaderBorder border = sender as DataGridHeaderBorder;
-            //DataGrid grid = FindVisualParent<DataGrid>(border);
-            //ContextMenu menu = border.ContextMenu;
             Button btn = sender as Button;
             DataGrid grid = FindVisualParent<DataGrid>(btn);
             ContextMenu menu = btn.ContextMenu;
@@ -413,12 +432,11 @@ namespace Db2Source
             }
             foreach (object item in gr.Items)
             {
-                if (!(item is DataGridController.Row))
+                if (!(item is Row))
                 {
                     continue;
                 }
-                //((DataGridController.Row)item).IsChecked = true;
-                ((DataGridController.Row)item).IsDeleted = true;
+                ((Row)item).IsDeleted = true;
             }
         }
 
@@ -432,12 +450,11 @@ namespace Db2Source
             }
             foreach (object item in gr.Items)
             {
-                if (!(item is DataGridController.Row))
+                if (!(item is Row))
                 {
                     continue;
                 }
-                //((DataGridController.Row)item).IsChecked = false;
-                ((DataGridController.Row)item).IsDeleted = false;
+                ((Row)item).IsDeleted = false;
             }
         }
     }
@@ -445,10 +462,6 @@ namespace Db2Source
     public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo
     {
         public const string DEFAULE_NAME = "新しい接続...";
-        //public override string GetDefaultName()
-        //{
-        //    return "新しい接続...";
-        //}
         public NewNpgsqlConnectionInfo(bool fromSetting) : base()
         {
             if (fromSetting)
@@ -458,7 +471,6 @@ namespace Db2Source
                 DatabaseName = App.Database;
                 UserName = App.Username;
             }
-            //Name = GetDefaultName();
             Name = DEFAULE_NAME;
         }
     }

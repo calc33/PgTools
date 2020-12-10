@@ -6,9 +6,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         Title="新規データベース接続" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStartupLocation="CenterOwner" Height="Auto" VerticalAlignment="Top" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SizeToContent="WidthAndHeight" Loaded="window_Loaded">
-    <Window.Resources>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-    </Window.Resources>
+    <Window.Resources/>
     <StackPanel x:Name="StackPanelMain" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top">
         <Grid x:Name="GridProperties">
             <Grid.RowDefinitions>

@@ -61,7 +61,17 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
-        ///    に類似しているローカライズされた文字列を検索します。
+        ///   使用方法:
+        ///DB2Src.net [OPTIONS]... [Directory]
+        ///
+        ///一般的なオプション:
+        ///  -?, --help		このヘルプを表示し、終了します
+        ///
+        ///接続オプション
+        ///  -d, --dbname=DATABASE	データベース名
+        ///  -h, --host=HOSTNAME	データベースサーバのホストまたはソケットディレクトリ
+        ///  -p, --port=PORT		データベースサーバのポート番号
+        ///  -U, --username=NAME	指定したデータベースユーザで接続 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Usage {
             get {

@@ -24,7 +24,7 @@ namespace Db2Source
     {
         public static readonly DependencyProperty TableProperty = DependencyProperty.Register("Table", typeof(Table), typeof(RecordViewerWindow));
         public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(RecordViewerWindow));
-        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(DataGridController.Row), typeof(RecordViewerWindow));
+        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(Row), typeof(RecordViewerWindow));
         public RecordViewerWindow()
         {
             InitializeComponent();
@@ -54,11 +54,11 @@ namespace Db2Source
             }
         }
 
-        public DataGridController.Row Row
+        public Row Row
         {
             get
             {
-                return (DataGridController.Row)GetValue(RowProperty);
+                return (Row)GetValue(RowProperty);
             }
             set
             {

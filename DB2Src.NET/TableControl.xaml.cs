@@ -214,9 +214,6 @@ namespace Db2Source
                         {
                             continue;
                         }
-                        style = new Style(typeof(DataGridCell), style);
-                        Setter setter = new Setter(Control.BackgroundProperty, new Binding(string.Format("Modified[{0}]", info.Index)) { Converter = new DataGridController.ModifiedColorConverter() });
-                        style.Setters.Add(setter);
                         c.CellStyle = style;
                     }
                 }
@@ -614,14 +611,14 @@ namespace Db2Source
 
         private void dataGridResult_AddingNewItem(object sender, AddingNewItemEventArgs e)
         {
-            DataGridController.Row row = new DataGridController.Row(DataGridControllerResult);
+            Row row = new Row(DataGridControllerResult);
             //DataGridControllerResult.Rows.Add(row);
             e.NewItem = row;
         }
 
         private void dataGridResult_InitializingNewItem(object sender, InitializingNewItemEventArgs e)
         {
-            DataGridController.Row row = e.NewItem as DataGridController.Row;
+            Row row = e.NewItem as Row;
             //row.SetOwner(DataGridControllerResult);
             DataGridControllerResult.Rows.TemporaryRows.Add(row);
         }
@@ -792,7 +789,7 @@ namespace Db2Source
         private bool HasReferenceRecord(DataGridCellInfo cell)
         {
             ColumnInfo col = cell.Column.Header as ColumnInfo;
-            DataGridController.Row row = cell.Item as DataGridController.Row;
+            Row row = cell.Item as Row;
             if (col == null || row == null)
             {
                 return false;
@@ -828,7 +825,7 @@ namespace Db2Source
                 return;
             }
             ColumnInfo col = cur.Column.Header as ColumnInfo;
-            DataGridController.Row row = cur.DataContext as DataGridController.Row;
+            Row row = cur.DataContext as Row;
 
             FrameworkElement cell = cur.Content as FrameworkElement;
 
@@ -843,6 +840,25 @@ namespace Db2Source
             App.ShowNearby(win, cell, NearbyLocation.DownLeft);
         }
 
+        private void DataGridCell_Selected(object sender, RoutedEventArgs e)
+        {
+            DataGridCell cell = e.OriginalSource as DataGridCell;
+            if (cell == null)
+            {
+                return;
+            }
+            if (!(cell.DataContext is Row))
+            {
+                // NewItemPlaceHolderで編集モードに入ると行が挿入されるため編集モードに入らない
+                return;
+            }
+            DataGrid gr = App.FindVisualParent<DataGrid>(cell);
+            if (gr != null)
+            {
+                gr.BeginEdit(e);
+            }
+        }
+
         private void textBoxAlias0_TextChanged(object sender, TextChangedEventArgs e)
         {
             Dispatcher.Invoke(UpdateTextBoxSelectSql, DispatcherPriority.Normal);
@@ -851,6 +867,126 @@ namespace Db2Source
         private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
         {
             UpdateButtonAddJoinContextMenu();
+        }
+
+        private void dataGridResult_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            TextBox tb = e.OriginalSource as TextBox;
+            if (tb == null)
+            {
+                return;
+            }
+            DataGrid gr = sender as DataGrid;
+            ItemCollection rows = gr.Items;
+            DataGridCellInfo cell = dataGridResult.CurrentCell;
+            int r0 = rows.IndexOf(cell.Item);
+            int r = r0;
+            int c0 = gr.Columns.IndexOf(cell.Column);
+            int c = c0;
+            switch (e.Key)
+            {
+                case Key.Up:
+                    if (0 < tb.GetLineIndexFromCharacterIndex(tb.SelectionStart))
+                    {
+                        return;
+                    }
+                    if (r0 == 0)
+                    {
+                        return;
+                    }
+                    r--;
+                    cell = new DataGridCellInfo(rows[r], cell.Column);
+                    gr.CurrentCell = cell;
+                    gr.SelectedCells.Clear();
+                    gr.SelectedCells.Add(cell);
+                    e.Handled = true;
+                    break;
+                case Key.Down:
+                    if (tb.GetLineIndexFromCharacterIndex(tb.SelectionStart + tb.SelectionLength) < tb.LineCount - 1)
+                    {
+                        return;
+                    }
+                    if (rows.Count - 1 <= r0)
+                    {
+                        return;
+                    }
+                    r++;
+                    cell = new DataGridCellInfo(rows[r], cell.Column);
+                    gr.CurrentCell = cell;
+                    gr.SelectedCells.Clear();
+                    gr.SelectedCells.Add(cell);
+                    e.Handled = true;
+                    break;
+                case Key.Left:
+                    if (0 < tb.SelectionStart || 0 < tb.SelectionLength)
+                    {
+                        return;
+                    }
+                    for (c--; 0 <= c && gr.Columns[c].Visibility != Visibility.Visible; c--) ;
+                    if (c < 0)
+                    {
+                        return;
+                    }
+                    cell = new DataGridCellInfo(rows[r], gr.Columns[c]);
+                    gr.CurrentCell = cell;
+                    gr.SelectedCells.Clear();
+                    gr.SelectedCells.Add(cell);
+                    e.Handled = true;
+                    break;
+                case Key.Right:
+                    if (tb.SelectionStart < tb.Text.Length)
+                    {
+                        return;
+                    }
+                    for (c++; c < gr.Columns.Count && gr.Columns[c].Visibility != Visibility.Visible; c++) ;
+                    if (gr.Columns.Count <= c)
+                    {
+                        return;
+                    }
+                    cell = new DataGridCellInfo(rows[r], gr.Columns[c]);
+                    gr.CurrentCell = cell;
+                    gr.SelectedCells.Clear();
+                    gr.SelectedCells.Add(cell);
+                    e.Handled = true;
+                    break;
+                case Key.PageUp:
+                    if (0 < tb.GetLineIndexFromCharacterIndex(tb.SelectionStart))
+                    {
+                        return;
+                    }
+                    gr.CancelEdit();
+                    break;
+                case Key.PageDown:
+                    if (tb.GetLineIndexFromCharacterIndex(tb.SelectionStart + tb.SelectionLength) < tb.LineCount - 1)
+                    {
+                        return;
+                    }
+                    gr.CancelEdit();
+                    break;
+                case Key.Home:
+                    if (0 < tb.SelectionStart || 0 < tb.SelectionLength)
+                    {
+                        return;
+                    }
+                    gr.CancelEdit();
+                    break;
+                case Key.End:
+                    if (tb.SelectionStart < tb.Text.Length)
+                    {
+                        return;
+                    }
+                    gr.CancelEdit();
+                    break;
+            }
+        }
+
+        private void dataGridResult_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
+        {
+            Row row = e.Row.Item as Row;
+            if (row != null && row.IsDeleted)
+            {
+                e.Cancel = true;
+            }
         }
     }
 

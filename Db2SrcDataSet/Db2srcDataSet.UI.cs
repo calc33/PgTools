@@ -152,8 +152,13 @@ namespace Db2Source
 
     public class ColumnInfo
     {
+        public static readonly ColumnInfo Stub = new ColumnInfo();
         public string Name { get; private set; }
         public HiddenLevel HiddenLevel { get; set; } = HiddenLevel.Visible;
+        public bool IsNotNull { get; set; }
+        /// <summary>
+        /// Null許容型かどうかを返す、NOT NULL制約がかかっているかどうかはIsNotNull
+        /// </summary>
         public bool IsNullable { get; private set; } = false;
         public bool IsBoolean { get; private set; } = false;
         public bool IsNumeric { get; private set; } = false;
@@ -165,7 +170,7 @@ namespace Db2Source
         public ForeignKeyConstraint[] ForeignKeys { get; set; }
         public string Comment { get; set; }
         //初期値についてはContext側に問い合わせてトリガーでセットするのかとかいろいろ取得する方向で
-        public object DefaultValue { get; set; }
+        public string DefaultValueExpr { get; set; }
         public string StringFormat { get; set; }
         //public IValueConverter Converter { get; set; }
         public int Index { get; private set; }
@@ -209,6 +214,7 @@ namespace Db2Source
         private delegate object ValueConverter(object value, Type targetType, object parameter, CultureInfo culture);
         private ValueConverter _convert;
         private ValueConverter _convertBack;
+
         private object ConvertNone(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return value;
@@ -340,7 +346,10 @@ namespace Db2Source
                 _convertBack = ConvertBackArray;
             }
         }
-        public ColumnInfo() { }
+        public ColumnInfo()
+        {
+            Index = -1;
+        }
         public override string ToString()
         {
             return Name;

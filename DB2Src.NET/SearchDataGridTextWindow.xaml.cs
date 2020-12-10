@@ -107,7 +107,8 @@ namespace Db2Source
             {
                 _selectedColumn = comboBoxColumn.SelectedItem as DataGridColumn;
             }
-            obj.SearchGridTextForward();
+            bool found = obj.SearchGridTextForward();
+            textBlockNotFound.Visibility = found ? Visibility.Hidden : Visibility.Visible;
         }
 
         private void FindPreviousCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -121,7 +122,8 @@ namespace Db2Source
             {
                 return;
             }
-            obj.SearchGridTextBackward();
+            bool found = obj.SearchGridTextBackward();
+            textBlockNotFound.Visibility = found ? Visibility.Hidden : Visibility.Visible;
         }
 
         private void buttonNext_Click(object sender, RoutedEventArgs e)
@@ -137,6 +139,35 @@ namespace Db2Source
         private void Window_LayoutUpdated(object sender, EventArgs e)
         {
             
+        }
+
+        private void window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (e.KeyboardDevice.Modifiers == ModifierKeys.Shift)
+                {
+                    SearchCommands.FindPrevious.Execute(null, this);
+                    e.Handled = true;
+                    return;
+                }
+                if (e.KeyboardDevice.Modifiers == ModifierKeys.None)
+                {
+                    SearchCommands.FindNext.Execute(null, this);
+                    e.Handled = true;
+                    return;
+                }
+            }
+        }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            comboBoxKeyword.Focus();
+        }
+
+        private void comboBoxColumn_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            checkBoxColumn.IsChecked = (comboBoxColumn.SelectedIndex != -1);
         }
     }
 }

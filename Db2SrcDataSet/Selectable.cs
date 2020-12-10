@@ -343,6 +343,14 @@ namespace Db2Source
             }
         }
 
+        public ForeignKeyConstraint[] ForeignKeys
+        {
+            get
+            {
+                return (Table as Table)?.GetForeignKeysForColumn(Name);
+            }
+        }
+
         public HiddenLevel HiddenLevel { get; set; } = HiddenLevel.Visible;
 
         internal Column(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Columns)

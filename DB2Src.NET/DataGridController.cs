@@ -52,9 +52,9 @@ namespace Db2Source
     }
     public class CellValueChangedEventArgs: EventArgs
     {
-        public DataGridController.Row Row { get; private set; }
+        public Row Row { get; private set; }
         public int Index { get; private set; }
-        internal CellValueChangedEventArgs(DataGridController.Row row, int index)
+        internal CellValueChangedEventArgs(Row row, int index)
         {
             Row = row;
             Index = index;
@@ -62,8 +62,8 @@ namespace Db2Source
     }
     public class RowChangedEventArgs: EventArgs
     {
-        public DataGridController.Row Row { get; private set; }
-        internal RowChangedEventArgs(DataGridController.Row row)
+        public Row Row { get; private set; }
+        internal RowChangedEventArgs(Row row)
         {
             Row = row;
         }
@@ -131,6 +131,1066 @@ namespace Db2Source
             return ret;
         }
     }
+
+    public enum SearchDirection
+    {
+        None,
+        Forward,
+        Backward
+    }
+    public class CellInfo: INotifyPropertyChanged
+    {
+        public Row Row { get; private set; }
+        public ColumnInfo Column { get; private set; }
+        public int Index { get; private set; }
+        public object Data
+        {
+            get
+            {
+                return Row[Index];
+            }
+            set
+            {
+                if (Row[Index] == value)
+                {
+                    return;
+                }
+                Row[Index] = value;
+            }
+        }
+        public object Old
+        {
+            get
+            {
+                return Row.Old(Index);
+            }
+        }
+        public bool IsModified
+        {
+            get
+            {
+                return Row.IsModified(Index);
+            }
+        }
+        public bool IsFault
+        {
+            get
+            {
+                return Column.IsNotNull && (Row[Index] == null);
+            }
+        }
+        public bool IsNullable
+        {
+            get
+            {
+                return Column.IsNullable;
+            }
+        }
+        internal CellInfo(Row row, ColumnInfo column)
+        {
+            Row = row;
+            Column = column;
+            Index = Column.Index;
+        }
+
+        internal void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+
+    public class CellInfoCollection: IList<CellInfo>
+    {
+        private List<CellInfo> _list = new List<CellInfo>();
+
+        internal CellInfoCollection(Row owner)
+        {
+            if (owner == null)
+            {
+                throw new ArgumentNullException("owner");
+            }
+            ColumnInfo[] cols = owner.Owner.Fields;
+            _list = new List<CellInfo>(cols.Length);
+            foreach (ColumnInfo col in cols)
+            {
+                _list.Add(new CellInfo(owner, col));
+            }
+        }
+
+        #region IListの実装
+        public CellInfo this[int index]
+        {
+            get
+            {
+                return _list[index];
+            }
+
+            set
+            {
+                _list[index] = value;
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                return _list.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public void Add(CellInfo item)
+        {
+            _list.Add(item);
+        }
+
+        public void Clear()
+        {
+            _list.Clear();
+        }
+
+        public bool Contains(CellInfo item)
+        {
+            return _list.Contains(item);
+        }
+
+        public void CopyTo(CellInfo[] array, int arrayIndex)
+        {
+            _list.CopyTo(array, arrayIndex);
+        }
+
+        public IEnumerator<CellInfo> GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+
+        public int IndexOf(CellInfo item)
+        {
+            return _list.IndexOf(item);
+        }
+
+        public void Insert(int index, CellInfo item)
+        {
+            _list.Insert(index, item);
+        }
+
+        public bool Remove(CellInfo item)
+        {
+            return _list.Remove(item);
+        }
+
+        public void RemoveAt(int index)
+        {
+            _list.RemoveAt(index);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _list.GetEnumerator();
+        }
+        #endregion
+    }
+
+    public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
+    {
+        private static readonly object Unchanged = new object();
+        private DataGridController _owner;
+        internal object[] _data;
+        internal object[] _old;
+        internal bool _added = false;
+        internal bool _deleted = false;
+        private bool? _hasChanges = null;
+        private void UpdateHasChanges()
+        {
+            if (_added || _deleted)
+            {
+                return;
+            }
+            if (_hasChanges.HasValue)
+            {
+                return;
+            }
+            for (int i = 0; i < _data.Length; i++)
+            {
+                if (IsModified(i))
+                {
+                    _hasChanges = true;
+                    return;
+                }
+            }
+            _hasChanges = false;
+        }
+
+        public void AcceptChanges()
+        {
+            for (int i = 0; i < _old.Length; i++)
+            {
+                _old[i] = Unchanged;
+            }
+            _hasChanges = false;
+            _added = false;
+            if (_owner != null)
+            {
+                _owner.Rows.InvalidateKeyToRow();
+                if (_deleted)
+                {
+                    _owner.Rows.Remove(this);
+                }
+            }
+            _deleted = false;
+        }
+        internal void RevertChanges()
+        {
+            for (int i = 0; i < _old.Length; i++)
+            {
+                if (_old[i] != Unchanged)
+                {
+                    _data[i] = _old[i];
+                }
+            }
+            _hasChanges = false;
+            _deleted = false;
+        }
+
+        public bool IsDeleted
+        {
+            get
+            {
+                return _deleted;
+            }
+            set
+            {
+                if (_deleted == value)
+                {
+                    return;
+                }
+                _deleted = value;
+                OnPropertyChanged("IsDeleted");
+                if (_deleted)
+                {
+                    _owner?.OnRowDeleted(new RowChangedEventArgs(this));
+                }
+                else
+                {
+                    _owner?.OnRowUndeleted(new RowChangedEventArgs(this));
+                }
+            }
+        }
+
+        /// <summary>
+        /// DeletedRowsに追加する必要がある場合はtrueを返す
+        /// </summary>
+        /// <returns></returns>
+        internal bool BecomeDeleted()
+        {
+            IsDeleted = true;
+            return !_added;
+        }
+        internal void BecomeUndeleted()
+        {
+            IsDeleted = false;
+        }
+
+        private static ChangeKind[,,] InitFlagsToChangeKind()
+        {
+            // 添え字は _added, _deleted, _hasChanges をfalse=0,true=1に変換して割り当てる
+            ChangeKind[,,] ret = new ChangeKind[2, 2, 2];
+            ret[0, 0, 0] = ChangeKind.None;
+            ret[0, 0, 1] = ChangeKind.Modify;
+            ret[0, 1, 0] = ChangeKind.Delete;
+            ret[0, 1, 1] = ChangeKind.Delete;
+            ret[1, 0, 0] = ChangeKind.New;
+            ret[1, 0, 1] = ChangeKind.New;
+            ret[1, 1, 0] = ChangeKind.None;
+            ret[1, 1, 1] = ChangeKind.None;
+            return ret;
+        }
+        private static readonly ChangeKind[,,] FlagsToChangeKind = InitFlagsToChangeKind();
+        public ChangeKind ChangeKind
+        {
+            get
+            {
+                UpdateHasChanges();
+                return FlagsToChangeKind[_added ? 1 : 0, _deleted ? 1 : 0, (_hasChanges.HasValue && _hasChanges.Value) ? 1 : 0];
+            }
+        }
+        public class ModifiedCollection
+        {
+            private Row _owner;
+
+            public bool this[int index]
+            {
+                get
+                {
+                    return _owner.IsModified(index);
+                }
+            }
+            public ModifiedCollection(Row owner)
+            {
+                _owner = owner;
+            }
+        }
+        public CellInfoCollection Cells { get; private set; }
+
+        internal void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        /// <summary>
+        /// i番目の項目が変更されていれば IsModified(i) が true を返す
+        /// </summary>
+        public bool IsModified(int index)
+        {
+            if (index == -1)
+            {
+                return false;
+            }
+            return _old[index] != Unchanged && !Equals(_old[index], _data[index]);
+        }
+        public bool IsAdded
+        {
+            get
+            {
+                return _added;
+            }
+        }
+        public bool IsChecked { get; set; }
+        /// <summary>
+        /// Old[i] で i番目の項目の読み込み時の値を返す
+        /// </summary>
+        public object Old(int index)
+        {
+            object ret = _old[index];
+            if (ret != Unchanged)
+            {
+                return ret;
+            }
+            return _data[index];
+        }
+
+        public DataGridController Owner
+        {
+            get
+            {
+                return _owner;
+            }
+        }
+
+        public object[] GetKeys()
+        {
+            if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
+            {
+                return _data;
+            }
+            object[] ret = new object[_owner.KeyFields.Length];
+            for (int i = 0; i < _owner.KeyFields.Length; i++)
+            {
+                ColumnInfo f = _owner.KeyFields[i];
+                ret[i] = _data[f.Index];
+            }
+            return ret;
+        }
+        public object[] GetOldKeys()
+        {
+            if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
+            {
+                return _data;
+            }
+            object[] ret = new object[_owner.KeyFields.Length];
+            for (int i = 0; i < _owner.KeyFields.Length; i++)
+            {
+                int p = _owner.KeyFields[i].Index;
+                object o = (0 <= p && p < _old.Length) ? _old[p] : null;
+                if (o == Unchanged)
+                {
+                    o = _data[p];
+                }
+                ret[i] = o;
+            }
+            return ret;
+        }
+
+        public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
+        {
+            if (constraint == null)
+            {
+                throw new ArgumentNullException("constraint");
+            }
+            if (_owner == null)
+            {
+                return null;
+            }
+            return _owner.GetForeignKeyColumns(constraint);
+        }
+
+        private void OnValueChanged(int index)
+        {
+            _hasChanges = null;
+            _owner?.OnCellValueChanged(new CellValueChangedEventArgs(this, index));
+            OnPropertyChanged(string.Format("[{0}]", index));
+            Owner.Rows.OnRowChanged(this);
+            OnPropertyChanged("Modified");
+            CellInfo cell = Cells[index];
+            cell.OnPropertyChanged("Data");
+            cell.OnPropertyChanged("IsModified");
+            cell.OnPropertyChanged("IsFault");
+        }
+
+        #region IList<T>の実装
+        public object this[int index]
+        {
+            get
+            {
+                return _data[index];
+            }
+            set
+            {
+                if (_old[index] == Unchanged)
+                {
+                    _old[index] = _data[index];
+                }
+                object v = _owner.Fields[index].ConvertValue(value);
+                _data[index] = v;
+                OnValueChanged(index);
+            }
+        }
+        public int Count
+        {
+            get
+            {
+                return ((ICollection<object>)_data).Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public void Add(object item) { }
+        public void Clear() { }
+
+        public bool Contains(object item)
+        {
+            return ((ICollection<object>)_data).Contains(item);
+        }
+
+        public void CopyTo(object[] array, int arrayIndex)
+        {
+            ((ICollection<object>)_data).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(object item)
+        {
+            return false;
+        }
+
+        public IEnumerator<object> GetEnumerator()
+        {
+            return ((ICollection<object>)_data).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((ICollection<object>)_data).GetEnumerator();
+        }
+
+        public int IndexOf(object item)
+        {
+            for (int i = 0; i < _data.Length; i++)
+            {
+                if (object.Equals(_data[i], item))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public void Insert(int index, object item) { }
+        public void RemoveAt(int index) { }
+        #endregion
+
+        public void Read(IDataReader reader, int[] indexList)
+        {
+            object[] work = new object[reader.FieldCount];
+            if (!reader.Read())
+            {
+                return;
+            }
+            reader.GetValues(work);
+            for (int i = 0; i < work.Length; i++)
+            {
+                if (indexList[i] == -1)
+                {
+                    continue;
+                }
+                _data[indexList[i]] = work[i];
+            }
+            for (int i = 0; i < _old.Length; i++)
+            {
+                _old[i] = Unchanged;
+            }
+        }
+
+        //public void SetOwner(DataGridController owner)
+        //{
+        //    _owner = owner;
+        //    _added = true;
+        //    _deleted = false;
+        //    _data = new object[owner.Fields.Length];
+        //    _old = new object[owner.Fields.Length];
+        //    int i = 0;
+        //    foreach (ColumnInfo info in owner.Fields)
+        //    {
+        //        if (info.IsDefaultDefined && info.Column != null)
+        //        {
+        //            _data[i] = info.Column.EvalDefaultValue();
+        //        }
+        //        i++;
+        //    }
+        //}
+
+        public Row(DataGridController owner, IDataReader reader)
+        {
+            _owner = owner;
+            _added = false;
+            _deleted = false;
+            _data = new object[reader.FieldCount];
+            _old = new object[reader.FieldCount];
+            Cells = new CellInfoCollection(this);
+            for (int i = 0; i < _old.Length; i++)
+            {
+                try
+                {
+                    _data[i] = reader.GetValue(i);
+
+                }
+                catch (NotSupportedException)
+                {
+                    _data[i] = NotSupportedColumn.Value;
+                }
+                catch (OverflowException)
+                {
+                    _data[i] = OverflowColumn.Value;
+                }
+            }
+            for (int i = 0; i < _old.Length; i++)
+            {
+                _old[i] = Unchanged;
+            }
+        }
+
+        public Row(DataGridController owner)
+        {
+            _owner = owner;
+            _added = true;
+            _deleted = false;
+            _data = new object[owner.Fields.Length];
+            _old = new object[owner.Fields.Length];
+            Cells = new CellInfoCollection(this);
+            int i = 0;
+            foreach (ColumnInfo info in owner.Fields)
+            {
+                if (info.IsDefaultDefined && info.Column != null)
+                {
+                    _data[i] = info.Column.EvalDefaultValue();
+                }
+                i++;
+            }
+        }
+        public Row()
+        {
+            _added = true;
+            _deleted = false;
+            _data = new object[0];
+            _old = new object[0];
+            Cells = new CellInfoCollection(this);
+        }
+        public override bool Equals(object obj)
+        {
+            if (!(obj is Row))
+            {
+                return base.Equals(obj);
+            }
+            if (_added)
+            {
+                return ReferenceEquals(this, obj);
+            }
+            object[] k1 = GetOldKeys();
+            object[] k2 = ((Row)obj).GetOldKeys();
+            if (k1.Length != k2.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < k1.Length; i++)
+            {
+                if (!Equals(k1[i], k2[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public override int GetHashCode()
+        {
+            int ret = 0;
+            object[] k = GetOldKeys();
+            foreach (object o in k)
+            {
+                if (o != null)
+                {
+                    ret += o.GetHashCode();
+                }
+            }
+            return ret;
+        }
+        public override string ToString()
+        {
+            if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
+            {
+                return base.ToString();
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append('{');
+            bool needComma = false;
+            foreach (ColumnInfo f in _owner.KeyFields)
+            {
+                object o = (f != null) ? _data[f.Index] : null;
+                buf.Append(o != null ? o.ToString() : "(null)");
+                if (needComma)
+                {
+                    buf.Append(',');
+                }
+                needComma = true;
+            }
+            buf.Append('}');
+            return buf.ToString();
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (!(obj is Row))
+            {
+                return -1;
+            }
+            return CompareRowByOldKey(this, (Row)obj);
+        }
+        public static int CompareRowByKey(Row item1, Row item2)
+        {
+            if (item1 == null || item2 == null)
+            {
+                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
+            }
+            return CompareKey(item1.GetKeys(), item2.GetKeys());
+        }
+
+        public static int CompareRowByOldKey(Row item1, Row item2)
+        {
+            if (item1 == null || item2 == null)
+            {
+                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
+            }
+            return CompareKey(item1.GetOldKeys(), item2.GetOldKeys());
+        }
+        public static int CompareKey(object[] item1, object[] item2)
+        {
+            if (item1 == null || item2 == null)
+            {
+                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
+            }
+            if (item1.Length != item2.Length)
+            {
+                return item1.Length - item2.Length;
+            }
+            for (int i = 0; i < item1.Length; i++)
+            {
+                object o1 = item1[i];
+                object o2 = item2[i];
+                if (!(o1 is IComparable))
+                {
+                    return -1;
+                }
+                int ret = ((IComparable)o1).CompareTo(o2);
+                if (ret != 0)
+                {
+                    return ret;
+                }
+            }
+            return 0;
+        }
+    }
+
+    public sealed class RowCollection: IList<Row>, IList, IChangeSetRows, INotifyPropertyChanged
+    {
+        private DataGridController _owner;
+        private List<Row> _list = new List<Row>();
+        private Dictionary<object[], Row> _keyToRow = null;
+        private Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
+        //private List<Row> _deletedRows = new List<Row>();
+        private List<Row> _temporaryRows = new List<Row>();
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void RequireKeyToRow()
+        {
+            if (_keyToRow != null)
+            {
+                return;
+            }
+            _keyToRow = new Dictionary<object[], Row>();
+            foreach (Row row in _list)
+            {
+                _keyToRow[row.GetKeys()] = row;
+            }
+        }
+        internal void InvalidateKeyToRow()
+        {
+            _keyToRow = null;
+        }
+
+        public Row FingRowByKey(object[] key)
+        {
+            RequireKeyToRow();
+            Row row;
+            if (!_keyToRow.TryGetValue(key, out row))
+            {
+                return null;
+            }
+            return row;
+        }
+        public Row FingRowByOldKey(object[] key)
+        {
+            Row row;
+            if (!_oldKeyToRow.TryGetValue(key, out row))
+            {
+                return null;
+            }
+            return row;
+        }
+        IChangeSetRow IChangeSetRows.FingRowByOldKey(object[] key)
+        {
+            Row row;
+            if (!_oldKeyToRow.TryGetValue(key, out row))
+            {
+                return null;
+            }
+            return row;
+        }
+
+        public void AcceptChanges()
+        {
+            // AcceptChanges()内で_listの内容を削除する可能性があるため_listを逆順サーチ
+            for (int i = _list.Count - 1; 0 <= i; i--)
+            {
+                Row r = _list[i];
+                r.AcceptChanges();
+            }
+            foreach (Row r in _temporaryRows)
+            {
+                if (_list.IndexOf(r) == -1)
+                {
+                    r.AcceptChanges();
+                    _list.Add(r);
+                }
+            }
+            //_deletedRows = new List<Row>();
+            _temporaryRows = new List<Row>();
+            //_modifiedRowsDict = new Dictionary<object[], Row>();
+        }
+
+        public void RevertChanges()
+        {
+            for (int i = _list.Count - 1; 0 <= i; i--)
+            {
+                Row item = _list[i];
+                switch (item.ChangeKind)
+                {
+                    case ChangeKind.New:
+                        _list.RemoveAt(i);
+                        break;
+                    case ChangeKind.Modify:
+                    case ChangeKind.Delete:
+                        item.RevertChanges();
+                        break;
+                }
+            }
+            _temporaryRows.Clear();
+        }
+
+        internal void TrimDeletedRows()
+        {
+            for (int i = _list.Count - 1; 0 <= i; i--)
+            {
+                Row row = _list[i];
+                if (row._added && row._deleted)
+                {
+                    _list.RemoveAt(i);
+                }
+            }
+        }
+
+        public ICollection<Row> TemporaryRows
+        {
+            get { return _temporaryRows; }
+        }
+        ICollection<IChangeSetRow> IChangeSetRows.TemporaryRows
+        {
+            get { return (ICollection<IChangeSetRow>)_temporaryRows; }
+        }
+
+        internal RowCollection(DataGridController owner)
+        {
+            _owner = owner;
+        }
+
+        #region interfaceの実装
+        public int Count
+        {
+            get
+            {
+                return _list.Count;
+            }
+        }
+
+        public bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public bool IsFixedSize
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        object ICollection.SyncRoot
+        {
+            get
+            {
+                return ((IList)_list).SyncRoot;
+            }
+        }
+
+        bool ICollection.IsSynchronized
+        {
+            get
+            {
+                return ((IList)_list).IsSynchronized;
+            }
+        }
+
+        object IList.this[int index]
+        {
+            get
+            {
+                return ((IList)_list)[index];
+            }
+
+            set
+            {
+                if (((IList)_list)[index] == value)
+                {
+                    return;
+                }
+                ((IList)_list)[index] = value;
+                OnPropertyChanged(string.Format("[{0}]", index));
+            }
+        }
+
+        public Row this[int index]
+        {
+            get
+            {
+                return _list[index];
+            }
+
+            set
+            {
+                if (_list[index] == value)
+                {
+                    return;
+                }
+                _list[index] = value;
+                OnPropertyChanged(string.Format("[{0}]", index));
+            }
+        }
+
+        public int IndexOf(Row item)
+        {
+            return _list.IndexOf(item);
+        }
+
+        public void Insert(int index, Row item)
+        {
+            _list.Insert(index, item);
+            InvalidateKeyToRow();
+            if (item.ChangeKind != ChangeKind.New)
+            {
+                _oldKeyToRow.Add(item.GetOldKeys(), item);
+            }
+            item.BecomeUndeleted();
+            _owner?.OnRowAdded(new RowChangedEventArgs(item));
+        }
+
+        public void RemoveAt(int index)
+        {
+            Row item = _list[index];
+            _list.RemoveAt(index);
+            InvalidateKeyToRow();
+        }
+
+        public void Add(Row item)
+        {
+            _list.Add(item);
+            InvalidateKeyToRow();
+            if (item.ChangeKind != ChangeKind.New)
+            {
+                _oldKeyToRow.Add(item.GetOldKeys(), item);
+            }
+            item.BecomeUndeleted();
+            _owner?.OnRowAdded(new RowChangedEventArgs(item));
+        }
+
+        public void Clear()
+        {
+            _list.Clear();
+            InvalidateKeyToRow();
+            _oldKeyToRow.Clear();
+        }
+
+        public bool Contains(Row item)
+        {
+            return ((IList<Row>)_list).Contains(item);
+        }
+
+        public void CopyTo(Row[] array, int arrayIndex)
+        {
+            ((IList<Row>)_list).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(Row item)
+        {
+            int i = _list.IndexOf(item);
+            if (i == -1)
+            {
+                return _temporaryRows.Remove(item);
+            }
+            Row row = _list[i];
+            _list.RemoveAt(i);
+            InvalidateKeyToRow();
+            return true;
+        }
+
+        public IEnumerator<Row> GetEnumerator()
+        {
+            return ((IList<Row>)_list).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IList<Row>)_list).GetEnumerator();
+        }
+
+        public int Add(object value)
+        {
+            if (!(value is Row))
+            {
+                throw new ArgumentException("value");
+            }
+            int ret = ((IList)_list).Add(value);
+            InvalidateKeyToRow();
+            Row row = (Row)value;
+            if (row.ChangeKind != ChangeKind.New)
+            {
+                _oldKeyToRow.Add(row.GetOldKeys(), row);
+            }
+            row.BecomeUndeleted();
+            _owner?.OnRowAdded(new RowChangedEventArgs(row));
+            return ret;
+
+        }
+
+        public bool Contains(object value)
+        {
+            return ((IList)_list).Contains(value);
+        }
+
+        public int IndexOf(object value)
+        {
+            return ((IList)_list).IndexOf(value);
+        }
+
+        public void Insert(int index, object value)
+        {
+            if (!(value is Row))
+            {
+                throw new ArgumentException("value");
+            }
+            ((IList)_list).Insert(index, value);
+            InvalidateKeyToRow();
+            Row row = (Row)value;
+            if (row.ChangeKind != ChangeKind.New)
+            {
+                _oldKeyToRow.Add(row.GetOldKeys(), row);
+            }
+            row.BecomeUndeleted();
+            _owner?.OnRowAdded(new RowChangedEventArgs(row));
+        }
+
+        public void Remove(object value)
+        {
+            Row item = value as Row;
+            int i = _list.IndexOf(item);
+            if (i == -1)
+            {
+                return;
+            }
+            Row row = _list[i];
+            _list.RemoveAt(i);
+            InvalidateKeyToRow();
+            return;
+        }
+
+        internal void OnRowChanged(Row row)
+        {
+            int i = IndexOf(row);
+            if (i == -1)
+            {
+                return;
+            }
+            OnPropertyChanged(string.Format("[{0}]", i));
+        }
+        public void CopyTo(Array array, int index)
+        {
+            ((IList)_list).CopyTo(array, index);
+        }
+        #endregion
+    }
+
     public class DataGridController: DependencyObject, IChangeSet
     {
         public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(DataGridController));
@@ -141,6 +1201,17 @@ namespace Db2Source
         public static readonly DependencyProperty UseRegexProperty = DependencyProperty.Register("UseRegex", typeof(bool), typeof(DataGridController));
         public static readonly DependencyProperty UseSearchColumnProperty = DependencyProperty.Register("UseSearchColumn", typeof(bool), typeof(DataGridController));
         public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController));
+        public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(CellInfo), typeof(DataGridController));
+
+        public static CellInfo GetCellInfo(DependencyObject obj)
+        {
+            return (CellInfo)obj.GetValue(CellInfoProperty);
+        }
+        public static void SetCellInfo(DependencyObject obj, CellInfo value)
+        {
+            obj.SetValue(CellInfoProperty, value);
+        }
+
         public DataGrid Grid
         {
             get
@@ -253,6 +1324,10 @@ namespace Db2Source
                 return;
             }
             _isSearchEndValid = GetCurentCellPosition(out _searchEndRow, out _searchEndColumn);
+            if (_isSearchEndValid)
+            {
+                _searchEndColumn = GetDataPosition(_searchEndColumn);
+            }
             isFirst = true;
             endRow = _searchEndRow;
             endColumn = _searchEndColumn;
@@ -274,24 +1349,6 @@ namespace Db2Source
                 }
             }
             IsModified = false;
-        }
-
-        private static readonly Brush ModifiedBackgroundBrush = new SolidColorBrush(Color.FromRgb(255, 255, 192));
-        public class ModifiedColorConverter: IValueConverter
-        {
-            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            {
-                if ((bool)value)
-                {
-                    return ModifiedBackgroundBrush;
-                }
-                return null;
-            }
-
-            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;
@@ -367,7 +1424,7 @@ namespace Db2Source
             base.OnPropertyChanged(e);
         }
         public event EventHandler<CellValueChangedEventArgs> CellValueChanged;
-        protected void OnCellValueChanged(CellValueChangedEventArgs e)
+        protected internal void OnCellValueChanged(CellValueChangedEventArgs e)
         {
             if (e.Row.ChangeKind != ChangeKind.None)
             {
@@ -378,17 +1435,17 @@ namespace Db2Source
         public event EventHandler<RowChangedEventArgs> RowAdded;
         public event EventHandler<RowChangedEventArgs> RowDeleted;
         public event EventHandler<RowChangedEventArgs> RowUndeleted;
-        protected void OnRowAdded(RowChangedEventArgs e)
+        protected internal void OnRowAdded(RowChangedEventArgs e)
         {
             IsModified = true;
             RowAdded?.Invoke(this, e);
         }
-        protected void OnRowDeleted(RowChangedEventArgs e)
+        protected internal void OnRowDeleted(RowChangedEventArgs e)
         {
             IsModified = true;
             RowDeleted?.Invoke(this, e);
         }
-        protected void OnRowUndeleted(RowChangedEventArgs e)
+        protected internal void OnRowUndeleted(RowChangedEventArgs e)
         {
             IsModified = true;
             RowUndeleted?.Invoke(this, e);
@@ -397,55 +1454,19 @@ namespace Db2Source
         public Row NewRow()
         {
             Row row = new Row(this);
-            Rows.Add(row);
+            DataGridCellInfo cur = Grid.SelectedCells[0];
+            int i = Rows.IndexOf(cur.Item);
+            if (i == -1)
+            {
+                i = Rows.Count;
+            }
+            Rows.Insert(i, row);
             Grid.ItemsSource = null;
             Grid.ItemsSource = Rows;
             //UpdateGrid();
-            Grid.SelectedItem = row;
+            Grid.CurrentCell = new DataGridCellInfo(row, cur.Column);
+            //ScrollViewer sv = App.FindFirstVisualChild<ScrollViewer>(Grid);
             return row;
-        }
-        public static int CompareKey(object[] item1, object[] item2)
-        {
-            if (item1 == null || item2 == null)
-            {
-                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
-            }
-            if (item1.Length != item2.Length)
-            {
-                return item1.Length - item2.Length;
-            }
-            for (int i = 0; i < item1.Length; i++)
-            {
-                object o1 = item1[i];
-                object o2 = item2[i];
-                if (!(o1 is IComparable))
-                {
-                    return -1;
-                }
-                int ret = ((IComparable)o1).CompareTo(o2);
-                if (ret != 0)
-                {
-                    return ret;
-                }
-            }
-            return 0;
-        }
-        public static int CompareRowByKey(Row item1, Row item2)
-        {
-            if (item1 == null || item2 == null)
-            {
-                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
-            }
-            return CompareKey(item1.GetKeys(), item2.GetKeys());
-        }
-
-        public static int CompareRowByOldKey(Row item1, Row item2)
-        {
-            if (item1 == null || item2 == null)
-            {
-                return ((item1 == null) ? 1 : 0) - ((item2 == null) ? 1 : 0);
-            }
-            return CompareKey(item1.GetOldKeys(), item2.GetOldKeys());
         }
         public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
         {
@@ -459,823 +1480,6 @@ namespace Db2Source
                 ret.Add(GetFieldByName(col));
             }
             return ret.ToArray();
-        }
-
-        public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
-        {
-            private static readonly object Unchanged = new object();
-            private DataGridController _owner;
-            private object[] _data;
-            private object[] _old;
-            internal bool _added = false;
-            internal bool _deleted = false;
-            private bool? _hasChanges = null;
-            private void UpdateHasChanges()
-            {
-                if (_added || _deleted)
-                {
-                    return;
-                }
-                if (_hasChanges.HasValue)
-                {
-                    return;
-                }
-                for (int i = 0; i < _data.Length; i++)
-                {
-                    if (IsModified(i))
-                    {
-                        _hasChanges = true;
-                        return;
-                    }
-                }
-                _hasChanges = false;
-            }
-
-            public void AcceptChanges()
-            {
-                for (int i = 0; i < _old.Length; i++)
-                {
-                    _old[i] = Unchanged;
-                }
-                _hasChanges = false;
-                _added = false;
-                if (_owner != null)
-                {
-                    _owner.Rows.InvalidateKeyToRow();
-                    if (_deleted)
-                    {
-                        _owner.Rows.Remove(this);
-                    }
-                }
-                _deleted = false;
-            }
-            internal void RevertChanges()
-            {
-                for (int i = 0; i < _old.Length; i++)
-                {
-                    if (_old[i] != Unchanged)
-                    {
-                        _data[i] = _old[i];
-                    }
-                }
-                _hasChanges = false;
-                _deleted = false;
-            }
-
-            public bool IsDeleted
-            {
-                get
-                {
-                    return _deleted;
-                }
-                set
-                {
-                    if (_deleted == value)
-                    {
-                        return;
-                    }
-                    _deleted = value;
-                    OnPropertyChanged("IsDeleted");
-                    if (_deleted)
-                    {
-                        _owner?.OnRowDeleted(new RowChangedEventArgs(this));
-                    }
-                    else
-                    {
-                        _owner?.OnRowUndeleted(new RowChangedEventArgs(this));
-                    }
-                }
-            }
-
-            /// <summary>
-            /// DeletedRowsに追加する必要がある場合はtrueを返す
-            /// </summary>
-            /// <returns></returns>
-            internal bool BecomeDeleted()
-            {
-                IsDeleted = true;
-                return !_added;
-            }
-            internal void BecomeUndeleted()
-            {
-                IsDeleted = false;
-            }
-
-            private static ChangeKind[,,] InitFlagsToChangeKind()
-            {
-                // 添え字は _added, _deleted, _hasChanges をfalse=0,true=1に変換して割り当てる
-                ChangeKind[,,] ret = new ChangeKind[2, 2, 2];
-                ret[0, 0, 0] = ChangeKind.None;
-                ret[0, 0, 1] = ChangeKind.Modify;
-                ret[0, 1, 0] = ChangeKind.Delete;
-                ret[0, 1, 1] = ChangeKind.Delete;
-                ret[1, 0, 0] = ChangeKind.New;
-                ret[1, 0, 1] = ChangeKind.New;
-                ret[1, 1, 0] = ChangeKind.None;
-                ret[1, 1, 1] = ChangeKind.None;
-                return ret;
-            }
-            private static readonly ChangeKind[,,] FlagsToChangeKind = InitFlagsToChangeKind();
-            public ChangeKind ChangeKind
-            {
-                get
-                {
-                    UpdateHasChanges();
-                    return FlagsToChangeKind[_added ? 1 : 0, _deleted ? 1 : 0, (_hasChanges.HasValue && _hasChanges.Value) ? 1 : 0];
-                }
-            }
-            public class ModifiedCollection
-            {
-                private Row _owner;
-
-                public bool this[int index]
-                {
-                    get
-                    {
-                        return _owner.IsModified(index);
-                    }
-                }
-                public ModifiedCollection(Row owner)
-                {
-                    _owner = owner;
-                }
-            }
-            private ModifiedCollection _modified;
-
-            internal void OnPropertyChanged(string propertyName)
-            {
-                PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-            public event PropertyChangedEventHandler PropertyChanged;
-
-            public ModifiedCollection Modified
-            {
-                get { return _modified; }
-            }
-            /// <summary>
-            /// i番目の項目が変更されていれば IsModified(i) が true を返す
-            /// </summary>
-            public bool IsModified(int index)
-            {
-                if (index == -1)
-                {
-                    return false;
-                }
-                return _old[index] != Unchanged && !Equals(_old[index], _data[index]);
-            }
-            public bool IsAdded
-            {
-                get
-                {
-                    return _added;
-                }
-            }
-            public bool IsChecked { get; set; }
-            /// <summary>
-            /// Old[i] で i番目の項目の読み込み時の値を返す
-            /// </summary>
-            public object Old(int index)
-            {
-                object ret = _old[index];
-                if (ret != Unchanged)
-                {
-                    return ret;
-                }
-                return _data[index];
-            }
-
-            public DataGridController Owner
-            {
-                get
-                {
-                    return _owner;
-                }
-            }
-
-            public object[] GetKeys()
-            {
-                if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
-                {
-                    return _data;
-                }
-                object[] ret = new object[_owner.KeyFields.Length];
-                for (int i = 0; i < _owner.KeyFields.Length; i++)
-                {
-                    ColumnInfo f = _owner.KeyFields[i];
-                    ret[i] = _data[f.Index];
-                }
-                return ret;
-            }
-            public object[] GetOldKeys()
-            {
-                if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
-                {
-                    return _data;
-                }
-                object[] ret = new object[_owner.KeyFields.Length];
-                for (int i = 0; i < _owner.KeyFields.Length; i++)
-                {
-                    int p = _owner.KeyFields[i].Index;
-                    object o = (0 <= p && p < _old.Length) ? _old[p] : null;
-                    if (o == Unchanged)
-                    {
-                        o = _data[p];
-                    }
-                    ret[i] = o;
-                }
-                return ret;
-            }
-
-            public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
-            {
-                if (constraint == null)
-                {
-                    throw new ArgumentNullException("constraint");
-                }
-                if (_owner == null)
-                {
-                    return null;
-                }
-                return _owner.GetForeignKeyColumns(constraint);
-            }
-
-            #region IList<T>の実装
-            public object this[int index]
-            {
-                get
-                {
-                    return _data[index];
-                }
-                set
-                {
-                    if (_old[index] == Unchanged)
-                    {
-                        _old[index] = _data[index];
-                    }
-                    object v = _owner.Fields[index].ConvertValue(value);
-                    _data[index] = v;
-                    _hasChanges = null;
-                    _owner?.OnCellValueChanged(new CellValueChangedEventArgs(this, index));
-                    OnPropertyChanged(string.Format("[{0}]", index));
-                    OnPropertyChanged("Modified");
-                }
-            }
-            public int Count
-            {
-                get
-                {
-                    return ((ICollection<object>)_data).Count;
-                }
-            }
-
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public void Add(object item) { }
-            public void Clear() { }
-
-            public bool Contains(object item)
-            {
-                return ((ICollection<object>)_data).Contains(item);
-            }
-
-            public void CopyTo(object[] array, int arrayIndex)
-            {
-                ((ICollection<object>)_data).CopyTo(array, arrayIndex);
-            }
-
-            public bool Remove(object item)
-            {
-                return false;
-            }
-
-            public IEnumerator<object> GetEnumerator()
-            {
-                return ((ICollection<object>)_data).GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((ICollection<object>)_data).GetEnumerator();
-            }
-
-            public int IndexOf(object item)
-            {
-                for (int i = 0; i < _data.Length; i++)
-                {
-                    if (object.Equals(_data[i], item))
-                    {
-                        return i;
-                    }
-                }
-                return -1;
-            }
-
-            public void Insert(int index, object item) { }
-            public void RemoveAt(int index) { }
-            #endregion
-
-            public void Read(IDataReader reader, int[] indexList)
-            {
-                object[] work = new object[reader.FieldCount];
-                if (!reader.Read())
-                {
-                    return;
-                }
-                reader.GetValues(work);
-                for (int i = 0; i < work.Length; i++)
-                {
-                    if (indexList[i] == -1)
-                    {
-                        continue;
-                    }
-                    _data[indexList[i]] = work[i];
-                }
-                for (int i = 0; i < _old.Length; i++)
-                {
-                    _old[i] = Unchanged;
-                }
-            }
-
-            public void SetOwner(DataGridController owner)
-            {
-                _owner = owner;
-                _added = true;
-                _deleted = false;
-                _data = new object[owner.Fields.Length];
-                _old = new object[owner.Fields.Length];
-                int i = 0;
-                foreach (ColumnInfo info in owner.Fields)
-                {
-                    if (!info.IsNullable)
-                    {
-                        _data[i] = info.DefaultValue;
-                    }
-                    i++;
-                }
-            }
-
-            public Row(DataGridController owner, IDataReader reader)
-            {
-                _owner = owner;
-                _modified = new ModifiedCollection(this);
-                _added = false;
-                _deleted = false;
-                _data = new object[reader.FieldCount];
-                _old = new object[reader.FieldCount];
-                for (int i = 0; i < _old.Length; i++)
-                {
-                    try
-                    {
-                        _data[i] = reader.GetValue(i);
-
-                    }
-                    catch (NotSupportedException)
-                    {
-                        _data[i] = NotSupportedColumn.Value;
-                    }
-                    catch (OverflowException)
-                    {
-                        _data[i] = OverflowColumn.Value;
-                    }
-                }
-                for (int i = 0; i < _old.Length; i++)
-                {
-                    _old[i] = Unchanged;
-                }
-            }
-
-            public Row(DataGridController owner)
-            {
-                _owner = owner;
-                _modified = new ModifiedCollection(this);
-                _added = true;
-                _deleted = false;
-                _data = new object[owner.Fields.Length];
-                _old = new object[owner.Fields.Length];
-                int i = 0;
-                foreach (ColumnInfo info in owner.Fields)
-                {
-                    if (!info.IsNullable)
-                    {
-                        _data[i] = info.DefaultValue;
-                    }
-                    i++;
-                }
-            }
-            public Row()
-            {
-                _modified = new ModifiedCollection(this);
-                _added = true;
-                _deleted = false;
-                _data = new object[0];
-                _old = new object[0];
-            }
-            public override bool Equals(object obj)
-            {
-                if (!(obj is Row))
-                {
-                    return base.Equals(obj);
-                }
-                if (_added)
-                {
-                    return ReferenceEquals(this, obj);
-                }
-                object[] k1 = GetOldKeys();
-                object[] k2 = ((Row)obj).GetOldKeys();
-                if (k1.Length != k2.Length)
-                {
-                    return false;
-                }
-                for (int i = 0; i < k1.Length; i++)
-                {
-                    if (!Equals(k1[i], k2[i]))
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-            public override int GetHashCode()
-            {
-                int ret = 0;
-                object[] k = GetOldKeys();
-                foreach (object o in k)
-                {
-                    if (o != null)
-                    {
-                        ret += o.GetHashCode();
-                    }
-                }
-                return ret;
-            }
-            public override string ToString()
-            {
-                if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
-                {
-                    return base.ToString();
-                }
-                StringBuilder buf = new StringBuilder();
-                buf.Append('{');
-                bool needComma = false;
-                foreach (ColumnInfo f in _owner.KeyFields)
-                {
-                    object o = (f != null) ? _data[f.Index] : null;
-                    buf.Append(o != null ? o.ToString() : "(null)");
-                    if (needComma)
-                    {
-                        buf.Append(',');
-                    }
-                    needComma = true;
-                }
-                buf.Append('}');
-                return buf.ToString();
-            }
-
-            public int CompareTo(object obj)
-            {
-                if (!(obj is Row))
-                {
-                    return -1;
-                }
-                return CompareRowByOldKey(this, (Row)obj);
-            }
-        }
-
-        public sealed class RowCollection: IList<Row>, IList, IChangeSetRows
-        {
-            private DataGridController _owner;
-            private List<Row> _list = new List<Row>();
-            private Dictionary<object[], Row> _keyToRow = null;
-            private Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
-            //private List<Row> _deletedRows = new List<Row>();
-            private List<Row> _temporaryRows = new List<Row>();
-
-            private void RequireKeyToRow()
-            {
-                if (_keyToRow != null)
-                {
-                    return;
-                }
-                _keyToRow = new Dictionary<object[], Row>();
-                foreach (Row row in _list)
-                {
-                    _keyToRow[row.GetKeys()] = row;
-                }
-            }
-            internal void InvalidateKeyToRow()
-            {
-                _keyToRow = null;
-            }
-
-            public Row FingRowByKey(object[] key)
-            {
-                RequireKeyToRow();
-                Row row;
-                if (!_keyToRow.TryGetValue(key, out row))
-                {
-                    return null;
-                }
-                return row;
-            }
-            public Row FingRowByOldKey(object[] key)
-            {
-                Row row;
-                if (!_oldKeyToRow.TryGetValue(key, out row))
-                {
-                    return null;
-                }
-                return row;
-            }
-            IChangeSetRow IChangeSetRows.FingRowByOldKey(object[] key)
-            {
-                Row row;
-                if (!_oldKeyToRow.TryGetValue(key, out row))
-                {
-                    return null;
-                }
-                return row;
-            }
-
-            public void AcceptChanges()
-            {
-                // AcceptChanges()内で_listの内容を削除する可能性があるため_listを逆順サーチ
-                for (int i = _list.Count - 1; 0 <= i; i--)
-                {
-                    Row r = _list[i];
-                    r.AcceptChanges();
-                }
-                foreach (Row r in _temporaryRows)
-                {
-                    if (_list.IndexOf(r) == -1)
-                    {
-                        r.AcceptChanges();
-                        _list.Add(r);
-                    }
-                }
-                //_deletedRows = new List<Row>();
-                _temporaryRows = new List<Row>();
-                //_modifiedRowsDict = new Dictionary<object[], Row>();
-            }
-
-            public void RevertChanges()
-            {
-                for (int i = _list.Count - 1; 0 <= i; i--)
-                {
-                    Row item = _list[i];
-                    switch (item.ChangeKind)
-                    {
-                        case ChangeKind.New:
-                            _list.RemoveAt(i);
-                            break;
-                        case ChangeKind.Modify:
-                        case ChangeKind.Delete:
-                            item.RevertChanges();
-                            break;
-                    }
-                }
-                _temporaryRows.Clear();
-            }
-
-            internal void TrimDeletedRows()
-            {
-                for (int i = _list.Count - 1; 0 <= i; i--)
-                {
-                    Row row = _list[i];
-                    if (row._added && row._deleted)
-                    {
-                        _list.RemoveAt(i);
-                    }
-                }
-            }
-
-            public ICollection<Row> TemporaryRows
-            {
-                get { return _temporaryRows; }
-            }
-            ICollection<IChangeSetRow> IChangeSetRows.TemporaryRows
-            {
-                get { return (ICollection<IChangeSetRow>)_temporaryRows; }
-            }
-
-            internal RowCollection(DataGridController owner)
-            {
-                _owner = owner;
-            }
-
-            #region interfaceの実装
-            public int Count
-            {
-                get
-                {
-                    return _list.Count;
-                }
-            }
-
-            public bool IsReadOnly
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            public bool IsFixedSize
-            {
-                get
-                {
-                    return false;
-                }
-            }
-
-            object ICollection.SyncRoot
-            {
-                get
-                {
-                    return ((IList)_list).SyncRoot;
-                }
-            }
-
-            bool ICollection.IsSynchronized
-            {
-                get
-                {
-                    return ((IList)_list).IsSynchronized;
-                }
-            }
-
-            object IList.this[int index]
-            {
-                get
-                {
-                    return ((IList)_list)[index];
-                }
-
-                set
-                {
-                    ((IList)_list)[index] = value;
-                }
-            }
-
-            public Row this[int index]
-            {
-                get
-                {
-                    return _list[index];
-                }
-
-                set
-                {
-                    _list[index] = value;
-                }
-            }
-
-            public int IndexOf(Row item)
-            {
-                return _list.IndexOf(item);
-            }
-
-            public void Insert(int index, Row item)
-            {
-                _list.Insert(index, item);
-                InvalidateKeyToRow();
-                if (item.ChangeKind != ChangeKind.New)
-                {
-                    _oldKeyToRow.Add(item.GetOldKeys(), item);
-                }
-                item.BecomeUndeleted();
-                _owner?.OnRowAdded(new RowChangedEventArgs(item));
-            }
-
-            public void RemoveAt(int index)
-            {
-                Row item = _list[index];
-                _list.RemoveAt(index);
-                InvalidateKeyToRow();
-            }
-
-            public void Add(Row item)
-            {
-                _list.Add(item);
-                InvalidateKeyToRow();
-                if (item.ChangeKind != ChangeKind.New)
-                {
-                    _oldKeyToRow.Add(item.GetOldKeys(), item);
-                }
-                item.BecomeUndeleted();
-                _owner?.OnRowAdded(new RowChangedEventArgs(item));
-            }
-
-            public void Clear()
-            {
-                _list.Clear();
-                InvalidateKeyToRow();
-                _oldKeyToRow.Clear();
-            }
-
-            public bool Contains(Row item)
-            {
-                return ((IList<Row>)_list).Contains(item);
-            }
-
-            public void CopyTo(Row[] array, int arrayIndex)
-            {
-                ((IList<Row>)_list).CopyTo(array, arrayIndex);
-            }
-
-            public bool Remove(Row item)
-            {
-                int i = _list.IndexOf(item);
-                if (i == -1)
-                {
-                    return _temporaryRows.Remove(item);
-                }
-                Row row = _list[i];
-                _list.RemoveAt(i);
-                InvalidateKeyToRow();
-                return true;
-            }
-
-            public IEnumerator<Row> GetEnumerator()
-            {
-                return ((IList<Row>)_list).GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return ((IList<Row>)_list).GetEnumerator();
-            }
-
-            public int Add(object value)
-            {
-                if (!(value is Row))
-                {
-                    throw new ArgumentException("value");
-                }
-                int ret = ((IList)_list).Add(value);
-                InvalidateKeyToRow();
-                Row row = (Row)value;
-                if (row.ChangeKind != ChangeKind.New)
-                {
-                    _oldKeyToRow.Add(row.GetOldKeys(), row);
-                }
-                row.BecomeUndeleted();
-                _owner?.OnRowAdded(new RowChangedEventArgs(row));
-                return ret;
-
-            }
-
-            public bool Contains(object value)
-            {
-                return ((IList)_list).Contains(value);
-            }
-
-            public int IndexOf(object value)
-            {
-                return ((IList)_list).IndexOf(value);
-            }
-
-            public void Insert(int index, object value)
-            {
-                if (!(value is Row))
-                {
-                    throw new ArgumentException("value");
-                }
-                ((IList)_list).Insert(index, value);
-                InvalidateKeyToRow();
-                Row row = (Row)value;
-                if (row.ChangeKind != ChangeKind.New)
-                {
-                    _oldKeyToRow.Add(row.GetOldKeys(), row);
-                }
-                row.BecomeUndeleted();
-                _owner?.OnRowAdded(new RowChangedEventArgs(row));
-            }
-
-            public void Remove(object value)
-            {
-                Row item = value as Row;
-                int i = _list.IndexOf(item);
-                if (i == -1)
-                {
-                    return;
-                }
-                Row row = _list[i];
-                _list.RemoveAt(i);
-                InvalidateKeyToRow();
-                return;
-            }
-
-            public void CopyTo(Array array, int index)
-            {
-                ((IList)_list).CopyTo(array, index);
-            }
-            #endregion
         }
 
         private ColumnInfo[] _fields;
@@ -1443,10 +1647,11 @@ namespace Db2Source
                     }
                     info.Column = c;
                     info.HiddenLevel = c.HiddenLevel;
+                    info.IsNotNull = c.NotNull;
                     if (!string.IsNullOrEmpty(c.DefaultValue))
                     {
                         info.IsDefaultDefined = true;
-                        info.DefaultValue = c.EvalDefaultValue();
+                        info.DefaultValueExpr = c.DefaultValue;
                     }
                     info.ForeignKeys = table.GetForeignKeysForColumn(info.Name);
                 }
@@ -1592,6 +1797,9 @@ namespace Db2Source
                         style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
                         style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2.0, 1.0, 2.0, 1.0)));
                         c.ElementStyle = style;
+                        Style editStyle = new Style(typeof(TextBox), c.EditingElementStyle);
+                        editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Right));
+                        c.EditingElementStyle = editStyle;
                     }
                     if (info.IsDateTime)
                     {
@@ -1599,19 +1807,6 @@ namespace Db2Source
                         {
                             b.StringFormat = Db2SourceContext.DateTimeFormat;
                         }
-                    }
-                    if (editable)
-                    {
-                        Setter setter = new Setter(Control.BackgroundProperty, new Binding(string.Format("Modified[{0}]", i)) { Converter = new ModifiedColorConverter() });
-                        Style style = Grid.CellStyle;
-                        style = (style != null) ? new Style(typeof(DataGridCell), style) : style = new Style(typeof(DataGridCell));
-                        style.Setters.Add(setter);
-                        if (info.HiddenLevel != HiddenLevel.Visible)
-                        {
-                            style.Setters.Add(new Setter(Control.ForegroundProperty, SystemColors.GrayTextBrush));
-                            c.IsReadOnly = true;
-                        }
-                        c.CellStyle = style;
                     }
                     col = c;
                 }
@@ -1822,6 +2017,22 @@ namespace Db2Source
             return true;
         }
 
+        public int GetDataPosition(int column)
+        {
+            int cN = Grid.Columns.Count;
+            if (column < 0 || cN <= column)
+            {
+                return -1;
+            }
+            DataGridColumn col = Grid.Columns[column];
+            int pos;
+            if (_columnToDataIndex.TryGetValue(col, out pos))
+            {
+                return pos;
+            }
+            return -1;
+        }
+
         private delegate bool MatchTextProc(string text, bool ignoreCase);
         private bool _isMatchTextProcValid = false;
         private MatchTextProc _matchTextProc = null;
@@ -1939,20 +2150,8 @@ namespace Db2Source
             }
             win.Owner = Window.GetWindow(Grid);
             win.Target = this;
-            win.LayoutUpdated += SearchDataGridWindiw_LayoutUpdated;
-            //MoveFormNearbyGrid(win);
+            WindowLocator.LocateNearby(Grid, win, NearbyLocation.UpRight);
             win.Show();
-        }
-
-        private void SearchDataGridWindiw_LayoutUpdated(object sender, EventArgs e)
-        {
-            SearchDataGridTextWindow win;
-            if (!_searchDataGridTextWindow.TryGetTarget(out win))
-            {
-                return;
-            }
-            MoveFormNearbyGrid(win);
-            win.LayoutUpdated -= SearchDataGridWindiw_LayoutUpdated;    // 一回だけ実行する
         }
 
         /// <summary>
@@ -1982,13 +2181,20 @@ namespace Db2Source
             {
                 return false;
             }
-            DataGridCellInfo sel = Grid.SelectedCells.First();
             bool isFirst;
             int endRow;
             int endColumn;
             GetSearchEnd(out isFirst, out endRow, out endColumn);
+            DataGridCellInfo sel = Grid.SelectedCells.First();
             int r0 = Grid.Items.IndexOf(sel.Item);
-            int c0 = sel.Column.DisplayIndex - (isFirst ? 0 : 1);
+            int c0;
+            if (_columnToDataIndex.TryGetValue(sel.Column, out c0))
+            {
+                if (!isFirst)
+                {
+                    c0--;
+                }
+            }
             if (r0 < endRow || (endRow == r0 && c0 <= endColumn))
             {
                 for (int r = r0; 0 <= r; r--)
@@ -2075,7 +2281,14 @@ namespace Db2Source
             GetSearchEnd(out isFirst, out endRow, out endColumn);
             DataGridCellInfo sel = Grid.SelectedCells.First();
             int r0 = Grid.Items.IndexOf(sel.Item);
-            int c0 = sel.Column.DisplayIndex + (isFirst ? 0 : 1);
+            int c0;
+            if (_columnToDataIndex.TryGetValue(sel.Column, out c0))
+            {
+                if (!isFirst)
+                {
+                    c0++;
+                }
+            }
             if (endRow < r0 || (endRow == r0 && endColumn <= c0))
             {
                 for (int r = r0; r < Grid.Items.Count; r++)
@@ -2387,60 +2600,27 @@ namespace Db2Source
             Rows.AcceptChanges();
         }
     }
-    public class ToolTipedDataGridCheckBoxColumn: DataGridCheckBoxColumn
+
+    public class DataGridCellToCellInfoConverter: IValueConverter
     {
-        public static readonly DependencyProperty ToolTipProperty = DependencyProperty.Register("ToolTip", typeof(string), typeof(ToolTipedDataGridCheckBoxColumn));
-        public string ToolTip
-        {
-            get
-            {
-                return (string)GetValue(ToolTipProperty);
-            }
-            set
-            {
-                SetValue(ToolTipProperty, value);
-            }
-        }
-        public ToolTipedDataGridCheckBoxColumn() : base() { }
-    }
-    public class ToolTipedDataGridTextColumn: DataGridTextColumn
-    {
-        public static readonly DependencyProperty ToolTipProperty = DependencyProperty.Register("ToolTip", typeof(string), typeof(ToolTipedDataGridTextColumn));
-        public static readonly DependencyProperty TextAlignmentProperty = DependencyProperty.Register("TextAlignment", typeof(TextAlignment), typeof(ToolTipedDataGridTextColumn));
-        public string ToolTip
-        {
-            get
-            {
-                return (string)GetValue(ToolTipProperty);
-            }
-            set
-            {
-                SetValue(ToolTipProperty, value);
-            }
-        }
-        public TextAlignment TextAlignment
-        {
-            get
-            {
-                return (TextAlignment)GetValue(TextAlignmentProperty);
-            }
-            set
-            {
-                SetValue(TextAlignmentProperty, value);
-            }
-        }
-        public ToolTipedDataGridTextColumn() : base() { }
-    }
-    public class BooleanToModifiedBrushConverter: IValueConverter
-    {
-        public static readonly Brush ModifiedBrush = new SolidColorBrush(Colors.Blue);
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool && ((bool)value))
+            DataGridCell cell = value as DataGridCell;
+            if (cell == null)
             {
-                return ModifiedBrush;
+                return ColumnInfo.Stub;
             }
-            return Brushes.Transparent;
+            ColumnInfo col = cell.Column.Header as ColumnInfo;
+            if (col == null || col.Index == -1)
+            {
+                return ColumnInfo.Stub;
+            }
+            Row row = cell.DataContext as Row;
+            if (row == null)
+            {
+                return ColumnInfo.Stub;
+            }
+            return row.Cells[col.Index];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
