@@ -166,7 +166,7 @@ namespace Db2Source
 
             buttonRedo = new Button();
             buttonRedo.Name = "buttonRedo";
-            buttonRedo.Style = FindResource("ButtonStyleRefresh") as Style;
+            buttonRedo.Content = FindResource("ImageRollback14");
             buttonRedo.ToolTip = "再実行";
             buttonRedo.Click += ButtonRedo_Click;
             buttonRedo.Visibility = Visibility.Collapsed;

@@ -24,8 +24,8 @@
                         <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="buttonApplySchema" Margin="1,2,1,0" ToolTip="コメントの変更をDBに適用" Style="{DynamicResource ButtonStyleApply}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" VerticalAlignment="Top" Click="buttonApplySchema_Click"/>
-                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="コメントの変更を取消し" Style="{DynamicResource ButtonStyleRevert}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
+                        <Button x:Name="buttonApplySchema" Margin="1,2" Padding="2" ToolTip="コメントの変更をDBに適用" Content="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
+                        <Button x:Name="buttonRevertSchema" Margin="1,2" Padding="2" ToolTip="コメントの変更を取消し" Content="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
                     </StackPanel>
                 </StackPanel>
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />

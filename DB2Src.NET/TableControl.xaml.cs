@@ -570,6 +570,7 @@ namespace Db2Source
             DataGridControllerResult = new DataGridController();
             //DataGridControllerResult.Context = null;
             DataGridControllerResult.Grid = dataGridResult;
+            DataGridControllerResult.RowDeleted += DataGridControllerResult_RowDeleted;
             //Dispatcher.Invoke(Fetch, DispatcherPriority.ApplicationIdle);
             CommandBinding b;
             b = new CommandBinding(ApplicationCommands.Find, FindCommand_Executed);
@@ -581,6 +582,15 @@ namespace Db2Source
             b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
             textBoxCondition.CommandBindings.Add(b);
             VisibleLevel = HiddenLevel.Hidden;
+        }
+
+        private void DataGridControllerResult_RowDeleted(object sender, RowChangedEventArgs e)
+        {
+            if (e.Row.IsAdded)
+            {
+                dataGridResult.CommitEdit(DataGridEditingUnit.Row, true);
+                DataGridControllerResult.Rows.Remove(e.Row);
+            }
         }
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -983,10 +993,15 @@ namespace Db2Source
         private void dataGridResult_BeginningEdit(object sender, DataGridBeginningEditEventArgs e)
         {
             Row row = e.Row.Item as Row;
-            if (row != null && row.IsDeleted)
+            if (row != null && row.IsDeleted && (e.Column is DataGridTextColumn))
             {
                 e.Cancel = true;
             }
+        }
+
+        private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)
+        {
+            
         }
     }
 
@@ -1095,7 +1110,7 @@ namespace Db2Source
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return string.IsNullOrEmpty(value as string) ? Visibility.Collapsed : Visibility.Visible;
+            return (value == null || value is DBNull || (value is string && (string)value == string.Empty)) ? Visibility.Collapsed : Visibility.Visible;
             //return (cell.DataContext == null) ? Visibility.Collapsed : Visibility.Visible;
         }
 

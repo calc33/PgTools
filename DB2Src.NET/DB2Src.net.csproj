@@ -132,8 +132,8 @@
     <Compile Include="RegUtil.cs" />
     <Compile Include="RegUtil.win32.cs" />
     <Compile Include="RegUtil.wpf.cs" />
-    <Compile Include="SearchDataGridTextWindow.xaml.cs">
-      <DependentUpon>SearchDataGridTextWindow.xaml</DependentUpon>
+    <Compile Include="SearchDataGridControllerWindow.xaml.cs">
+      <DependentUpon>SearchDataGridControllerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SearchTextDirectionDropDown.xaml.cs">
       <DependentUpon>SearchTextDirectionDropDown.xaml</DependentUpon>
@@ -219,7 +219,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchDataGridTextWindow.xaml">
+    <Page Include="SearchDataGridControllerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

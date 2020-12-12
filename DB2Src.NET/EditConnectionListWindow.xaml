@@ -8,7 +8,7 @@
         Title="接続リストの管理" WindowStyle="ToolWindow"  MinWidth="300" MinHeight="200" MaxWidth="800" MaxHeight="700" SizeToContent="WidthAndHeight" Loaded="Window_Loaded">
     <DockPanel>
         <Grid DockPanel.Dock="Bottom" HorizontalAlignment="Stretch">
-            <Button x:Name="buttonDelete" Padding="2" Margin="4,6" Style="{StaticResource ButtonStyleDelete}" Click="buttonDelete_Click" ToolTip="選択行を削除します" HorizontalAlignment="Left"/>
+            <Button x:Name="buttonDelete" Padding="2" Margin="4,6" Content="{StaticResource ImageDelete14}" Click="buttonDelete_Click" ToolTip="選択行を削除します" HorizontalAlignment="Left"/>
             <Button x:Name="buttonClose" Content="閉じる" Padding="10,4" Margin="4" Click="buttonClose_Click" HorizontalAlignment="Right"/>
         </Grid>
         <DataGrid x:Name="dataGridConnections" AutoGenerateColumns="False"/>

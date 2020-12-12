@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Data;
 using System.Globalization;
@@ -835,7 +836,7 @@ namespace Db2Source
         }
     }
 
-    public sealed class RowCollection: IList<Row>, IList, IChangeSetRows, INotifyPropertyChanged
+    public sealed class RowCollection: IList<Row>, IList, IChangeSetRows, INotifyPropertyChanged, INotifyCollectionChanged
     {
         private DataGridController _owner;
         private List<Row> _list = new List<Row>();
@@ -849,6 +850,7 @@ namespace Db2Source
             PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
         public event PropertyChangedEventHandler PropertyChanged;
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
 
         private void RequireKeyToRow()
         {
@@ -1054,6 +1056,7 @@ namespace Db2Source
             }
             item.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(item));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void RemoveAt(int index)
@@ -1061,6 +1064,7 @@ namespace Db2Source
             Row item = _list[index];
             _list.RemoveAt(index);
             InvalidateKeyToRow();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
         }
 
         public void Add(Row item)
@@ -1073,6 +1077,7 @@ namespace Db2Source
             }
             item.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(item));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void Clear()
@@ -1080,6 +1085,7 @@ namespace Db2Source
             _list.Clear();
             InvalidateKeyToRow();
             _oldKeyToRow.Clear();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         public bool Contains(Row item)
@@ -1102,6 +1108,7 @@ namespace Db2Source
             Row row = _list[i];
             _list.RemoveAt(i);
             InvalidateKeyToRow();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
             return true;
         }
 
@@ -1130,6 +1137,7 @@ namespace Db2Source
             }
             row.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(row));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
             return ret;
 
         }
@@ -1159,6 +1167,7 @@ namespace Db2Source
             }
             row.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(row));
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
         }
 
         public void Remove(object value)
@@ -1172,6 +1181,7 @@ namespace Db2Source
             Row row = _list[i];
             _list.RemoveAt(i);
             InvalidateKeyToRow();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, row));
             return;
         }
 
@@ -1201,6 +1211,7 @@ namespace Db2Source
         public static readonly DependencyProperty UseRegexProperty = DependencyProperty.Register("UseRegex", typeof(bool), typeof(DataGridController));
         public static readonly DependencyProperty UseSearchColumnProperty = DependencyProperty.Register("UseSearchColumn", typeof(bool), typeof(DataGridController));
         public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController));
+        public static readonly DependencyProperty RowsProperty = DependencyProperty.Register("Rows", typeof(RowCollection), typeof(DataGridController));
         public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(CellInfo), typeof(DataGridController));
 
         public static CellInfo GetCellInfo(DependencyObject obj)
@@ -1535,7 +1546,17 @@ namespace Db2Source
                 return (_keyFields != null) ? _keyFields : new ColumnInfo[0];
             }
         }
-        public RowCollection Rows { get; private set; }
+        public RowCollection Rows
+        {
+            get
+            {
+                return (RowCollection)GetValue(RowsProperty);
+            }
+            private set
+            {
+                SetValue(RowsProperty, value);
+            }
+        }
         IChangeSetRows IChangeSet.Rows
         {
             get
@@ -1746,12 +1767,12 @@ namespace Db2Source
             _columnToDataIndex = new Dictionary<DataGridColumn, int>();
             if (editable)
             {
-                DataGridCheckBoxColumn chk = new DataGridCheckBoxColumn();
-                chk.Binding = new Binding("IsDeleted");
-                Grid.Columns.Add(chk);
-                _columnToDataIndex.Add(chk, -1);
+                DataGridTemplateColumn chk = new DataGridTemplateColumn();
+                DataTemplate tmpl = Application.Current.FindResource("DataGridIsDeletedColumnTemplate") as DataTemplate;
+                chk.CellTemplate = tmpl;
                 chk.CellStyle = Application.Current.FindResource("DataGridCheckBoxCellStyle") as Style;
                 chk.HeaderStyle = Application.Current.FindResource("DataGridCheckBoxColumnHeaderStyle") as Style;
+                Grid.Columns.Add(chk);
             }
 
             {
@@ -1828,7 +1849,7 @@ namespace Db2Source
             {
                 return;
             }
-            SearchDataGridTextWindow win;
+            SearchDataGridControllerWindow win;
             if (_searchDataGridTextWindow.TryGetTarget(out win))
             {
                 win.Close();
@@ -2131,18 +2152,18 @@ namespace Db2Source
             window.Top = p.Y;
         }
 
-        private WeakReference<SearchDataGridTextWindow> _searchDataGridTextWindow = null;
+        private WeakReference<SearchDataGridControllerWindow> _searchDataGridTextWindow = null;
         public void ShowSearchWinodow()
         {
-            SearchDataGridTextWindow win = null;
+            SearchDataGridControllerWindow win = null;
             if (_searchDataGridTextWindow != null)
             {
                 _searchDataGridTextWindow.TryGetTarget(out win);
             }
             if (win == null || !win.IsVisible)
             {
-                win = new SearchDataGridTextWindow();
-                _searchDataGridTextWindow = new WeakReference<SearchDataGridTextWindow>(win);
+                win = new SearchDataGridControllerWindow();
+                _searchDataGridTextWindow = new WeakReference<SearchDataGridControllerWindow>(win);
             }
             if (win == null)
             {
@@ -2621,6 +2642,18 @@ namespace Db2Source
                 return ColumnInfo.Stub;
             }
             return row.Cells[col.Index];
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class RowVisibleConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value is Row) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

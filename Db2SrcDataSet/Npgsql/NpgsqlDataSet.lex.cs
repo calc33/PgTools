@@ -233,7 +233,7 @@ namespace Db2Source
             private static Dictionary<char, bool> InitIdentifierEndChars()
             {
                 Dictionary<char, bool> dict = new Dictionary<char, bool>();
-                foreach (char c in " !\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~")
+                foreach (char c in " !\"#$%&'()*+,-./:;<=>?@[\\]^`{|}~")
                 {
                     dict.Add(c, true);
                 }
