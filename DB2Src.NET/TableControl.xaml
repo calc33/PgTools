@@ -99,7 +99,7 @@
                         <TextBlock x:Name="textBlockWarningLimit" Text="件数上限に達しています"  VerticalAlignment="Center" Margin="2,0" Foreground="Red" Visibility="Collapsed"/>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Margin="2,0" MinHeight="80">
-                        <Button x:Name="buttonFetch" Padding="4,2" Content="{StaticResource ImageSearch20}" HorizontalContentAlignment="Center" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="40" MinHeight="50" TabIndex="1"/>
+                        <Button x:Name="buttonFetch" Padding="4,2" ContentTemplate="{StaticResource ImageSearch20}" HorizontalContentAlignment="Center" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="40" MinHeight="50" TabIndex="1"/>
                     </StackPanel>
                     <DockPanel DockPanel.Dock="Bottom">
                         <TextBlock DockPanel.Dock="Left" Text="並び順：" VerticalAlignment="Center"/>
@@ -125,13 +125,13 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <ToolBarTray>
                             <ToolBar>
-                                <Button x:Name="buttonAdd" Margin="1" Padding="2" Content="{StaticResource ImageAdd14}" ToolTip="追加" Click="buttonAdd_Click" TabIndex="6" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
-                                <Button x:Name="buttonApply" Margin="1" Padding="2" Content="{StaticResource ImageApply14}" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
-                                <Button x:Name="buttonRevert" Margin="1" Padding="2" Content="{StaticResource ImageRollback14}" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9"/>
+                                <Button x:Name="buttonAdd" Margin="1" Padding="2" ContentTemplate="{StaticResource ImageAdd14}" ToolTip="追加" Click="buttonAdd_Click" TabIndex="6" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
+                                <Button x:Name="buttonApply" Margin="1" Padding="2" ContentTemplate="{StaticResource ImageApply14}" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
+                                <Button x:Name="buttonRevert" Margin="1" Padding="2" ContentTemplate="{StaticResource ImageRollback14}" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9"/>
                                 <Separator/>
-                                <Button x:Name="buttonFilterColumns" Margin="1" Padding="4,2" Content="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
+                                <Button x:Name="buttonFilterColumns" Margin="1" Padding="2,0" Content="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
                                 <Separator/>
-                                <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click">
+                                <Button x:Name="buttonCopyAll" Margin="1" Padding="2,0" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu Placement="Bottom" PlacementTarget="{Binding ElementName=buttonCopyAll, Mode=OneWay}">
                                             <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding ElementName=dataGridResult, Mode=OneWay}"/>
@@ -140,7 +140,7 @@
                                     </Button.ContextMenu>
                                 </Button>
                                 <Separator/>
-                                <Button x:Name="buttonSearchWord" Margin="4,2,2,2" Padding="2" Content="{StaticResource ImageSearch14}" ToolTip="検索" Click="buttonSearchWord_Click"/>
+                                <Button x:Name="buttonSearchWord" Margin="4,2,2,2" Padding="2" ContentTemplate="{StaticResource ImageSearch14}" ToolTip="検索" Click="buttonSearchWord_Click"/>
 
                             </ToolBar>
                         </ToolBarTray>
@@ -234,10 +234,10 @@
                     </StackPanel>
                     <ToolBarTray Orientation="Horizontal">
                         <ToolBar>
-                            <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" Content="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
-                            <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" Content="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
+                            <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
+                            <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
                             <Separator/>
-                            <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" Content="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click"/>
+                            <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click"/>
                             <Separator/>
                         </ToolBar>
                     </ToolBarTray>
@@ -444,7 +444,7 @@
                                         <TextBox x:Name="textBoxAlias0" Text="{Binding JoinTables[0].Alias, ElementName=userControl}" MinWidth="16" TextChanged="textBoxAlias0_TextChanged"/>
                                     </StackPanel>
                                 </Border>
-                                <Button x:Name="buttonAddJoin" Content="{StaticResource ImageAdd14}" Margin="2,0" Click="buttonAddJoin_Click">
+                                <Button x:Name="buttonAddJoin" ContentTemplate="{StaticResource ImageAdd14}" Margin="2,0" Click="buttonAddJoin_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu x:Name="buttonAddJoinContextMenu"/>
                                     </Button.ContextMenu>

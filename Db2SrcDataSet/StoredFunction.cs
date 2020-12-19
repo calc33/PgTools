@@ -509,9 +509,9 @@ namespace Db2Source
                 return buf.ToString();
             }
         }
-        protected internal override void UpdateIdenfitier()
+        protected override string GetIdentifier()
         {
-            Identifier = _internalName;
+            return _internalName;
         }
         public override bool IsModified()
         {
@@ -550,7 +550,6 @@ namespace Db2Source
         {
             Parameters = new ParameterCollection(this);
             _internalName = internalName;
-            UpdateIdenfitier();
             _definition = definition;
             if (isLoaded)
             {

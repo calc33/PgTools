@@ -37,13 +37,33 @@ namespace Db2Source
         {
             return GetTarget()?.GetSqlType();
         }
+        protected override string GetIdentifier()
+        {
+            return Context.GetEscapedIdentifier(SchemaName, Target, null);
+        }
         /// <summary>
         /// コメントが編集されていたらtrueを返す
         /// 変更を重ねて元と同じになった場合はfalseを返す
         /// </summary>
         /// <returns></returns>
         public override bool IsModified() { return _text != _oldText; }
-        public string Target { get; set; }
+        private string _target;
+        public string Target
+        {
+            get
+            {
+                return _target;
+            }
+            set
+            {
+                if (_target == value)
+                {
+                    return;
+                }
+                _target = value;
+                InvalidateIdentifier();
+            }
+        }
         private string _text;
         private string _oldText;
         public string Text
@@ -125,8 +145,12 @@ namespace Db2Source
             set
             {
                 _column = value;
-                Identifier = Target + "." + _column;
+                InvalidateIdentifier();
             }
+        }
+        protected override string GetIdentifier()
+        {
+            return base.GetIdentifier() + "." + _column;
         }
         public override ICommentable GetTarget()
         {

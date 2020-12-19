@@ -5,11 +5,28 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
+             xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
     <UserControl.Resources>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <Style x:Key="DataGridColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                        <Grid>
+                            <Themes:DataGridHeaderBorder BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" IsClickable="{TemplateBinding CanUserSort}" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" Padding="{TemplateBinding Padding}" SortDirection="{TemplateBinding SortDirection}" SeparatorBrush="{TemplateBinding SeparatorBrush}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}">
+                                <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Themes:DataGridHeaderBorder>
+                            <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                            <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <TabControl x:Name="tabControlMain">
         <TabItem Header="データ">
@@ -35,7 +52,7 @@
                         <TextBlock x:Name="textBlockWarningLimit" Text="件数上限に達しています"  VerticalAlignment="Center" Margin="2,0" Foreground="Red" Visibility="Collapsed"/>
                         <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
                     </StackPanel>
-                    <Button x:Name="buttonFetch" Padding="4,2" Content="{StaticResource ImageSearch20}" HorizontalContentAlignment="Center" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="34" DockPanel.Dock="Right" Margin="2,0" TabIndex="1"/>
+                    <Button x:Name="buttonFetch" Padding="4,2" ContentTemplate="{StaticResource ImageSearch20}" HorizontalContentAlignment="Center" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="34" DockPanel.Dock="Right" Margin="2,0" TabIndex="1"/>
                     <Grid>
                         <TextBox x:Name="textBoxCondition" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
@@ -46,7 +63,7 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" IsReadOnly="True" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible"/>
+                    <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" IsReadOnly="True" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible" ColumnHeaderStyle="{DynamicResource DataGridColumnHeaderStyle1}"/>
                 </DockPanel>
             </Grid>
         </TabItem>
@@ -63,8 +80,8 @@
                         <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
-                        <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" Content="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
-                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" Content="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}"/>
+                        <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
+                        <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}"/>
                     </StackPanel>
                 </StackPanel>
                 <TextBox Grid.Row="2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
@@ -72,7 +89,7 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="TextAlignment" Value="Right"/>
                                     <Setter Property="Margin" Value="2,1"/>
                                 </Style>
@@ -80,21 +97,21 @@
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="項目名" Binding="{Binding Name}" IsReadOnly="True">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Margin" Value="2,1"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="型" Binding="{Binding DataType}" IsReadOnly="True">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Margin" Value="2,1"/>
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
                         <DataGridTextColumn Header="コメント" Binding="{Binding CommentText}">
                             <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
+                                <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="TextWrapping" Value="Wrap"/>
                                     <Setter Property="Margin" Value="2,1"/>
                                     <Setter Property="MaxHeight" Value="{Binding DataGridResultMaxHeight, ElementName=userControl}"/>
@@ -133,10 +150,8 @@
                     </Grid.RowDefinitions>
                     <TextBlock Text="操作：" VerticalAlignment="Center" Grid.RowSpan="2"/>
                     <ComboBox Grid.Column="1" SelectedIndex="0" Grid.RowSpan="2" VerticalAlignment="Center">
-                        <ComboBox.Items>
-                            <sys:String>Before</sys:String>
-                            <sys:String>After</sys:String>
-                        </ComboBox.Items>
+                        <sys:String>Before</sys:String>
+                        <sys:String>After</sys:String>
                     </ComboBox>
                     <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="0" VerticalAlignment="Center">
                         <CheckBox Content="Insert" Margin="4,2" VerticalAlignment="Center"/>
@@ -161,7 +176,7 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
-                    <TextBlock DockPanel.Dock="Top" Padding="2">この表から参照</TextBlock>
+                    <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表から参照"/></TextBlock>
                     <DataGrid>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="No" IsReadOnly="True"/>
@@ -173,7 +188,7 @@
                 </DockPanel>
                 <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
                 <DockPanel Grid.Row="1">
-                    <TextBlock DockPanel.Dock="Top" Padding="2">この表を参照</TextBlock>
+                    <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この表を参照"/></TextBlock>
                     <DataGrid>
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="No" IsReadOnly="True"/>

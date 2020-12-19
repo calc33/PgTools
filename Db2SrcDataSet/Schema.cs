@@ -19,7 +19,23 @@ namespace Db2Source
             //Procedures = 6,
         }
         public Db2SourceContext Owner { get; private set; }
-        public string Name { get { return Identifier; } }
+        private string _name;
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            private set
+            {
+                if (_name == value)
+                {
+                    return;
+                }
+                _name = value;
+                InvalidateIdentifier();
+            }
+        }
         private bool? _isHidden = null;
         public bool IsHidden
         {
@@ -44,12 +60,17 @@ namespace Db2Source
         public NamedCollection<Index> Indexes { get; } = new NamedCollection<Index>();
         public NamedCollection<Trigger> Triggers { get; } = new NamedCollection<Trigger>();
         //public NamedCollection<StoredFunction> Procedures { get; } = new NamedCollection<StoredFunction>();
-        internal Schema(Db2SourceContext owner, string name) : base(owner.Schemas, name)
+        internal Schema(Db2SourceContext owner, string name) : base(owner.Schemas)
         {
             Owner = owner;
+            Name = name;
             _collections = new NamedCollection[] { Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
         }
 
+        protected override string GetIdentifier()
+        {
+            return Name;
+        }
         public void InvalidateColumns()
         {
             foreach (SchemaObject o in Objects)

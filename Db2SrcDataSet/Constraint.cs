@@ -33,6 +33,12 @@ namespace Db2Source
             _deferred = deferred;
         }
 
+        protected override string GetIdentifier()
+        {
+            //return Table?.Identifier + "+" + Name;
+            return base.GetIdentifier();
+        }
+
         public override string GetSqlType()
         {
             return "CONSTRAINT";
@@ -100,12 +106,13 @@ namespace Db2Source
                 return;
             }
             _table = Context.Tables[TableSchema, TableName];
-
+            InvalidateIdentifier();
             InvalidateIsTemporaryName();
         }
         public void InvalidateTable()
         {
             _table = null;
+            InvalidateIdentifier();
         }
         public Table Table
         {

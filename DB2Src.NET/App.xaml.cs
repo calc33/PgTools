@@ -457,6 +457,19 @@ namespace Db2Source
                 ((Row)item).IsDeleted = false;
             }
         }
+
+        private void RevertColumnButton_Click(object sender, RoutedEventArgs e)
+        {
+            DataGridCell cell = FindVisualParent<DataGridCell>(sender as DependencyObject);
+            Row row = cell.DataContext as Row;
+            if (row == null || row.ChangeKind == ChangeKind.None)
+            {
+                return;
+            }
+            DataGrid grid = FindVisualParent<DataGrid>(sender as DependencyObject);
+            grid.CommitEdit(DataGridEditingUnit.Row, true);
+            row.RevertChanges();
+        }
     }
 
     public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo

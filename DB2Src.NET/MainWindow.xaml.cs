@@ -402,8 +402,9 @@ namespace Db2Source
         }
         private void ReplaceSchemaObjectRecursive(TreeViewItem treeViewItem, SchemaObject newObj, SchemaObject oldObj)
         {
-            foreach (TreeViewItem item in treeViewItem.Items)
+            for (int i = treeViewItem.Items.Count - 1; 0 <= i; i--)
             {
+                TreeViewItem item = treeViewItem.Items[i] as TreeViewItem;
                 ReplaceSchemaObjectRecursive(item, newObj, oldObj);
             }
             TreeNode node = treeViewItem.Tag as TreeNode;

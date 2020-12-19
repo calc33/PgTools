@@ -314,6 +314,7 @@ namespace Db2Source
         {
             if (_added || _deleted)
             {
+                _hasChanges = true;
                 return;
             }
             if (_hasChanges.HasValue)
@@ -330,7 +331,11 @@ namespace Db2Source
             }
             _hasChanges = false;
         }
-
+        private void InvalidateHasChanges()
+        {
+            _hasChanges = null;
+            OnPropertyChanged("HasChanges");
+        }
         public void AcceptChanges()
         {
             for (int i = 0; i < _old.Length; i++)
@@ -348,15 +353,23 @@ namespace Db2Source
                 }
             }
             _deleted = false;
+            OnPropertyChanged("IsDeleted");
+            OnPropertyChanged("HasChanges");
         }
-        internal void RevertChanges()
+        public void RevertChanges()
         {
             for (int i = 0; i < _old.Length; i++)
             {
                 if (_old[i] != Unchanged)
                 {
                     _data[i] = _old[i];
+                    _old[i] = Unchanged;
+                    OnValueChanged(i);
                 }
+            }
+            if (_added && _owner != null)
+            {
+                _owner.Rows.Remove(this);
             }
             _hasChanges = false;
             _deleted = false;
@@ -376,6 +389,7 @@ namespace Db2Source
                 }
                 _deleted = value;
                 OnPropertyChanged("IsDeleted");
+                InvalidateHasChanges();
                 if (_deleted)
                 {
                     _owner?.OnRowDeleted(new RowChangedEventArgs(this));
@@ -384,6 +398,15 @@ namespace Db2Source
                 {
                     _owner?.OnRowUndeleted(new RowChangedEventArgs(this));
                 }
+            }
+        }
+
+        public bool HasChanges
+        {
+            get
+            {
+                UpdateHasChanges();
+                return _hasChanges.HasValue && _hasChanges.Value;
             }
         }
 
@@ -422,22 +445,6 @@ namespace Db2Source
             {
                 UpdateHasChanges();
                 return FlagsToChangeKind[_added ? 1 : 0, _deleted ? 1 : 0, (_hasChanges.HasValue && _hasChanges.Value) ? 1 : 0];
-            }
-        }
-        public class ModifiedCollection
-        {
-            private Row _owner;
-
-            public bool this[int index]
-            {
-                get
-                {
-                    return _owner.IsModified(index);
-                }
-            }
-            public ModifiedCollection(Row owner)
-            {
-                _owner = owner;
             }
         }
         public CellInfoCollection Cells { get; private set; }
@@ -537,15 +544,14 @@ namespace Db2Source
 
         private void OnValueChanged(int index)
         {
-            _hasChanges = null;
             _owner?.OnCellValueChanged(new CellValueChangedEventArgs(this, index));
             OnPropertyChanged(string.Format("[{0}]", index));
             Owner.Rows.OnRowChanged(this);
-            OnPropertyChanged("Modified");
             CellInfo cell = Cells[index];
             cell.OnPropertyChanged("Data");
             cell.OnPropertyChanged("IsModified");
             cell.OnPropertyChanged("IsFault");
+            InvalidateHasChanges();
         }
 
         #region IList<T>の実装
@@ -1100,13 +1106,12 @@ namespace Db2Source
 
         public bool Remove(Row item)
         {
-            int i = _list.IndexOf(item);
-            if (i == -1)
+            bool f1 = _list.Remove(item);
+            bool f2 = _temporaryRows.Remove(item);
+            if (!f1 && !f2)
             {
-                return _temporaryRows.Remove(item);
+                return false;
             }
-            Row row = _list[i];
-            _list.RemoveAt(i);
             InvalidateKeyToRow();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
             return true;
@@ -1213,6 +1218,7 @@ namespace Db2Source
         public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController));
         public static readonly DependencyProperty RowsProperty = DependencyProperty.Register("Rows", typeof(RowCollection), typeof(DataGridController));
         public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(CellInfo), typeof(DataGridController));
+        public static readonly DependencyProperty GridControllerProperty = DependencyProperty.RegisterAttached("GridController", typeof(DataGridController), typeof(DataGridController));
 
         public static CellInfo GetCellInfo(DependencyObject obj)
         {
@@ -1221,6 +1227,15 @@ namespace Db2Source
         public static void SetCellInfo(DependencyObject obj, CellInfo value)
         {
             obj.SetValue(CellInfoProperty, value);
+        }
+
+        public static DataGridController GetGridController(DependencyObject obj)
+        {
+            return (DataGridController)obj.GetValue(GridControllerProperty);
+        }
+        public static void SetGridController(DependencyObject obj, DataGridController value)
+        {
+            obj.SetValue(GridControllerProperty, value);
         }
 
         public DataGrid Grid
@@ -1767,11 +1782,17 @@ namespace Db2Source
             _columnToDataIndex = new Dictionary<DataGridColumn, int>();
             if (editable)
             {
+                //DataGridTemplateColumn btn = new DataGridTemplateColumn();
+                //btn.CellTemplate = Application.Current.FindResource("DataGridRevertColumnTemplate") as DataTemplate;
+                //btn.CellStyle = Application.Current.FindResource("DataGridButtonCellStyle") as Style;
+                //btn.HeaderStyle = Application.Current.FindResource("DataGridRevertColumnHeaderStyle") as Style;
+                //btn.HeaderTemplate = Application.Current.FindResource("ImageRollback14") as DataTemplate;
+                //Grid.Columns.Add(btn);
+
                 DataGridTemplateColumn chk = new DataGridTemplateColumn();
-                DataTemplate tmpl = Application.Current.FindResource("DataGridIsDeletedColumnTemplate") as DataTemplate;
-                chk.CellTemplate = tmpl;
-                chk.CellStyle = Application.Current.FindResource("DataGridCheckBoxCellStyle") as Style;
-                chk.HeaderStyle = Application.Current.FindResource("DataGridCheckBoxColumnHeaderStyle") as Style;
+                chk.CellTemplate = Application.Current.FindResource("DataGridControlColumnTemplate") as DataTemplate;
+                chk.CellStyle = Application.Current.FindResource("DataGridControlCellStyle") as Style;
+                chk.HeaderStyle = Application.Current.FindResource("DataGridControlColumnHeaderStyle") as Style;
                 Grid.Columns.Add(chk);
             }
 
@@ -2134,22 +2155,6 @@ namespace Db2Source
                 return false;
             }
             return _matchTextProc.Invoke(text, IgnoreCase);
-        }
-
-        public void MoveFormNearbyGrid(Window window)
-        {
-            Point p = new Point(Grid.ActualWidth, 0);
-            p = Grid.PointToScreen(p);
-            WinForm.Screen sc = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
-            System.Drawing.Rectangle sr = sc.WorkingArea;
-            p = new Point(p.X - window.ActualWidth, p.Y - window.ActualHeight);
-            if (p.Y < sr.Top)
-            {
-                p.Y = sr.Top;
-            }
-            window.WindowStartupLocation = WindowStartupLocation.Manual;
-            window.Left = p.X;
-            window.Top = p.Y;
         }
 
         private WeakReference<SearchDataGridControllerWindow> _searchDataGridTextWindow = null;
@@ -2661,4 +2666,17 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
+    public class HideNewItemPlaceHolderConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value.GetType() == CollectionView.NewItemPlaceholder.GetType() ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }

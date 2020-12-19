@@ -135,6 +135,9 @@
     <Compile Include="SearchDataGridControllerWindow.xaml.cs">
       <DependentUpon>SearchDataGridControllerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SearchDataGridWindow.xaml.cs">
+      <DependentUpon>SearchDataGridWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SearchTextDirectionDropDown.xaml.cs">
       <DependentUpon>SearchTextDirectionDropDown.xaml</DependentUpon>
     </Compile>
@@ -220,6 +223,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SearchDataGridControllerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SearchDataGridWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

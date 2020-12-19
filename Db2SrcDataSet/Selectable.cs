@@ -42,9 +42,9 @@ namespace Db2Source
         private string _tableName;
         private Selectable _owner;
         private string _name;
-        private void UpdateIdentifier()
+        protected override string GetIdentifier()
         {
-            Identifier = TableName + "." + Name;
+            return Table?.Identifier + "." + Name;
         }
         public int Index { get; set; }
         public string TableName
@@ -58,7 +58,7 @@ namespace Db2Source
                 }
                 _tableName = value;
                 _owner = null;
-                UpdateIdentifier();
+                InvalidateIdentifier();
             }
         }
 
@@ -147,7 +147,7 @@ namespace Db2Source
         }
         public override string ToString()
         {
-            return Identifier + Name;
+            return Identifier;
         }
         public Column BecomeModifiedColumn()
         {
@@ -203,6 +203,7 @@ namespace Db2Source
                     throw new ColumnNameException(value);
                 }
                 _name = value;
+                InvalidateIdentifier();
                 _owner?.Columns?.ColumnNameChanged(this);
             }
         }
@@ -801,7 +802,7 @@ namespace Db2Source
             {
                 c.Release();
             }
-            Comment.Release();
+            Comment?.Release();
         }
 
         public override void InvalidateColumns()

@@ -4,35 +4,27 @@ using System.Collections.Generic;
 
 namespace Db2Source
 {
-    public class NamedObject : IComparable
+    public abstract class NamedObject : IComparable
     {
-        private string _identifier;
         public string Identifier
         {
-            get { return _identifier; }
-            set
+            get
             {
-                if (_identifier == value)
-                {
-                    return;
-                }
-                _identifier = value;
-                IdentifierChanged?.Invoke(this, EventArgs.Empty);
+                return GetIdentifier();
             }
         }
-        internal event EventHandler IdentifierChanged;
+        protected abstract string GetIdentifier();
+        protected void InvalidateIdentifier()
+        {
+            IdentifierInvalidated?.Invoke(this, EventArgs.Empty);
+        }
+        protected internal int _serial;
+        internal event EventHandler IdentifierInvalidated;
         internal NamedObject(NamedCollection owner)
         {
             if (owner != null)
             {
-                owner.Add(this);
-            }
-        }
-        internal NamedObject(NamedCollection owner, string identifier)
-        {
-            Identifier = identifier;
-            if (owner != null)
-            {
+                _serial = owner._serialSeq++;
                 owner.Add(this);
             }
         }
@@ -41,7 +33,7 @@ namespace Db2Source
 
         public override string ToString()
         {
-            return _identifier;
+            return Identifier;
         }
         public override bool Equals(object obj)
         {
@@ -76,29 +68,85 @@ namespace Db2Source
             return string.Compare(Identifier, (((NamedObject)obj).Identifier));
         }
     }
+
+
     public class NamedCollection : ICollection<NamedObject>
     {
         internal List<NamedObject> _list = new List<NamedObject>();
+        private object _listLock = new object();
         Dictionary<string, NamedObject> _nameDict = null;
+        internal int _serialSeq = 1;
 
-        private void RequireNameDict()
+        protected internal void UpdateList()
         {
             if (_nameDict != null)
             {
                 return;
             }
-            _nameDict = new Dictionary<string, NamedObject>();
-            foreach (NamedObject item in _list)
+            lock (_listLock)
             {
-                if (string.IsNullOrEmpty(item.Identifier))
+                if (_nameDict != null)
                 {
-                    continue;
+                    return;
                 }
-                _nameDict[item.Identifier] = item;
+                Dictionary<string, NamedObject> dict = new Dictionary<string, NamedObject>();
+                Dictionary<int, bool> delIds = new Dictionary<int, bool>();
+                foreach (NamedObject item in _list)
+                {
+                    if (string.IsNullOrEmpty(item.Identifier))
+                    {
+                        continue;
+                    }
+                    //重複している場合には古い方(_serialが小さい方)を削除
+                    string id = item.Identifier;
+                    NamedObject old;
+                    if (!dict.TryGetValue(id, out old))
+                    {
+                        dict[id] = item;
+                        continue;
+                    }
+                    if (old._serial == item._serial)
+                    {
+                        continue;
+                    }
+                    if (old._serial < item._serial)
+                    {
+                        delIds[old._serial] = true;
+                        dict[id] = item;
+                    }
+                    else
+                    {
+                        delIds.Add(item._serial, true);
+                    }
+                }
+                if (delIds.Count != 0)
+                {
+                    for (int i = _list.Count - 1; 0 <= i; i--)
+                    {
+                        NamedObject item = _list[i];
+                        if (delIds.ContainsKey(item._serial))
+                        {
+                            _list.RemoveAt(i);
+                            item.Release();
+                        }
+                    }
+                }
+                _nameDict = dict;
             }
         }
+        private void InvalidateList()
+        {
+            _nameDict = null;
+        }
 
-        public NamedObject this[int index] { get { return _list[index]; } }
+        public NamedObject this[int index]
+        {
+            get
+            {
+                UpdateList();
+                return _list[index];
+            }
+        }
         public NamedObject this[string name]
         {
             get
@@ -107,7 +155,7 @@ namespace Db2Source
                 {
                     return null;
                 }
-                RequireNameDict();
+                UpdateList();
                 NamedObject ret;
                 if (!_nameDict.TryGetValue(name, out ret))
                 {
@@ -117,9 +165,9 @@ namespace Db2Source
             }
         }
 
-        internal void ItemIdentifierChanged(object sender, EventArgs e)
+        internal void ItemIdentifierInvalidated(object sender, EventArgs e)
         {
-            _nameDict = null;
+            InvalidateList();
         }
 
         public void ReleaseAll()
@@ -131,6 +179,7 @@ namespace Db2Source
         }
         public void Sort()
         {
+            UpdateList();
             _list.Sort();
         }
 
@@ -139,6 +188,7 @@ namespace Db2Source
         {
             get
             {
+                UpdateList();
                 return _list.Count;
             }
         }
@@ -158,28 +208,32 @@ namespace Db2Source
                 throw new ArgumentNullException("item");
             }
             _list.Add(item);
-            item.IdentifierChanged += ItemIdentifierChanged;
-            _nameDict = null;
+            item.IdentifierInvalidated += ItemIdentifierInvalidated;
+            InvalidateList();
         }
 
         public void Clear()
         {
             _list.Clear();
-            _nameDict = null;
+            InvalidateList();
+            _serialSeq = 1;
         }
 
         public bool Contains(NamedObject item)
         {
+            UpdateList();
             return _list.Contains(item);
         }
 
         public void CopyTo(NamedObject[] array, int arrayIndex)
         {
+            UpdateList();
             _list.CopyTo(array, arrayIndex);
         }
 
         public IEnumerator<NamedObject> GetEnumerator()
         {
+            UpdateList();
             return _list.GetEnumerator();
         }
 
@@ -188,13 +242,14 @@ namespace Db2Source
             bool ret = _list.Remove(item);
             if (ret)
             {
-                _nameDict = null;
+                InvalidateList();
             }
             return ret;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
+            UpdateList();
             return _list.GetEnumerator();
         }
         #endregion
@@ -279,6 +334,7 @@ namespace Db2Source
 
         public new IEnumerator<T> GetEnumerator()
         {
+            UpdateList();
             return new EnumeratorWrapper(_list.GetEnumerator());
         }
 

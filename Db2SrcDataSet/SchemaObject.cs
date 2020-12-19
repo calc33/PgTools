@@ -82,7 +82,7 @@ namespace Db2Source
         }
         protected virtual void NameChanged(string oldValue)
         {
-            UpdateIdenfitier();
+            InvalidateIdentifier();
         }
 
         public virtual string DisplayName
@@ -92,9 +92,9 @@ namespace Db2Source
                 return _name;
             }
         }
-        protected internal virtual void UpdateIdenfitier()
+        protected override string GetIdentifier()
         {
-            Identifier = _name;
+            return _name;
         }
 
         public string FullName

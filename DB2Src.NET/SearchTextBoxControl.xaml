@@ -22,8 +22,8 @@
                         <sys:Int32>1</sys:Int32>
                     </Button.Tag>
                 </Button>
-                <Button x:Name="buttonReverse" Content="{StaticResource ImageDropDown6}" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Padding="2" Height="20" Click="buttonReverse_Click" Focusable="False" IsTabStop="False"/>
-                <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" Content="{StaticResource ImageRevert14}" Click="buttonClose_Click"/>
+                <Button x:Name="buttonReverse" ContentTemplate="{StaticResource ImageDropDown6}" VerticalAlignment="Stretch" BorderThickness="0" Margin="1,0,0,0" Padding="2" Height="20" Click="buttonReverse_Click" Focusable="False" IsTabStop="False"/>
+                <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" ContentTemplate="{StaticResource ImageRevert14}" Click="buttonClose_Click"/>
             </StackPanel>
             <StackPanel Orientation="Vertical" Margin="0,1">
                 <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>

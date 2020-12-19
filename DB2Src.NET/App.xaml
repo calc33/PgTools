@@ -7,9 +7,11 @@
              StartupUri="MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
     <Application.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:ItemsSourceToColumnFilterButtonVisiblityConverter x:Key="ItemsSourceToColumnFilterButtonVisiblityConverter"/>
         <local:RowVisibleConverter x:Key="RowVisibleConverter"/>
+        <local:HideNewItemPlaceHolderConverter x:Key="HideNewItemPlaceHolderConverter"/>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -77,83 +79,109 @@
         <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
-        <Canvas x:Key="ImageAdd14" Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
-            <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
-        </Canvas>
-        <Canvas x:Key="ImageDelete14" Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
-            <Line x:Name="line1" X1="1" Y1="7" X2="13" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
-        </Canvas>
-        <Canvas x:Key="ImageApply14" Width="14" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-            <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M1,8 L5,11 L13,1"/>
-        </Canvas>
-        <Canvas x:Key="ImageRevert14" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-            <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Data="M1,1 L13,13 M1,13 L13,1"/>
-        </Canvas>
-        <Canvas x:Key="ImageRollback14" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-            <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M6,4 A5,5 0 1 0 11,9"/>
-            <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M10,4 L6,0 L6,8 z"/>
-        </Canvas>
-        <Grid x:Key="ImageSearch20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center">
-                <Ellipse Height="14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" StrokeThickness="3"/>
-                <Line X1="11" Y1="11" X2="18" Y2="18" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="3"/>
+        <DataTemplate x:Key="ImageAdd14">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
             </Canvas>
-            <TextBlock Grid.Row="1" Text="検索" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-        </Grid>
-        <Canvas x:Key="ImageSearch14" Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-            <Ellipse x:Name="ellipse" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
-            <Line x:Name="line" X1="8" Y1="8" X2="13" Y2="13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
-        </Canvas>
-        <Canvas x:Key="ImageSearch12" HorizontalAlignment="Center" VerticalAlignment="Center" Width="12" Height="14">
-            <Ellipse Canvas.Left="3" Canvas.Top="1" Width="8" Height="8" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-            <Line X1="5" Y1="8" X2="1" Y2="13" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-        </Canvas>
-        <Canvas x:Key="ImageDropDown10" HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="10">
-            <Line X1="1" Y1="1" X2="9" Y2="1" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,4 L9,4 L5,9"/>
-        </Canvas>
-        <Canvas x:Key="ImageLeftArrow8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,0 L6,8 L0,4 z"/>
-        </Canvas>
-        <Canvas x:Key="ImageRightArrow8" HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L0,8 L6,4 z"/>
-        </Canvas>
-        <Canvas x:Key="ImageRefresh16" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M13,4 L8,0 L8,9 z"/>
-        </Canvas>
-        <Grid x:Key="ImageExec20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center" >
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,1 L4,12 L7,12 L6,18 L14,9 L10,9 L14,1 z"/>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageDelete14">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
+                <Line x:Name="line1" X1="1" Y1="7" X2="13" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
             </Canvas>
-            <TextBlock Grid.Row="1" Text="実行" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-        </Grid>
-        <Canvas x:Key="ImageDropDown6" Width="6" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L6,0 L3,4 z"/>
-        </Canvas>
-        <Canvas x:Key="ImageCornerDropDown6" HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="6" Height="6">
-            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,6 L6,6 L6,1 z"/>
-        </Canvas>
-
+        </DataTemplate>
+        <DataTemplate x:Key="ImageApply14">
+            <Canvas Width="14" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M1,8 L5,11 L13,1"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRevert14">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Data="M1,1 L13,13 M1,13 L13,1"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRollback14">
+            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M6,4 A5,5 0 1 1 1,9"/>
+                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M2,4 L6,0 L6,8 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRollback12">
+            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M6,3 A4,4 0 1 1 1,7"/>
+                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M2,3 L6,0 L6,6 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageSearch20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center">
+                    <Ellipse Height="14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" StrokeThickness="3"/>
+                    <Line X1="11" Y1="11" X2="18" Y2="18" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="3"/>
+                </Canvas>
+                <TextBlock Grid.Row="1" Text="検索" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageSearch14">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+                <Ellipse x:Name="ellipse" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
+                <Line x:Name="line" X1="8" Y1="8" X2="13" Y2="13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageSearch12">
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="12" Height="14">
+                <Ellipse Canvas.Left="3" Canvas.Top="1" Width="8" Height="8" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                <Line X1="5" Y1="8" X2="1" Y2="13" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageDropDown10">
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="10">
+                <Line X1="1" Y1="1" X2="9" Y2="1" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,4 L9,4 L5,9"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageLeftArrow8">
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,0 L6,8 L0,4 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRightArrow8">
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L0,8 L6,4 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRefresh16">
+            <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M13,4 L8,0 L8,9 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageExec20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center" >
+                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,1 L4,12 L7,12 L6,18 L14,9 L10,9 L14,1 z"/>
+                </Canvas>
+                <TextBlock Grid.Row="1" Text="実行" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+            </Grid>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageDropDown6">
+            <Canvas Width="6" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L6,0 L3,4 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageCornerDropDown6">
+            <Canvas HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="6" Height="6">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,6 L6,6 L6,1 z"/>
+            </Canvas>
+        </DataTemplate>
         <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
-        <Style x:Key="OptionMarkFocusVisual">
-            <Setter Property="Control.Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>
         <SolidColorBrush x:Key="OptionMark.MouseOver.Border" Color="#FF5593FF"/>
         <SolidColorBrush x:Key="OptionMark.MouseOver.Glyph" Color="#FF212121"/>
@@ -179,14 +207,13 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Canvas x:Name="optionMarkGrid"  Width="6" Height="6" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" Margin="1" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                            <Canvas x:Name="optionMarkGrid" Width="6" Height="6" Background="{TemplateBinding Background}" SnapsToDevicePixels="True" Margin="1" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
                                 <Path x:Name="optionMark" Fill="{TemplateBinding Foreground}" Data="M1,0 L1,6 L5,3 z" />
                             </Canvas>
                             <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="HasContent" Value="true">
-                                <!--<Setter Property="FocusVisualStyle" Value="{StaticResource OptionMarkFocusVisual}"/>-->
                                 <Setter Property="Padding" Value="4,-1,0,0"/>
                             </Trigger>
                             <Trigger Property="IsMouseOver" Value="true">
@@ -829,7 +856,7 @@
                                                     </Grid.ColumnDefinitions>
                                                     <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Column="1" Maximum="{TemplateBinding ScrollableWidth}" Orientation="Horizontal" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
                                                 </Grid>
-                                                <Button x:Name="PART_ColumnSearchButton" Focusable="False" Content="{StaticResource ImageDropDown10}" Padding="2" BorderThickness="0" ToolTip="項目を検索" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" BorderBrush="{TemplateBinding BorderBrush}" Grid.Column="2" Click="GridSelectColumnButton_Click" Background="{x:Null}"/>
+                                                <Button x:Name="PART_ColumnSearchButton" Focusable="False" ContentTemplate="{StaticResource ImageDropDown10}" Padding="2" BorderThickness="0" ToolTip="項目を検索" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" BorderBrush="{TemplateBinding BorderBrush}" Grid.Column="2" Click="GridSelectColumnButton_Click" Background="{x:Null}"/>
                                             </Grid>
                                         </ControlTemplate>
                                     </ScrollViewer.Template>
@@ -850,7 +877,7 @@
                 </MultiTrigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="DataGridCheckBoxCellStyle" TargetType="{x:Type DataGridCell}">
+        <Style x:Key="DataGridControlCellStyle" TargetType="{x:Type DataGridCell}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -859,17 +886,13 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DataGridCell}">
                         <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            <ContentPresenter x:Name="contentPresenter" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
+                
             </Setter>
             <Style.Triggers>
-                <Trigger Property="IsSelected" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                </Trigger>
                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
                 </Trigger>
@@ -878,9 +901,43 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <DataTemplate x:Key="DataGridIsDeletedColumnTemplate">
-            <CheckBox IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}"/>
-        </DataTemplate>
+        <Style x:Key="RevertButtonStyle" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource Button.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true">
+                            <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <!--<Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>-->
+                                <Setter Property="Foreground" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
             <Setter Property="Width" Value="8"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -893,6 +950,16 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <DataTemplate x:Key="DataGridControlColumnTemplate">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="20"/>
+                </Grid.ColumnDefinitions>
+                <Button ContentTemplate="{StaticResource ImageRollback12}" BorderThickness="0" Background="Transparent" ToolTip="変更を元に戻す" IsEnabled="{Binding HasChanges}" Click="RevertColumnButton_Click" Style="{DynamicResource RevertButtonStyle}" Visibility="{Binding Converter={StaticResource HideNewItemPlaceHolderConverter}, Mode=OneWay}"/>
+                <CheckBox Grid.Column="1" IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}"/>
+            </Grid>
+        </DataTemplate>
         <Style x:Key="ButtonStyleRef" TargetType="{x:Type Button}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
@@ -933,25 +1000,37 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="DataGridCheckBoxColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+        <Style x:Key="DataGridControlColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
                         <Grid>
                             <Themes:DataGridHeaderBorder BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" IsClickable="False" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" SortDirection="{TemplateBinding SortDirection}" SeparatorBrush="{TemplateBinding SeparatorBrush}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}" Padding="0"/>
-                            <Button Margin="1" Padding="{TemplateBinding Padding}" BorderThickness="0" Background="Transparent" Click="DataGridCheckBoxColumnHeaderStyleButton_Click" ContextMenuOpening="DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening" ToolTip="チェックした行を削除します">
-                                <Button.ContextMenu>
-                                    <ContextMenu Placement="Bottom">
-                                        <MenuItem Header="すべてチェック" Click="MenuItemCheckAll_Click"/>
-                                        <MenuItem Header="すべてチェックをはずす" Click="MenuItemUncheckAll_Click"/>
-                                    </ContextMenu>
-                                </Button.ContextMenu>
-                                <Canvas Width="16" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
-                                    <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1" Data="M0,3.5 L15,3.5 M4.5,3.5 L4.5,2.5 C4.5,0.5 4.5,0.5 6.5,0.5 L8.5,0.5 C10.5,0.5 10.5,0.5 10.5,2.5 L10.5,3.5 M4.5,5.5 L4.5,13.5 M7.5,5.5 L7.5,13.5 M10.5,5.5 L10.5,13.5 M1.5,3.5 L1.5,13.5 C1.5,15.5 1.5,15.5 3.5,15.5 L11.5,15.5 C13.5,15.5 13.5,15.5 13.5,13.5 L13.5,3.5"/>
-                                    <Path Fill="{TemplateBinding Foreground}" Data="M13,19 L16,16 L16,19 z"/>
-                                </Canvas>
-                            </Button>
+                            <Grid Margin="{TemplateBinding Padding}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="20"/>
+                                </Grid.ColumnDefinitions>
+                                <Label ToolTip="変更を元に戻す" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
+                                        <Path x:Name="pathArc" Stroke="{TemplateBinding Foreground}" StrokeThickness="2" Data="M6,3 A4,4 0 1 1 1,7"/>
+                                        <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M2,3 L6,0 L6,6 z"/>
+                                    </Canvas>
+                                </Label>
+                                <Button Grid.Column="1" Margin="1" BorderThickness="0" Background="Transparent" Click="DataGridCheckBoxColumnHeaderStyleButton_Click" ContextMenuOpening="DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening" ToolTip="チェックした行を削除">
+                                    <Button.ContextMenu>
+                                        <ContextMenu Placement="Bottom">
+                                            <MenuItem Header="すべてチェック" Click="MenuItemCheckAll_Click"/>
+                                            <MenuItem Header="すべてチェックをはずす" Click="MenuItemUncheckAll_Click"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                    <Canvas Width="16" Height="19" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
+                                        <Path Stroke="{TemplateBinding Foreground}" StrokeThickness="1" Data="M0,3.5 L15,3.5 M4.5,3.5 L4.5,2.5 C4.5,0.5 4.5,0.5 6.5,0.5 L8.5,0.5 C10.5,0.5 10.5,0.5 10.5,2.5 L10.5,3.5 M4.5,5.5 L4.5,13.5 M7.5,5.5 L7.5,13.5 M10.5,5.5 L10.5,13.5 M1.5,3.5 L1.5,13.5 C1.5,15.5 1.5,15.5 3.5,15.5 L11.5,15.5 C13.5,15.5 13.5,15.5 13.5,13.5 L13.5,3.5"/>
+                                        <Path Fill="{TemplateBinding Foreground}" Data="M13,19 L16,16 L16,19 z"/>
+                                    </Canvas>
+                                </Button>
+                            </Grid>
                             <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
                             <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
                         </Grid>

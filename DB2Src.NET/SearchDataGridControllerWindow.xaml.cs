@@ -43,21 +43,10 @@ namespace Db2Source
             {
                 comboBoxColumn.SelectedItem = old;
             }
-            CommandBinding b;
-            b = new CommandBinding(SearchCommands.FindNext, FindNextCommand_Executed);
-            CommandBindings.Add(b);
-            b = new CommandBinding(SearchCommands.FindPrevious, FindPreviousCommand_Executed);
-            CommandBindings.Add(b);
         }
         private void InitContent()
         {
             UpdateComboBoxColumn();
-            //comboBoxKeyword.SetBinding(ComboBox.TextProperty, new Binding("Target.SearchText") { ElementName = "window", Mode = BindingMode.TwoWay });
-            //checkBoxCaseful.SetBinding(CheckBox.IsCheckedProperty, new Binding("Target.IgnoreCase") { ElementName = "window", Converter = new InvertBooleanConverter(), Mode = BindingMode.TwoWay });
-            //checkBoxWordwrap.SetBinding(CheckBox.IsCheckedProperty, new Binding("Target.Wordwrap") { ElementName = "window", Mode = BindingMode.TwoWay });
-            //checkBoxRegex.SetBinding(CheckBox.IsCheckedProperty, new Binding("Target.UseRegex") { ElementName = "window", Mode = BindingMode.TwoWay });
-            //checkBoxColumn.SetBinding(CheckBox.IsCheckedProperty, new Binding("Target.UseSearchColumn") { ElementName = "window", Mode = BindingMode.TwoWay });
-            //comboBoxColumn.SetBinding(ComboBox.SelectedItemProperty, new Binding("Target.SearchColumn") { ElementName = "window", Mode = BindingMode.TwoWay });
         }
 
         public DataGridController Target
@@ -136,11 +125,6 @@ namespace Db2Source
             SearchCommands.FindPrevious.Execute(null, this);
         }
 
-        private void Window_LayoutUpdated(object sender, EventArgs e)
-        {
-            
-        }
-
         private void window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -162,6 +146,11 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
+            CommandBinding b;
+            b = new CommandBinding(SearchCommands.FindNext, FindNextCommand_Executed);
+            CommandBindings.Add(b);
+            b = new CommandBinding(SearchCommands.FindPrevious, FindPreviousCommand_Executed);
+            CommandBindings.Add(b);
             comboBoxKeyword.Focus();
         }
 
