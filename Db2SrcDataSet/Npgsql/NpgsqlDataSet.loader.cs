@@ -2072,6 +2072,10 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
             }
+
+            //public Tablespace ToTablespace(NpgsqlDataSet context)
+            //{
+            //}
         }
 
         private class PgProc: PgObject
@@ -2249,6 +2253,66 @@ namespace Db2Source
                 return fn;
             }
         }
+
+        private class PgDatabase : PgObject
+        {
+#pragma warning disable 0649
+            public string datname;
+            public uint datdba;
+            public string dbaname;
+            public int encoding;
+            public string encoding_char;
+            public string datcollate;
+            public string datctype;
+            public bool datistemplate;
+            public bool datallowconn;
+            public int datconnlimit;
+            public uint datlastsysoid;
+            public uint datfrozenxid;
+            public uint datminmxid;
+            public uint dattablespace;
+            public string dattablespacename;
+#pragma warning restore 0649
+            public bool IsCurrent;
+            public static string current_database;
+            public static PgObjectCollection<PgDatabase> Load(NpgsqlConnection connection, PgObjectCollection<PgDatabase> store, Dictionary<uint, PgObject> dict)
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand("select current_database()", connection))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            current_database = reader.GetString(0);
+                        }
+                    }
+                }
+                if (store == null)
+                {
+                    return new PgObjectCollection<PgDatabase>(DataSet.Properties.Resources.PgDatabase_SQL, connection, dict);
+                }
+                else
+                {
+                    store.Fill(DataSet.Properties.Resources.PgDatabase_SQL, connection, dict, false);
+                    return store;
+                }
+            }
+            public override void FillReference(WorkingData working)
+            {
+                IsCurrent = (datname == current_database);
+            }
+
+            public Database ToDatabase(NpgsqlDataSet context)
+            {
+                Database ret = new Database();
+                ret.Name = datname;
+                ret.Encoding = encoding_char;
+                ret.DefaultTablespace = dattablespacename;
+                //ret.DbaUserName = datdba;
+                ret.IsCurrent = IsCurrent;
+                return ret;
+            }
+        }
         private void LoadUserInfo(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
@@ -2289,6 +2353,7 @@ namespace Db2Source
             //public PgDependCollection PgDepends;
             public PgObjectCollection<PgTrigger> PgTriggers;
             public PgObjectCollection<PgTablespace> PgTablespaces;
+            public PgObjectCollection<PgDatabase> PgDatabases;
             public PgObjectCollection<PgType> PgTypes;
             public PgObjectCollection<PgProc> PgProcs;
             public WorkingData(NpgsqlDataSet context, NpgsqlConnection connection)
@@ -2297,6 +2362,7 @@ namespace Db2Source
                 context.LoadEncodings(connection);
                 PgNamespaces = PgNamespace.Load(connection, null, OidToObject);
                 PgTablespaces = PgTablespace.Load(connection, null, OidToObject);
+                PgDatabases = PgDatabase.Load(connection, null, OidToObject);
                 PgClasses = PgClass.Load(connection, null, OidToObject);
                 PgTypes = PgType.Load(connection, null, OidToObject);
                 PgAttributes = PgAttribute.Load(connection, null);
@@ -2308,6 +2374,7 @@ namespace Db2Source
 
                 PgNamespaces.BeginFillReference(this);
                 PgTablespaces.BeginFillReference(this);
+                PgDatabases.BeginFillReference(this);
                 PgClasses.BeginFillReference(this);
                 PgTypes.BeginFillReference(this);
                 PgAttributes.BeginFillReference(this);
@@ -2319,6 +2386,7 @@ namespace Db2Source
 
                 PgNamespaces.FillReference(this);
                 PgTablespaces.FillReference(this);
+                PgDatabases.FillReference(this);
                 PgClasses.FillReference(this);
                 PgTypes.FillReference(this);
                 PgAttributes.FillReference(this);
@@ -2330,6 +2398,7 @@ namespace Db2Source
 
                 PgNamespaces.EndFillReference(this);
                 PgTablespaces.EndFillReference(this);
+                PgDatabases.EndFillReference(this);
                 PgClasses.EndFillReference(this);
                 PgTypes.EndFillReference(this);
                 PgAttributes.EndFillReference(this);
@@ -2340,6 +2409,8 @@ namespace Db2Source
                 //PgDepends.EndFillReference(this);
 
                 LoadFromPgNamespaces();
+                LoadFromPgTablespaces();
+                LoadFromPgDatabases();
                 LoadFromPgClass();
                 LoadFromPgType();
                 LoadFromPgProc();
@@ -2365,6 +2436,32 @@ namespace Db2Source
                     }
                 }
             }
+            private void LoadFromPgTablespaces()
+            {
+                //foreach (PgTablespace ts in PgTablespaces)
+                //{
+                //    ts.ToTablespace(Context);
+                //}
+            }
+            private void LoadFromPgDatabases()
+            {
+                List<Database> l = new List<Database>();
+                foreach (PgDatabase db in PgDatabases)
+                {
+                    Database obj = db.ToDatabase(Context);
+                    if (db.IsCurrent)
+                    {
+                        Context.Database = obj;
+                    }
+                    else
+                    {
+                        l.Add(obj);
+                    }
+                }
+                l.Sort();
+                Context.OtherDatabases = l.ToArray();
+            }
+
             private void LoadFromPgClass()
             {
                 foreach (PgClass c in PgClasses)
@@ -2423,12 +2520,16 @@ namespace Db2Source
             }
         }
 
-        public override void LoadSchema(IDbConnection connection)
+        public override void LoadSchema(IDbConnection connection, bool clearBeforeLoad)
         {
-            //Clear();
+            if (clearBeforeLoad)
+            {
+                Clear();
+            }
             NpgsqlConnection conn = connection as NpgsqlConnection;
             LoadUserInfo(conn);
             WorkingData working = new WorkingData(this, conn);
+            OnSchemaLoaded();
         }
     }
 }

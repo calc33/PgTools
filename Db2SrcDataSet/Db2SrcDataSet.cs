@@ -229,6 +229,11 @@ namespace Db2Source
                 ConnectionInfo.Name = value;
             }
         }
+
+        public string GetTreeNodeHeader()
+        {
+            return ConnectionInfo?.GetTreeNodeHeader();
+        }
         public ConnectionInfo ConnectionInfo { get; private set; }
         public SourceSchemaOption ExportSchemaOption { get; set; } = SourceSchemaOption.OmitCurrent;
 
@@ -886,20 +891,26 @@ namespace Db2Source
         }
 
         public event EventHandler<EventArgs> SchemaLoaded;
-        public abstract void LoadSchema(IDbConnection connection);
-        public void LoadSchema()
+        protected void OnSchemaLoaded()
         {
-            Clear();
-            using (IDbConnection conn = NewConnection(true))
-            {
-                LoadSchema(conn);
-            }
             SchemaLoaded?.Invoke(this, EventArgs.Empty);
         }
+        public abstract void LoadSchema(IDbConnection connection, bool clearBeforeLoad);
+        public void LoadSchema()
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                LoadSchema(conn, true);
+            }
+        }
 
+        public async Task LoadSchemaAsync(IDbConnection connection)
+        {
+            await Task.Run(() => LoadSchema(connection, true));
+        }
         public async Task LoadSchemaAsync()
         {
-            await Task.Run(new Action(LoadSchema));
+            await Task.Run(() => LoadSchema());
         }
 
         //internal Schema FindSchema(string schemaName)
@@ -976,7 +987,7 @@ namespace Db2Source
             Schema.CollectionIndex idx = table.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
-                LoadSchema(conn);
+                LoadSchema(conn, false);
                 //LoadTable(schnm, objid, conn);
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);
@@ -997,7 +1008,7 @@ namespace Db2Source
             Schema.CollectionIndex idx = view.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
-                LoadSchema(conn);
+                LoadSchema(conn, false);
                 //LoadView(schnm, objid, conn);
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);
@@ -1019,7 +1030,7 @@ namespace Db2Source
             Schema.CollectionIndex idx = type.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
-                LoadSchema(conn);
+                LoadSchema(conn, false);
                 //LoadView(schnm, objid, conn);
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);

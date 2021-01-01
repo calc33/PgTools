@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,13 +17,97 @@ namespace Db2Source
         RightOuter,
         FullOuter
     }
-    public class JoinTable
+    public class JoinTable: INotifyPropertyChanged
     {
-        public Selectable Table { get; set; }
-        public string Alias { get; set; }
-        public JoinTable Referrer { get; set; }
-        public JoinKind Kind { get; set; }
-        public ForeignKeyConstraint JoinBy { get; set; }
+        private Selectable _table;
+        public Selectable Table
+        {
+            get
+            {
+                return _table;
+            }
+            set
+            {
+                if (_table == value)
+                {
+                    return;
+                }
+                _table = value;
+                OnPropertyChanged("Table");
+            }
+        }
+
+        private string _alias;
+        public string Alias
+        {
+            get
+            {
+                return _alias;
+            }
+            set
+            {
+                if (_alias == value)
+                {
+                    return;
+                }
+                _alias = value;
+                OnPropertyChanged("Alias");
+            }
+        }
+
+        private JoinTable _referrer;
+        public JoinTable Referrer
+        {
+            get
+            {
+                return _referrer;
+            }
+            set
+            {
+                if (_referrer == value)
+                {
+                    return;
+                }
+                _referrer = value;
+                OnPropertyChanged("Referrer");
+            }
+        }
+
+        private JoinKind _kind;
+        public JoinKind Kind
+        {
+            get
+            {
+                return _kind;
+            }
+            set
+            {
+                if (_kind == value)
+                {
+                    return;
+                }
+                _kind = value;
+                OnPropertyChanged("Kind");
+            }
+        }
+
+        private ForeignKeyConstraint _joinBy;
+        public ForeignKeyConstraint JoinBy
+        {
+            get
+            {
+                return _joinBy;
+            }
+            set
+            {
+                if (_joinBy == value)
+                {
+                    return;
+                }
+                _joinBy = value;
+                OnPropertyChanged("JoinBy");
+            }
+        }
 
         public string GetFieldsSQL(int indent, HiddenLevel visibleLevel)
         {
@@ -35,6 +121,14 @@ namespace Db2Source
             { JoinKind.RightOuter, "right outer join " },
             { JoinKind.FullOuter, "full outer join " }
         };
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+        }
+
         public string GetJoinSQL(int indent, bool isFirst)
         {
             StringBuilder buf = new StringBuilder();
@@ -83,7 +177,7 @@ namespace Db2Source
             return buf.ToString();
         }
     }
-    public class JoinTableCollection: IList<JoinTable>, IList
+    public class JoinTableCollection: IList<JoinTable>, IList, INotifyCollectionChanged
     {
         private List<JoinTable> _list = new List<JoinTable>();
 
@@ -201,6 +295,12 @@ namespace Db2Source
             return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
         }
 
+        public event NotifyCollectionChangedEventHandler CollectionChanged;
+        private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            CollectionChanged?.Invoke(this, e);
+        }
+
         #region IList<JoinTable>, IList の実装
         public JoinTable this[int index]
         {
@@ -212,6 +312,7 @@ namespace Db2Source
             set
             {
                 _list[index] = value;
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, _list[index], index));
             }
         }
 
@@ -225,6 +326,7 @@ namespace Db2Source
             set
             {
                 ((IList)_list)[index] = value;
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, _list[index], index));
             }
         }
 
@@ -270,17 +372,21 @@ namespace Db2Source
 
         public int Add(object value)
         {
-            return ((IList)_list).Add(value);
+            int ret = ((IList)_list).Add(value);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
+            return ret;
         }
 
         public void Add(JoinTable item)
         {
             _list.Add(item);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void Clear()
         {
             _list.Clear();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         public bool Contains(object value)
@@ -321,26 +427,36 @@ namespace Db2Source
         public void Insert(int index, object value)
         {
             ((IList)_list).Insert(index, value);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
         }
 
         public void Insert(int index, JoinTable item)
         {
             _list.Insert(index, item);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void Remove(object value)
         {
             ((IList)_list).Remove(value);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, value));
         }
 
         public bool Remove(JoinTable item)
         {
-            return _list.Remove(item);
+            bool ret = _list.Remove(item);
+            if (ret)
+            {
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            }
+            return ret;
         }
 
         public void RemoveAt(int index)
         {
+            JoinTable old = _list[index];
             _list.RemoveAt(index);
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, old));
         }
 
         IEnumerator IEnumerable.GetEnumerator()

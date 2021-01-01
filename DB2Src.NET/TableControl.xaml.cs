@@ -156,7 +156,9 @@ namespace Db2Source
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             JoinTables.Clear();
-            JoinTables.Add(new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root });
+            JoinTable jt = new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root };
+            jt.PropertyChanged += JoinTable_PropertyChanged;
+            JoinTables.Add(jt);
             //dataGridColumns.ItemsSource = Target.Columns;
             Target.PropertyChanged += Target_PropertyChanged;
             Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
@@ -171,6 +173,14 @@ namespace Db2Source
             UpdateIsTargetModified();
             UpdateTextBoxTemplateSql();
             Dispatcher.Invoke(Fetch, DispatcherPriority.ApplicationIdle);
+        }
+
+        private void JoinTable_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Alias")
+            {
+                UpdateTextBoxSelectSql();
+            }
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -679,34 +689,33 @@ namespace Db2Source
             }
         }
 
-        private void UpdateButtonAddJoinContextMenu()
-        {
-            Dictionary<JoinTable, List<ForeignKeyConstraint>> dict = new Dictionary<JoinTable, List<ForeignKeyConstraint>>();
-            foreach (JoinTable join in JoinTables)
-            {
-                Table tbl = join.Table as Table;
-                if (tbl == null)
-                {
-                    continue;
-                }
-                List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>(tbl.ReferTo);
-                dict.Add(join, l);
-            }
-            foreach (JoinTable join in JoinTables)
-            {
-                if (join.Referrer == null)
-                {
-                    continue;
-                }
-                List<ForeignKeyConstraint> l;
-                if (dict.TryGetValue(join.Referrer, out l))
-                {
-                    l.Remove(join.JoinBy);
-                }
-            }
-            buttonAddJoinContextMenu.Items.Clear();
-
-        }
+        //private void UpdateButtonAddJoinContextMenu()
+        //{
+        //    Dictionary<JoinTable, List<ForeignKeyConstraint>> dict = new Dictionary<JoinTable, List<ForeignKeyConstraint>>();
+        //    foreach (JoinTable join in JoinTables)
+        //    {
+        //        Table tbl = join.Table as Table;
+        //        if (tbl == null)
+        //        {
+        //            continue;
+        //        }
+        //        List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>(tbl.ReferTo);
+        //        dict.Add(join, l);
+        //    }
+        //    foreach (JoinTable join in JoinTables)
+        //    {
+        //        if (join.Referrer == null)
+        //        {
+        //            continue;
+        //        }
+        //        List<ForeignKeyConstraint> l;
+        //        if (dict.TryGetValue(join.Referrer, out l))
+        //        {
+        //            l.Remove(join.JoinBy);
+        //        }
+        //    }
+        //    buttonAddJoinContextMenu.Items.Clear();
+        //}
 
         private void buttonFilterColumns_Click(object sender, RoutedEventArgs e)
         {
@@ -737,8 +746,13 @@ namespace Db2Source
         {
             //DataGridCommands.CopyTable.Execute(null, dataGridResult);
             Button btn = sender as Button;
-            btn.ContextMenu.PlacementTarget = btn;
-            btn.ContextMenu.IsOpen = true;
+            ContextMenu menu = btn.ContextMenu;
+            menu.PlacementTarget = btn;
+            menu.IsOpen = true;
+            foreach (MenuItem mi in menu.Items)
+            {
+                mi.CommandTarget = dataGridResult;
+            }
         }
 
         //private WeakReference<SearchDataGridTextWindow> _searchDataGridTextWindow = null;
@@ -866,7 +880,7 @@ namespace Db2Source
 
         private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
         {
-            UpdateButtonAddJoinContextMenu();
+            //UpdateButtonAddJoinContextMenu();
         }
 
         private void dataGridResult_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -998,6 +1012,10 @@ namespace Db2Source
             win.Target = dataGridColumns;
             win.Show();
         }
+
+        private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+        {
+        }
     }
 
     public class NotNullTextConverter: IValueConverter
@@ -1107,6 +1125,19 @@ namespace Db2Source
         {
             return (value == null || value is DBNull || (value is string && (string)value == string.Empty)) ? Visibility.Collapsed : Visibility.Visible;
             //return (cell.DataContext == null) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class JoinKindToVisiblityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            JoinKind k = (JoinKind)value;
+            return (k == JoinKind.Root) ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

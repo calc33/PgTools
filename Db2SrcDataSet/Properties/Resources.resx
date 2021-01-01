@@ -148,6 +148,9 @@
   <data name="PgConstraint_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgConstraint_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgDatabase_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgDatabase_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
   <data name="PgProc_ARGDEFAULTSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgProc_ARGDEFAULTSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>

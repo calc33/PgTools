@@ -63,7 +63,7 @@ namespace Db2Source
             }
             if (GetType() != obj.GetType())
             {
-                return -1;
+                return string.Compare(GetType().FullName, obj.GetType().FullName);
             }
             return string.Compare(Identifier, (((NamedObject)obj).Identifier));
         }

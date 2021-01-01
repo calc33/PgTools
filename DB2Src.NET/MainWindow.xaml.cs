@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -319,6 +320,23 @@ namespace Db2Source
         }
 
         //#pragma warning disable 1998
+        public async Task LoadSchemaAsync(Db2SourceContext dataSet, IDbConnection connection)
+        {
+            try
+            {
+                await dataSet.LoadSchemaAsync(connection);
+                GC.Collect();
+            }
+            catch (Exception t)
+            {
+                App.HandleThreadException(t);
+            }
+            finally
+            {
+                connection.Dispose();
+            }
+            return;
+        }
         public async Task LoadSchemaAsync(Db2SourceContext dataSet)
         {
             try
@@ -333,6 +351,11 @@ namespace Db2Source
             return;
         }
 
+        public void LoadSchema(Db2SourceContext dataSet, IDbConnection connection)
+        {
+            gridLoading.Visibility = Visibility.Visible;
+            Task t = LoadSchemaAsync(dataSet, connection);
+        }
         public void LoadSchema(Db2SourceContext dataSet)
         {
             gridLoading.Visibility = Visibility.Visible;
@@ -591,9 +614,25 @@ namespace Db2Source
         private void Connect(ConnectionInfo info)
         {
             Db2SourceContext ds = info.NewDataSet();
+            IDbConnection conn = info.NewConnection(true);
             ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
-            //_connectionToDataSet.Add(info, ds);
-            LoadSchema(ds);
+            LoadSchema(ds, conn);
+        }
+        private bool TryConnect(ConnectionInfo info)
+        {
+            Db2SourceContext ds = info.NewDataSet();
+            IDbConnection conn = null;
+            try
+            {
+                conn = info.NewConnection(true);
+            }
+            catch
+            {
+                return false;
+            }
+            ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
+            LoadSchema(ds, conn);
+            return true;
         }
         private string GetExecutableFromPath(string filename)
         {
@@ -627,11 +666,16 @@ namespace Db2Source
             {
                 if (!info.FillStoredPassword(true))
                 {
-                    Connect(info);
-                    return;
+                    if (TryConnect(info))
+                    {
+                        return;
+                    }
                 }
             }
-            info = NewConnectionInfoFromRegistry();
+            else
+            {
+                info = NewConnectionInfoFromRegistry();
+            }
             NewConnectionWindow win = new NewConnectionWindow();
             win.Owner = this;
             win.Target = info;

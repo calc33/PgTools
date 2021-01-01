@@ -118,7 +118,18 @@ namespace Db2Source
 
                 nodeSc.Children = lSc.ToArray();
             }
-            return top.ToArray();
+            List<TreeNode> lDb = new List<TreeNode>();
+            TreeNode nodeDb = new TreeNode(Database.Name, Database.Name, typeof(Database), 0, true, false);
+            nodeDb.Target = Database;
+            nodeDb.Children = top.ToArray();
+            lDb.Add(nodeDb);
+            foreach (Database db in OtherDatabases)
+            {
+                nodeDb = new TreeNode(db.Name, db.Name, typeof(Database), 0, false, false);
+                nodeDb.Target = db;
+                lDb.Add(nodeDb);
+            }
+            return lDb.ToArray();
         }
         public override Tuple<int, int> GetErrorPosition(Exception t, string sql, int offset)
         {

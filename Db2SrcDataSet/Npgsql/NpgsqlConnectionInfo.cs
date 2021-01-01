@@ -391,6 +391,12 @@ namespace Db2Source
             return string.Format("{0}@{1}{2}{3}", UserName, ServerName, sPort, sDb);
         }
 
+        public override string GetTreeNodeHeader()
+        {
+            string sPort = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
+            return string.Format("{0}@{1}{2}", UserName, ServerName, sPort);
+        }
+
         protected override string GetCryptedPassword()
         {
             if (string.IsNullOrEmpty(Password))

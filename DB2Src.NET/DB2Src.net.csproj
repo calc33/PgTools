@@ -102,6 +102,9 @@
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Commands.cs" />
+    <Compile Include="DatabaseControl.xaml.cs">
+      <DependentUpon>DatabaseControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
     <Compile Include="EditConnectionListWindow.xaml.cs">
@@ -183,6 +186,10 @@
     <Compile Include="WindowLocator.cs" />
     <Compile Include="WindowUtility.cs" />
     <Page Include="AwaitWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DatabaseControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

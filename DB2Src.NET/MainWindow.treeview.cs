@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Db2Source
 {
@@ -46,21 +49,43 @@ namespace Db2Source
                 {
                     if (node.IsHidden)
                     {
-                        item.Style = Resources["TreeViewItemStyleHiddenSchema"] as Style;
+                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                        item.HeaderTemplate = Resources["ImageHiddenSchema"] as DataTemplate;
                     }
                     else
                     {
-                        item.Style = Resources["TreeViewItemStyleSchema"] as Style;
+                        item.HeaderTemplate = Resources["ImageSchema"] as DataTemplate;
+                    }
+                }
+                else if (node.TargetType == typeof(Database))
+                {
+                    Database db = node.Target as Database;
+                    item.Tag = db;
+                    if (db.IsCurrent)
+                    {
+                        item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
+                    }
+                    else
+                    {
+                        item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
+                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                        item.ContextMenu = new ContextMenu();
+                        MenuItem mi = new MenuItem();
+                        mi.Header = item.Header;
+                        mi.HeaderStringFormat = "{0}に接続";
+                        mi.Click += MenuItemOtherDatabase_Click;
+                        item.ContextMenu.Items.Add(mi);
+                        item.MouseDoubleClick += TreeViewItemOtherDatabase_MouseDoubleClick;
                     }
                 }
                 else
                 {
-                    item.Style = Resources["TreeViewItemStyleTables"] as Style;
+                    item.HeaderTemplate = Resources["ImageTables"] as DataTemplate;
                 }
             }
             else
             {
-                item.Style = Resources["TreeViewItemStyleTable"] as Style;
+                item.HeaderTemplate = Resources["ImageTable"] as DataTemplate;
                 item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
             }
             item.ToolTip = node.Hint;
@@ -77,9 +102,50 @@ namespace Db2Source
                 }
             }
         }
+
+        private void OpenDatabase(Database database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException("database");
+            }
+            if (CurrentDataSet == null)
+            {
+                return;
+            }
+            NpgsqlConnectionInfo obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (obj == null)
+            {
+                return;
+            }
+            string path = Assembly.GetExecutingAssembly().Location;
+            string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, database.Name, obj.UserName);
+            Process.Start(path, args);
+        }
+
+        private void MenuItemOtherDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            Database db = (sender as MenuItem).Header as Database;
+            if (db == null)
+            {
+                return;
+            }
+            OpenDatabase(db);
+        }
+        private void TreeViewItemOtherDatabase_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            Database db = (sender as TreeViewItem).Tag as Database;
+            if (db == null)
+            {
+                return;
+            }
+            OpenDatabase(db);
+        }
+
+
         private void AddTreeView(TreeNode[] nodes)
         {
-            treeViewItemTop.Header = CurrentDataSet.Name;
+            treeViewItemTop.Header = CurrentDataSet.GetTreeNodeHeader();
             treeViewItemTop.Items.Clear();
             foreach (TreeNode node in nodes)
             {
@@ -89,60 +155,64 @@ namespace Db2Source
             }
             FilterTreeView();
         }
+
         public void FilterTreeView()
         {
             string filter = textBoxFilter.Text;
             bool filterByName = menuItemFilterByObjectName.IsChecked;
             bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
             string f = filter.ToUpper();
-            foreach (TreeViewItem itemSc in treeViewItemTop.Items)
+            foreach (TreeViewItem itemDb in treeViewItemTop.Items)
             {
-                foreach (TreeViewItem itemGr in itemSc.Items)
+                foreach (TreeViewItem itemSc in itemDb.Items)
                 {
-                    int n = 0;
-                    foreach (TreeViewItem item in itemGr.Items)
+                    foreach (TreeViewItem itemGr in itemSc.Items)
                     {
-                        bool matched = false;
-                        if (string.IsNullOrEmpty(f))
+                        int n = 0;
+                        foreach (TreeViewItem item in itemGr.Items)
                         {
-                            matched = true;
-                        }
-                        else
-                        {
-                            if (filterByName && ((string)item.Header).ToUpper().Contains(f))
+                            bool matched = false;
+                            if (string.IsNullOrEmpty(f))
                             {
                                 matched = true;
                             }
-                            if (filterByColumnName)
+                            else
                             {
-                                Selectable o = (item.Tag as TreeNode)?.Target as Selectable;
-                                if (o != null)
+                                if (filterByName && ((string)item.Header).ToUpper().Contains(f))
                                 {
-                                    foreach (Column c in o.Columns)
+                                    matched = true;
+                                }
+                                if (filterByColumnName)
+                                {
+                                    Selectable o = (item.Tag as TreeNode)?.Target as Selectable;
+                                    if (o != null)
                                     {
-                                        if (c.Name.ToUpper().Contains(f))
+                                        foreach (Column c in o.Columns)
                                         {
-                                            matched = true;
-                                            break;
+                                            if (c.Name.ToUpper().Contains(f))
+                                            {
+                                                matched = true;
+                                                break;
+                                            }
                                         }
                                     }
                                 }
                             }
+                            if (matched)
+                            {
+                                item.Visibility = Visibility.Visible;
+                                n++;
+                            }
+                            else
+                            {
+                                item.Visibility = Visibility.Collapsed;
+                            }
                         }
-                        if (matched)
+                        TreeNode nodeGr = itemGr.Tag as TreeNode;
+                        if ((nodeGr.ShowChildCount))
                         {
-                            item.Visibility = Visibility.Visible;
-                            n++;
+                            itemGr.Header = string.Format(nodeGr.NameBase, n);
                         }
-                        else
-                        {
-                            item.Visibility = Visibility.Collapsed;
-                        }
-                    }
-                    TreeNode nodeGr = itemGr.Tag as TreeNode;
-                    if ((nodeGr.ShowChildCount))
-                    {
-                        itemGr.Header = string.Format(nodeGr.NameBase, n);
                     }
                 }
             }

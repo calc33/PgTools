@@ -82,6 +82,7 @@
     <Compile Include="ConnectionInfo.cs" />
     <Compile Include="ConnectionInfo.db.cs" />
     <Compile Include="Constraint.cs" />
+    <Compile Include="Database.cs" />
     <Compile Include="Db2SrcDataSet.cs" />
     <Compile Include="Db2srcDataSet.UI.cs" />
     <Compile Include="Dependency.cs" />
@@ -170,6 +171,7 @@
   <ItemGroup>
     <Content Include="Resources\ClientEncoding_SQL.txt" />
     <Content Include="Resources\GetEncodings_SQL.txt" />
+    <None Include="Resources\PgDatabase_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

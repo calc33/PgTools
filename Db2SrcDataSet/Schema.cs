@@ -10,13 +10,14 @@ namespace Db2Source
     {
         public enum CollectionIndex
         {
-            Objects = 0,
-            Constraints = 1,
-            Columns = 2,
-            Comments = 3,
-            Indexes = 4,
-            Triggers = 5,
-            //Procedures = 6,
+            None = 0,
+            Objects = 1,
+            Constraints = 2,
+            Columns = 3,
+            Comments = 4,
+            Indexes = 5,
+            Triggers = 6,
+            //Procedures = 7,
         }
         public Db2SourceContext Owner { get; private set; }
         private string _name;
@@ -53,6 +54,7 @@ namespace Db2Source
         {
             return _collections[(int)index];
         }
+        public NamedCollection<SchemaObject> Nones { get; } = new NamedCollection<SchemaObject>();
         public NamedCollection<SchemaObject> Objects { get; } = new NamedCollection<SchemaObject>();
         public NamedCollection<Column> Columns { get; } = new NamedCollection<Column>();
         public NamedCollection<Comment> Comments { get; } = new NamedCollection<Comment>();
@@ -64,7 +66,7 @@ namespace Db2Source
         {
             Owner = owner;
             Name = name;
-            _collections = new NamedCollection[] { Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
+            _collections = new NamedCollection[] { Nones, Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
         }
 
         protected override string GetIdentifier()

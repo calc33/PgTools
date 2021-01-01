@@ -80,12 +80,12 @@
         <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
         <DataTemplate x:Key="ImageAdd14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageDelete14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}" VerticalAlignment="Center">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
                 <Line x:Name="line1" X1="1" Y1="7" X2="13" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
             </Canvas>
         </DataTemplate>
@@ -178,6 +178,16 @@
         <DataTemplate x:Key="ImageCornerDropDown6">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="6" Height="6">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,6 L6,6 L6,1 z"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageCopy14">
+            <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M2.5,5.5 l6,0 l0,8 l-6,0 z M6.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageFilter14">
+            <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M1.5,1.5 l11,0 l0,3 l-4,4 l0,5 l-4,0 l0,-5 l-4,-4 l0,-3 z"/>
             </Canvas>
         </DataTemplate>
         <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>

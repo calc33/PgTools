@@ -190,6 +190,25 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select
+        ///  d.oid, d.datname,
+        ///  d.datdba, u.usename as dbaname,
+        ///  d.&quot;encoding&quot;, pg_encoding_to_char(d.&quot;encoding&quot;) as encoding_char,
+        ///  d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
+        ///  d.datconnlimit, d.datlastsysoid, d.datfrozenxid, d.datminmxid,
+        ///  d.dattablespace, ts.spcname as dattablespacename
+        ///from pg_database as d
+        ///  left outer join pg_user u on (d.datdba = u.usesysid)
+        ///  left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
+        ///where not d.datistemplate に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgDatabase_SQL {
+            get {
+                return ResourceManager.GetString("PgDatabase_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select ss.p_oid as oid, (ss.x).n,
         ///  pg_get_function_arg_default(ss.p_oid, (ss.x).n) as parameter_default
         ///from (select p.oid as p_oid, information_schema._pg_expandarray(coalesce(p.proallargtypes, (p.proargtypes)::oid[])) as x from pg_proc p) ss

@@ -257,6 +257,12 @@ namespace Db2Source
         {
             return string.Format("{0}@{1}", UserName, ServerName);
         }
+
+        public virtual string GetTreeNodeHeader()
+        {
+            return GetDefaultName();
+        }
+
         /// <summary>
         /// データベースの種別を識別する文字列
         /// </summary>
