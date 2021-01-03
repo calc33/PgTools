@@ -17,7 +17,7 @@ namespace Db2Source
         RightOuter,
         FullOuter
     }
-    public class JoinTable: INotifyPropertyChanged
+    public class JoinTable : INotifyPropertyChanged
     {
         private Selectable _table;
         public Selectable Table
@@ -109,6 +109,42 @@ namespace Db2Source
             }
         }
 
+        private List<ForeignKeyConstraint> _selectableForeignKeys = new List<ForeignKeyConstraint>();
+        public List<ForeignKeyConstraint> SelectableForeignKeys
+        {
+            get
+            {
+                return _selectableForeignKeys;
+            }
+        }
+        public void UpdateSelectableForeignKeys(JoinTableCollection selected)
+        {
+            _selectableForeignKeys.Clear();
+            Table tbl = Table as Table;
+            foreach (ForeignKeyConstraint cons in tbl.ReferTo)
+            {
+                bool found = false;
+                foreach (JoinTable jt in selected)
+                {
+                    if (!tbl.Equals(jt.Referrer?.Table))
+                    {
+                        continue;
+                    }
+                    if (!cons.Equals(jt.JoinBy))
+                    {
+                        continue;
+                    }
+                    found = true;
+                    break;
+                }
+                if (!found)
+                {
+                    _selectableForeignKeys.Add(cons);
+                }
+            }
+            OnPropertyChanged("SelectableForeignKeys");
+        }
+
         public string GetFieldsSQL(int indent, HiddenLevel visibleLevel)
         {
             return Table.GetColumnsSQL(Alias, visibleLevel);
@@ -176,8 +212,40 @@ namespace Db2Source
             buf.Append(")");
             return buf.ToString();
         }
+        public JoinTable() { }
+        public JoinTable(JoinTable referrer, ForeignKeyConstraint constraint)
+        {
+            _joinBy = constraint;
+            Table tbl = constraint.Table;
+            _referrer = referrer;
+            if (referrer == null)
+            {
+                _kind = JoinKind.Root;
+            }
+            else
+            {
+                _kind = referrer.Kind;
+                if (_kind == JoinKind.Root)
+                {
+                    _kind = JoinKind.Inner;
+                }
+                if (_kind != JoinKind.LeftOuter && _kind != JoinKind.FullOuter)
+                {
+                    foreach (string c in constraint.Columns)
+                    {
+                        Column col = tbl.Columns[c];
+                        if (!col.NotNull)
+                        {
+                            _kind = JoinKind.LeftOuter;
+                            break;
+                        }
+                    }
+                }
+            }
+            _table = constraint.ReferenceConstraint.Table;
+        }
     }
-    public class JoinTableCollection: IList<JoinTable>, IList, INotifyCollectionChanged
+    public class JoinTableCollection : IList<JoinTable>, IList, INotifyCollectionChanged
     {
         private List<JoinTable> _list = new List<JoinTable>();
 

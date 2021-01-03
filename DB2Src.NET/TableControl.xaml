@@ -18,6 +18,7 @@
         <local:RefButtonVisibilityConverter x:Key="RefButtonVisibilityConverter"/>
         <local:DataGridCellToCellInfoConverter x:Key="DataGridCellToCellInfoConverter"/>
         <local:JoinKindToVisiblityConverter x:Key="JoinKindToVisiblityConverter"/>
+        <local:JoinTableCandidatesCountToEnabledConverter x:Key="JoinTableCandidatesCountToEnabledConverter"/>
         <SolidColorBrush x:Key="ModifiedBackgroundBrush" Color="#FFFFFFC0"/>
         <SolidColorBrush x:Key="NotNullErrorBackgroundBrush" Color="#FFFFC0C0"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -76,16 +77,26 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-        <DataTemplate x:Key="MenuItemAddJoin">
-            <MenuItem Header="{Binding Content.Description, RelativeSource={RelativeSource AncestorType=ContentPresenter}}"/>
-        </DataTemplate>
         <DataTemplate x:Key="ImageJoinTableClose">
             <Canvas Width="8" Height="8">
                 <Path StrokeThickness="1" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,1 L7,7 M7,1 L1,7"/>
             </Canvas>
         </DataTemplate>
+        <DataTemplate x:Key="ImageJoinTableAdd">
+            <Canvas Width="10" Height="10">
+                <Path StrokeThickness="1" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,4.5 L8,4.5 M4.5,1 L4.5,8"/>
+            </Canvas>
+        </DataTemplate>
+        <ContextMenu x:Key="ContextMenuJoinTableCandidates" ItemsSource="{Binding ReferTo, Mode=OneWay}">
+            <ContextMenu.ItemContainerStyle>
+                <Style TargetType="MenuItem">
+                    <Setter Property="Header" Value="{Binding Description}"/>
+                    <EventSetter Event="Click" Handler="MenuItemAddJoin_Click"/>
+                </Style>
+            </ContextMenu.ItemContainerStyle>
+        </ContextMenu>
         <DataTemplate x:Key="JoinTableControl">
-            <Grid Margin="2">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -98,24 +109,20 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Content.Table.Name, RelativeSource={RelativeSource AncestorType=ContentPresenter}}" VerticalAlignment="Center" MinWidth="32" Margin="2,2,0,2"/>
-                        <TextBlock Grid.Column="1" Text=" as " VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="2" Text="{Binding Content.Alias, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=TwoWay}" VerticalAlignment="Center" MinWidth="16" Margin="0,2,2,2" TextChanged="textBoxAlias0_TextChanged"/>
-                        <Button Grid.Column="3" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageJoinTableClose}"
-                                Visibility="{Binding Content.Kind, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource JoinKindToVisiblityConverter}}"/>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.RowSpan="2" Text="{Binding Content.Table.Name, RelativeSource={RelativeSource AncestorType=ContentPresenter}}" VerticalAlignment="Center" MinWidth="32" Margin="2,2,0,2"/>
+                        <TextBlock Grid.Column="1" Grid.RowSpan="2" Text=" as " VerticalAlignment="Center"/>
+                        <TextBox Grid.Column="2" Grid.RowSpan="2" Text="{Binding Content.Alias, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=TwoWay}" VerticalAlignment="Center" MinWidth="16" Margin="0,2,2,2" LostFocus="TextBoxAlias_LostFocus" KeyDown="TextBoxAlias_KeyDown"/>
+                        <Button Grid.Column="3" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageJoinTableClose}" Click="buttonCloseJoin_Click"
+                                Visibility="{Binding Content.Kind, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource JoinKindToVisiblityConverter}}" Focusable="False"/>
+                        <Button Grid.Column="3" Grid.Row="1" ContentTemplate="{StaticResource ImageJoinTableAdd}" Click="buttonAddJoin_Click"
+                                DataContext="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}"
+                                VerticalAlignment="Bottom" Background="Transparent" BorderThickness="0" Width="10" Height="10" Margin="2" Focusable="False" IsEnabled="{Binding SelectableForeignKeys, Converter={StaticResource JoinTableCandidatesCountToEnabledConverter}}"/>
                     </Grid>
                 </Border>
-                <Button Grid.Column="1" ContentTemplate="{StaticResource ImageAdd14}" Margin="2,0" Click="buttonAddJoin_Click" DataContext="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}">
-                    <Button.ContextMenu>
-                        <ContextMenu ItemsSource="{Binding Table.ReferTo, Mode=OneWay}" Opened="ContextMenu_Opened">
-                            <ContextMenu.ItemContainerStyle>
-                                <Style TargetType="MenuItem">
-                                    <Setter Property="Header" Value="{Binding Description}"/>
-                                </Style>
-                            </ContextMenu.ItemContainerStyle>
-                        </ContextMenu>
-                    </Button.ContextMenu>
-                </Button>
             </Grid>
         </DataTemplate>
         <ItemsPanelTemplate x:Key="ItemsPanelTemplateJoinTable">
@@ -127,13 +134,14 @@
         <SolidColorBrush x:Key="ListBox.Disabled.Border" Color="#FFD9D9D9"/>
         <Style x:Key="ListBoxItemStyleJoinTable" TargetType="{x:Type ListBoxItem}">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="Padding" Value="2,1"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="KeyboardNavigation.IsTabStop" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
@@ -141,32 +149,43 @@
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <!--<MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="IsMouseOver" Value="True"/>
-                                </MultiTrigger.Conditions>
-                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.MouseOver.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.MouseOver.Border}"/>
-                            </MultiTrigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="Selector.IsSelectionActive" Value="False"/>
-                                    <Condition Property="IsSelected" Value="True"/>
-                                </MultiTrigger.Conditions>
-                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Border}"/>
-                            </MultiTrigger>
-                            <MultiTrigger>
-                                <MultiTrigger.Conditions>
-                                    <Condition Property="Selector.IsSelectionActive" Value="True"/>
-                                    <Condition Property="IsSelected" Value="True"/>
-                                </MultiTrigger.Conditions>
-                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Background}"/>
-                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Border}"/>
-                            </MultiTrigger>-->
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                             </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ListBoxStyleJoinTables" TargetType="{x:Type ListBox}">
+            <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBox.Static.Border}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="0" SnapsToDevicePixels="true">
+                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBox.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBox.Disabled.Border}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </MultiTrigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -530,7 +549,11 @@
             <TabControl>
                 <TabItem x:Name="tabItemSelectSql" Header="SELECT">
                     <DockPanel>
-                        <ListBox DockPanel.Dock="Top" ItemTemplate="{StaticResource JoinTableControl}" ItemsSource="{Binding JoinTables, ElementName=userControl}" ItemsPanel="{DynamicResource ItemsPanelTemplateJoinTable}" ItemContainerStyle="{DynamicResource ListBoxItemStyleJoinTable}"/>
+                        <Border DockPanel.Dock="Top">
+                            <DockPanel>
+                                <ListBox x:Name="ListBoxJoinTables" ItemTemplate="{StaticResource JoinTableControl}" ItemsSource="{Binding JoinTables, ElementName=userControl}" ItemsPanel="{DynamicResource ItemsPanelTemplateJoinTable}" ItemContainerStyle="{DynamicResource ListBoxItemStyleJoinTable}" Style="{DynamicResource ListBoxStyleJoinTables}" KeyboardNavigation.TabNavigation="Local"/>
+                            </DockPanel>
+                        </Border>
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="61*"/>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Globalization;
 using System.Linq;
@@ -43,6 +44,7 @@ namespace Db2Source
                 SetValue(TargetProperty, value);
             }
         }
+
         SchemaObject ISchemaObjectControl.Target
         {
             get
@@ -183,11 +185,36 @@ namespace Db2Source
             }
         }
 
+        private void JoinTablesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            JoinTableCollection l = (e.OldValue as JoinTableCollection);
+            if (l != null)
+            {
+                l.CollectionChanged += JoinTables_CollectionChanged;
+
+            }
+            l = (e.NewValue as JoinTableCollection);
+            if (l != null)
+            {
+                l.CollectionChanged += JoinTables_CollectionChanged;
+            }
+        }
+
+        private void JoinTables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            UpdateListBoxJoinTable();
+            UpdateTextBoxSelectSql();
+        }
+
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.Property == TargetProperty)
             {
                 TargetPropertyChanged(e);
+            }
+            if (e.Property == JoinTablesProperty)
+            {
+                JoinTablesPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -385,10 +412,22 @@ namespace Db2Source
             {
                 return;
             }
+            if (JoinTables.Count == 0)
+            {
+                textBoxSelectSql.Text = string.Empty;
+                return;
+            }
             string alias = JoinTables[0].Alias;
             string where = Target.GetKeyConditionSQL(alias, string.Empty, 0);
             textBoxSelectSql.Text = JoinTables.GetSelectSQL(where, string.Empty, null, VisibleLevel);
-            //textBoxSelectSql.Text = Target.GetSelectSQL(alias, where, string.Empty, null, VisibleLevel);
+        }
+
+        private void UpdateListBoxJoinTable()
+        {
+            foreach (JoinTable j in ListBoxJoinTables.Items)
+            {
+                j.UpdateSelectableForeignKeys(JoinTables);
+            }
         }
 
         private void UpdateTextBoxInsertSql()
@@ -873,14 +912,17 @@ namespace Db2Source
             }
         }
 
-        private void textBoxAlias0_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            Dispatcher.Invoke(UpdateTextBoxSelectSql, DispatcherPriority.Normal);
-        }
-
         private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
         {
-            //UpdateButtonAddJoinContextMenu();
+            ContentPresenter obj = App.FindVisualParent<ContentPresenter>(sender as DependencyObject);
+            ContextMenu menu = Resources["ContextMenuJoinTableCandidates"] as ContextMenu;
+            JoinTable joinTable = obj.Content as JoinTable;
+            menu.DataContext = joinTable;
+            menu.ItemsSource = null;
+            menu.ItemsSource = (joinTable.Table as Table).ReferTo;
+            menu.PlacementTarget = sender as UIElement;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            menu.IsOpen = true;
         }
 
         private void dataGridResult_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -1013,8 +1055,51 @@ namespace Db2Source
             win.Show();
         }
 
-        private void ContextMenu_Opened(object sender, RoutedEventArgs e)
+        private void MenuItemAddJoin_Click(object sender, RoutedEventArgs e)
         {
+            MenuItem item = (sender as MenuItem);
+            if (item == null)
+            {
+                return;
+            }
+            ForeignKeyConstraint cons = item.DataContext as ForeignKeyConstraint;
+            if (cons == null)
+            {
+                return;
+            }
+            ContextMenu menu = App.FindVisualParent<ContextMenu>(item);
+            if (menu == null)
+            {
+                return;
+            }
+            JoinTable join = menu.DataContext as JoinTable;
+            JoinTables.Add(new JoinTable(join, cons));
+        }
+
+        private void TextBoxAlias_LostFocus(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxSelectSql();
+        }
+
+        private void TextBoxAlias_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                TextBox tb = sender as TextBox;
+                BindingExpression b = tb.GetBindingExpression(TextBox.TextProperty);
+                b.UpdateSource();
+            }
+        }
+
+        private void buttonCloseJoin_Click(object sender, RoutedEventArgs e)
+        {
+            ContentPresenter obj = App.FindVisualParent<ContentPresenter>(sender as DependencyObject);
+            if (obj == null)
+            {
+                return;
+            }
+            JoinTable join = obj.DataContext as JoinTable;
+            JoinTables.Remove(join);
         }
     }
 
@@ -1138,6 +1223,24 @@ namespace Db2Source
         {
             JoinKind k = (JoinKind)value;
             return (k == JoinKind.Root) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class JoinTableCandidatesCountToEnabledConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ICollection l = value as ICollection;
+            if (l == null)
+            {
+                return false;
+            }
+            return 0 < l.Count;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
