@@ -19,6 +19,7 @@ namespace Db2Source
             IdentifierInvalidated?.Invoke(this, EventArgs.Empty);
         }
         protected internal int _serial;
+        protected internal bool _released;
         internal event EventHandler IdentifierInvalidated;
         internal NamedObject(NamedCollection owner)
         {
@@ -29,7 +30,10 @@ namespace Db2Source
             }
         }
         public virtual bool IsModified() { return false; }
-        public virtual void Release() { }
+        public virtual void Release()
+        {
+            _released = true;
+        }
 
         public override string ToString()
         {
@@ -121,13 +125,23 @@ namespace Db2Source
                 }
                 if (delIds.Count != 0)
                 {
+                    foreach (NamedObject item in _list)
+                    {
+                        if (item._released)
+                        {
+                            continue;
+                        }
+                        if (delIds.ContainsKey(item._serial))
+                        {
+                            item.Release();
+                        }
+                    }
                     for (int i = _list.Count - 1; 0 <= i; i--)
                     {
                         NamedObject item = _list[i];
-                        if (delIds.ContainsKey(item._serial))
+                        if (item._released)
                         {
                             _list.RemoveAt(i);
-                            item.Release();
                         }
                     }
                 }

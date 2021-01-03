@@ -233,6 +233,11 @@ namespace Db2Source
         {
             return "Trigger";
         }
+
+        protected override string GetIdentifier()
+        {
+            return base.GetIdentifier() + "@" + Table.Identifier;
+        }
         private TriggerTiming _timing;
         private string _timingText;
         private TriggerEvent _event;
