@@ -243,6 +243,14 @@ namespace Db2Source
                 Close();
             }
         }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            //dataGridTextColumnValue.ElementStyle = Resources["ValueTextBlockStyle"] as Style;
+            //dataGridTextColumnValue.EditingElementStyle = Resources["ValueTextBoxStyle"] as Style;
+            dataGridTextColumnColumnName.CellStyle = Resources["DataGridCellColumnNameStyle"] as Style;
+            dataGridTextColumnValue.CellStyle = Resources["DataGridCellValueStyle"] as Style;
+        }
     }
 
     public class ColumnValue
@@ -250,6 +258,50 @@ namespace Db2Source
         public string ColumnName { get; set; }
         public object Value { get; set; }
         public bool IsHeader { get; set; }
+    }
+
+    public class SpannedCellPanel: DataGridCellsPanel
+    {
+        protected override Size ArrangeOverride(Size arrangeSize)
+        {
+            ColumnValue ctx = DataContext as ColumnValue;
+            if (ctx == null || !ctx.IsHeader)
+            {
+                foreach (UIElement elem in InternalChildren)
+                {
+                    elem.Visibility = Visibility.Visible;
+                }
+                return base.ArrangeOverride(arrangeSize);
+            }
+            Size s = base.ArrangeOverride(arrangeSize);
+            if (InternalChildren.Count == 0)
+            {
+                return s;
+            }
+            InternalChildren[0].Arrange(new Rect(0, 0, s.Width, s.Height));
+            for (int i = 1, n = InternalChildren.Count; i < n; i++)
+            {
+                UIElement elem = InternalChildren[i];
+                elem.Arrange(new Rect(s.Width, 0, 0, 0));
+                elem.Visibility = Visibility.Collapsed;
+            }
+            return s;
+        }
+        protected override Size MeasureOverride(Size constraint)
+        {
+            ColumnValue ctx = DataContext as ColumnValue;
+            if (ctx == null || !ctx.IsHeader)
+            {
+                return base.MeasureOverride(constraint);
+            }
+            if (InternalChildren.Count == 0)
+            {
+                return base.MeasureOverride(constraint);
+            }
+            UIElement elem = InternalChildren[0];
+            elem.Measure(constraint);
+            return elem.DesiredSize;
+        }
     }
 
     public class TypeToHorizontalAlignementConverter : IValueConverter
@@ -261,13 +313,55 @@ namespace Db2Source
                 return HorizontalAlignment.Left;
             }
             //Type t = value.GetType();
-            if (value is sbyte || value is byte || value is short || value is ushort
-                || value is int || value is uint || value is long || value is ulong
-                || value is float || value is double || value is decimal)
+            object v = value;
+            if (v is ColumnValue)
+            {
+                v = ((ColumnValue)v).Value;
+            }
+            if (v is sbyte || v is byte || v is short || v is ushort
+                || v is int || v is uint || v is long || v is ulong
+                || v is float || v is double || v is decimal)
             {
                 return HorizontalAlignment.Right;
             }
             return HorizontalAlignment.Left;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class HeaderBackgroundConverter : IValueConverter
+    {
+        private static readonly SolidColorBrush _headerColor = new SolidColorBrush(Color.FromRgb(240, 255, 240));
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ColumnValue obj = value as ColumnValue;
+            if (obj == null)
+            {
+                return SystemColors.WindowBrush;
+            }
+            return obj.IsHeader ? _headerColor : SystemColors.WindowBrush;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class HeaderFontWeightConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            ColumnValue obj = value as ColumnValue;
+            if (obj == null)
+            {
+                return FontWeights.Normal;
+            }
+            return obj.IsHeader ? FontWeights.Bold : FontWeights.Normal;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

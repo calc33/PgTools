@@ -115,6 +115,10 @@
       <DependentUpon>ExportSchema.xaml</DependentUpon>
     </Compile>
     <Compile Include="FolderBrowserDialog.cs" />
+    <Compile Include="GridClipboard.cs" />
+    <Compile Include="GridClipboardWinow.xaml.cs">
+      <DependentUpon>GridClipboardWinow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="LogListBoxItem.cs" />
     <Compile Include="MainWindow.treeview.cs" />
     <Compile Include="NewConnectionWindow.xaml.cs">
@@ -198,6 +202,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ExportSchema.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="GridClipboardWinow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

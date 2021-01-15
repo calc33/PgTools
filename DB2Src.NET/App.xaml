@@ -8,6 +8,7 @@
              DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
     <Application.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:InvertBooleanToVisiblityConverter x:Key="InvertBooleanToVisiblityConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:ItemsSourceToColumnFilterButtonVisiblityConverter x:Key="ItemsSourceToColumnFilterButtonVisiblityConverter"/>
         <local:RowVisibleConverter x:Key="RowVisibleConverter"/>
@@ -183,6 +184,11 @@
         <DataTemplate x:Key="ImageCopy14">
             <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M2.5,5.5 l6,0 l0,8 l-6,0 z M6.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImagePaste14">
+            <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M3.5,4 l0,-1.5 l9,0 l0,11 l-1.5,0 M5.5,2.5 A2,2 0 0 1 7.5,0.5 l1,0 A2,2 0 0 1 10.5,2.5 M1.5,5.5 l8,0 l0,8 l-8,0 l0,-8 z M1.5,7.5 l8,0 M3,9.5 l2,0 M6,9.5 l2,0 M3,11.5 l2,0 M6,11.5 l2,0"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageFilter14">
@@ -1021,6 +1027,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="20"/>
                                     <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Label ToolTip="変更を元に戻す" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
@@ -1040,6 +1047,11 @@
                                         <Path Fill="{TemplateBinding Foreground}" Data="M13,19 L16,16 L16,19 z"/>
                                     </Canvas>
                                 </Button>
+                                <!--<Label Grid.Column="2">
+                                    <Canvas>
+                                        <Path Stroke=""
+                                    </Canvas>
+                                </Label>--> 
                             </Grid>
                             <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
                             <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>

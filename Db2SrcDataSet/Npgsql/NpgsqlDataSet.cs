@@ -766,13 +766,17 @@ namespace Db2Source
             ExecuteSql(buf.ToString(), listP.ToArray(), owner, row, connection, transaction);
         }
 
-        public override void ApplyChange(IChangeSet owner, IChangeSetRow row, IDbConnection connection)
+        public override void ApplyChange(IChangeSet owner, IChangeSetRow row, IDbConnection connection, IDbTransaction transaction, Dictionary<IChangeSetRow, bool> applied)
         {
             if (row == null)
             {
                 return;
             }
             if (row.ChangeKind == ChangeKind.None)
+            {
+                return;
+            }
+            if (applied.ContainsKey(row))
             {
                 return;
             }
@@ -784,7 +788,7 @@ namespace Db2Source
             IChangeSetRow dep = owner.Rows.FingRowByOldKey(row.GetKeys());
             if (dep != null && dep != row)
             {
-                ApplyChange(owner, dep, connection);
+                ApplyChange(owner, dep, connection, transaction, applied);
             }
 
             if (connection == null)
@@ -796,7 +800,7 @@ namespace Db2Source
                 throw new ArgumentException("connection");
             }
             NpgsqlConnection conn = (NpgsqlConnection)connection;
-            using (NpgsqlTransaction txn = conn.BeginTransaction())
+            NpgsqlTransaction txn = (NpgsqlTransaction)transaction;
             {
                 try
                 {
@@ -814,14 +818,13 @@ namespace Db2Source
                             ExecuteDelete(owner, row, conn, txn);
                             break;
                     }
+                    applied.Add(row, true);
                 }
-                catch (Exception)
+                catch (Exception t)
                 {
-                    txn.Rollback();
+                    row.SetError(t);
                     throw;
                 }
-                txn.Commit();
-                row.AcceptChanges();
             }
         }
     }

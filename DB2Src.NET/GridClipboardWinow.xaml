@@ -1,0 +1,70 @@
+﻿<Window x:Name="window" x:Class="Db2Source.GridClipboardWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Db2Source"
+        mc:Ignorable="d"
+        Title="データの貼り付け" Height="450" Width="800" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LayoutUpdated="window_LayoutUpdated">
+    <Window.Resources>
+        <local:DataGridCellToCellConverter x:Key="DataGridCellToCellConverter"/>
+        <SolidColorBrush x:Key="ErrorTextBrush" Color="Red"/>
+        <Style x:Key="DataGridCellDataStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="local:GridClipboardWindow.CellInfo"  Value="{Binding RelativeSource={RelativeSource Self}, Converter={StaticResource DataGridCellToCellConverter}, Mode=OneWay}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding (local:GridClipboardWindow.CellInfo).IsValid, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource ErrorTextBrush}"/>
+                </DataTrigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="true"/>
+                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                </MultiTrigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Name="checkBoxContainsHeader" Content="先頭行は項目名" Margin="4,2" IsEnabled="{Binding Clipboard.HasExplicitHeader, ElementName=window, Mode=OneWay}" IsChecked="{Binding Clipboard.UseExplicitHeader, ElementName=window, Mode=TwoWay}" Checked="checkBoxContainsHeader_Checked"/>
+                <CheckBox x:Name="checkBoxMergeByKey" Content="キー項目で照合してマージ" Margin="4,2" IsEnabled="{Binding Clipboard.CanMergeByKey, ElementName=window, Mode=OneWay}" IsChecked="{Binding Clipboard.MergeByKey, ElementName=window, Mode=TwoWay}"/>
+                <CheckBox x:Name="checkBoxIgnoreEmpty" Content="空のセルは置換しない" Margin="4,2" IsChecked="{Binding Clipboard.IgnoreEmptyCell, ElementName=window}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="貼り付け先の項目に適合しないデータがあります" Foreground="Red" Margin="4,2" Visibility="{Binding Clipboard.IsValid, ElementName=window, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+            </StackPanel>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="貼り付け" MinWidth="70" Margin="10,6" Padding="4" IsDefault="True" IsEnabled="{Binding Clipboard.IsValid, ElementName=window}" Click="Button_Click"/>
+            <Button Content="キャンセル" MinWidth="70" Margin="10,6" Padding="4" IsCancel="True" Click="ButtonClose_Click"/>
+        </StackPanel>
+        <DataGrid x:Name="dataGridClipboardData" AutoGenerateColumns="False" CellStyle="{DynamicResource DataGridCellDataStyle}" IsReadOnly="True" CanUserSortColumns="False" CanUserReorderColumns="False"/>
+    </DockPanel>
+</Window>

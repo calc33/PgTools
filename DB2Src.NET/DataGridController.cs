@@ -310,6 +310,8 @@ namespace Db2Source
         internal bool _added = false;
         internal bool _deleted = false;
         private bool? _hasChanges = null;
+        internal bool _hasError = false;
+        internal string _errorMessage = string.Empty;
         private void UpdateHasChanges()
         {
             if (_added || _deleted)
@@ -353,6 +355,8 @@ namespace Db2Source
                 }
             }
             _deleted = false;
+            HasError = false;
+            ErrorMessage = null;
             OnPropertyChanged("IsDeleted");
             OnPropertyChanged("HasChanges");
         }
@@ -373,7 +377,20 @@ namespace Db2Source
             }
             _hasChanges = false;
             _deleted = false;
+            HasError = false;
+            ErrorMessage = null;
         }
+
+        public void SetError(Exception t)
+        {
+            SetError(t.Message);
+        }
+        public void SetError(string message)
+        {
+            HasError = true;
+            ErrorMessage = message;
+        }
+
 
         public bool IsDeleted
         {
@@ -407,6 +424,41 @@ namespace Db2Source
             {
                 UpdateHasChanges();
                 return _hasChanges.HasValue && _hasChanges.Value;
+            }
+        }
+
+        public bool HasError
+        {
+            get
+            {
+                return _hasError;
+            }
+            private set
+            {
+                if (_hasError == value)
+                {
+                    return;
+                }
+                _hasError = value;
+                OnPropertyChanged("HasError");
+                Owner.InvalidateHasError();
+            }
+        }
+
+        public string ErrorMessage
+        {
+            get
+            {
+                return _errorMessage;
+            }
+            private set
+            {
+                if (_errorMessage == value)
+                {
+                    return;
+                }
+                _errorMessage = value;
+                OnPropertyChanged("ErrorMessage");
             }
         }
 
@@ -875,7 +927,7 @@ namespace Db2Source
             _keyToRow = null;
         }
 
-        public Row FingRowByKey(object[] key)
+        public Row FindRowByKey(object[] key)
         {
             RequireKeyToRow();
             Row row;
@@ -885,7 +937,7 @@ namespace Db2Source
             }
             return row;
         }
-        public Row FingRowByOldKey(object[] key)
+        public Row FindRowByOldKey(object[] key)
         {
             Row row;
             if (!_oldKeyToRow.TryGetValue(key, out row))
@@ -1217,6 +1269,8 @@ namespace Db2Source
         public static readonly DependencyProperty UseSearchColumnProperty = DependencyProperty.Register("UseSearchColumn", typeof(bool), typeof(DataGridController));
         public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController));
         public static readonly DependencyProperty RowsProperty = DependencyProperty.Register("Rows", typeof(RowCollection), typeof(DataGridController));
+        public static readonly DependencyProperty HasErrorProperty = DependencyProperty.Register("HasError", typeof(bool), typeof(DataGridController));
+
         public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(CellInfo), typeof(DataGridController));
         public static readonly DependencyProperty GridControllerProperty = DependencyProperty.RegisterAttached("GridController", typeof(DataGridController), typeof(DataGridController));
 
@@ -1597,6 +1651,50 @@ namespace Db2Source
                 //UpdateFieldComment();
             }
         }
+
+        public bool HasError
+        {
+            get
+            {
+                return (bool)GetValue(HasErrorProperty);
+            }
+            set
+            {
+                SetValue(HasErrorProperty, value);
+            }
+        }
+
+        private bool _hasErrorUpdating = false;
+        private void UpdateHasError()
+        {
+            try
+            {
+                bool flag = false;
+                foreach (Row row in Rows)
+                {
+                    if (row.HasError)
+                    {
+                        flag = true;
+                        break;
+                    }
+                }
+                HasError = flag;
+            }
+            finally
+            {
+                _hasErrorUpdating = false;
+            }
+        }
+        public void InvalidateHasError()
+        {
+            if (_hasErrorUpdating)
+            {
+                return;
+            }
+            _hasErrorUpdating = true;
+            Dispatcher.Invoke(UpdateHasError, DispatcherPriority.Normal);
+        }
+
         private Dictionary<string, ColumnInfo> _nameToField = new Dictionary<string, ColumnInfo>();
         public ColumnInfo GetFieldByName(string name)
         {
@@ -1713,9 +1811,29 @@ namespace Db2Source
             {
                 return;
             }
-            foreach (Row row in log)
+            Dictionary<IChangeSetRow, bool> applied = new Dictionary<IChangeSetRow, bool>();
+            Db2SourceContext ctx = Table.Context;
+            IDbTransaction txn = connection.BeginTransaction();
+            try
             {
-                Table.Context.ApplyChange(this, row, connection);
+                foreach (Row row in log)
+                {
+                    ctx.ApplyChange(this, row, connection, txn, applied);
+                }
+                txn.Commit();
+                foreach (Row row in log)
+                {
+                    row.AcceptChanges();
+                }
+            }
+            catch
+            {
+                txn.Rollback();
+                throw;
+            }
+            finally
+            {
+                txn.Dispose();
             }
             Rows.TrimDeletedRows();
             UpdateIsModified();
@@ -1813,6 +1931,8 @@ namespace Db2Source
                     cb = new CommandBinding(DataGridCommands.CheckAll, CheckAllCommand_Executed, CheckAllCommand_CanExecute);
                     Grid.CommandBindings.Add(cb);
                     cb = new CommandBinding(DataGridCommands.UncheckAll, UncheckAllCommand_Executed, UncheckAllCommand_CanExecute);
+                    Grid.CommandBindings.Add(cb);
+                    cb = new CommandBinding(ApplicationCommands.Paste, PasteCommand_Executed, PasteCommand_CanExecute);
                     Grid.CommandBindings.Add(cb);
                 }
             }
@@ -2509,46 +2629,41 @@ namespace Db2Source
                 }
             }
         }
-        private string[][] CsvToArray(string csv)
+        private void PasteCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (string.IsNullOrEmpty(csv))
-            {
-                return new string[0][];
-            }
-            int i0 = 0;
-            int n = csv.Length;
-            List<string[]> rows = new List<string[]>();
-            List<string> cols = new List<string>();
-            for (int i = 0; i < n; i++)
-            {
-                char c = csv[i];
-                switch (c)
-                {
-                    case '"':
-                        for (i++; i < n && csv[i] != '"'; i++) ;
-                        break;
-                    case '\n':
-                        rows.Add(cols.ToArray());
-                        cols = new List<string>();
-                        i0 = i + 1;
-                        break;
-                    case '\r':
-                        if (csv[i + 1] == '\n')
-                        {
-                            i++;
-                        }
-                        rows.Add(cols.ToArray());
-                        cols = new List<string>();
-                        i0 = i + 1;
-                        break;
-                    case ',':
-                        //cols.Add(DequoteStr(csv.Substring(i0, i - i0)));
-                        break;
-                }
-                //for (; csv[i] != '\r' && csv)
-            }
-            return new string[0][];
+            DataGrid gr = sender as DataGrid;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.Handled = true;
         }
+
+        private void PasteAsSingleText(ExecutedRoutedEventArgs e, GridClipboard clipboard)
+        {
+            if (!Grid.BeginEdit())
+            {
+                return;
+            }
+            TextBox tb = Grid.CurrentColumn.GetCellContent(Grid.CurrentItem) as TextBox;
+            if (tb == null)
+            {
+                return;
+            }
+            tb.Paste();
+            e.Handled = true;
+        }
+        private void PasteAsDataGrid(ExecutedRoutedEventArgs e, GridClipboard clipboard)
+        {
+            GridClipboardWindow win = new GridClipboardWindow();
+            win.Owner = Window.GetWindow(Grid);
+            win.Clipboard = clipboard;
+            bool? ret = win.ShowDialog();
+            if (!ret.HasValue || !ret.Value)
+            {
+                return;
+            }
+            clipboard.Paste();
+            e.Handled = true;
+        }
+
         private void PasteCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             DataGrid gr = e.Source as DataGrid;
@@ -2559,6 +2674,15 @@ namespace Db2Source
             if (Clipboard.ContainsData(DataFormats.CommaSeparatedValue))
             {
                 string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
+                GridClipboard clipboard = new GridClipboard(this, csv, GridClipboard.TextViewFormat.CSV);
+                if (clipboard.IsSingleText)
+                {
+                    PasteAsSingleText(e, clipboard);
+                }
+                else
+                {
+                    PasteAsDataGrid(e, clipboard);
+                }
             }
         }
         private void CheckAllCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -2634,17 +2758,17 @@ namespace Db2Source
             DataGridCell cell = value as DataGridCell;
             if (cell == null)
             {
-                return ColumnInfo.Stub;
+                return null;
             }
             ColumnInfo col = cell.Column.Header as ColumnInfo;
             if (col == null || col.Index == -1)
             {
-                return ColumnInfo.Stub;
+                return null;
             }
             Row row = cell.DataContext as Row;
             if (row == null)
             {
-                return ColumnInfo.Stub;
+                return null;
             }
             return row.Cells[col.Index];
         }
@@ -2654,6 +2778,7 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
+    
     public class RowVisibleConverter: IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -2666,7 +2791,8 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-    public class HideNewItemPlaceHolderConverter: IValueConverter
+
+    public class HideNewItemPlaceHolderConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -2678,5 +2804,4 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-
 }

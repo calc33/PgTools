@@ -97,6 +97,8 @@ namespace Db2Source
         object[] GetKeys();
         void Read(IDataReader reader, int[] indexList);
         void AcceptChanges();
+        void SetError(Exception t);
+        void SetError(string message);
     }
 
     /// <summary>
@@ -760,8 +762,31 @@ namespace Db2Source
         public abstract string[] GetAlterViewSQL(View after, View before);
         public abstract string[] GetAlterColumnSQL(Column after, Column before);
         public abstract string[] GetAlterCommentSQL(Comment after, Comment before);
-        //public abstract void ApplyChange(DataGridController owner, DataGridController.Row row, IDbConnection connection, IDbTransaction transaction);
-        public abstract void ApplyChange(IChangeSet owner, IChangeSetRow row, IDbConnection connection);
+        public abstract void ApplyChange(IChangeSet owner, IChangeSetRow row, IDbConnection connection, IDbTransaction transaction, Dictionary<IChangeSetRow, bool> applied);
+        public virtual void ApplyChange(IChangeSet owner, IChangeSetRow row, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            Dictionary<IChangeSetRow, bool> applied = new Dictionary<IChangeSetRow, bool>();
+            IDbTransaction txn = connection.BeginTransaction();
+            try
+            {
+                ApplyChange(owner, row, connection, txn, applied);
+                txn.Commit();
+                row.AcceptChanges();
+            }
+            catch
+            {
+                txn.Rollback();
+                throw;
+            }
+            finally
+            {
+                txn.Dispose();
+            }
+        }
         //public abstract void ApplyChangeLog(DataGridController.ChangeLog log, IDbConnection connection, IDbTransaction transaction);
         public static readonly Dictionary<Type, DbType> TypeToDbType = new Dictionary<Type, DbType>()
         {

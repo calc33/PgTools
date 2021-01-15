@@ -360,11 +360,27 @@ namespace Db2Source
             Context = context;
             Schema = context.RequireSchema(schema);
         }
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (Schema != null)
+                    {
+                        Schema.Columns.Remove(this);
+                    }
+                    Comment?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
         public override void Release()
         {
+            base.Release();
             if (Schema != null)
             {
-                Schema.Columns.Remove(this);
+                Schema.Columns.Invalidate();
             }
             Comment?.Release();
         }
@@ -795,6 +811,21 @@ namespace Db2Source
             Columns = new ColumnCollection(this);
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (Column c in Columns)
+                    {
+                        c.Dispose();
+                    }
+                    Comment?.Dispose();
+                }
+                base.Dispose(disposing);
+            }
+        }
         public override void Release()
         {
             base.Release();

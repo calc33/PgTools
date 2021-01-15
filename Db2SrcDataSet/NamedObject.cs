@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Db2Source
 {
-    public abstract class NamedObject : IComparable
+    public abstract class NamedObject : IComparable, IDisposable
     {
         public string Identifier
         {
@@ -20,6 +20,8 @@ namespace Db2Source
         }
         protected internal int _serial;
         protected internal bool _released;
+        protected bool disposedValue;
+
         internal event EventHandler IdentifierInvalidated;
         internal NamedObject(NamedCollection owner)
         {
@@ -71,6 +73,35 @@ namespace Db2Source
             }
             return string.Compare(Identifier, (((NamedObject)obj).Identifier));
         }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: マネージド状態を破棄します (マネージド オブジェクト)
+                }
+
+                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+                // TODO: 大きなフィールドを null に設定します
+                disposedValue = true;
+            }
+        }
+
+        // // TODO: 'Dispose(bool disposing)' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします
+        // ~NamedObject()
+        // {
+        //     // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+        //     Dispose(disposing: false);
+        // }
+
+        public void Dispose()
+        {
+            // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 
 
@@ -92,6 +123,13 @@ namespace Db2Source
                 if (_nameDict != null)
                 {
                     return;
+                }
+                for(int i = _list.Count - 1; 0 <= i; i--)
+                {
+                    if (_list[i]._released)
+                    {
+                        _list.RemoveAt(i);
+                    }
                 }
                 Dictionary<string, NamedObject> dict = new Dictionary<string, NamedObject>();
                 Dictionary<int, bool> delIds = new Dictionary<int, bool>();
@@ -148,7 +186,7 @@ namespace Db2Source
                 _nameDict = dict;
             }
         }
-        private void InvalidateList()
+        public void Invalidate()
         {
             _nameDict = null;
         }
@@ -181,7 +219,7 @@ namespace Db2Source
 
         internal void ItemIdentifierInvalidated(object sender, EventArgs e)
         {
-            InvalidateList();
+            Invalidate();
         }
 
         public void ReleaseAll()
@@ -223,13 +261,13 @@ namespace Db2Source
             }
             _list.Add(item);
             item.IdentifierInvalidated += ItemIdentifierInvalidated;
-            InvalidateList();
+            Invalidate();
         }
 
         public void Clear()
         {
             _list.Clear();
-            InvalidateList();
+            Invalidate();
             _serialSeq = 1;
         }
 
@@ -256,7 +294,7 @@ namespace Db2Source
             bool ret = _list.Remove(item);
             if (ret)
             {
-                InvalidateList();
+                Invalidate();
             }
             return ret;
         }

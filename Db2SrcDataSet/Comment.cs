@@ -120,12 +120,29 @@ namespace Db2Source
                 _oldText = Text;
             }
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (Schema != null)
+                    {
+                        Schema.Comments.Remove(this);
+                    }
+                }
+                base.Dispose(disposing);
+            }
+        }
         public override void Release()
         {
+            base.Release();
             if (Schema != null)
             {
-                Schema.Comments.Remove(this);
+                Schema.Comments.Invalidate();
             }
+            Schema = null;
         }
     }
 

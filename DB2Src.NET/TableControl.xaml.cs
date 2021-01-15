@@ -87,6 +87,7 @@ namespace Db2Source
                 }
             }
         }
+
         public bool IsTargetModified
         {
             get
@@ -109,6 +110,7 @@ namespace Db2Source
                 SetValue(DataGridControllerResultProperty, value);
             }
         }
+
         public double DataGridResultMaxHeight
         {
             get
@@ -155,6 +157,7 @@ namespace Db2Source
                 dataGridColumns.ItemsSource = Target.Columns;
             }
         }
+        
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             JoinTables.Clear();
@@ -783,9 +786,8 @@ namespace Db2Source
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
-            //DataGridCommands.CopyTable.Execute(null, dataGridResult);
             Button btn = sender as Button;
-            ContextMenu menu = btn.ContextMenu;
+            ContextMenu menu = FindResource("ContextMenuCopyTable") as ContextMenu;
             menu.PlacementTarget = btn;
             menu.IsOpen = true;
             foreach (MenuItem mi in menu.Items)
@@ -795,14 +797,50 @@ namespace Db2Source
         }
 
         //private WeakReference<SearchDataGridTextWindow> _searchDataGridTextWindow = null;
+        private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
+        private SearchDataGridWindow RequireSearchWindowDataGridColumns()
+        {
+            SearchDataGridWindow win;
+            if (_searchWindowDataGridColumns != null && _searchWindowDataGridColumns.TryGetTarget(out win))
+            {
+                return win;
+            }
+            win = new SearchDataGridWindow();
+            win.Target = dataGridColumns;
+            win.Owner = Window.GetWindow(this);
+            win.Closed += SearchWindowDataGridColumns_Closed;
+            _searchWindowDataGridColumns = new WeakReference<SearchDataGridWindow>(win);
+            return win;
+        }
+
+        private void SearchWindowDataGridColumns_Closed(object sender, EventArgs e)
+        {
+            _searchWindowDataGridColumns = null;
+        }
+
         private void FindCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            DataGridControllerResult.ShowSearchWinodow();
+            if (tabControlMain.SelectedItem == tabItemData)
+            {
+                DataGridControllerResult.ShowSearchWinodow();
+            }
+            else if (tabControlMain.SelectedItem == tabItemInfo)
+            {
+                SearchDataGridWindow win = RequireSearchWindowDataGridColumns();
+                win.Show();
+            }
         }
 
         private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            DataGridControllerResult.SearchGridTextForward();
+            if (tabControlMain.SelectedItem == tabItemData)
+            {
+                DataGridControllerResult.SearchGridTextForward();
+            }
+            else if (tabControlMain.SelectedItem == tabItemInfo)
+            {
+
+            }
         }
 
         private void FindPreviousCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -890,7 +928,7 @@ namespace Db2Source
             win.Table = Target;
             win.Column = col;
             win.Row = row;
-            App.ShowNearby(win, cell, NearbyLocation.DownLeft);
+            App.ShowNearby(win, cell, NearbyLocation.RightSideTop);
         }
 
         private void DataGridCell_Selected(object sender, RoutedEventArgs e)

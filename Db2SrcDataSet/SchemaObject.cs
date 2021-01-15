@@ -197,10 +197,31 @@ namespace Db2Source
             Name = objectName;
             Triggers = new TriggerCollection(this);
         }
-
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    if (Schema != null)
+                    {
+                        Schema.GetCollection(GetCollectionIndex()).Remove(this);
+                    }
+                    foreach (Trigger t in Triggers)
+                    {
+                        t.Dispose();
+                    }
+                }
+                base.Dispose(disposing);
+            }
+        }
         public override void Release()
         {
-            Schema.GetCollection(GetCollectionIndex()).Remove(this);
+            base.Release();
+            if (Schema != null)
+            {
+                Schema.GetCollection(GetCollectionIndex()).Invalidate();
+            }
             foreach (Trigger t in Triggers)
             {
                 t.Release();

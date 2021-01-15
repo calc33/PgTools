@@ -57,7 +57,7 @@ namespace Db2Source
             new WindowLocator(target, window, location);
         }
 
-        private static Rect GetWorkingAreaOf(FrameworkElement element)
+        public static Rect GetWorkingAreaOf(FrameworkElement element)
         {
             Point p = element.PointToScreen(new Point());
             System.Windows.Forms.Screen sc = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
