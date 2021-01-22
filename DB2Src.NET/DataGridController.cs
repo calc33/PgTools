@@ -314,24 +314,31 @@ namespace Db2Source
         internal string _errorMessage = string.Empty;
         private void UpdateHasChanges()
         {
-            if (_added || _deleted)
+            try
             {
-                _hasChanges = true;
-                return;
-            }
-            if (_hasChanges.HasValue)
-            {
-                return;
-            }
-            for (int i = 0; i < _data.Length; i++)
-            {
-                if (IsModified(i))
+                if (_added || _deleted)
                 {
                     _hasChanges = true;
                     return;
                 }
+                if (_hasChanges.HasValue)
+                {
+                    return;
+                }
+                for (int i = 0; i < _data.Length; i++)
+                {
+                    if (IsModified(i))
+                    {
+                        _hasChanges = true;
+                        return;
+                    }
+                }
+                _hasChanges = false;
             }
-            _hasChanges = false;
+            finally
+            {
+                _owner.InvalidateIsModified();
+            }
         }
         private void InvalidateHasChanges()
         {
@@ -1417,18 +1424,36 @@ namespace Db2Source
             _isSearchEndValid = false;
         }
 
-        private void UpdateIsModified()
+        private bool _updateIsModifiedPosted = false;
+        internal void UpdateIsModified()
         {
-            Rows.TrimDeletedRows();
-            foreach (Row row in Rows)
+            try
             {
-                if (row.ChangeKind != ChangeKind.None)
+                Rows.TrimDeletedRows();
+                foreach (Row row in Rows)
                 {
-                    IsModified = true;
-                    return;
+                    if (row.ChangeKind != ChangeKind.None)
+                    {
+                        IsModified = true;
+                        return;
+                    }
                 }
+                IsModified = false;
             }
-            IsModified = false;
+            finally
+            {
+                _updateIsModifiedPosted = false;
+            }
+        }
+
+        internal void InvalidateIsModified()
+        {
+            if (_updateIsModifiedPosted)
+            {
+                return;
+            }
+            _updateIsModifiedPosted = true;
+            Dispatcher.Invoke(UpdateIsModified, DispatcherPriority.Normal);
         }
 
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;

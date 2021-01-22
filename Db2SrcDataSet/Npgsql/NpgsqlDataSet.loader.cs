@@ -910,7 +910,7 @@ namespace Db2Source
             public uint oid;
 #pragma warning restore 0649
             //public abstract string Name { get; }
-            public SchemaObject Generated;
+            public NamedObject Generated;
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
             public abstract void FillReference(WorkingData working);
@@ -2048,9 +2048,11 @@ namespace Db2Source
 #pragma warning disable 0649
             public string spcname;
             public uint spcowner;
+            public string[] spcoptions;
+            public string location;
 #pragma warning restore 0649
             public static PgObjectCollection<PgTablespace> Tablespaces;
-            private const string SQL = "select oid, spcname, spcowner from pg_catalog.pg_tablespace";
+            private const string SQL = "select ts.oid, ts.*, pg_tablespace_location(ts.oid) as location from pg_catalog.pg_tablespace ts order by spcname";
             public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, PgObjectCollection<PgTablespace> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
@@ -2073,9 +2075,19 @@ namespace Db2Source
             {
             }
 
-            //public Tablespace ToTablespace(NpgsqlDataSet context)
-            //{
-            //}
+            public PgsqlTablespace ToTablespace(NpgsqlDataSet context)
+            {
+                PgsqlTablespace ts = new PgsqlTablespace(context.Tablespaces)
+                {
+                    oid = oid,
+                    Name = spcname,
+                    Options = spcoptions,
+                    Path = location
+                };
+                Generated = ts;
+                return ts;
+
+            }
         }
 
         private class PgProc: PgObject
@@ -2272,6 +2284,7 @@ namespace Db2Source
             public uint datminmxid;
             public uint dattablespace;
             public string dattablespacename;
+            public string version;
 #pragma warning restore 0649
             public bool IsCurrent;
             public static string current_database;
@@ -2310,6 +2323,7 @@ namespace Db2Source
                 ret.DefaultTablespace = dattablespacename;
                 //ret.DbaUserName = datdba;
                 ret.IsCurrent = IsCurrent;
+                ret.Version = version;
                 return ret;
             }
         }
@@ -2341,6 +2355,61 @@ namespace Db2Source
             }
         }
 
+        private class PgUser: PgObject
+        {
+#pragma warning disable 0649
+            public string usename;
+            public uint usesysid;
+            public bool usecreatedb;
+            public bool usesuper;
+            public bool userepl;
+            public bool usebypassrls;
+            public DateTime? valuntil;
+            public string[] useconfig;
+#pragma warning restore 0649
+
+            public static PgObjectCollection<PgUser> Users;
+            private const string SQL = "select u.usesysid as oid, u.* as location from pg_catalog.pg_user u order by u.usename";
+            public static PgObjectCollection<PgUser> Load(NpgsqlConnection connection, PgObjectCollection<PgUser> store, Dictionary<uint, PgObject> dict)
+            {
+                if (store == null)
+                {
+                    return new PgObjectCollection<PgUser>(SQL, connection, dict);
+                }
+                else
+                {
+                    store.Fill(SQL, connection, dict, false);
+                    return store;
+                }
+            }
+            public static PgObjectCollection<PgUser> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            {
+                Users = new PgObjectCollection<PgUser>(SQL, connection, dict);
+                return Users;
+            }
+
+            public override void FillReference(WorkingData working)
+            {
+            }
+
+            public PgsqlUser ToUser(NpgsqlDataSet context)
+            {
+                PgsqlUser u = new PgsqlUser(context.Users)
+                {
+                    Name = usename,
+                    oid = usesysid,
+                    CanCreateDb = usecreatedb,
+                    IsSuperUser = usesuper,
+                    Replication = userepl,
+                    BypassRowLevelSecurity = usebypassrls,
+                    PasswordExpiration = valuntil.HasValue ? valuntil.Value : DateTime.MaxValue,
+                    Config = useconfig
+                };
+                Generated = u;
+                return u;
+            }
+        };
+
         private class WorkingData
         {
             public NpgsqlDataSet Context;
@@ -2356,6 +2425,7 @@ namespace Db2Source
             public PgObjectCollection<PgDatabase> PgDatabases;
             public PgObjectCollection<PgType> PgTypes;
             public PgObjectCollection<PgProc> PgProcs;
+            public PgObjectCollection<PgUser> PgUsers;
             public WorkingData(NpgsqlDataSet context, NpgsqlConnection connection)
             {
                 Context = context;
@@ -2371,6 +2441,8 @@ namespace Db2Source
                 PgTriggers = PgTrigger.Load(connection, null, OidToObject);
                 PgDescriptions = PgDescription.Load(connection, null, OidToObject);
                 //PgDepends = PgDepend.Load(connection, null);
+                PgUsers = PgUser.Load(connection, null, OidToObject);
+
 
                 PgNamespaces.BeginFillReference(this);
                 PgTablespaces.BeginFillReference(this);
@@ -2383,6 +2455,7 @@ namespace Db2Source
                 PgTriggers.BeginFillReference(this);
                 PgDescriptions.BeginFillReference(this);
                 //PgDepends.BeginFillReference(this);
+                PgUsers.BeginFillReference(this);
 
                 PgNamespaces.FillReference(this);
                 PgTablespaces.FillReference(this);
@@ -2395,6 +2468,7 @@ namespace Db2Source
                 PgTriggers.FillReference(this);
                 PgDescriptions.FillReference(this);
                 //PgDepends.FillReference(this);
+                PgUsers.FillReference(this);
 
                 PgNamespaces.EndFillReference(this);
                 PgTablespaces.EndFillReference(this);
@@ -2407,6 +2481,7 @@ namespace Db2Source
                 PgTriggers.EndFillReference(this);
                 PgDescriptions.EndFillReference(this);
                 //PgDepends.EndFillReference(this);
+                PgUsers.EndFillReference(this);
 
                 LoadFromPgNamespaces();
                 LoadFromPgTablespaces();
@@ -2418,6 +2493,7 @@ namespace Db2Source
                 LoadFromPgTrigger();
                 LoadFromPgDescription();
                 //LoadFromPgDepend();
+                LoadFromPgUsers();
                 foreach (Schema s in Context.Schemas)
                 {
                     foreach (Schema.CollectionIndex idx in Enum.GetValues(typeof(Schema.CollectionIndex)))
@@ -2438,11 +2514,20 @@ namespace Db2Source
             }
             private void LoadFromPgTablespaces()
             {
-                //foreach (PgTablespace ts in PgTablespaces)
-                //{
-                //    ts.ToTablespace(Context);
-                //}
+                foreach (PgTablespace ts in PgTablespaces)
+                {
+                    ts.ToTablespace(Context);
+                }
             }
+
+            private void LoadFromPgUsers()
+            {
+                foreach (PgUser ts in PgUsers)
+                {
+                    ts.ToUser(Context);
+                }
+            }
+
             private void LoadFromPgDatabases()
             {
                 List<Database> l = new List<Database>();

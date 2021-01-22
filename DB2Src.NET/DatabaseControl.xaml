@@ -9,12 +9,104 @@
     <UserControl.Resources>
         <local:NameValue x:Key="NameValue"/>
     </UserControl.Resources>
-    <Grid>
-        <DataGrid x:Name="gridInfo">
-            <DataGrid.Columns>
-                <DataGridTextColumn Binding="{Binding Name}" Header="名前"/>
-                <DataGridTextColumn Binding="{Binding Value}" Header="値"/>
-            </DataGrid.Columns>
-        </DataGrid>
-    </Grid>
+    <TabControl>
+        <TabItem Header="情報">
+            <DataGrid>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="データベース名" Binding="{Binding Name}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="バージョン" Binding="{Binding Version}" IsReadOnly="True"/>
+                    <DataGridComboBoxColumn Header="表領域(初期値)"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </TabItem>
+        <TabItem Header="ユーザー">
+            <DockPanel>
+                <ListBox DockPanel.Dock="Left" MinWidth="100"/>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+                        <ToolBar>
+                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更"/>
+                            <Separator/>
+                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存"/>
+                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し"/>
+                            <Separator/>
+                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="ユーザーを削除"/>
+                        </ToolBar>
+                    </StackPanel>
+                    <TextBlock Grid.Row="1" Text="ユーザー名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="2" Text="権限：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <WrapPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+                        <CheckBox Content="データベース作成" Margin="0,2,4,2"/>
+                        <CheckBox Content="スーパーユーザー" Margin="0,2,4,2"/>
+                        <CheckBox Content="レプリケーション" Margin="0,2,4,2"/>
+                        <CheckBox Content="行単位のセキュリティポリシーを無視" Margin="0,2,4,2"/>
+                    </WrapPanel>
+                    <TextBlock Grid.Row="3" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="4" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
+                    <DataGrid Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                </Grid>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="表領域">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Left">
+                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                        <Button  Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}"/>
+                    </StackPanel>
+                    <ListBox MinWidth="100"/>
+                </DockPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
+                        <ToolBar>
+                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更"/>
+                            <Separator/>
+                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存"/>
+                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し"/>
+                            <Separator/>
+                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="表領域を削除"/>
+                        </ToolBar>
+                    </StackPanel>
+                    <TextBlock Grid.Row="1" Text="表領域名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="2" Text="所有者：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,2" IsEditable="True"/>
+                    <TextBlock Grid.Row="3" Text="フォルダ：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
+                    <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
+                </Grid>
+            </DockPanel>
+        </TabItem>
+    </TabControl>
 </UserControl>

@@ -810,6 +810,8 @@ namespace Db2Source
         public abstract IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld);
         public abstract IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld);
         public NamedCollection<Schema> Schemas { get; } = new NamedCollection<Schema>();
+        public NamedCollection<User> Users { get; } = new NamedCollection<User>();
+        public NamedCollection<Tablespace> Tablespaces { get; } = new NamedCollection<Tablespace>();
         public SchemaObjectCollection<SchemaObject> Objects { get; private set; }
         public SchemaObjectCollection<Selectable> Selectables { get; private set; }
         public SchemaObjectCollection<Table> Tables { get; private set; }
@@ -912,6 +914,8 @@ namespace Db2Source
         public void Clear()
         {
             Schemas.Clear();
+            Tablespaces.Clear();
+            Users.Clear();
             //Dependencies.Clear();
         }
 

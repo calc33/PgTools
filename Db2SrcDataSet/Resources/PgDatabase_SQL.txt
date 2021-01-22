@@ -4,7 +4,8 @@ select
   d."encoding", pg_encoding_to_char(d."encoding") as encoding_char,
   d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
   d.datconnlimit, d.datlastsysoid, d.datfrozenxid, d.datminmxid,
-  d.dattablespace, ts.spcname as dattablespacename
+  d.dattablespace, ts.spcname as dattablespacename,
+  version() as version
 from pg_database as d
   left outer join pg_user u on (d.datdba = u.usesysid)
   left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
