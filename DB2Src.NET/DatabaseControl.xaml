@@ -17,10 +17,12 @@
                         <TextBlock DockPanel.Dock="Top" Text="{Binding Target.Version, ElementName=userControl}" Margin="2,4"/>
                         <DataGrid x:Name="dataGridInfo" IsReadOnly="True" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column" SelectionUnit="Cell" HorizontalGridLinesBrush="#00000000">
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="データベース名" Binding="{Binding Name}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}" IsReadOnly="True"/>
-                                <DataGridTextColumn Header="表領域(初期値)" Binding="{Binding DefaultTablespace}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="データベース名" Binding="{Binding Name}"/>
+                                <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}"/>
+                                <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}"/>
+                                <DataGridTextColumn Header="管理者" Binding="{Binding DbaUserName}"/>
+                                <DataGridTextColumn Header="Encoding" Binding="{Binding Encoding}"/>
+                                <DataGridTextColumn Header="表領域(初期値)" Binding="{Binding DefaultTablespace}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>

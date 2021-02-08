@@ -2340,6 +2340,7 @@ namespace Db2Source
                     Encoding = encoding_char,
                     DefaultTablespace = dattablespacename,
                     //DbaUserName = datdba,
+                    DbaUserName = dbaname,
                     IsCurrent = IsCurrent,
                     Version = version
                 };
