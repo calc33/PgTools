@@ -81,7 +81,24 @@ namespace Db2Source
                 Target = value as PgsqlDatabase;
             }
         }
-        public string SelectedTabKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public string SelectedTabKey
+        {
+            get
+            {
+                return (tabControlMain.SelectedItem as TabItem)?.Header?.ToString();
+            }
+            set
+            {
+                foreach (TabItem item in tabControlMain.Items)
+                {
+                    if (item.Header.ToString() == value)
+                    {
+                        tabControlMain.SelectedItem = item;
+                        break;
+                    }
+                }
+            }
+        }
 
         private void UpdateDataGridSetting()
         {

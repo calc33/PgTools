@@ -261,10 +261,23 @@ namespace Db2Source
                 if (store.IsEmpty)
                 {
                     treeViewItemTop.IsExpanded = true;
-                    string cur = CurrentDataSet.CurrentSchema;
-                    if (!string.IsNullOrEmpty(cur))
+
+                    TreeViewItem itemDb = null;
+                    foreach (TreeViewItem item in treeViewItemTop.Items)
                     {
-                        foreach (TreeViewItem item in treeViewItemTop.Items)
+                        TreeNode node = item.Tag as TreeNode;
+                        Database db = node?.Target as Database;
+                        if (db != null && db.IsCurrent)
+                        {
+                            itemDb = item;
+                            itemDb.IsExpanded = true;
+                            break;
+                        }
+                    }
+                    string cur = CurrentDataSet.CurrentSchema;
+                    if (itemDb != null && !string.IsNullOrEmpty(cur))
+                    {
+                        foreach (TreeViewItem item in itemDb.Items)
                         {
                             if (item.Header.ToString() == cur)
                             {

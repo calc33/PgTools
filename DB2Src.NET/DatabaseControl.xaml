@@ -9,7 +9,7 @@
     <UserControl.Resources>
         <local:NameValue x:Key="NameValue"/>
     </UserControl.Resources>
-    <TabControl>
+    <TabControl x:Name="tabControlMain">
         <TabItem Header="情報">
             <DockPanel>
                 <GroupBox DockPanel.Dock="Top" Header="接続情報" Margin="2">
