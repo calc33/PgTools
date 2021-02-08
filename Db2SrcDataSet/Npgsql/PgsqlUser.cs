@@ -8,12 +8,16 @@ namespace Db2Source
 {
     public class PgsqlUser: User
     {
-        public uint oid { get; set; }
+        public uint Oid { get; set; }
+        public bool CanLogin { get; set; } = true;
+        public bool IsInherit { get; set; } = true;
         public bool CanCreateDb { get; set; }
+        public bool CanCreateRole { get; set; }
         public bool IsSuperUser { get; set; }
         public bool Replication { get; set; }
         public bool BypassRowLevelSecurity { get; set; }
         public string[] Config { get; set; }
+        public int ConnectionLimit { get; set; } = -1;
 
         public PgsqlUser(NamedCollection owner) : base(owner) { }
 

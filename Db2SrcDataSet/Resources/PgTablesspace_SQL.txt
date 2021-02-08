@@ -1,0 +1,3 @@
+select ts.oid, ts.spcname, ts.spcowner, pg_tablespace_location(ts.oid) as location
+from pg_catalog.pg_tablespace ts
+order by spcname

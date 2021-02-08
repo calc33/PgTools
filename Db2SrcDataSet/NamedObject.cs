@@ -108,7 +108,7 @@ namespace Db2Source
     public class NamedCollection : ICollection<NamedObject>
     {
         internal List<NamedObject> _list = new List<NamedObject>();
-        private object _listLock = new object();
+        private readonly object _listLock = new object();
         Dictionary<string, NamedObject> _nameDict = null;
         internal int _serialSeq = 1;
 
@@ -311,7 +311,7 @@ namespace Db2Source
     {
         internal class EnumeratorWrapper : IEnumerator<T>
         {
-            private IEnumerator _base;
+            private readonly IEnumerator _base;
             internal EnumeratorWrapper(IEnumerator enumerator)
             {
                 _base = enumerator;

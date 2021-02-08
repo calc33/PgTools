@@ -203,7 +203,7 @@ namespace Db2Source
 
     public class CellInfoCollection: IList<CellInfo>
     {
-        private List<CellInfo> _list = new List<CellInfo>();
+        private readonly List<CellInfo> _list = new List<CellInfo>();
 
         internal CellInfoCollection(Row owner)
         {
@@ -304,7 +304,7 @@ namespace Db2Source
     public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
     {
         private static readonly object Unchanged = new object();
-        private DataGridController _owner;
+        private readonly DataGridController _owner;
         internal object[] _data;
         internal object[] _old;
         internal bool _added = false;
@@ -314,6 +314,10 @@ namespace Db2Source
         internal string _errorMessage = string.Empty;
         private void UpdateHasChanges()
         {
+            if (_hasChanges.HasValue)
+            {
+                return;
+            }
             try
             {
                 if (_added || _deleted)
@@ -387,7 +391,11 @@ namespace Db2Source
             HasError = false;
             ErrorMessage = null;
         }
-
+        public void ClearError()
+        {
+            HasError = false;
+            ErrorMessage = null;
+        }
         public void SetError(Exception t)
         {
             SetError(t.Message);
@@ -820,6 +828,7 @@ namespace Db2Source
             {
                 if (o != null)
                 {
+                    ret *= 13;
                     ret += o.GetHashCode();
                 }
             }
@@ -903,10 +912,10 @@ namespace Db2Source
 
     public sealed class RowCollection: IList<Row>, IList, IChangeSetRows, INotifyPropertyChanged, INotifyCollectionChanged
     {
-        private DataGridController _owner;
-        private List<Row> _list = new List<Row>();
+        private readonly DataGridController _owner;
+        private readonly List<Row> _list = new List<Row>();
         private Dictionary<object[], Row> _keyToRow = null;
-        private Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
+        private readonly Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
         //private List<Row> _deletedRows = new List<Row>();
         private List<Row> _temporaryRows = new List<Row>();
 
@@ -1453,7 +1462,8 @@ namespace Db2Source
                 return;
             }
             _updateIsModifiedPosted = true;
-            Dispatcher.Invoke(UpdateIsModified, DispatcherPriority.Normal);
+            //Dispatcher.BeginInvoke((Action)UpdateIsModified);
+            Dispatcher.Invoke(UpdateIsModified, DispatcherPriority.ApplicationIdle);
         }
 
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;
@@ -1637,7 +1647,7 @@ namespace Db2Source
             get
             {
                 UpdateKeyFields();
-                return (_keyFields != null) ? _keyFields : new ColumnInfo[0];
+                return _keyFields ?? (new ColumnInfo[0]);
             }
         }
         public RowCollection Rows
@@ -1717,10 +1727,10 @@ namespace Db2Source
                 return;
             }
             _hasErrorUpdating = true;
-            Dispatcher.Invoke(UpdateHasError, DispatcherPriority.Normal);
+            Dispatcher.Invoke(UpdateHasError, DispatcherPriority.ApplicationIdle);
         }
 
-        private Dictionary<string, ColumnInfo> _nameToField = new Dictionary<string, ColumnInfo>();
+        private readonly Dictionary<string, ColumnInfo> _nameToField = new Dictionary<string, ColumnInfo>();
         public ColumnInfo GetFieldByName(string name)
         {
             ColumnInfo ret;
@@ -1836,6 +1846,10 @@ namespace Db2Source
             {
                 return;
             }
+            foreach (Row row in log)
+            {
+                row.ClearError();
+            }
             Dictionary<IChangeSetRow, bool> applied = new Dictionary<IChangeSetRow, bool>();
             Db2SourceContext ctx = Table.Context;
             IDbTransaction txn = connection.BeginTransaction();
@@ -1854,7 +1868,16 @@ namespace Db2Source
             catch
             {
                 txn.Rollback();
-                throw;
+                foreach (Row row in log)
+                {
+                    if (row.HasError)
+                    {
+                        Grid.ScrollIntoView(row);
+                        Grid.CurrentCell = new DataGridCellInfo(row, Grid.Columns[0]);
+                        break;
+                    }
+                }
+                //throw;
             }
             finally
             {
@@ -1932,10 +1955,12 @@ namespace Db2Source
                 //btn.HeaderTemplate = Application.Current.FindResource("ImageRollback14") as DataTemplate;
                 //Grid.Columns.Add(btn);
 
-                DataGridTemplateColumn chk = new DataGridTemplateColumn();
-                chk.CellTemplate = Application.Current.FindResource("DataGridControlColumnTemplate") as DataTemplate;
-                chk.CellStyle = Application.Current.FindResource("DataGridControlCellStyle") as Style;
-                chk.HeaderStyle = Application.Current.FindResource("DataGridControlColumnHeaderStyle") as Style;
+                DataGridTemplateColumn chk = new DataGridTemplateColumn
+                {
+                    CellTemplate = Application.Current.FindResource("DataGridControlColumnTemplate") as DataTemplate,
+                    CellStyle = Application.Current.FindResource("DataGridControlCellStyle") as Style,
+                    HeaderStyle = Application.Current.FindResource("DataGridControlColumnHeaderStyle") as Style
+                };
                 Grid.Columns.Add(chk);
             }
 
@@ -1968,8 +1993,10 @@ namespace Db2Source
                 Binding b = new Binding(string.Format("[{0}]", i));
                 if (info.IsBoolean)
                 {
-                    DataGridCheckBoxColumn c = new DataGridCheckBoxColumn();
-                    c.Binding = b;
+                    DataGridCheckBoxColumn c = new DataGridCheckBoxColumn
+                    {
+                        Binding = b
+                    };
                     col = c;
                 }
                 else
@@ -2164,7 +2191,7 @@ namespace Db2Source
             {
                 return null;
             }
-            string s = null;
+            string s;
             if (string.IsNullOrEmpty(info.StringFormat))
             {
                 s = cell.ToString();
@@ -2677,9 +2704,11 @@ namespace Db2Source
         }
         private void PasteAsDataGrid(ExecutedRoutedEventArgs e, GridClipboard clipboard)
         {
-            GridClipboardWindow win = new GridClipboardWindow();
-            win.Owner = Window.GetWindow(Grid);
-            win.Clipboard = clipboard;
+            GridClipboardWindow win = new GridClipboardWindow
+            {
+                Owner = Window.GetWindow(Grid),
+                Clipboard = clipboard
+            };
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {
@@ -2821,7 +2850,21 @@ namespace Db2Source
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            return value.GetType() == CollectionView.NewItemPlaceholder.GetType() ? Visibility.Collapsed : Visibility.Visible;
+            return (value == null || value.GetType() == CollectionView.NewItemPlaceholder.GetType()) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class HasErrorToVisiblityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            Row row = value as Row;
+            return (row != null && row.HasError) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

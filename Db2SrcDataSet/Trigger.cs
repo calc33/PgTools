@@ -34,8 +34,8 @@ namespace Db2Source
     {
         public class StringCollection: IList<string>, IList
         {
-            private Trigger _owner;
-            private List<string> _items = new List<string>();
+            private readonly Trigger _owner;
+            private readonly List<string> _items = new List<string>();
 
             public void AddRange(IEnumerable<string> collection)
             {

@@ -162,15 +162,17 @@ namespace Db2Source
                 {
                     return null;
                 }
-                LogConverter conv = new LogConverter();
-                conv.Log = logEvent;
+                LogConverter conv = new LogConverter()
+                {
+                    Log = logEvent
+                };
                 command.Disposed += conv.Command_Disposed;
                 command.Connection.Notice += conv.Notice;
                 return conv;
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
         public override IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection)
         {
             if (connection != null && !(connection is NpgsqlConnection))
@@ -182,14 +184,16 @@ namespace Db2Source
             LogConverter.NewLogConverter(cmd, logEvent);
             foreach (string s in GetParameterNames(sqlCommand))
             {
-                NpgsqlParameter p = new NpgsqlParameter(s, DbType.String);
-                p.Direction = ParameterDirection.InputOutput;
+                NpgsqlParameter p = new NpgsqlParameter(s, DbType.String)
+                {
+                    Direction = ParameterDirection.InputOutput
+                };
                 cmd.Parameters.Add(p);
             }
             return cmd;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
         public override IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
         {
             if (connection != null && !(connection is NpgsqlConnection))
@@ -205,14 +209,16 @@ namespace Db2Source
             LogConverter.NewLogConverter(cmd, logEvent);
             foreach (string s in GetParameterNames(sqlCommand))
             {
-                NpgsqlParameter p = new NpgsqlParameter(s, DbType.String);
-                p.Direction = ParameterDirection.InputOutput;
+                NpgsqlParameter p = new NpgsqlParameter(s, DbType.String)
+                {
+                    Direction = ParameterDirection.InputOutput
+                };
                 cmd.Parameters.Add(p);
             }
             return cmd;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
         public override IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
         {
             if (connection != null && !(connection is NpgsqlConnection))
@@ -249,14 +255,18 @@ namespace Db2Source
                 {
                     t = NpgsqlDbType.Text;
                 }
-                NpgsqlParameter np = new NpgsqlParameter(pName, t);
-                np.Direction = p.Direction;
+                NpgsqlParameter np = new NpgsqlParameter(pName, t)
+                {
+                    Direction = p.Direction
+                };
                 l.Add(np);
                 needComma = true;
             }
             buf.Append(")");
-            NpgsqlCommand cmd = new NpgsqlCommand(buf.ToString(), connection as NpgsqlConnection, transaction as NpgsqlTransaction);
-            cmd.CommandType = CommandType.Text;
+            NpgsqlCommand cmd = new NpgsqlCommand(buf.ToString(), connection as NpgsqlConnection, transaction as NpgsqlTransaction)
+            {
+                CommandType = CommandType.Text
+            };
             cmd.Parameters.AddRange(l.ToArray());
             LogConverter.NewLogConverter(cmd, logEvent);
             return cmd;
@@ -280,7 +290,7 @@ namespace Db2Source
 
             return tbl;
         }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
         private void ExecuteSql(string sql, NpgsqlParameter[] paramList, IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
             LastSql = sql;
@@ -353,24 +363,26 @@ namespace Db2Source
             return ToLiteralStr(value.ToString());
         }
 
-    private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
+        private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
         {
             parameter.IsNullable = info.IsNullable;
-            parameter.Value = (value != null) ? value : DBNull.Value;
+            parameter.Value = value ?? DBNull.Value;
         }
         public override IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld)
         {
             NpgsqlParameter param = parameters[isOld ? "old_" + info.Name : info.Name] as NpgsqlParameter;
             param.NpgsqlDbType = GetNpgsqlDbType(info);
             param.IsNullable = info.IsNullable;
-            param.Value = (value != null) ? value : DBNull.Value;
+            param.Value = value ?? DBNull.Value;
             return param;
         }
         public override IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld)
         {
-            NpgsqlParameter param = new NpgsqlParameter(isOld ? "old_" + info.Name : info.Name, GetNpgsqlDbType(info));
-            param.SourceColumn = info.Name;
-            param.SourceVersion = isOld ? DataRowVersion.Original : DataRowVersion.Current;
+            NpgsqlParameter param = new NpgsqlParameter(isOld ? "old_" + info.Name : info.Name, GetNpgsqlDbType(info))
+            {
+                SourceColumn = info.Name,
+                SourceVersion = isOld ? DataRowVersion.Original : DataRowVersion.Current
+            };
             ApplyParameterByFieldInfo(param, info, value);
             return param;
         }

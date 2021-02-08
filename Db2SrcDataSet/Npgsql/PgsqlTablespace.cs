@@ -8,7 +8,7 @@ namespace Db2Source
 {
     public class PgsqlTablespace: Tablespace
     {
-        public uint oid { get; set; }
+        public uint Oid { get; set; }
         public string Owner { get; set; }
         public string[] Options { get; set; }
 

@@ -17,6 +17,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <SolidColorBrush x:Key="WindowBackground" Color="{x:Static SystemColors.ControlColor}"/>
         <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Checked.Fill" Color="#FF595959"/>
         <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Checked.Stroke" Color="#FF262626"/>
         <SolidColorBrush x:Key="TreeViewItem.TreeArrow.MouseOver.Stroke" Color="#FF27C7F7"/>
@@ -251,15 +252,16 @@
                                 <RowDefinition x:Name="RowDefinition0" Height="Auto"/>
                                 <RowDefinition x:Name="RowDefinition1" Height="*"/>
                             </Grid.RowDefinitions>
+                            <!--<DockPanel Background="{DynamicResource WindowBackground}">-->
                             <DockPanel>
                                 <Border DockPanel.Dock="Right" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
                                     <StackPanel Orientation="Horizontal">
-                                        <Button x:Name="buttonScrollLeft" ContentTemplate="{StaticResource ImageLeftArrow8}" VerticalContentAlignment="Center" BorderThickness="0" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollLeft_Click" Height="26" VerticalAlignment="Top"/>
-                                        <Button x:Name="buttonScrollRight" ContentTemplate="{StaticResource ImageRightArrow8}"  VerticalContentAlignment="Center" BorderThickness="0" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollRight_Click"/>
-                                        <Button x:Name="buttonScrollSearchTabItem" ContentTemplate="{StaticResource ImageDropDown10}" VerticalContentAlignment="Bottom" BorderThickness="0" Background="{DynamicResource {x:Static SystemColors.InactiveBorderBrushKey}}" Click="buttonScrollSearchTabItem_Click" Padding="2"/>
+                                        <Button x:Name="buttonScrollLeft" ContentTemplate="{StaticResource ImageLeftArrow8}" VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent" Click="buttonScrollLeft_Click" Height="26" VerticalAlignment="Top"/>
+                                        <Button x:Name="buttonScrollRight" ContentTemplate="{StaticResource ImageRightArrow8}"  VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent" Click="buttonScrollRight_Click"/>
+                                        <Button x:Name="buttonScrollSearchTabItem" ContentTemplate="{StaticResource ImageDropDown10}" VerticalContentAlignment="Bottom" BorderThickness="0" Background="Transparent" Click="buttonScrollSearchTabItem_Click" Padding="2"/>
                                     </StackPanel>
                                 </Border>
-                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" MouseMove="tabPanelScrollViewer_MouseMove" PreviewMouseDown="tabPanelScrollViewer_PreviewMouseDown" MouseUp="tabPanelScrollViewer_PreviewMouseUp" AllowDrop="True">
+                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" MouseMove="tabPanelScrollViewer_MouseMove" PreviewMouseDown="tabPanelScrollViewer_PreviewMouseDown" MouseUp="tabPanelScrollViewer_PreviewMouseUp" AllowDrop="True" VerticalAlignment="Bottom">
                                     <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
                                 </ScrollViewer>
                             </DockPanel>
@@ -369,10 +371,79 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <SolidColorBrush x:Key="Menu.Static.Background" Color="#FFF0F0F0"/>
+        <Style TargetType="{x:Type Menu}">
+            <Setter Property="Background" Value="{DynamicResource WindowBackground}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource {x:Static SystemFonts.MenuFontFamilyKey}}"/>
+            <Setter Property="FontSize" Value="{DynamicResource {x:Static SystemFonts.MenuFontSizeKey}}"/>
+            <Setter Property="FontStyle" Value="{DynamicResource {x:Static SystemFonts.MenuFontStyleKey}}"/>
+            <Setter Property="FontWeight" Value="{DynamicResource {x:Static SystemFonts.MenuFontWeightKey}}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Menu}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <ControlTemplate x:Key="MenuItemControlTemplate" TargetType="{x:Type MenuItem}">
+            <Border x:Name="templateRoot" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{DynamicResource WindowBackground}" SnapsToDevicePixels="True">
+                <Grid VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <ContentPresenter x:Name="Icon" Content="{TemplateBinding Icon}" ContentSource="Icon" HorizontalAlignment="Center" Height="16" Margin="3" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="Center" Width="16"/>
+                    <Path x:Name="GlyphPanel" Data="F1M10,1.2L4.7,9.1 4.5,9.1 0,5.2 1.3,3.5 4.3,6.1 8.3,0 10,1.2z" Fill="{TemplateBinding Foreground}" FlowDirection="LeftToRight" Margin="3" Visibility="Collapsed" VerticalAlignment="Center"/>
+                    <ContentPresenter ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" Grid.Column="1" ContentStringFormat="{TemplateBinding HeaderStringFormat}" ContentSource="Header" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                    <Popup x:Name="PART_Popup" AllowsTransparency="True" Focusable="False" IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}" PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}" Placement="Bottom">
+                        <Border x:Name="SubMenuBorder" BorderBrush="#FF999999" BorderThickness="1" Background="#FFF0F0F0" Padding="2">
+                            <ScrollViewer x:Name="SubMenuScrollViewer" Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, TypeInTargetAssembly={x:Type FrameworkElement}}}">
+                                <Grid RenderOptions.ClearTypeHint="Enabled">
+                                    <Canvas HorizontalAlignment="Left" Height="0" VerticalAlignment="Top" Width="0">
+                                        <Rectangle x:Name="OpaqueRect" Fill="{Binding Background, ElementName=SubMenuBorder}" Height="{Binding ActualHeight, ElementName=SubMenuBorder}" Width="{Binding ActualWidth, ElementName=SubMenuBorder}"/>
+                                    </Canvas>
+                                    <Rectangle Fill="#FFD7D7D7" HorizontalAlignment="Left" Margin="29,2,0,2" Width="1"/>
+                                    <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" KeyboardNavigation.TabNavigation="Cycle"/>
+                                </Grid>
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                </Grid>
+            </Border>
+            <ControlTemplate.Triggers>
+                <Trigger Property="IsSuspendingPopupAnimation" Value="True">
+                    <Setter Property="PopupAnimation" TargetName="PART_Popup" Value="None"/>
+                </Trigger>
+                <Trigger Property="Icon" Value="{x:Null}">
+                    <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="True">
+                    <Setter Property="Visibility" TargetName="GlyphPanel" Value="Visible"/>
+                    <Setter Property="Visibility" TargetName="Icon" Value="Collapsed"/>
+                </Trigger>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" TargetName="templateRoot" Value="#3D26A0DA"/>
+                    <Setter Property="BorderBrush" TargetName="templateRoot" Value="#FF26A0DA"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="#FF707070"/>
+                    <Setter Property="Fill" TargetName="GlyphPanel" Value="#FF707070"/>
+                </Trigger>
+                <Trigger Property="CanContentScroll" SourceName="SubMenuScrollViewer" Value="False">
+                    <Setter Property="Canvas.Top" TargetName="OpaqueRect" Value="{Binding VerticalOffset, ElementName=SubMenuScrollViewer}"/>
+                    <Setter Property="Canvas.Left" TargetName="OpaqueRect" Value="{Binding HorizontalOffset, ElementName=SubMenuScrollViewer}"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
     </Window.Resources>
-    <Grid x:Name="gridMain">
+    <Grid x:Name="gridMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <DockPanel>
-            <Menu DockPanel.Dock="Top">
+            <Menu DockPanel.Dock="Top" Background="{DynamicResource WindowBackground}">
                 <MenuItem Header="データベース(_D)">
                     <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
                         <MenuItem Header="Postgres(NpgSql)"/>
@@ -420,9 +491,9 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Top" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                    <StackPanel DockPanel.Dock="Top">
                         <!--<ComboBox x:Name="comboBoxConnection" HorizontalAlignment="Stretch" Margin="2,2,4,2" DisplayMemberPath="Name" SelectionChanged="comboBoxConnection_SelectionChanged" DropDownClosed="comboBoxConnection_DropDownClosed"/>-->
-                        <Border Margin="0,0,6,2" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}">
+                        <Border Margin="0,0,6,2" BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Background="Transparent">
                             <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
                                 <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
                                     <Button.ContextMenu>
@@ -437,7 +508,7 @@
                                         <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
-                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" />
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" />
                             </DockPanel>
                         </Border>
                     </StackPanel>
@@ -454,13 +525,13 @@
                         </TreeViewItem>
                     </TreeView>
                 </DockPanel>
-                <GridSplitter Grid.Column="0" Grid.RowSpan="2" Width="6"/>
+                <GridSplitter Grid.Column="0" Grid.RowSpan="2" Width="6" Background="Transparent"/>
                 <Grid Grid.Column="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
                     <Grid.RowDefinitions>
                         <RowDefinition/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TabControl x:Name="tabControlMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
+                    <TabControl x:Name="tabControlMain" Background="Transparent" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
                         <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}">
                             <local:MovableTabItem.Header>
                                 <TextBlock Text="クエリ"/>

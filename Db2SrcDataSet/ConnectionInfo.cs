@@ -48,7 +48,7 @@ namespace Db2Source
     }
     public class ExtraCommandCollecion: IList<ExtraCommand>, IList
     {
-        private List<ExtraCommand> _list = new List<ExtraCommand>();
+        private readonly List<ExtraCommand> _list = new List<ExtraCommand>();
 
         public ExtraCommand this[int index]
         {
@@ -198,7 +198,7 @@ namespace Db2Source
     }
     public abstract partial class ConnectionInfo: IComparable
     {
-        private static Dictionary<string, Type> _databaseTypeToType = new Dictionary<string, Type>();
+        private static readonly Dictionary<string, Type> _databaseTypeToType = new Dictionary<string, Type>();
         public static void RegisterDatabaseType(string databaseType, Type type)
         {
             _databaseTypeToType[databaseType] = type;
@@ -332,6 +332,72 @@ namespace Db2Source
         [JsonIgnore]
         public ExtraCommandCollecion ExtraCommands { get; } = new ExtraCommandCollecion();
 
+        private RGB? _backgroundColor;
+        //private RGB? _defaultBackgroundColor;
+        //protected internal void InvalidateDefaultBackgroundColor()
+        //{
+        //    _defaultBackgroundColor = null;
+        //}
+        protected virtual RGB GetDefaultBackgroundColor()
+        {
+            // 接続情報のHash値から色を決定
+            int hash = GetHashCode();
+            uint h = 0;
+            foreach (byte b in BitConverter.GetBytes(hash))
+            {
+                h *= 17;
+                h += b;
+            }
+            while (256 <= h)
+            {
+                h = h / 256 + h % 256;
+            }
+            return ColorConverter.FromHSV(h / 256f * 360f, 0.3f, 0.9f);
+        }
+        //private void UpdateDefaultBackgroundColor()
+        //{
+        //    if (_defaultBackgroundColor.HasValue)
+        //    {
+        //        return;
+        //    }
+        //    _defaultBackgroundColor = GetDefaultBackgroundColor();
+        //}
+        [JsonIgnore]
+        public RGB BackgroundColor
+        {
+            get
+            {
+                if (_backgroundColor.HasValue)
+                {
+                    return _backgroundColor.Value;
+                }
+                //UpdateDefaultBackgroundColor();
+                return GetDefaultBackgroundColor();
+            }
+            set
+            {
+                if (BackgroundColor.Equals(value))
+                {
+                    return;
+                }
+                _backgroundColor = value;
+            }
+        }
+        public uint? BkColor
+        {
+            get
+            {
+                return BackgroundColor.ColorCode;
+            }
+            set
+            {
+                if (!value.HasValue)
+                {
+                    return;
+                }
+                BackgroundColor = new RGB(value.Value);
+            }
+        }
         public virtual void Merge(ConnectionInfo item)
         {
             Password = item.Password;
@@ -391,20 +457,26 @@ namespace Db2Source
             }
             return 0;
         }
-        protected static int GetStrHash(string value)
+        protected static int GetStrHash(params string[] value)
         {
-            if (value == null)
+            if (value == null || value.Length == 0)
             {
                 return 0;
             }
-            return value.GetHashCode();
+            int h = 0;
+            foreach (string s in value)
+            {
+                h *= 13;
+                if (!string.IsNullOrEmpty(s))
+                {
+                    h += s.GetHashCode();
+                }
+            }
+            return h;
         }
         public override int GetHashCode()
         {
-            return GetStrHash(Name)
-                + GetStrHash(DatabaseType)
-                + GetStrHash(ServerName)
-                + GetStrHash(UserName);
+            return GetStrHash(Name, DatabaseType, ServerName, UserName);
             //+ Password.GetHashCode();
         }
         public override string ToString()
@@ -442,7 +514,7 @@ namespace Db2Source
     {
         public class ConnectionInfoClassCollection: IReadOnlyList<Type>
         {
-            private List<Type> _list = new List<Type>();
+            private readonly List<Type> _list = new List<Type>();
 
             public void Add(Type type)
             {
@@ -838,8 +910,8 @@ namespace Db2Source
     }
     public class InvalidConnectionInfo: ConnectionInfo
     {
-        private string _databaseType = "Unknown";
-        private string _databaseDesc = "不明な種別";
+        private readonly string _databaseType = "Unknown";
+        private readonly string _databaseDesc = "不明な種別";
         public InvalidConnectionInfo() { }
         public InvalidConnectionInfo(string databaseType)
         {

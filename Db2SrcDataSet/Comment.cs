@@ -65,7 +65,7 @@ namespace Db2Source
             }
         }
         private string _text;
-        private string _oldText;
+        private readonly string _oldText;
         public string Text
         {
             get
@@ -108,7 +108,7 @@ namespace Db2Source
             Context = context;
             Schema = context.RequireSchema(schema);
         }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal Comment(Db2SourceContext context, string schema, string target, string comment, bool isLoaded) : base(context.RequireSchema(schema).Comments)
         {
             Context = context;

@@ -305,11 +305,25 @@ namespace Db2Source
             gridLoading.Visibility = Visibility.Collapsed;
         }
 
+        public static Color ToColor(RGB rgb)
+        {
+            return Color.FromRgb(rgb.R, rgb.G, rgb.B);
+        }
+        private Brush GetBackgroundColor()
+        {
+            if (CurrentDataSet == null || CurrentDataSet.ConnectionInfo == null)
+            {
+                return SystemColors.ControlBrush;
+            }
+            return new SolidColorBrush(ToColor(CurrentDataSet.ConnectionInfo.BackgroundColor));
+        }
+
         private Db2SourceContext _dataSetTemp;
         private void SetSchema()
         {
             CurrentDataSet = null;
             CurrentDataSet = _dataSetTemp;
+            Resources["WindowBackground"] = GetBackgroundColor();
         }
 
         private void CurrentDataSet_SchemaLoaded(object sender, EventArgs e)
@@ -365,6 +379,27 @@ namespace Db2Source
         //#pragma warning restore 1998
 
         private void OpenViewer(SchemaObject target)
+        {
+            ISchemaObjectControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectControl;
+
+            TabItem item = RequireTabItem(target, FindResource("TabItemStyleClosable") as Style);
+            if (item == null)
+            {
+                return;
+            }
+            if (item.Parent == null)
+            {
+                tabControlMain.Items.Add(item);
+            }
+            tabControlMain.SelectedItem = item;
+            ISchemaObjectControl newCtl = item.Content as ISchemaObjectControl;
+            if (newCtl != null && curCtl != null)
+            {
+                newCtl.SelectedTabKey = curCtl.SelectedTabKey;
+            }
+        }
+
+        private void OpenViewer(Database target)
         {
             ISchemaObjectControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectControl;
 
@@ -484,26 +519,6 @@ namespace Db2Source
             }
         }
 
-        private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            TreeViewItem item = sender as TreeViewItem;
-            if (item == null)
-            {
-                return;
-            }
-            TreeNode node = item.Tag as TreeNode;
-            if (node == null)
-            {
-                return;
-            }
-            SchemaObject obj = node.Target as SchemaObject;
-            if (obj == null)
-            {
-                return;
-            }
-            OpenViewer(obj);
-        }
-
         private void TabItemCloseButton_Click(object sender, RoutedEventArgs e)
         {
             TabItem item = (sender as Control).TemplatedParent as TabItem;
@@ -521,7 +536,25 @@ namespace Db2Source
 
         private void textBoxFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            FilterTreeView();
+            // フィルタ文字列が空文字列になった時はEnterを押さないとツリーが更新されない
+            if (!string.IsNullOrEmpty(_treeViewFilterText) && string.IsNullOrEmpty(textBoxFilter.Text))
+            {
+                return;
+            }
+            FilterTreeView(true);
+        }
+
+        private void textBoxFilter_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                FilterTreeView(false);
+            }
+        }
+
+        private void textBoxFilter_LostFocus(object sender, RoutedEventArgs e)
+        {
+            FilterTreeView(false);
         }
 
         private void window_Initialized(object sender, EventArgs e)
@@ -535,6 +568,7 @@ namespace Db2Source
             RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
             RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
             RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
+            RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             TitleBase = Title;
         }
 
@@ -1244,6 +1278,20 @@ namespace Db2Source
             {
                 SetValue(IsMovingProperty, value);
             }
+        }
+    }
+    public class RGBToColorBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            RGB rgb = (RGB)value;
+            return new SolidColorBrush(MainWindow.ToColor(rgb));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            Color c = ((SolidColorBrush)value).Color;
+            return new RGB(c.R, c.G, c.B);
         }
     }
 }

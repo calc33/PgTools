@@ -152,5 +152,13 @@ namespace Db2Source
             }
             return ret;
         }
+        public static int Compare(Schema obj1, Schema obj2)
+        {
+            if (obj1 == null)
+            {
+                return (obj2 != null) ? 1 : 0;
+            }
+            return obj1.CompareTo(obj2);
+        }
     }
 }

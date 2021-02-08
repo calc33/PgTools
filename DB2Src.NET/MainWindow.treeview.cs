@@ -60,19 +60,23 @@ namespace Db2Source
                 else if (node.TargetType == typeof(Database))
                 {
                     Database db = node.Target as Database;
-                    item.Tag = db;
                     if (db.IsCurrent)
                     {
                         item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
+                        //item.MouseDoubleClick += TreeViewItemDatabase_MouseDoubleClick;
+                        item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
                     }
                     else
                     {
+                        item.Tag = db;
                         item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
                         item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
                         item.ContextMenu = new ContextMenu();
-                        MenuItem mi = new MenuItem();
-                        mi.Header = item.Header;
-                        mi.HeaderStringFormat = "{0}に接続";
+                        MenuItem mi = new MenuItem
+                        {
+                            Header = item.Header,
+                            HeaderStringFormat = "{0}に接続"
+                        };
                         mi.Click += MenuItemOtherDatabase_Click;
                         item.ContextMenu.Items.Add(mi);
                         item.MouseDoubleClick += TreeViewItemOtherDatabase_MouseDoubleClick;
@@ -101,6 +105,27 @@ namespace Db2Source
                     item.Items.Add(chItem);
                 }
             }
+        }
+
+        private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            TreeViewItem item = sender as TreeViewItem;
+            if (item == null)
+            {
+                return;
+            }
+            TreeNode node = item.Tag as TreeNode;
+            if (node == null)
+            {
+                return;
+            }
+            SchemaObject obj = node.Target as SchemaObject;
+            if (obj == null)
+            {
+                return;
+            }
+            e.Handled = true;
+            OpenViewer(obj);
         }
 
         private void OpenDatabase(Database database)
@@ -153,15 +178,20 @@ namespace Db2Source
                 SetTreeView(item, node);
                 treeViewItemTop.Items.Add(item);
             }
-            FilterTreeView();
+            FilterTreeView(true);
         }
 
-        public void FilterTreeView()
+        private string _treeViewFilterText;
+        public void FilterTreeView(bool force)
         {
-            string filter = textBoxFilter.Text;
+            if (!force && _treeViewFilterText == textBoxFilter.Text)
+            {
+                return;
+            }
+            _treeViewFilterText = textBoxFilter.Text;
             bool filterByName = menuItemFilterByObjectName.IsChecked;
             bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
-            string f = filter.ToUpper();
+            string f = _treeViewFilterText.ToUpper();
             foreach (TreeViewItem itemDb in treeViewItemTop.Items)
             {
                 foreach (TreeViewItem itemSc in itemDb.Items)

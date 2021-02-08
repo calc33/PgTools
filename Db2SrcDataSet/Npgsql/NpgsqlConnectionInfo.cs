@@ -167,7 +167,7 @@ namespace Db2Source
                 return;
             }
             string path = GetPgPassConfPath();
-            string lockPath = path + ".$lock$";
+            //string lockPath = path + ".$lock$";
             string target = ToPgPassEntry(ServerName, ServerPort, DatabaseName, UserName, null);
             string newEntry = target + EscapeForPgPass(Password);
             if (!File.Exists(path))
@@ -434,11 +434,13 @@ namespace Db2Source
         }
         public override string ToConnectionString(bool includePassord)
         {
-            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder();
-            builder.Host = ServerName;
-            builder.Database = DatabaseName;
-            builder.Port = ServerPort;
-            builder.Username = UserName;
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = ServerName,
+                Database = DatabaseName,
+                Port = ServerPort,
+                Username = UserName
+            };
             if (includePassord)
             {
                 if (!string.IsNullOrEmpty(Password))
@@ -500,7 +502,7 @@ namespace Db2Source
 
         public override int GetHashCode()
         {
-            return base.GetHashCode() + ServerPort.GetHashCode() + GetStrHash(DatabaseName);
+            return ((base.GetHashCode() * 13) + ServerPort.GetHashCode() * 13) + GetStrHash(DatabaseName);
         }
     }
 }

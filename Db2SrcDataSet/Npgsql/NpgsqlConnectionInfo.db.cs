@@ -24,7 +24,7 @@ namespace Db2Source
             }
             return l.ToArray();
         }
-        private static PropertyInfo[] _keyProperties = InitKeyProperties();
+        private static readonly PropertyInfo[] _keyProperties = InitKeyProperties();
         protected override PropertyInfo[] GetKeyProperties()
         {
             return _keyProperties;

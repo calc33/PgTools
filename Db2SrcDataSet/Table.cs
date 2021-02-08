@@ -189,8 +189,7 @@ namespace Db2Source
         {
             Index item = value as Index;
             RequireItems();
-            int ret = -1;
-            ret = ((IList)_list).Add(item);
+            int ret = ((IList)_list).Add(item);
             _nameToIndex = null;
             return ret;
         }

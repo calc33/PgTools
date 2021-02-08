@@ -1,0 +1,1 @@
+select ns.oid, ns.nspname, ns.nspowner from pg_namespace ns order by ns.nspname

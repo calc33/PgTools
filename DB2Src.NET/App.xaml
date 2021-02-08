@@ -13,6 +13,7 @@
         <local:ItemsSourceToColumnFilterButtonVisiblityConverter x:Key="ItemsSourceToColumnFilterButtonVisiblityConverter"/>
         <local:RowVisibleConverter x:Key="RowVisibleConverter"/>
         <local:HideNewItemPlaceHolderConverter x:Key="HideNewItemPlaceHolderConverter"/>
+        <local:HasErrorToVisiblityConverter x:Key="HasErrorToVisiblityConverter"/>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -82,38 +83,38 @@
         <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
         <DataTemplate x:Key="ImageAdd14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageDelete14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
-                <Line x:Name="line1" X1="1" Y1="7" X2="13" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
+                <Line x:Name="line1" X1="1" Y1="7" X2="13" Y2="7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageApply14">
-            <Canvas Width="14" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M1,8 L5,11 L13,1"/>
+            <Canvas Width="14" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M1,8 L5,11 L13,1"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRevert14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.5" Data="M1,1 L13,13 M1,13 L13,1"/>
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1.5" Data="M1,1 L13,13 M1,13 L13,1"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRollback14">
-            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M6,4 A5,5 0 1 1 1,9"/>
-                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M2,4 L6,0 L6,8 z"/>
+            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M6,4 A5,5 0 1 1 1,9"/>
+                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M2,4 L6,0 L6,8 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRollback12">
-            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M6,3 A4,4 0 1 1 1,7"/>
-                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M2,3 L6,0 L6,6 z"/>
+            <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M6,3 A4,4 0 1 1 1,7"/>
+                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M2,3 L6,0 L6,6 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageEdit14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}" StrokeThickness="1" Data="M1.5,11 l0,1.5 l1.5,0"/>
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ToggleButton}}" StrokeThickness="1"
                       Data="M2.5,9.5 l5.5,-5.5 l2,2 l-5.5,5.5 l-2,-2 z M9.5,2.5 l1,-1 l2,2 l-1,1 l-2,-2 z"/>
@@ -126,44 +127,44 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center">
-                    <Ellipse Height="14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Width="14" StrokeThickness="3"/>
-                    <Line X1="11" Y1="11" X2="18" Y2="18" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="3"/>
+                    <Ellipse Height="14" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Width="14" StrokeThickness="3"/>
+                    <Line X1="11" Y1="11" X2="18" Y2="18" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="3"/>
                 </Canvas>
-                <TextBlock Grid.Row="1" Text="検索" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                <TextBlock Grid.Row="1" Text="検索" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="ImageSearch14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=Button}}">
-                <Ellipse x:Name="ellipse" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
-                <Line x:Name="line" X1="8" Y1="8" X2="13" Y2="13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2"/>
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Ellipse x:Name="ellipse" Width="10" Height="10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2"/>
+                <Line x:Name="line" X1="8" Y1="8" X2="13" Y2="13" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageSearch12">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="12" Height="14">
-                <Ellipse Canvas.Left="3" Canvas.Top="1" Width="8" Height="8" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                <Line X1="5" Y1="8" X2="1" Y2="13" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                <Ellipse Canvas.Left="3" Canvas.Top="1" Width="8" Height="8" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                <Line X1="5" Y1="8" X2="1" Y2="13" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageDropDown10">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="10" Height="10">
-                <Line X1="1" Y1="1" X2="9" Y2="1" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,4 L9,4 L5,9"/>
+                <Line X1="1" Y1="1" X2="9" Y2="1" StrokeThickness="2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M1,4 L9,4 L5,9"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageLeftArrow8">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,0 L6,8 L0,4 z"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M6,0 L6,8 L0,4 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRightArrow8">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L0,8 L6,4 z"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M0,0 L0,8 L6,4 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRefresh16">
             <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M13,4 L8,0 L8,9 z"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M8,4 A5,5 0 1 0 13,9"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M13,4 L8,0 L8,9 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageExec20">
@@ -173,34 +174,34 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center" >
-                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M6,1 L4,12 L7,12 L6,18 L14,9 L10,9 L14,1 z"/>
+                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M6,1 L4,12 L7,12 L6,18 L14,9 L10,9 L14,1 z"/>
                 </Canvas>
-                <TextBlock Grid.Row="1" Text="実行" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                <TextBlock Grid.Row="1" Text="実行" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
             </Grid>
         </DataTemplate>
         <DataTemplate x:Key="ImageDropDown6">
             <Canvas Width="6" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M0,0 L6,0 L3,4 z"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M0,0 L6,0 L3,4 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageCornerDropDown6">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Bottom" Width="6" Height="6">
-                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,6 L6,6 L6,1 z"/>
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M1,6 L6,6 L6,1 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageCopy14">
             <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M2.5,5.5 l6,0 l0,8 l-6,0 z M6.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M2.5,5.5 l6,0 l0,8 l-6,0 z M6.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImagePaste14">
             <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M3.5,4 l0,-1.5 l9,0 l0,11 l-1.5,0 M5.5,2.5 A2,2 0 0 1 7.5,0.5 l1,0 A2,2 0 0 1 10.5,2.5 M1.5,5.5 l8,0 l0,8 l-8,0 l0,-8 z M1.5,7.5 l8,0 M3,9.5 l2,0 M6,9.5 l2,0 M3,11.5 l2,0 M6,11.5 l2,0"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M3.5,4 l0,-1.5 l9,0 l0,11 l-1.5,0 M5.5,2.5 A2,2 0 0 1 7.5,0.5 l1,0 A2,2 0 0 1 10.5,2.5 M1.5,5.5 l8,0 l0,8 l-8,0 l0,-8 z M1.5,7.5 l8,0 M3,9.5 l2,0 M6,9.5 l2,0 M3,11.5 l2,0 M6,11.5 l2,0"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageFilter14">
             <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Data="M1.5,1.5 l11,0 l0,3 l-4,4 l0,5 l-4,0 l0,-5 l-4,-4 l0,-3 z"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,1.5 l11,0 l0,3 l-4,4 l0,5 l-4,0 l0,-5 l-4,-4 l0,-3 z"/>
             </Canvas>
         </DataTemplate>
         <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
@@ -978,9 +979,43 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="20"/>
                     <ColumnDefinition Width="20"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Button ContentTemplate="{StaticResource ImageRollback12}" BorderThickness="0" Background="Transparent" ToolTip="変更を元に戻す" IsEnabled="{Binding HasChanges}" Click="RevertColumnButton_Click" Style="{DynamicResource RevertButtonStyle}" Visibility="{Binding Converter={StaticResource HideNewItemPlaceHolderConverter}, Mode=OneWay}"/>
                 <CheckBox Grid.Column="1" IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}"/>
+                <Label Grid.Column="2" ToolTip="{Binding ErrorMessage}">
+                    <Label.Style>
+                        <Style TargetType="{x:Type Label}">
+                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Padding" Value="5"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                            <Setter Property="VerticalContentAlignment" Value="Top"/>
+                            <Setter Property="Visibility" Value="Hidden"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type Label}">
+                                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <DataTrigger Binding="{Binding HasError}" Value="True">
+                                                <Setter Property="Visibility" Value="Visible"/>
+                                            </DataTrigger>
+                                            <Trigger Property="IsEnabled" Value="false">
+                                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Label.Style>
+                    <Canvas Width="14" Height="14">
+                        <Ellipse Stroke="White" Fill="Red" StrokeThickness="1" Width="14" Height="14"/>
+                        <Path Stroke="White" StrokeThickness="2" Data="M4,4 L10,10 M4,10 L10,4"/>
+                    </Canvas>
+                </Label>
             </Grid>
         </DataTemplate>
         <Style x:Key="ButtonStyleRef" TargetType="{x:Type Button}">
@@ -1054,11 +1089,6 @@
                                         <Path Fill="{TemplateBinding Foreground}" Data="M13,19 L16,16 L16,19 z"/>
                                     </Canvas>
                                 </Button>
-                                <!--<Label Grid.Column="2">
-                                    <Canvas>
-                                        <Path Stroke=""
-                                    </Canvas>
-                                </Label>--> 
                             </Grid>
                             <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
                             <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>

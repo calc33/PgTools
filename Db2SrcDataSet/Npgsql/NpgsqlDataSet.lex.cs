@@ -104,7 +104,7 @@ namespace Db2Source
         {
             public TokenKind Kind { get; private set; }
             public TokenID ID { get; set; }
-            private TokenizedSQL _owner;
+            private readonly TokenizedSQL _owner;
             public int StartPos { get; private set; }
             public int EndPos { get; private set; }
             private string _value = null;
@@ -220,7 +220,7 @@ namespace Db2Source
 
         public class TokenizedSQL
         {
-            private string _sql;
+            private readonly string _sql;
             public string Sql { get { return _sql; } }
             public Token[] Tokens { get; private set; }
             public Token Selected { get; set; }
@@ -667,10 +667,10 @@ namespace Db2Source
             int n = tsql.Tokens.Length;
             while (i < n)
             {
-                Token t = tsql.Tokens[i];
+                //Token t = tsql.Tokens[i];
                 for (; i < n; i++)
                 {
-                    t = tsql.Tokens[i];
+                    Token t = tsql.Tokens[i];
                     if (t.Kind != TokenKind.Space && t.Kind != TokenKind.NewLine && t.Kind != TokenKind.Comment)
                     {
                         break;

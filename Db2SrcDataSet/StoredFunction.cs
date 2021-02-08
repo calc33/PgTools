@@ -545,7 +545,7 @@ namespace Db2Source
                 return _dbCommand;
             }
         }
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string internalName, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
         {
             Parameters = new ParameterCollection(this);

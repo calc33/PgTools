@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Db2Source.DatabaseControl"
+﻿<UserControl x:Name="userControl" x:Class="Db2Source.DatabaseControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -11,25 +11,55 @@
     </UserControl.Resources>
     <TabControl>
         <TabItem Header="情報">
-            <DataGrid>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="データベース名" Binding="{Binding Name}" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="バージョン" Binding="{Binding Version}" IsReadOnly="True"/>
-                    <DataGridComboBoxColumn Header="表領域(初期値)"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <DockPanel>
+                <GroupBox DockPanel.Dock="Top" Header="接続情報" Margin="2">
+                    <DockPanel>
+                        <TextBlock DockPanel.Dock="Top" Text="{Binding Target.Version, ElementName=userControl}" Margin="2,4"/>
+                        <DataGrid x:Name="dataGridInfo" IsReadOnly="True" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column" SelectionUnit="Cell" HorizontalGridLinesBrush="#00000000">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="データベース名" Binding="{Binding Name}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="表領域(初期値)" Binding="{Binding DefaultTablespace}" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </GroupBox>
+                <GroupBox Header="パラメータ" Margin="2">
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2">
+                            <ToolBar>
+                                <TextBlock Text="カテゴリ" VerticalAlignment="Center"/>
+                                <ComboBox x:Name="comboBoxSettingCategory" MinWidth="100" Margin="2,0" DisplayMemberPath="Value" SelectedValuePath="Name" SelectionChanged="comboBoxSettingCategory_SelectionChanged"/>
+                                <Separator/>
+                                <ToggleButton x:Name="toggleButtonSettingFilter" ContentTemplate="{StaticResource ImageSearch14}" Click="toggleButtonSettingFilter_Click"/>
+                                <TextBox x:Name="textBoxSettingFilter" MinWidth="150" Visibility="{Binding IsChecked, ElementName=toggleButtonSettingFilter, Converter={StaticResource BooleanToVisibilityConverter}}" TextChanged="textBoxSettingFilter_TextChanged"/>
+                                <Separator/>
+                                <Button ContentTemplate="{StaticResource ImageRefresh16}" Click="buttonRefresh_Click"/>
+                            </ToolBar>
+                        </StackPanel>
+                        <DataGrid x:Name="dataGridSetting" Grid.Row="4" IsReadOnly="True" ItemsSource="{Binding Target.Settings, ElementName=userControl}" AutoGenerateColumns="False" SelectionUnit="Cell" CanUserResizeRows="False">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="パラメータ" IsReadOnly="True" Binding="{Binding Name}"/>
+                                <DataGridTextColumn Header="値" IsReadOnly="True" Binding="{Binding Setting}"/>
+                                <DataGridTextColumn Header="説明" IsReadOnly="True" Binding="{Binding ShortDesc}"/>
+                                <DataGridTextColumn Header="カテゴリ" IsReadOnly="True" Binding="{Binding Category}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                </GroupBox>
+            </DockPanel>
         </TabItem>
         <TabItem Header="ユーザー">
             <DockPanel>
-                <ListBox DockPanel.Dock="Left" MinWidth="100"/>
+                <ListBox x:Name="listBoxUsers" DockPanel.Dock="Left" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" DisplayMemberPath="Id"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -47,19 +77,27 @@
                             <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="ユーザーを削除"/>
                         </ToolBar>
                     </StackPanel>
-                    <TextBlock Grid.Row="1" Text="ユーザー名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"/>
-                    <TextBlock Grid.Row="2" Text="権限：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Text="ユーザー名：" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Id, ElementName=listBoxUsers}"/>
+                    <TextBlock Grid.Row="2" Text="権限：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,11"/>
                     <WrapPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
-                        <CheckBox Content="データベース作成" Margin="0,2,4,2"/>
-                        <CheckBox Content="スーパーユーザー" Margin="0,2,4,2"/>
-                        <CheckBox Content="レプリケーション" Margin="0,2,4,2"/>
-                        <CheckBox Content="行単位のセキュリティポリシーを無視" Margin="0,2,4,2"/>
+                        <CheckBox Content="ログイン可" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.CanLogin, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="Roleを継承" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.IsInherit, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="データベース作成" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.CanCreateDb, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="Role作成" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.CanCreateRole, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="スーパーユーザー" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.IsSuperUser, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="レプリケーション" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.Replication, ElementName=listBoxUsers}"/>
+                        <CheckBox Content="RLS(Row Level Security)を無視" Margin="0,2,4,2" IsChecked="{Binding SelectedItem.BypassRowLevelSecurity, ElementName=listBoxUsers}"/>
                     </WrapPanel>
-                    <TextBlock Grid.Row="3" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2"/>
-                    <TextBlock Grid.Row="4" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
-                    <DataGrid Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="3" Text="同時接続数：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal">
+                        <TextBox MinWidth="40" Margin="0,2" VerticalAlignment="Center" Text="{Binding SelectedItem.ConnectionLimit, ElementName=listBoxUsers}"/>
+                        <TextBlock Text="(-1: 無制限)" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                    <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2,620,2" Grid.ColumnSpan="2"/>
+                    <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
                 </Grid>
             </DockPanel>
         </TabItem>
@@ -69,7 +107,7 @@
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                         <Button  Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}"/>
                     </StackPanel>
-                    <ListBox MinWidth="100"/>
+                    <ListBox x:Name="listBoxTablespaces"  MinWidth="100" ItemsSource="{Binding Tablespaces, ElementName=userControl}"/>
                 </DockPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -96,13 +134,13 @@
                         </ToolBar>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="表領域名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Name, ElementName=listBoxTablespaces}"/>
                     <TextBlock Grid.Row="2" Text="所有者：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,2" IsEditable="True"/>
+                    <ComboBox Grid.Row="2" Grid.Column="1" Margin="0,2" IsEditable="True" Text="{Binding SelectedItem.Owner, ElementName=listBoxTablespaces}"/>
                     <TextBlock Grid.Row="3" Text="フォルダ：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2"/>
                     <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Option, ElementName=listBoxTablespaces}"/>
                     <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
                     <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
                 </Grid>

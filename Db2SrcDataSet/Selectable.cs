@@ -85,7 +85,7 @@ namespace Db2Source
         }
         public override bool IsModified()
         {
-            return (Comment != null) ? Comment.IsModified() : false;
+            return (Comment != null) && Comment.IsModified();
         }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -928,7 +928,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
@@ -947,7 +947,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
@@ -990,7 +990,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
         }
     }

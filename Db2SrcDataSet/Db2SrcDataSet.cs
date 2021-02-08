@@ -37,7 +37,7 @@ namespace Db2Source
         {
             get
             {
-                return (Items != null) ? Items[index] : null;
+                return Items?[index];
             }
         }
     }
@@ -148,7 +148,7 @@ namespace Db2Source
         public static string AppDataDir = InitAppDataDir();
         public static bool IsSQLLoggingEnabled = false;
         private static string _logPath = null;
-        private static object _logLock = new object();
+        private static readonly object _logLock = new object();
         private static void RequireLogPath()
         {
             if (_logPath != null)
@@ -191,14 +191,16 @@ namespace Db2Source
 
         private SettingCollection InitSettings()
         {
-            SettingCollection l = new SettingCollection();
-            l.Add(new RedirectedPropertySetting<string>("DateFormat", "日付書式(表示)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<string>("TimeFormat", "時刻書式(表示)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<string>("DateTimeFormat", "日時書式(表示)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<string>("ParseDateFormat", "日付書式(入力)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<string[]>("ParseTimeFormats", "時刻書式(入力)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<string[]>("ParseDateTimeFormats", "日時書式(入力)", typeof(Db2SourceContext)));
-            l.Add(new RedirectedPropertySetting<NewLineRule>("NewLineRule", "改行文字", this));
+            SettingCollection l = new SettingCollection
+            {
+                new RedirectedPropertySetting<string>("DateFormat", "日付書式(表示)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("TimeFormat", "時刻書式(表示)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("DateTimeFormat", "日時書式(表示)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("ParseDateFormat", "日付書式(入力)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string[]>("ParseTimeFormats", "時刻書式(入力)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string[]>("ParseDateTimeFormats", "日時書式(入力)", typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<NewLineRule>("NewLineRule", "改行文字", this)
+            };
             return l;
         }
         private SettingCollection _settings = null;
@@ -255,7 +257,7 @@ namespace Db2Source
             {
                 return Environment.NewLine;
             }
-            string nl = null;
+            string nl;
             if (NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
             {
                 return nl;
@@ -269,7 +271,7 @@ namespace Db2Source
                 return value.ToString();
             }
             StringBuilder buf = new StringBuilder(value.Length);
-            string nl = null;
+            string nl;
             if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
             {
                 return value.ToString();
@@ -309,7 +311,7 @@ namespace Db2Source
                 return value;
             }
             StringBuilder buf = new StringBuilder(value.Length);
-            string nl = null;
+            string nl;
             if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
             {
                 return value;
@@ -377,8 +379,8 @@ namespace Db2Source
         }
         public class SchemaObjectCollection<T> where T : NamedObject
         {
-            private Db2SourceContext _owner;
-            private PropertyInfo _itemsProperty;
+            private readonly Db2SourceContext _owner;
+            private readonly PropertyInfo _itemsProperty;
             internal SchemaObjectCollection(Db2SourceContext owner, string itemsPropertyName)
             {
                 _owner = owner;
@@ -692,6 +694,11 @@ namespace Db2Source
         public abstract string GetSQL(EnumType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string GetSQL(RangeType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string GetSQL(BasicType type, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string GetSQL(User user, string prefix, string postfix, int indent, bool addNewline);
+
+        public abstract string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
 
         public abstract string GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
@@ -707,6 +714,8 @@ namespace Db2Source
         public abstract string GetDropSQL(EnumType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(RangeType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(BasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline);
 
         protected abstract void LoadEncodings(IDbConnection connection);
         public abstract string GetServerEncoding();
@@ -1011,7 +1020,7 @@ namespace Db2Source
                 throw new ArgumentNullException("table");
             }
             Schema sch = table.Schema;
-            string schnm = sch.Name;
+            //string schnm = sch.Name;
             string objid = table.Identifier;
             Schema.CollectionIndex idx = table.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
@@ -1032,7 +1041,7 @@ namespace Db2Source
                 throw new ArgumentNullException("view");
             }
             Schema sch = view.Schema;
-            string schnm = sch.Name;
+            //string schnm = sch.Name;
             string objid = view.Identifier;
             Schema.CollectionIndex idx = view.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
@@ -1054,7 +1063,7 @@ namespace Db2Source
                 throw new ArgumentNullException("type");
             }
             Schema sch = type.Schema;
-            string schnm = sch.Name;
+            //string schnm = sch.Name;
             string objid = type.Identifier;
             Schema.CollectionIndex idx = type.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))

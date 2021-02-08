@@ -64,7 +64,17 @@ namespace Db2Source
 
         public string Prefix { get; set; }
         public string Owner { get; set; }
-        public Schema Schema { get { return _schema; } }
+        public Schema Schema
+        {
+            get
+            {
+                return _schema;
+            }
+            protected set
+            {
+                _schema = value;
+            }
+        }
         public string SchemaName { get { return _schema?.Name; } }
         public string Name
         {
@@ -80,6 +90,7 @@ namespace Db2Source
                 NameChanged(old);
             }
         }
+
         protected virtual void NameChanged(string oldValue)
         {
             InvalidateIdentifier();
@@ -104,7 +115,7 @@ namespace Db2Source
                 string s = SchemaName;
                 if (!string.IsNullOrEmpty(s))
                 {
-                    s = s + ".";
+                    s += ".";
                 }
                 return s + Name;
             }
@@ -263,7 +274,7 @@ namespace Db2Source
                 return -1;
             }
             SchemaObject sc = (SchemaObject)obj;
-            int ret = Schema.CompareTo(sc.Schema);
+            int ret = Schema.Compare(Schema, sc.Schema);
             if (ret != 0)
             {
                 return ret;

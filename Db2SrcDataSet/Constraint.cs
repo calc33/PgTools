@@ -72,7 +72,7 @@ namespace Db2Source
             return Schema.CollectionIndex.Constraints;
         }
 
-        private bool? _isTemporaryName;
+        private readonly bool? _isTemporaryName;
         private Table _table;
         private string _tableSchema;
         private string _tableName;
@@ -227,7 +227,7 @@ namespace Db2Source
 
     public partial class KeyConstraint : ColumnsConstraint
     {
-        private bool _isPrimary = false;
+        private readonly bool _isPrimary = false;
         public override ConstraintType ConstraintType { get { return _isPrimary ? ConstraintType.Primary : ConstraintType.Unique; } }
         public string[] ExtraInfo { get; set; }
 
@@ -439,7 +439,7 @@ namespace Db2Source
 
     public sealed class ConstraintCollection : IList<Constraint>, IList
     {
-        private Selectable _owner;
+        private readonly Selectable _owner;
         private List<Constraint> _list = null;
         private Dictionary<string, Constraint> _nameToConstraint = null;
 
@@ -620,8 +620,7 @@ namespace Db2Source
         {
             Constraint item = value as Constraint;
             RequireItems();
-            int ret = -1;
-            ret = ((IList)_list).Add(item);
+            int ret = ((IList)_list).Add(item);
             _nameToConstraint = null;
             return ret;
         }

@@ -75,8 +75,8 @@ namespace Db2Source
         private static string _configFileName = "ExpTbl.cfg";
         private static bool _showUsage = false;
         private static string _exportDir = null;
-        private static List<string> _schemas = new List<string>();
-        private static List<string> _excludeSchemas = new List<string>();
+        private static readonly List<string> _schemas = new List<string>();
+        private static readonly List<string> _excludeSchemas = new List<string>();
         private static Encoding _encoding = Encoding.UTF8;
         public static void AnalyzeArguments(string[] args)
         {
@@ -286,10 +286,6 @@ namespace Db2Source
 
         private static IDbConnection TryLogin(NpgsqlConnectionInfo info)
         {
-            if (info.Password == null)
-            {
-                info.Password = ReadPassword();
-            }
             for (int i = 0; i < 3; i++)
             {
                 try
@@ -307,11 +303,13 @@ namespace Db2Source
 
         public static void Execute()
         {
-            NpgsqlConnectionInfo info = new NpgsqlConnectionInfo();
-            info.ServerName = _hostname;
-            info.ServerPort = _port;
-            info.DatabaseName = _database;
-            info.UserName = _username;
+            NpgsqlConnectionInfo info = new NpgsqlConnectionInfo
+            {
+                ServerName = _hostname,
+                ServerPort = _port,
+                DatabaseName = _database,
+                UserName = _username
+            };
             info.FillStoredPassword(false);
             using (IDbConnection conn = TryLogin(info))
             {
@@ -321,8 +319,10 @@ namespace Db2Source
                     Environment.Exit(1);
                 }
             }
-            ExportTable obj = new ExportTable();
-            obj.DataSet = new NpgsqlDataSet(info);
+            ExportTable obj = new ExportTable
+            {
+                DataSet = new NpgsqlDataSet(info)
+            };
             if (_exportDir == null)
             {
                 _exportDir = Environment.CurrentDirectory;

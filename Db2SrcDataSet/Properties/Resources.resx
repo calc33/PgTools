@@ -151,11 +151,26 @@
   <data name="PgDatabase_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgDatabase_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgDescription_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgDescription_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgNamespace_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgNamespace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
   <data name="PgProc_ARGDEFAULTSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgProc_ARGDEFAULTSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
   <data name="PgProc_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgProc_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgRoles_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgRoles_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgSettings_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgSettings_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgTablespace_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgTablesspace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
   <data name="PgTrigger_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgTrigger_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>

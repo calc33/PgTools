@@ -405,9 +405,9 @@ namespace Db2Source
 
         private class PgObjectCollection<T>: IReadOnlyList<T> where T : PgObject, new()
         {
-            private List<T> _items = new List<T>();
+            private readonly List<T> _items = new List<T>();
             private Dictionary<uint, T> _oidToItem = null;
-            private object _dictionaryLock = new object();
+            private readonly object _dictionaryLock = new object();
 
             private void InvalidateDictionary()
             {
@@ -456,7 +456,7 @@ namespace Db2Source
                     }
                 }
             }
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+            //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void Join(string sql, NpgsqlConnection connection)
             {
                 InvalidateDictionary();
@@ -492,7 +492,7 @@ namespace Db2Source
                     }
                 }
             }
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+            //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void JoinToDict<T2>(string sql, FieldInfo dictField, string fieldname, NpgsqlConnection connection)
             {
                 InvalidateDictionary();
@@ -610,9 +610,9 @@ namespace Db2Source
         }
         private class PgOidSubidCollection<T> : IReadOnlyList<T> where T: PgOidSubid, new()
         {
-            private List<T> _items = new List<T>();
+            private readonly List<T> _items = new List<T>();
             private Dictionary<ulong, T> _oidNumToItem = null;
-            private object _dictionaryLock = new object();
+            private readonly object _dictionaryLock = new object();
 
             private void InvalidateDictionary()
             {
@@ -639,7 +639,7 @@ namespace Db2Source
                     _oidNumToItem = dictOid;
                 }
             }
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+            //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
             {
                 if (clearBeforeFill)
@@ -925,22 +925,21 @@ namespace Db2Source
             //public override string Name { get { return nspname; } }
             public PgNamespace() : base() { }
             public static PgObjectCollection<PgNamespace> Namespaces = null;
-            public const string SQL = "select oid, nspname, nspowner from pg_catalog.pg_namespace";
             public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, PgObjectCollection<PgNamespace> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgNamespace>(SQL, connection, dict);
+                    return new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict);
                 }
                 else
                 {
-                    store.Fill(SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict, false);
                     return store;
                 }
             }
             public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Namespaces = new PgObjectCollection<PgNamespace>(SQL, connection, dict);
+                Namespaces = new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict);
                 return Namespaces;
             }
             public override void FillReference(WorkingData working)
@@ -1125,8 +1124,10 @@ namespace Db2Source
                 {
                     return null;
                 }
-                Table t = new Table(context, ownername, Schema?.nspname, relname);
-                t.TablespaceName = TableSpace?.spcname;
+                Table t = new Table(context, ownername, Schema?.nspname, relname)
+                {
+                    TablespaceName = TableSpace?.spcname
+                };
                 int i = 1;
                 foreach (PgAttribute a in Columns)
                 {
@@ -1165,11 +1166,13 @@ namespace Db2Source
                 {
                     return null;
                 }
-                Index idx = new Index(context, ownername, Schema?.nspname, relname, IndexTable?.Schema?.nspname, IndexTable?.relname, IndexColumns, indexdef);
-                idx.IsUnique = indisunique;
-                idx.IsImplicit = IsImplicit;
-                idx.IndexType = indextype;
-                idx.SqlDef = NormalizeSql(indexdef);
+                Index idx = new Index(context, ownername, Schema?.nspname, relname, IndexTable?.Schema?.nspname, IndexTable?.relname, IndexColumns, indexdef)
+                {
+                    IsUnique = indisunique,
+                    IsImplicit = IsImplicit,
+                    IndexType = indextype,
+                    SqlDef = NormalizeSql(indexdef)
+                };
                 Generated = idx;
                 return idx;
             }
@@ -1179,8 +1182,10 @@ namespace Db2Source
                 {
                     return null;
                 }
-                Sequence seq = new Sequence(context, ownername, Schema?.nspname, relname);
-                seq.StartValue = start_value.ToString();
+                Sequence seq = new Sequence(context, ownername, Schema?.nspname, relname)
+                {
+                    StartValue = start_value.ToString()
+                };
                 if (0 < increment)
                 {
                     seq.MinValue = (minimum_value != 1) ? minimum_value.ToString() : null;
@@ -1309,16 +1314,18 @@ namespace Db2Source
                 {
                     return null;
                 }
-                BasicType ret = new BasicType(context, ownername, Schema?.nspname, typname);
-                ret.InputFunction = typinput;
-                ret.OutputFunction = typoutput;
-                ret.ReceiveFunction = typreceive;
-                ret.SendFunction = typsend;
-                ret.TypmodInFunction = typmodin;
-                ret.TypmodOutFunction = typmodout;
-                ret.AnalyzeFunction = typanalyze;
-                //ret.InternalLengthFunction = ;
-                ret.PassedbyValue = typbyval;
+                BasicType ret = new BasicType(context, ownername, Schema?.nspname, typname)
+                {
+                    InputFunction = typinput,
+                    OutputFunction = typoutput,
+                    ReceiveFunction = typreceive,
+                    SendFunction = typsend,
+                    TypmodInFunction = typmodin,
+                    TypmodOutFunction = typmodout,
+                    AnalyzeFunction = typanalyze,
+                    //InternalLengthFunction = ,
+                    PassedbyValue = typbyval
+                };
                 switch (typalign)
                 {
                     case 'c':
@@ -1488,7 +1495,6 @@ namespace Db2Source
                         int k = confkey[i];
                         RefKeys[i] = working.PgAttributes.FindByOidNum(confrelid, k);
                     }
-                    bool found = false;
                     foreach (PgConstraint cons in RefObject.Constraints)
                     {
                         if ("pu".IndexOf(cons.contype) == -1)
@@ -1499,7 +1505,7 @@ namespace Db2Source
                         {
                             continue;
                         }
-                        found = true;
+                        bool found = true;
                         for (int i = 0; i < cons.Keys.Length; i++)
                         {
                             if (cons.Keys[i].attnum != RefKeys[i].attnum)
@@ -1541,9 +1547,11 @@ namespace Db2Source
                         return cc;
                     case 'f': // 外部キー制約
                         ForeignKeyConstraint rc = new ForeignKeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname,
-                            RefConstraint?.Schema?.nspname, RefConstraint?.conname, CharToForeignKeyRule[confupdtype], CharToForeignKeyRule[confdeltype], false, condeferrable, condeferred);
-                        rc.Columns = GetNameArray(Keys);
-                        rc.RefColumns = GetNameArray(RefKeys);
+                            RefConstraint?.Schema?.nspname, RefConstraint?.conname, CharToForeignKeyRule[confupdtype], CharToForeignKeyRule[confdeltype], false, condeferrable, condeferred)
+                        {
+                            Columns = GetNameArray(Keys),
+                            RefColumns = GetNameArray(RefKeys)
+                        };
                         Generated = rc;
                         return rc;
                     case 'p': // プライマリキー制約
@@ -1552,8 +1560,10 @@ namespace Db2Source
                         {
                             return null;
                         }
-                        KeyConstraint kc = new KeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname, contype == 'p', false, condeferrable, condeferred);
-                        kc.Columns = new string[Keys.Length];
+                        KeyConstraint kc = new KeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname, contype == 'p', false, condeferrable, condeferred)
+                        {
+                            Columns = new string[Keys.Length]
+                        };
                         for (int i = 0; i < Keys.Length; i++)
                         {
                             kc.Columns[i] = Keys[i].attname;
@@ -1702,14 +1712,16 @@ namespace Db2Source
             }
             public Column ToColumn(NpgsqlDataSet context)
             {
-                Column c = new Column(context, Owner?.Schema?.nspname);
-                c.TableName = Owner?.relname;
-                c.Name = attname;
-                c.DataType = DefTypeName;
-                c.BaseType = BaseTypeName;
-                c.DefaultValue = defaultexpr;
-                c.NotNull = attnotnull;
-                Type t = null;
+                Column c = new Column(context, Owner?.Schema?.nspname)
+                {
+                    TableName = Owner?.relname,
+                    Name = attname,
+                    DataType = DefTypeName,
+                    BaseType = BaseTypeName,
+                    DefaultValue = defaultexpr,
+                    NotNull = attnotnull
+                };
+                Type t;
                 if (!TypeNameToType.TryGetValue(BaseTypeName, out t))
                 {
                     if (IsArray && TypeNameToType.TryGetValue(ElemTypeName, out t))
@@ -1751,22 +1763,21 @@ namespace Db2Source
             public PgClass TargetClass;
             public PgAttribute TargetAttribute;
             public static PgObjectCollection<PgDescription> Descriptions;
-            private const string SQL = "select objoid, classoid, objsubid, description from pg_catalog.pg_description";
             public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, PgObjectCollection<PgDescription> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgDescription>(SQL, connection, dict);
+                    return new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection, dict);
                 }
                 else
                 {
-                    store.Fill(SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgDescription_SQL, connection, dict, false);
                     return store;
                 }
             }
             public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Descriptions = new PgObjectCollection<PgDescription>(SQL, connection, dict);
+                Descriptions = new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection, dict);
                 return Descriptions;
             }
 
@@ -1786,7 +1797,7 @@ namespace Db2Source
                 {
                     return null;
                 }
-                Comment c = null;
+                Comment c;
                 if (TargetAttribute != null)
                 {
                     c = new ColumnComment(context, TargetClass?.Schema?.nspname, TargetClass?.relname, TargetAttribute.attname, description, true);
@@ -1940,7 +1951,7 @@ namespace Db2Source
                 //Schema = working.PgNamespaces.FindByOid(tg)
                 //throw new NotImplementedException();
             }
-            private static string[] TimingToText = new string[] { string.Empty, "before", "after", "instead of" };
+            private static readonly string[] TimingToText = new string[] { string.Empty, "before", "after", "instead of" };
             public Trigger ToTrigger(NpgsqlDataSet context)
             {
                 if (tgisinternal)
@@ -1956,10 +1967,12 @@ namespace Db2Source
                 {
                     def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, Target.Schema?.nspname) + "()";
                 }
-                Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true);
-                t.ProcedureSchema = Procedure.Schema?.nspname;
-                t.ProcedureName = Procedure.GetInternalName();
-                t.Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After;
+                Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
+                {
+                    ProcedureSchema = Procedure.Schema?.nspname,
+                    ProcedureName = Procedure.GetInternalName(),
+                    Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
+                };
                 t.TimingText = TimingToText[(int)t.Timing];
                 t.Event = 0;
                 t.EventText = string.Empty;
@@ -2052,22 +2065,21 @@ namespace Db2Source
             public string location;
 #pragma warning restore 0649
             public static PgObjectCollection<PgTablespace> Tablespaces;
-            private const string SQL = "select ts.oid, ts.*, pg_tablespace_location(ts.oid) as location from pg_catalog.pg_tablespace ts order by spcname";
             public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, PgObjectCollection<PgTablespace> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgTablespace>(SQL, connection, dict);
+                    return new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict);
                 }
                 else
                 {
-                    store.Fill(SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict, false);
                     return store;
                 }
             }
             public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Tablespaces = new PgObjectCollection<PgTablespace>(SQL, connection, dict);
+                Tablespaces = new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict);
                 return Tablespaces;
             }
 
@@ -2079,7 +2091,7 @@ namespace Db2Source
             {
                 PgsqlTablespace ts = new PgsqlTablespace(context.Tablespaces)
                 {
-                    oid = oid,
+                    Oid = oid,
                     Name = spcname,
                     Options = spcoptions,
                     Path = location
@@ -2135,7 +2147,7 @@ namespace Db2Source
                 StringBuilder buf = new StringBuilder();
                 buf.Append(proname);
                 buf.Append('(');
-                PgType[] args = AllArgTypes != null ? AllArgTypes : ArgTypes;
+                PgType[] args = AllArgTypes ?? ArgTypes;
                 if (args != null)
                 {
                     bool needComma = false;
@@ -2221,9 +2233,11 @@ namespace Db2Source
             }
             public StoredFunction ToStoredFunction(NpgsqlDataSet context)
             {
-                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetInternalName(), prosrc, true);
-                fn.DataType = ReturnType?.formatname;
-                fn.BaseType = ReturnType?.BaseType?.formatname;
+                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetInternalName(), prosrc, true)
+                {
+                    DataType = ReturnType?.formatname,
+                    BaseType = ReturnType?.BaseType?.formatname
+                };
                 if (fn.BaseType == null)
                 {
                     fn.BaseType = fn.DataType;
@@ -2233,16 +2247,18 @@ namespace Db2Source
                     fn.DataType = "setof " + fn.DataType;
                 }
                 fn.Language = lanname;
-                PgType[] args = AllArgTypes != null ? AllArgTypes : ArgTypes;
+                PgType[] args = AllArgTypes ?? ArgTypes;
                 if (args != null)
                 {
                     for (int i = 0; i < args.Length; i++)
                     {
-                        Parameter p = new Parameter(fn);
-                        p.Name = proargnames != null ? proargnames[i] : null;
-                        p.Direction = GetParameterDirection(i);
-                        p.DataType = args[i].formatname;
-                        p.BaseType = args[i].BaseType?.typname;
+                        Parameter p = new Parameter(fn)
+                        {
+                            Name = proargnames?[i],
+                            Direction = GetParameterDirection(i),
+                            DataType = args[i].formatname,
+                            BaseType = args[i].BaseType?.typname
+                        };
                         if (p.BaseType == null)
                         {
                             p.BaseType = p.DataType;
@@ -2315,18 +2331,176 @@ namespace Db2Source
                 IsCurrent = (datname == current_database);
             }
 
-            public Database ToDatabase(NpgsqlDataSet context)
+            public PgsqlDatabase ToDatabase(NpgsqlDataSet context)
             {
-                Database ret = new Database();
-                ret.Name = datname;
-                ret.Encoding = encoding_char;
-                ret.DefaultTablespace = dattablespacename;
-                //ret.DbaUserName = datdba;
-                ret.IsCurrent = IsCurrent;
-                ret.Version = version;
+                PgsqlDatabase ret = new PgsqlDatabase(context, datname)
+                {
+                    //Name = datname,
+                    ConnectionInfo = context.ConnectionInfo,
+                    Encoding = encoding_char,
+                    DefaultTablespace = dattablespacename,
+                    //DbaUserName = datdba,
+                    IsCurrent = IsCurrent,
+                    Version = version
+                };
                 return ret;
             }
         }
+
+        private class PgSettingCollection : IReadOnlyList<PgSetting>
+        {
+            private readonly List<PgSetting> _items = new List<PgSetting>();
+            private readonly object _dictionaryLock = new object();
+
+            public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
+            {
+                if (clearBeforeFill)
+                {
+                    _items.Clear();
+                }
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
+                {
+                    LogDbCommand("PgSettingCollection.Fill", cmd);
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        FieldInfo[] mapper = CreateMapper(reader, typeof(PgSetting));
+                        while (reader.Read())
+                        {
+                            PgSetting obj = new PgSetting();
+                            ReadObject(obj, reader, mapper);
+                            _items.Add(obj);
+                        }
+                    }
+                }
+            }
+            public void BeginFillReference(WorkingData working)
+            {
+            }
+            public void EndFillReference(WorkingData working)
+            {
+            }
+            public void FillReference(WorkingData working)
+            {
+                foreach (PgSetting obj in _items)
+                {
+                    obj.FillReference(working);
+                }
+            }
+
+            public PgSettingCollection(string sql, NpgsqlConnection connection)
+            {
+                Fill(sql, connection, false);
+            }
+            public PgSettingCollection() { }
+
+            #region IReadOnlyList の実装
+            public int Count
+            {
+                get
+                {
+                    return _items.Count;
+                }
+            }
+
+            public IEnumerator<PgSetting> GetEnumerator()
+            {
+                return _items.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_items).GetEnumerator();
+            }
+
+            public PgSetting this[int index] { get { return _items[index]; } }
+            #endregion
+        }
+        private class PgSetting: IComparable
+        {
+#pragma warning disable 0649
+            public string name;
+            public string setting;
+            public string unit;
+            public string category;
+            public string short_desc;
+            public string extra_desc;
+            public string context;
+            public string vartype;
+            public string source;
+            public string min_val;
+            public string max_val;
+            public string[] enumvals;
+            public string boot_val;
+            public string reset_val;
+            public string sourcefile;
+            public int? sourceline;
+            public bool pending_restart;
+#pragma warning restore 0649
+
+            public static PgSettingCollection Load(NpgsqlConnection connection, PgSettingCollection store)
+            {
+                if (store == null)
+                {
+                    return new PgSettingCollection(DataSet.Properties.Resources.PgSettings_SQL, connection);
+                }
+                else
+                {
+                    store.Fill(DataSet.Properties.Resources.PgSettings_SQL, connection, false);
+                    return store;
+                }
+            }
+
+            public void FillReference(WorkingData working)
+            {
+            }
+
+            public PgsqlSetting ToPgsqlSetting(NpgsqlDataSet context)
+            {
+                return new PgsqlSetting()
+                {
+                    Name = name,
+                    Setting = setting,
+                    Unit = unit,
+                    Category = category,
+                    ShortDesc = short_desc,
+                    ExtraDesc = extra_desc,
+                    Context = this.context,
+                    BootVal = boot_val,
+                    ResetVal = reset_val,
+                    PendingRestart = pending_restart
+                };
+            }
+
+            public int CompareTo(object obj)
+            {
+                if (!(obj is PgSetting))
+                {
+                    return -1;
+                }
+                return name.CompareTo(((PgSetting)obj).name);
+            }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is PgSetting))
+                {
+                    return false;
+                }
+                return string.Compare(name, ((PgSetting)obj).name) == 0;
+            }
+            public override int GetHashCode()
+            {
+                if (string.IsNullOrEmpty(name))
+                {
+                    return 0;
+                }
+                return name.GetHashCode();
+            }
+            public override string ToString()
+            {
+                return string.Format("{0}: {1}", name, setting);
+            }
+        }
+
         private void LoadUserInfo(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
@@ -2355,37 +2529,40 @@ namespace Db2Source
             }
         }
 
-        private class PgUser: PgObject
+        private class PgRole: PgObject
         {
 #pragma warning disable 0649
-            public string usename;
-            public uint usesysid;
-            public bool usecreatedb;
-            public bool usesuper;
-            public bool userepl;
-            public bool usebypassrls;
-            public DateTime? valuntil;
-            public string[] useconfig;
+            public string rolname;
+            public bool rolsuper;
+            public bool rolinherit = true;
+            public bool rolcreaterole;
+            public bool rolcreatedb;
+            public bool rolcanlogin;
+            public bool rolreplication;
+            public int rolconnlimit = -1;
+            //public string rolpassword;
+            public DateTime? rolvaliduntil;
+            public bool rolbypassrls;
+            public string[] rolconfig;
 #pragma warning restore 0649
 
-            public static PgObjectCollection<PgUser> Users;
-            private const string SQL = "select u.usesysid as oid, u.* as location from pg_catalog.pg_user u order by u.usename";
-            public static PgObjectCollection<PgUser> Load(NpgsqlConnection connection, PgObjectCollection<PgUser> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgRole> Roles;
+            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection, PgObjectCollection<PgRole> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgUser>(SQL, connection, dict);
+                    return new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection, dict);
                 }
                 else
                 {
-                    store.Fill(SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgRoles_SQL, connection, dict, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgUser> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Users = new PgObjectCollection<PgUser>(SQL, connection, dict);
-                return Users;
+                Roles = new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection, dict);
+                return Roles;
             }
 
             public override void FillReference(WorkingData working)
@@ -2396,14 +2573,18 @@ namespace Db2Source
             {
                 PgsqlUser u = new PgsqlUser(context.Users)
                 {
-                    Name = usename,
-                    oid = usesysid,
-                    CanCreateDb = usecreatedb,
-                    IsSuperUser = usesuper,
-                    Replication = userepl,
-                    BypassRowLevelSecurity = usebypassrls,
-                    PasswordExpiration = valuntil.HasValue ? valuntil.Value : DateTime.MaxValue,
-                    Config = useconfig
+                    Oid = oid,
+                    Name = rolname,
+                    CanLogin = rolcanlogin,
+                    IsInherit = rolinherit,
+                    CanCreateDb = rolcreatedb,
+                    CanCreateRole = rolcreaterole,
+                    IsSuperUser = rolsuper,
+                    Replication = rolreplication,
+                    BypassRowLevelSecurity = rolbypassrls,
+                    PasswordExpiration = rolvaliduntil ?? DateTime.MaxValue,
+                    Config = rolconfig,
+                    ConnectionLimit = rolconnlimit
                 };
                 Generated = u;
                 return u;
@@ -2425,7 +2606,8 @@ namespace Db2Source
             public PgObjectCollection<PgDatabase> PgDatabases;
             public PgObjectCollection<PgType> PgTypes;
             public PgObjectCollection<PgProc> PgProcs;
-            public PgObjectCollection<PgUser> PgUsers;
+            public PgObjectCollection<PgRole> PgRoles;
+            public PgSettingCollection PgSettings;
             public WorkingData(NpgsqlDataSet context, NpgsqlConnection connection)
             {
                 Context = context;
@@ -2441,8 +2623,8 @@ namespace Db2Source
                 PgTriggers = PgTrigger.Load(connection, null, OidToObject);
                 PgDescriptions = PgDescription.Load(connection, null, OidToObject);
                 //PgDepends = PgDepend.Load(connection, null);
-                PgUsers = PgUser.Load(connection, null, OidToObject);
-
+                PgRoles = PgRole.Load(connection, null, OidToObject);
+                PgSettings = PgSetting.Load(connection, null);
 
                 PgNamespaces.BeginFillReference(this);
                 PgTablespaces.BeginFillReference(this);
@@ -2455,7 +2637,8 @@ namespace Db2Source
                 PgTriggers.BeginFillReference(this);
                 PgDescriptions.BeginFillReference(this);
                 //PgDepends.BeginFillReference(this);
-                PgUsers.BeginFillReference(this);
+                PgRoles.BeginFillReference(this);
+                PgSettings.BeginFillReference(this);
 
                 PgNamespaces.FillReference(this);
                 PgTablespaces.FillReference(this);
@@ -2468,7 +2651,8 @@ namespace Db2Source
                 PgTriggers.FillReference(this);
                 PgDescriptions.FillReference(this);
                 //PgDepends.FillReference(this);
-                PgUsers.FillReference(this);
+                PgRoles.FillReference(this);
+                PgSettings.FillReference(this);
 
                 PgNamespaces.EndFillReference(this);
                 PgTablespaces.EndFillReference(this);
@@ -2481,7 +2665,8 @@ namespace Db2Source
                 PgTriggers.EndFillReference(this);
                 PgDescriptions.EndFillReference(this);
                 //PgDepends.EndFillReference(this);
-                PgUsers.EndFillReference(this);
+                PgRoles.EndFillReference(this);
+                PgSettings.EndFillReference(this);
 
                 LoadFromPgNamespaces();
                 LoadFromPgTablespaces();
@@ -2493,7 +2678,8 @@ namespace Db2Source
                 LoadFromPgTrigger();
                 LoadFromPgDescription();
                 //LoadFromPgDepend();
-                LoadFromPgUsers();
+                LoadFromPgRoles();
+                LoadFromPgSettings();
                 foreach (Schema s in Context.Schemas)
                 {
                     foreach (Schema.CollectionIndex idx in Enum.GetValues(typeof(Schema.CollectionIndex)))
@@ -2520,9 +2706,21 @@ namespace Db2Source
                 }
             }
 
-            private void LoadFromPgUsers()
+            private void LoadFromPgSettings()
             {
-                foreach (PgUser ts in PgUsers)
+                PgsqlSettingCollection l = (Context?.Database as PgsqlDatabase)?.Settings;
+                if (l == null)
+                {
+                    return;
+                }
+                foreach (PgSetting s in PgSettings)
+                {
+                    l.Add(s.ToPgsqlSetting(Context));
+                }
+            }
+            private void LoadFromPgRoles()
+            {
+                foreach (PgRole ts in PgRoles)
                 {
                     ts.ToUser(Context);
                 }

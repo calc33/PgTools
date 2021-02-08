@@ -196,7 +196,8 @@ namespace Db2Source.DataSet.Properties {
         ///  d.&quot;encoding&quot;, pg_encoding_to_char(d.&quot;encoding&quot;) as encoding_char,
         ///  d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
         ///  d.datconnlimit, d.datlastsysoid, d.datfrozenxid, d.datminmxid,
-        ///  d.dattablespace, ts.spcname as dattablespacename
+        ///  d.dattablespace, ts.spcname as dattablespacename,
+        ///  version() as version
         ///from pg_database as d
         ///  left outer join pg_user u on (d.datdba = u.usesysid)
         ///  left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
@@ -205,6 +206,25 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgDatabase_SQL {
             get {
                 return ResourceManager.GetString("PgDatabase_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select *
+        ///from pg_catalog.pg_description に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgDescription_SQL {
+            get {
+                return ResourceManager.GetString("PgDescription_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select ns.oid, ns.nspname, ns.nspowner from pg_namespace ns order by ns.nspname に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgNamespace_SQL {
+            get {
+                return ResourceManager.GetString("PgNamespace_SQL", resourceCulture);
             }
         }
         
@@ -233,6 +253,40 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgProc_SQL {
             get {
                 return ResourceManager.GetString("PgProc_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select * from pg_roles order by rolname に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgRoles_SQL {
+            get {
+                return ResourceManager.GetString("PgRoles_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select
+        ///  &quot;name&quot;, setting, unit, category, short_desc, extra_desc, context, vartype, &quot;source&quot;, 
+        ///  min_val, max_val, enumvals, boot_val, reset_val, sourcefile, sourceline, pending_restart
+        ///from pg_settings
+        ///order by &quot;name&quot;
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgSettings_SQL {
+            get {
+                return ResourceManager.GetString("PgSettings_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select ts.oid, ts.spcname, ts.spcowner, pg_tablespace_location(ts.oid) as location
+        ///from pg_catalog.pg_tablespace ts
+        ///order by spcname に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgTablespace_SQL {
+            get {
+                return ResourceManager.GetString("PgTablespace_SQL", resourceCulture);
             }
         }
         

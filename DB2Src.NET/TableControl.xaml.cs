@@ -928,7 +928,7 @@ namespace Db2Source
             win.Table = Target;
             win.Column = col;
             win.Row = row;
-            App.ShowNearby(win, cell, NearbyLocation.RightSideTop);
+            App.ShowNearby(win, cur, NearbyLocation.RightSideTop);
         }
 
         private void DataGridCell_Selected(object sender, RoutedEventArgs e)

@@ -96,7 +96,7 @@ namespace Db2Source
                 else
                 {
                     buf.Append(' ');
-                    l++;
+                    //l++;
                 }
                 buf.Append(s);
                 buf.Append(')');
@@ -155,11 +155,13 @@ namespace Db2Source
 
         public static Dictionary<ConstraintType, string> InitConstraintTypeToStr()
         {
-            Dictionary<ConstraintType, string> dict = new Dictionary<ConstraintType, string>();
-            dict.Add(ConstraintType.Primary, "primary key");
-            dict.Add(ConstraintType.Unique, "unique");
-            dict.Add(ConstraintType.ForeignKey, "foreign key");
-            dict.Add(ConstraintType.Check, "check");
+            Dictionary<ConstraintType, string> dict = new Dictionary<ConstraintType, string>
+            {
+                { ConstraintType.Primary, "primary key" },
+                { ConstraintType.Unique, "unique" },
+                { ConstraintType.ForeignKey, "foreign key" },
+                { ConstraintType.Check, "check" }
+            };
             return dict;
         }
         public static readonly Dictionary<ConstraintType, string> ConstraintTypeToStr = InitConstraintTypeToStr();
@@ -221,11 +223,13 @@ namespace Db2Source
         }
         private static Dictionary<ForeignKeyRule, string> InitForeignKeyRuleToStr()
         {
-            Dictionary<ForeignKeyRule, string> dict = new Dictionary<ForeignKeyRule, string>();
-            dict.Add(ForeignKeyRule.NoAction, string.Empty);
-            dict.Add(ForeignKeyRule.Restrict, "restrict");
-            dict.Add(ForeignKeyRule.Cascade, "cascade");
-            dict.Add(ForeignKeyRule.SetNull, "set null");
+            Dictionary<ForeignKeyRule, string> dict = new Dictionary<ForeignKeyRule, string>
+            {
+                { ForeignKeyRule.NoAction, string.Empty },
+                { ForeignKeyRule.Restrict, "restrict" },
+                { ForeignKeyRule.Cascade, "cascade" },
+                { ForeignKeyRule.SetNull, "set null" }
+            };
             return dict;
         }
         private static readonly Dictionary<ForeignKeyRule, string> ForeignKeyRuleToStr = InitForeignKeyRuleToStr();
@@ -365,8 +369,8 @@ namespace Db2Source
         {
             return value != null ? value.Length : 0;
         }
-        private static int LINE_SOFTLIMIT = 80;
-        private static int LINE_HARDLIMIT = 100;
+        private static readonly int LINE_SOFTLIMIT = 80;
+        private static readonly int LINE_HARDLIMIT = 100;
 
         public override string GetSQL(Trigger trigger, string prefix, string postfix, int indent, bool addNewline)
         {
@@ -519,7 +523,7 @@ namespace Db2Source
 
             buf.Append(spc);
             buf.Append(prefix);
-            buf.Append("create sequece ");
+            buf.Append("create sequence ");
             buf.Append(GetEscapedIdentifier(sequence.Name));
             if (!string.IsNullOrEmpty(sequence.Increment))
             {
@@ -857,6 +861,198 @@ namespace Db2Source
             return buf.ToString();
         }
 
+        public override string GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline)
+        {
+            PgsqlTablespace ts = tablespace as PgsqlTablespace;
+            StringBuilder buf = new StringBuilder();
+            string spc = new string(' ', indent);
+            buf.Append(spc);
+            buf.Append(prefix);
+            buf.Append("create tablespace ");
+            buf.Append(GetEscapedIdentifier(Name));
+            if (ts != null && string.Compare(ts.Owner, ConnectionInfo.UserName, true) != 0)
+            {
+                buf.Append(" owner ");
+                buf.Append(ts.Owner);
+            }
+            buf.Append(" location ");
+            buf.Append(ToLiteralStr(tablespace.Path));
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return buf.ToString();
+        }
+        public override string GetSQL(User user, string prefix, string postfix, int indent, bool addNewline)
+        {
+            PgsqlUser u = user as PgsqlUser;
+            StringBuilder buf = new StringBuilder();
+            string spc = new string(' ', indent);
+            buf.Append(spc);
+            buf.Append(prefix);
+            buf.Append("create role ");
+            buf.Append(GetEscapedIdentifier(user.Id));
+            StringBuilder bufOpt = new StringBuilder();
+            if (u != null)
+            {
+                if (u.IsSuperUser)
+                {
+                    bufOpt.Append(" superuser");
+                }
+                if (u.CanCreateDb)
+                {
+                    bufOpt.Append(" createdb");
+                }
+                if (u.CanCreateRole)
+                {
+                    bufOpt.Append(" createrole");
+                }
+                if (!u.IsInherit)
+                {
+                    bufOpt.Append(" noinherit");
+                }
+                if (u.CanLogin)
+                {
+                    bufOpt.Append(" login");
+                }
+                if (u.Replication)
+                {
+                    bufOpt.Append(" replication");
+                }
+                if (u.BypassRowLevelSecurity)
+                {
+                    bufOpt.Append(" bypassrls");
+                }
+                bufOpt.Append(" connection limit ");
+                bufOpt.Append(u.ConnectionLimit);
+                if (!u.IsPasswordShadowed)
+                {
+                    bufOpt.Append(" password ");
+                    if (u.Password == null)
+                    {
+                        bufOpt.Append("null");
+                    }
+                    else
+                    {
+                        bufOpt.Append(ToLiteralStr(u.Password));
+                    }
+                }
+                bufOpt.Append(" password ");
+                //buf.Append(ToLiteralStr(u.Password));
+                if (u.PasswordExpiration != DateTime.MaxValue)
+                {
+                    bufOpt.AppendFormat(" valid until {0:'YYYY-MM-DD'}", u.PasswordExpiration);
+                }
+                // [ENCRYPTED] PASSWORD 'password' | PASSWORD NULL
+                // IN ROLE role_name[, ...]
+                // ROLE role_name[, ...]
+                // ADMIN role_name[, ...]
+            }
+            if (0 < bufOpt.Length)
+            {
+                buf.Append(" with");
+                buf.Append(bufOpt.ToString());
+            }
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return buf.ToString();
+        }
+
+        public override string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline)
+        {
+            PgsqlTablespace tsA = after as PgsqlTablespace;
+            PgsqlTablespace tsB = before as PgsqlTablespace;
+            if (after == null)
+            {
+                throw new ArgumentNullException("after");
+            }
+            if (before == null)
+            {
+                throw new ArgumentNullException("before");
+            }
+            List<string> l = new List<string>();
+            if (after.Path != before.Path)
+            {
+                l.Add(GetDropSQL(before, prefix, postfix, indent, false, addNewline));
+                l.Add(GetSQL(after, prefix, postfix, indent, addNewline));
+            }
+            string spc = new string(' ', indent);
+            string nl = addNewline ? Environment.NewLine : string.Empty;
+            if (after.Name != before.Name)
+            {
+                l.Add(string.Format("{0}{1}alter tablespace {2} rename to {3}{4}{5}", spc, prefix, before.Name, after.Name, postfix, nl));
+            }
+            if (tsA.Owner != tsB.Owner)
+            {
+                l.Add(string.Format("{0}{1}alter tablespace {2} owner to {3}{4}{5}", spc, prefix, after.Name, tsA.Owner, postfix, nl));
+            }
+            // オプション類の変更SQL未実装
+            throw new NotImplementedException();
+            //return l.ToArray();
+        }
+        private static void AddAlterOption(StringBuilder buf, bool after, bool before, string trueValue, string falseValue)
+        {
+            if (after == before)
+            {
+                return;
+            }
+            buf.Append(" ");
+            buf.Append(after ? trueValue : falseValue);
+        }
+        public override string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline)
+        {
+            PgsqlUser uA = after as PgsqlUser;
+            PgsqlUser uB = before as PgsqlUser;
+            if (after == null)
+            {
+                throw new ArgumentNullException("after");
+            }
+            if (before == null)
+            {
+                throw new ArgumentNullException("before");
+            }
+            List<string> l = new List<string>();
+            string spc = new string(' ', indent);
+            string nl = addNewline ? Environment.NewLine : string.Empty;
+            if (after.Id != before.Id)
+            {
+                l.Add(string.Format("{0}{1}alter role {2} rename to {3}{4}{5}", spc, prefix, before.Id, after.Id, postfix, nl));
+            }
+            StringBuilder bufOpt = new StringBuilder();
+            AddAlterOption(bufOpt, uA.IsSuperUser, uB.IsSuperUser, "superuser", "nosuperuser");
+            AddAlterOption(bufOpt, uA.CanCreateDb, uB.CanCreateDb, "createdb", "nocreatedb");
+            AddAlterOption(bufOpt, uA.CanCreateRole, uB.CanCreateRole, "createrole", "nocreaterole");
+            AddAlterOption(bufOpt, uA.IsInherit, uB.IsInherit, "inherit", "noinherit");
+            AddAlterOption(bufOpt, uA.CanLogin, uB.CanLogin, "login", "nologin");
+            AddAlterOption(bufOpt, uA.Replication, uB.Replication, "replication", "noreplication");
+            AddAlterOption(bufOpt, uA.BypassRowLevelSecurity, uB.BypassRowLevelSecurity, "bypassrls", "nobypassrls");
+            if (uA.ConnectionLimit != uB.ConnectionLimit)
+            {
+                bufOpt.Append(" connection limit ");
+                bufOpt.Append(uA.ConnectionLimit);
+            }
+            if (!uA.IsPasswordShadowed && (uB.IsPasswordShadowed || uA.Password != uB.Password))
+            {
+                bufOpt.Append(" password ");
+                bufOpt.Append(uA.Password == null ? "null" : ToLiteralStr(uA.Password));
+            }
+            if (uA.PasswordExpiration != uB.PasswordExpiration)
+            {
+                bufOpt.Append(" valid until");
+                bufOpt.Append(uA.PasswordExpiration == DateTime.MaxValue ? "infinity" : uA.PasswordExpiration.ToString("'yyyy-MM-dd'"));
+            }
+            if (0 < bufOpt.Length)
+            {
+                l.Add(string.Format("{0}{1}alter role {2} with {3}{4}{5}", spc, prefix, after.Id, bufOpt.ToString(), postfix, nl));
+            }
+            return l.ToArray();
+        }
+
+
         private string GetDropSQLInternal(SchemaObject target, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (target == null)
@@ -1043,6 +1239,40 @@ namespace Db2Source
         public override string GetDropSQL(BasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             return GetDropSQLInternal(type, prefix, postfix, indent, cascade, addNewline);
+        }
+        public override string GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            if (tablespace == null)
+            {
+                return null;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(prefix);
+            buf.Append("drop tablespace if exists ");
+            buf.Append(GetEscapedIdentifier(tablespace.Name));
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return buf.ToString();
+        }
+        public override string GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            if (user == null)
+            {
+                return null;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(prefix);
+            buf.Append("drop user if exists ");
+            buf.Append(GetEscapedIdentifier(user.Name));
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return buf.ToString();
         }
 
         private string _serverEncoding;

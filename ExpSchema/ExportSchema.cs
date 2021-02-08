@@ -241,8 +241,8 @@ namespace Db2Source
         //private static string _password = null;
         private static bool _showUsage = false;
         private static string _exportDir = null;
-        private static List<string> _schemas = new List<string>();
-        private static List<string> _excludeSchemas = new List<string>();
+        private static readonly List<string> _schemas = new List<string>();
+        private static readonly List<string> _excludeSchemas = new List<string>();
         private static Encoding _encoding = Encoding.UTF8;
         private static NewLineRule _newLine = NewLineRule.None;
         private static readonly Dictionary<string, NewLineRule> ArgToNewLineRule = new Dictionary<string, NewLineRule>()
@@ -420,10 +420,6 @@ namespace Db2Source
         }
         private static IDbConnection TryLogin(NpgsqlConnectionInfo info)
         {
-            if (info.Password == null)
-            {
-                info.Password = ReadPassword();
-            }
             for (int i = 0; i < 3; i++)
             {
                 try
@@ -441,11 +437,13 @@ namespace Db2Source
 
         public static void Execute()
         {
-            NpgsqlConnectionInfo info = new NpgsqlConnectionInfo();
-            info.ServerName = _hostname;
-            info.ServerPort = _port;
-            info.DatabaseName = _database;
-            info.UserName = _username;
+            NpgsqlConnectionInfo info = new NpgsqlConnectionInfo
+            {
+                ServerName = _hostname,
+                ServerPort = _port,
+                DatabaseName = _database,
+                UserName = _username
+            };
             info.FillStoredPassword(false);
             using (IDbConnection conn = TryLogin(info))
             {
@@ -455,8 +453,10 @@ namespace Db2Source
                     Environment.Exit(1);
                 }
             }
-            ExportSchema obj = new ExportSchema();
-            obj.DataSet = new NpgsqlDataSet(info) { NewLineRule = _newLine };
+            ExportSchema obj = new ExportSchema
+            {
+                DataSet = new NpgsqlDataSet(info) { NewLineRule = _newLine }
+            };
             if (_exportDir == null)
             {
                 _exportDir = Environment.CurrentDirectory;

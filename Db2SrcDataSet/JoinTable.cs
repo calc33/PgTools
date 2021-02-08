@@ -297,7 +297,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
@@ -316,7 +316,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
@@ -359,7 +359,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset = 0;
+            int whereOffset;
             return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
         }
 

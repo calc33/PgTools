@@ -39,7 +39,7 @@ namespace Db2Source
             }
             return l.ToArray();
         }
-        private static PropertyInfo[] _keyProperties = InitKeyProperties();
+        private static readonly PropertyInfo[] _keyProperties = InitKeyProperties();
         protected virtual PropertyInfo[] GetKeyProperties()
         {
             return _keyProperties;
@@ -78,12 +78,12 @@ namespace Db2Source
             return fld.ToUpper();
         }
 
-        private static byte[] Key = new byte[] {
+        private static readonly byte[] Key = new byte[] {
             250, 151, 40, 155, 24, 116, 106, 193,
             81, 184, 33, 22, 49, 177, 163, 109,
             237, 245, 155, 252, 26, 230, 77, 146,
             89, 248, 13, 204, 27, 233, 170, 45 };
-        private static byte[] IV = new byte[] {
+        private static readonly byte[] IV = new byte[] {
             36, 37, 252, 136, 216, 97, 24, 192,
             39, 90, 13, 76, 209, 162, 21, 170 };
 
@@ -224,6 +224,10 @@ namespace Db2Source
                 string pass = GetCryptedPassword();
                 cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", string.IsNullOrEmpty(pass) ? (object)DBNull.Value : pass));
 
+                bufF.Append("BKCOLOR, ");
+                bufV.Append("@BKCOLOR, ");
+                cmd.Parameters.Add(new SQLiteParameter("@BKCOLOR", BkColor));
+
                 bufF.Append("LAST_MODIFIED");
                 bufV.Append(DateTime.Now.ToOADate());
 
@@ -362,6 +366,8 @@ namespace Db2Source
                 string pass = GetCryptedPassword();
                 cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", string.IsNullOrEmpty(pass) ? (object)DBNull.Value : pass));
 
+                buf.AppendLine("  BKCOLOR = @BKCOLOR,");
+                cmd.Parameters.Add(new SQLiteParameter("@BKCOLOR", BkColor));
                 buf.Append("  LAST_MODIFIED = ");
                 buf.Append(DateTime.Now.ToOADate());
                 buf.AppendLine();
@@ -558,17 +564,21 @@ namespace Db2Source
     }
     partial class ConnectionList
     {
-        private static string[] SqliteDbTypeName = new string[] { "INTEGER", "REAL", "TEXT", "BLOB" };
-        private static Dictionary<SqliteDbType, DbType> SqliteDbTypeToDbType = new Dictionary<SqliteDbType, DbType>()
-        {
-            { SqliteDbType.Integer, DbType.Int64 },
-            { SqliteDbType.Real, DbType.Double },
-            { SqliteDbType.Text, DbType.String },
-            { SqliteDbType.Blob, DbType.Binary }
-        };
+        private static readonly string[] SqliteDbTypeName = new string[] { "INTEGER", "REAL", "TEXT", "BLOB" };
+        //private static readonly Dictionary<SqliteDbType, DbType> SqliteDbTypeToDbType = new Dictionary<SqliteDbType, DbType>()
+        //{
+        //    { SqliteDbType.Integer, DbType.Int64 },
+        //    { SqliteDbType.Real, DbType.Double },
+        //    { SqliteDbType.Text, DbType.String },
+        //    { SqliteDbType.Blob, DbType.Binary }
+        //};
         private static SqliteDbType GetSqliteDbType(PropertyInfo property)
         {
             Type t = property.PropertyType;
+            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                t = t.GetGenericArguments()[0];
+            }
             if (t.IsPrimitive)
             {
                 if (t == typeof(float) || t == typeof(double))
@@ -652,6 +662,7 @@ namespace Db2Source
                 buf.Append(SqliteDbTypeName[(int)GetSqliteDbType(p)]);
                 buf.AppendLine(",");
             }
+            //buf.AppendLine("  BKCOLOR INTEGER,");
             buf.AppendLine("  LAST_MODIFIED REAL");
             buf.AppendLine(")");
             return buf.ToString();
@@ -678,6 +689,10 @@ namespace Db2Source
                     l.Add(string.Format("ALTER TABLE {0} ADD COLUMN {1} {2}", databaseType.Name, fld, SqliteDbTypeName[(int)GetSqliteDbType(p)]));
                 }
             }
+            //if (!dbFldDict.ContainsKey("BKCOLOR"))
+            //{
+            //    l.Add(string.Format("ALTER TABLE {0} ADD COLUMN BKCOLOR INTEGER", databaseType.Name));
+            //}
             return l.ToArray();
         }
         private static void RequireDataTable(SQLiteConnection connection, Type databaseType)
