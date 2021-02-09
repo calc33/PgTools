@@ -2575,6 +2575,7 @@ namespace Db2Source
                 PgsqlUser u = new PgsqlUser(context.Users)
                 {
                     Oid = oid,
+                    Id = rolname,
                     Name = rolname,
                     CanLogin = rolcanlogin,
                     IsInherit = rolinherit,

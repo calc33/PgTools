@@ -109,7 +109,13 @@ namespace Db2Source
 
         private void TreeViewItem_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
+            TreeViewItem src = App.FindVisualParent<TreeViewItem>(e.OriginalSource as DependencyObject);
             TreeViewItem item = sender as TreeViewItem;
+            if (src != item)
+            {
+                // DoubleClickイベントはツリーをたどって親ノードでも呼びされるため、親ノードでの実行時には何もしない
+                return;
+            }
             if (item == null)
             {
                 return;

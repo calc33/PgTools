@@ -8,6 +8,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:NameValue x:Key="NameValue"/>
+        <local:StrArayToTextConverter x:Key="StrArayToTextConverter"/>
     </UserControl.Resources>
     <TabControl x:Name="tabControlMain">
         <TabItem Header="情報">
@@ -54,7 +55,7 @@
         </TabItem>
         <TabItem Header="ユーザー">
             <DockPanel>
-                <ListBox x:Name="listBoxUsers" DockPanel.Dock="Left" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" DisplayMemberPath="Id"/>
+                <ListBox x:Name="listBoxUsers" DockPanel.Dock="Left" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" DisplayMemberPath="Id" LayoutUpdated="listBoxUsers_LayoutUpdated"/>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -98,7 +99,7 @@
                     </StackPanel>
                     <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2"/>
-                    <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2,620,2" Grid.ColumnSpan="2"/>
+                    <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right"/>
                     <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
                 </Grid>
             </DockPanel>
@@ -109,7 +110,7 @@
                     <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                         <Button  Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}"/>
                     </StackPanel>
-                    <ListBox x:Name="listBoxTablespaces"  MinWidth="100" ItemsSource="{Binding Tablespaces, ElementName=userControl}"/>
+                    <ListBox x:Name="listBoxTablespaces"  MinWidth="100" ItemsSource="{Binding Tablespaces, ElementName=userControl}" LayoutUpdated="listBoxTablespaces_LayoutUpdated"/>
                 </DockPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -142,7 +143,7 @@
                     <TextBlock Grid.Row="3" Text="フォルダ：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                     <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2"/>
                     <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Option, ElementName=listBoxTablespaces}"/>
+                    <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Options, ElementName=listBoxTablespaces, Converter={StaticResource StrArayToTextConverter}}"/>
                     <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
                     <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
                 </Grid>

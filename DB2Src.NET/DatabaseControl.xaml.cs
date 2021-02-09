@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -123,7 +124,7 @@ namespace Db2Source
 
         private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            Target = DataSet.Database as PgsqlDatabase;
+            //Target = DataSet.Database as PgsqlDatabase;
             Users = new ObservableCollection<User>(DataSet.Users);
             Tablespaces = new ObservableCollection<Tablespace>(DataSet.Tablespaces);
         }
@@ -162,10 +163,29 @@ namespace Db2Source
         }
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
+            DataSet = Target.Context as NpgsqlDataSet;
             UpdateComboBoxSettingCategory();
             dataGridInfo.ItemsSource = new Database[] { Target };
             UpdateDataGridSetting();
         }
+        private void UpdateListBoxSelection(ListBox target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            if (target.SelectedItem == null && 0 < target.Items.Count)
+            {
+                target.SelectedItem = target.Items[0];
+            }
+        }
+        private void OnUsersPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+        }
+        private void OnTablespacesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+        }
+
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.Property == DataSetProperty)
@@ -175,6 +195,14 @@ namespace Db2Source
             if (e.Property == TargetProperty)
             {
                 OnTargetPropertyChanged(e);
+            }
+            if (e.Property == UsersProperty)
+            {
+                OnUsersPropertyChanged(e);
+            }
+            if (e.Property == TablespacesProperty)
+            {
+                OnTablespacesPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -211,10 +239,45 @@ namespace Db2Source
         {
             UpdateDataGridSetting();
         }
+
+        private void listBoxUsers_LayoutUpdated(object sender, EventArgs e)
+        {
+            UpdateListBoxSelection(listBoxUsers);
+        }
+
+        private void listBoxTablespaces_LayoutUpdated(object sender, EventArgs e)
+        {
+            UpdateListBoxSelection(listBoxTablespaces);
+        }
     }
     public class NameValue
     {
         public string Name { get; set; }
         public object Value { get; set; }
+    }
+    public class StrArayToTextConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            string[] strs = value as string[];
+            if (strs == null || strs.Length == 0)
+            {
+                return null;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(strs[0]);
+            for (int i = 1; i < strs.Length; i++)
+            {
+                string s = strs[i];
+                buf.AppendLine();
+                buf.Append(s);
+            }
+            return buf.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

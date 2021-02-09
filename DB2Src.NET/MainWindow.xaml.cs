@@ -399,27 +399,6 @@ namespace Db2Source
             }
         }
 
-        private void OpenViewer(Database target)
-        {
-            ISchemaObjectControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectControl;
-
-            TabItem item = RequireTabItem(target, FindResource("TabItemStyleClosable") as Style);
-            if (item == null)
-            {
-                return;
-            }
-            if (item.Parent == null)
-            {
-                tabControlMain.Items.Add(item);
-            }
-            tabControlMain.SelectedItem = item;
-            ISchemaObjectControl newCtl = item.Content as ISchemaObjectControl;
-            if (newCtl != null && curCtl != null)
-            {
-                newCtl.SelectedTabKey = curCtl.SelectedTabKey;
-            }
-        }
-
         protected void CurrentDataSetChanged(DependencyPropertyChangedEventArgs e)
         {
             if (CurrentDataSet == null)

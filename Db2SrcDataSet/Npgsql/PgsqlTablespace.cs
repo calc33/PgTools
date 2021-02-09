@@ -12,13 +12,7 @@ namespace Db2Source
         public string Owner { get; set; }
         public string[] Options { get; set; }
 
-        public PgsqlTablespace(NamedCollection<Tablespace> owner) : base(owner)
-        {
-            if (owner != null)
-            {
-                owner.Add(this);
-            }
-        }
+        public PgsqlTablespace(NamedCollection<Tablespace> owner) : base(owner) { }
 
         public override object Clone()
         {
