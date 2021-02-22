@@ -127,20 +127,26 @@ namespace Db2Source
 
         private void window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            switch (e.Key)
             {
-                if (e.KeyboardDevice.Modifiers == ModifierKeys.Shift)
-                {
-                    SearchCommands.FindPrevious.Execute(null, this);
+                case Key.Enter:
+                    if (e.KeyboardDevice.Modifiers == ModifierKeys.Shift)
+                    {
+                        SearchCommands.FindPrevious.Execute(null, this);
+                        e.Handled = true;
+                        return;
+                    }
+                    if (e.KeyboardDevice.Modifiers == ModifierKeys.None)
+                    {
+                        SearchCommands.FindNext.Execute(null, this);
+                        e.Handled = true;
+                        return;
+                    }
+                    return;
+                case Key.Escape:
+                    Close();
                     e.Handled = true;
                     return;
-                }
-                if (e.KeyboardDevice.Modifiers == ModifierKeys.None)
-                {
-                    SearchCommands.FindNext.Execute(null, this);
-                    e.Handled = true;
-                    return;
-                }
             }
         }
 

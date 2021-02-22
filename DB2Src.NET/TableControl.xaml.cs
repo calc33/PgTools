@@ -32,7 +32,7 @@ namespace Db2Source
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(TableControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(TableControl));
         public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl));
-        public static readonly DependencyProperty SelectedTriggerProperty = DependencyProperty.Register("SelectedTrigger", typeof(Trigger), typeof(TableControl));
+        //public static readonly DependencyProperty SelectedTriggerProperty = DependencyProperty.Register("SelectedTrigger", typeof(Trigger), typeof(TableControl));
 
         public Table Target
         {
@@ -136,17 +136,17 @@ namespace Db2Source
             }
         }
 
-        public Trigger SelectedTrigger
-        {
-            get
-            {
-                return (Trigger)GetValue(SelectedTriggerProperty);
-            }
-            set
-            {
-                SetValue(SelectedTriggerProperty, value);
-            }
-        }
+        //public Trigger SelectedTrigger
+        //{
+        //    get
+        //    {
+        //        return (Trigger)GetValue(SelectedTriggerProperty);
+        //    }
+        //    set
+        //    {
+        //        SetValue(SelectedTriggerProperty, value);
+        //    }
+        //}
 
         public TableControl()
         {
@@ -218,19 +218,6 @@ namespace Db2Source
 
         private void SelectedTriggerPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            Trigger t = SelectedTrigger;
-            checkBoxInsertTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Insert) != 0);
-            checkBoxDeleteTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Delete) != 0);
-            checkBoxTruncateTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Truncate) != 0);
-            checkBoxUpdateTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Update) != 0);
-            if (t != null && t.Procedure != null)
-            {
-                textBoxTriggerBodySQL.Text = t.Context.GetSQL(t.Procedure, string.Empty, string.Empty, 0, false);
-            }
-            else
-            {
-                textBoxTriggerBodySQL.Text = string.Empty;
-            }
         }
 
         private void JoinTables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -248,10 +235,6 @@ namespace Db2Source
             if (e.Property == JoinTablesProperty)
             {
                 JoinTablesPropertyChanged(e);
-            }
-            if (e.Property == SelectedTriggerProperty)
-            {
-                SelectedTriggerPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -720,11 +703,11 @@ namespace Db2Source
             {
                 return;
             }
-            if (dataGridTrigger.SelectedItem != null)
+            if (listBoxTrigger.SelectedItem != null)
             {
                 return;
             }
-            dataGridTrigger.SelectedItem = Target.Triggers[0];
+            listBoxTrigger.SelectedItem = Target.Triggers[0];
         }
 
         private ColumnFilterWindow _columnFilterWindow = null;

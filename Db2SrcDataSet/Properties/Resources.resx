@@ -130,6 +130,9 @@
   <data name="PgAttribute_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgAttribute_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgClassOid_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgClassOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
   <data name="PgClass_INDEXSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgClass_INDEXSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Db2Source
@@ -58,6 +59,7 @@ namespace Db2Source
     {
         private Schema _schema;
         private string _name;
+        //protected SchemaObject _old;
         public Db2SourceContext Context { get; private set; }
         public abstract string GetSqlType();
         public abstract string GetExportFolderName();
@@ -125,18 +127,63 @@ namespace Db2Source
             return Context.GetEscapedIdentifier(SchemaName, Name, baseSchemaName);
         }
 
-        public override bool IsModified()
+        //protected override void Backup() { }
+
+        protected void RestoreFrom(SchemaObject backup)
         {
-            if (base.IsModified())
-            {
-                return true;
-            }
-            if (_comment != null)
-            {
-                return _comment.IsModified();
-            }
-            return false;
+            Owner = backup.Owner;
+            _schema = backup.Schema;
+            Name = backup.Name;
+            Triggers = new TriggerCollection(this, backup.Triggers);
         }
+        //public override void Restore() { }
+        //{
+        //    Owner = _old.Owner;
+        //    _schema = _old.Schema;
+        //    Name = _old.Name;
+        //    Triggers = new TriggerCollection(this);
+        //    foreach (Trigger t in _old.Triggers)
+        //    {
+        //        Triggers.Add(new Trigger(t));
+        //    }
+
+        //}
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            SchemaObject o = (SchemaObject)obj;
+            if (!base.ContentEquals(o))
+            if (Triggers.Count != o.Triggers.Count)
+            {
+                return false;
+            }
+            foreach (Trigger t in Triggers)
+            {
+                int i = o.Triggers.IndexOf(t);
+                if (i == -1)
+                {
+                    return false;
+                }
+                if (!t.ContentEquals(o.Triggers[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        //public override bool IsModified()
+        //{
+        //    if (!ContentEquals(_old))
+        //    {
+        //        return true;
+        //    }
+        //    if (_comment != null)
+        //    {
+        //        return _comment.IsModified();
+        //    }
+        //    return false;
+        //}
 
         private Comment _comment;
         public Comment Comment
@@ -208,6 +255,18 @@ namespace Db2Source
             Name = objectName;
             Triggers = new TriggerCollection(this);
         }
+        protected SchemaObject(SchemaObject basedOn): base(null)
+        {
+            Context = basedOn.Context;
+            Owner = basedOn.Owner;
+            _schema = basedOn.Schema;
+            Name = basedOn.Name;
+            Triggers = new TriggerCollection(this);
+            foreach (Trigger t in basedOn.Triggers)
+            {
+                Triggers.Add(new Trigger(t));
+            }
+        }
         protected override void Dispose(bool disposing)
         {
             if (!disposedValue)
@@ -216,12 +275,13 @@ namespace Db2Source
                 {
                     if (Schema != null)
                     {
-                        Schema.GetCollection(GetCollectionIndex()).Remove(this);
+                        Schema.GetCollection(GetCollectionIndex())?.Remove(this);
                     }
                     foreach (Trigger t in Triggers)
                     {
                         t.Dispose();
                     }
+                    Comment?.Dispose();
                 }
                 base.Dispose(disposing);
             }
@@ -231,12 +291,13 @@ namespace Db2Source
             base.Release();
             if (Schema != null)
             {
-                Schema.GetCollection(GetCollectionIndex()).Invalidate();
+                Schema.GetCollection(GetCollectionIndex())?.Invalidate();
             }
             foreach (Trigger t in Triggers)
             {
                 t.Release();
             }
+            Comment?.Release();
         }
 
         public virtual void InvalidateColumns() { }

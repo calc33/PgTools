@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
-    public class User : NamedObject, ICloneable
+    public class User : NamedObject
     {
-        public User(NamedCollection owner) : base(owner) { }
-
         /// <summary>
         /// ユーザーのID(文字列)
         /// </summary>
@@ -27,15 +25,56 @@ namespace Db2Source
         /// パスワード有効期限
         /// </summary>
         public DateTime PasswordExpiration { get; set; } = DateTime.MaxValue;
+        protected User _backup;
 
-        public virtual object Clone()
+        public override void Backup()
         {
-            return MemberwiseClone();
+            _backup = new User(this);
+        }
+        
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            Id = _backup.Id;
+            Name = _backup.Name;
+            Password = _backup.Password;
+            IsPasswordShadowed = _backup.IsPasswordShadowed;
+            PasswordExpiration = _backup.PasswordExpiration;
         }
 
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            User u = (User)obj;
+            return Id == u.Id
+                && Name == u.Name
+                && Password == u.Password
+                && IsPasswordShadowed == u.IsPasswordShadowed
+                && PasswordExpiration == u.PasswordExpiration;
+        }
         protected override string GetIdentifier()
         {
             return Id;
+        }
+
+        public User(NamedCollection owner) : base(owner) { }
+        internal User(User basedOn) : base(null)
+        {
+            if (basedOn == null)
+            {
+                throw new ArgumentNullException("basedOn");
+            }
+            Id = basedOn.Id;
+            Name = basedOn.Name;
+            Password = basedOn.Password;
+            IsPasswordShadowed = basedOn.IsPasswordShadowed;
+            PasswordExpiration = basedOn.PasswordExpiration;
         }
     }
 }

@@ -994,6 +994,102 @@ namespace Db2Source
             throw new NotImplementedException();
             //return l.ToArray();
         }
+        private static bool NeedsDropAndCreate(Trigger after, Trigger before)
+        {
+            if (after == null)
+            {
+                throw new ArgumentNullException("after");
+            }
+            if (before == null)
+            {
+                throw new ArgumentNullException("before");
+            }
+            if (after.Timing != before.Timing)
+            {
+                return true;
+            }
+            if (after.Event != before.Event)
+            {
+                return true;
+            }
+            if (after.EventText != before.EventText)
+            {
+                return true;
+            }
+            if (!after.UpdateEventColumns.Equals(before.UpdateEventColumns))
+            {
+                return true;
+            }
+            if (after.Table != before.Table)
+            {
+                return true;
+            }
+            if (after.Procedure != before.Procedure)
+            {
+                return true;
+            }
+            if (after.OrientationText != before.OrientationText)
+            {
+                return true;
+            }
+            if (after.ReferencedTableName != before.ReferencedTableName)
+            {
+                return true;
+            }
+            if (after.ReferenceNewTable != before.ReferenceNewTable)
+            {
+                return true;
+            }
+            if (after.ReferenceOldTable != before.ReferenceOldTable)
+            {
+                return true;
+            }
+            if (after.Condition != before.Condition)
+            {
+                return true;
+            }
+            if (after.ReferenceNewRow != before.ReferenceNewRow)
+            {
+                return true;
+            }
+            if (after.ReferenceOldRow != before.ReferenceOldRow)
+            {
+                return true;
+            }
+            if (after.Definition != before.Definition)
+            {
+                return true;
+            }
+            return false;
+        }
+        public override string[] GetAlterSQL(Trigger after, Trigger before, string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (after == null)
+            {
+                throw new ArgumentNullException("after");
+            }
+            if (before == null)
+            {
+                throw new ArgumentNullException("before");
+            }
+            List<string> l = new List<string>();
+            string spc = new string(' ', indent);
+            string nl = addNewline ? Environment.NewLine : string.Empty;
+            if (NeedsDropAndCreate(after, before))
+            {
+                return new string[]
+                {
+                    GetDropSQL(before, prefix, postfix, indent, true, addNewline),
+                    GetSQL(after, prefix, postfix, indent, addNewline)
+            };
+            }
+            if (after.Name != before.Name)
+            {
+                l.Add(string.Format("{0}{1}alter tablespace {2} on {3} rename to {4}{5}{6}", spc, prefix,
+                    before.Name, before.Table.EscapedIdentifier(string.Empty), after.Name, postfix, nl));
+            }
+            return new string[0];
+        }
         private static void AddAlterOption(StringBuilder buf, bool after, bool before, string trueValue, string falseValue)
         {
             if (after == before)

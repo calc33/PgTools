@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
-    public class PgsqlSetting
+    public class PgsqlSetting : ICloneable
     {
         public string Name { get; set; }
         public string Setting { get; set; }
@@ -19,12 +19,58 @@ namespace Db2Source
         public string BootVal { get; set; }
         public string ResetVal { get; set; }
         public bool PendingRestart { get; set; }
+
+        public object Clone()
+        {
+            return MemberwiseClone();
+        }
+
+        public bool ContentEquals(object obj)
+        {
+            if (GetType() != obj.GetType())
+            {
+                return false;
+            }
+            PgsqlSetting s = (PgsqlSetting)obj;
+            return Name == s.Name
+                && Setting == s.Setting;
+                //&& Unit == s.Unit
+                //&& Category == s.Category
+                //&& ShortDesc == s.ShortDesc
+                //&& ExtraDesc == s.ExtraDesc
+                //&& Context == s.Context
+                //&& BootVal == s.BootVal
+                //&& ResetVal == s.ResetVal
+                //&& PendingRestart == s.PendingRestart;
+        }
+        public override bool Equals(object obj)
+        {
+            if (!(obj is PgsqlSetting))
+            {
+                return false;
+            }
+            PgsqlSetting o = (PgsqlSetting)obj;
+            return string.Equals(Name, o.Name);
+        }
+        public override int GetHashCode()
+        {
+            if (string.IsNullOrEmpty(Name))
+            {
+                return 0;
+            }
+            return Name.GetHashCode();
+        }
+        public override string ToString()
+        {
+            return string.Format("{0}: {1}", Name, Setting);
+        }
     }
 
-    public class PgsqlSettingCollection: IList<PgsqlSetting>
+    public class PgsqlSettingCollection: IList<PgsqlSetting>, ICloneable
     {
         private List<PgsqlSetting> _list = new List<PgsqlSetting>();
 
+        #region IListの実装
         public PgsqlSetting this[int index]
         {
             get
@@ -100,6 +146,72 @@ namespace Db2Source
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)_list).GetEnumerator();
+        }
+        #endregion
+
+        #region IClonableの実装
+        public object Clone()
+        {
+            PgsqlSettingCollection ret = new PgsqlSettingCollection();
+            foreach (PgsqlSetting s in this)
+            {
+                ret.Add((PgsqlSetting)(s.Clone()));
+            }
+            return ret;
+        }
+        #endregion
+
+        public bool ContentEquals(PgsqlSettingCollection obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (Count != obj.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+                PgsqlSetting a = this[i];
+                PgsqlSetting b = obj[i];
+                if (!a.ContentEquals(b))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public override bool Equals(object obj)
+        {
+            if (!(obj is PgsqlSettingCollection))
+            {
+                return false;
+            }
+            PgsqlSettingCollection l = (PgsqlSettingCollection)obj;
+            if (Count != l.Count)
+            {
+                return false;
+            }
+            for (int i = 0; i < Count; i++)
+            {
+                PgsqlSetting a = this[i];
+                PgsqlSetting b = l[i];
+                if (!a.Equals(b))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+        public override int GetHashCode()
+        {
+            int h = base.GetHashCode();
+            foreach (PgsqlSetting s in this)
+            {
+                h = h * 13 + s.GetHashCode();
+            }
+            return h;
         }
     }
 }

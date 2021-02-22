@@ -19,18 +19,62 @@ namespace Db2Source
         public string[] Config { get; set; }
         public int ConnectionLimit { get; set; } = -1;
 
-        public PgsqlUser(NamedCollection owner) : base(owner) { }
-
-        public override object Clone()
+        public override void Backup()
         {
-            PgsqlUser ret = (PgsqlUser)base.Clone();
-            string[] cfg = ret.Config;
-            if (cfg != null)
+            _backup = new PgsqlUser(this);
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
             {
-                ret.Config = new string[cfg.Length];
-                Array.Copy(cfg, ret.Config, cfg.Length);
+                return;
             }
-            return ret;
+            base.Restore();
+            PgsqlUser u = (PgsqlUser)_backup;
+            Oid = u.Oid;
+            CanLogin = u.CanLogin;
+            IsInherit = u.IsInherit;
+            CanCreateDb = u.CanCreateDb;
+            CanCreateRole = u.CanCreateRole;
+            IsSuperUser = u.IsSuperUser;
+            Replication = u.Replication;
+            BypassRowLevelSecurity = BypassRowLevelSecurity;
+            Config = (string[])u.Config.Clone();
+            ConnectionLimit = u.ConnectionLimit;
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            PgsqlUser u = (PgsqlUser)_backup;
+            return Oid == u.Oid
+                && CanLogin == u.CanLogin
+                && IsInherit == u.IsInherit
+                && CanCreateDb == u.CanCreateDb
+                && CanCreateRole == u.CanCreateRole
+                && IsSuperUser == u.IsSuperUser
+                && Replication == u.Replication
+                && BypassRowLevelSecurity == BypassRowLevelSecurity
+                && ArrayEquals(Config, u.Config)
+                && ConnectionLimit == u.ConnectionLimit;
+        }
+
+        public PgsqlUser(NamedCollection owner) : base(owner) { }
+        internal PgsqlUser(PgsqlUser basedOn): base(basedOn)
+        {
+            Oid = basedOn.Oid;
+            CanLogin = basedOn.CanLogin;
+            IsInherit = basedOn.IsInherit;
+            CanCreateDb = basedOn.CanCreateDb;
+            CanCreateRole = basedOn.CanCreateRole;
+            IsSuperUser = basedOn.IsSuperUser;
+            Replication = basedOn.Replication;
+            BypassRowLevelSecurity = BypassRowLevelSecurity;
+            Config = (string[])basedOn.Config.Clone();
+            ConnectionLimit = basedOn.ConnectionLimit;
         }
     }
 }

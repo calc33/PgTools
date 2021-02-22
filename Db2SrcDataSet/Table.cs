@@ -298,7 +298,7 @@ namespace Db2Source
         public IndexCollection Indexes { get; private set; }
         public string TablespaceName { get; set; }
         public string[] ExtraInfo { get; set; }
-        public Regex TemporaryNamePattern { get; set; }
+        //public static Regex TemporaryNamePattern { get; set; }
         public ReferedForeignKeyCollection ReferFrom { get; private set; }
         public List<ForeignKeyConstraint> ReferTo
         {
@@ -393,6 +393,24 @@ namespace Db2Source
             }
         }
 
+        public override void Backup()
+        {
+            _backup = new Table(this);
+        }
+
+        protected internal void RestoreFrom(Table backup)
+        {
+            base.RestoreFrom(backup);
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(_backup);
+        }
+
         public string GetKeyConditionSQL(string alias, string prefix, int indent)
         {
             string[] cond = GetKeyConditionSQL(alias);
@@ -449,11 +467,57 @@ namespace Db2Source
             return Context.GetDeleteSql(this, where, indent, charPerLine, postfix);
         }
 
+        protected void BackupConstraints(Table destination)
+        {
+            foreach (Constraint c in Constraints)
+            {
+                destination.Constraints.Add(c.Backup(destination));
+            }
+        }
+
         internal Table(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName)
         {
             Constraints = new ConstraintCollection(this);
             Indexes = new IndexCollection(this);
             ReferFrom = new ReferedForeignKeyCollection(this);
+        }
+        internal Table(Table basedOn): base(basedOn)
+        {
+            Constraints = new ConstraintCollection(this);
+            Indexes = new IndexCollection(this);
+            ReferFrom = new ReferedForeignKeyCollection(this);
+            foreach (Constraint c in basedOn.Constraints)
+            {
+                Constraints.Add(c.Backup(this));
+            }
+            //Constraints
+            //Indexes
+            //TablespaceName
+            //ExtraInfo
+            //ReferFrom
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (Constraint c in Constraints)
+                    {
+                        c.Dispose();
+                    }
+                }
+                base.Dispose(disposing);
+            }
+        }
+        public override void Release()
+        {
+            base.Release();
+            foreach (Constraint c in Constraints)
+            {
+                c.Release();
+            }
         }
     }
 

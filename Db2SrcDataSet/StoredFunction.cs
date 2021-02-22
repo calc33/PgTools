@@ -517,6 +517,15 @@ namespace Db2Source
         {
             return _definition != _oldDefinition;
         }
+
+        public override void Backup()
+        {
+            _oldDefinition = _definition;
+        }
+        public override void Restore()
+        {
+            _definition = _oldDefinition;
+        }
         public string[] ExtraInfo { get; set; }
 
         private IDbCommand _dbCommand;

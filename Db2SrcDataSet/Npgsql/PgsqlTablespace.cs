@@ -12,18 +12,35 @@ namespace Db2Source
         public string Owner { get; set; }
         public string[] Options { get; set; }
 
-        public PgsqlTablespace(NamedCollection<Tablespace> owner) : base(owner) { }
-
-        public override object Clone()
+        public override void Backup()
         {
-            PgsqlTablespace ret = (PgsqlTablespace)base.Clone();
-            string[] opt = ret.Options;
-            if (opt != null)
-            {
-                ret.Options = new string[opt.Length];
-                Array.Copy(opt, ret.Options, opt.Length);
-            }
-            return ret;
+            _backup = new PgsqlTablespace(this);
         }
+
+        //public override void Restore()
+        //{
+        //    base.Restore();
+        //}
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            PgsqlTablespace ts = (PgsqlTablespace)obj;
+            return Oid == ts.Oid
+                && Owner == ts.Owner
+                && ArrayEquals(Options, ts.Options);
+        }
+
+        public PgsqlTablespace(NamedCollection<Tablespace> owner) : base(owner) { }
+        internal PgsqlTablespace(PgsqlTablespace basedOn) : base(basedOn)
+        {
+            Oid = basedOn.Oid;
+            Owner = basedOn.Owner;
+            Options = (string[])basedOn.Options.Clone();
+        }
+
     }
 }

@@ -169,6 +169,24 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select r.oid
+        ///from pg_catalog.pg_class r
+        ///  inner join pg_catalog.pg_namespace ns
+        ///    on (r.relnamespace = ns.oid and not pg_is_other_temp_schema(r.relnamespace) and ns.nspname = :schema)
+        ///where r.relname = :name
+        ///  and (not r.relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;)
+        ///    or pg_has_role(r.relowner, &apos;USAGE&apos;::text)
+        ///    or has_table_privilege(r.oid, &apos;SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER&apos;)
+        ///    or has_any_column_privilege(r.oid, &apos;SELECT, INSERT, UPDATE, REFERENCES&apos;))
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgClassOid_SQL {
+            get {
+                return ResourceManager.GetString("PgClassOid_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select oid, substring(pg_get_constraintdef(oid), 7) as checkdef
         ///from pg_catalog.pg_constraint where contype = &apos;c&apos; に類似しているローカライズされた文字列を検索します。
         /// </summary>

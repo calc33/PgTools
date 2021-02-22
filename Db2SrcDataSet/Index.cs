@@ -112,6 +112,51 @@
         {
             return Schema.CollectionIndex.Indexes;
         }
+
+        internal Index _backup;
+        public override void Backup()
+        {
+            _backup = new Index(this);
+        }
+
+        protected internal void RestoreFrom(Index backup)
+        {
+            base.RestoreFrom(backup);
+            _tableSchema = backup.TableSchema;
+            _tableName = backup.TableName;
+            IsUnique = backup.IsUnique;
+            IsImplicit = backup.IsImplicit;
+            IndexType = backup.IndexType;
+            Columns = (string[])backup.Columns.Clone();
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(_backup);
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            Index idx = (Index)obj;
+            return _tableSchema == idx.TableSchema
+                && _tableName == idx.TableName
+                && IsUnique == idx.IsUnique
+                && IsImplicit == idx.IsImplicit
+                && IndexType == idx.IndexType
+                && ArrayEquals<string>(Columns, idx.Columns);
+        }
+        public override bool IsModified()
+        {
+            return (_backup != null) && ContentEquals(_backup);
+        }
+
         public Index(Db2SourceContext context, string owner, string schema, string indexName, string tableSchema, string tableName, string[] columns, string definition) : base(context, owner, schema, indexName, Schema.CollectionIndex.Indexes)
         {
             //_schema = context.RequireSchema(schema);
@@ -120,6 +165,15 @@
             _tableName = tableName;
             Columns = columns;
             //_definition = definition;
+        }
+        internal Index(Index basedOn): base(basedOn)
+        {
+            _tableSchema = basedOn.TableSchema;
+            _tableName = basedOn.TableName;
+            IsUnique = basedOn.IsUnique;
+            IsImplicit = basedOn.IsImplicit;
+            IndexType = basedOn.IndexType;
+            Columns = (string[])basedOn.Columns.Clone();
         }
     }
 }

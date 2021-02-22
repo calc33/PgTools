@@ -9,29 +9,12 @@ namespace Db2Source
 {
     public partial class Database: SchemaObject
     {
-        //private string _name;
         private string _dbaUserName;
         private string _encoding;
         private string _defaultTablespace;
         private ConnectionInfo _connectionInfo;
         private string _version;
         private bool _isCurrent;
-        //public string Name
-        //{
-        //    get
-        //    {
-        //        return _name;
-        //    }
-        //    set
-        //    {
-        //        if (_name == value)
-        //        {
-        //            return;
-        //        }
-        //        _name = value;
-        //        OnPropertyChanged("Name");
-        //    }
-        //}
         public string DbaUserName
         {
             get
@@ -145,11 +128,63 @@ namespace Db2Source
             return Name;
         }
 
-        private readonly Dictionary<string, object> _attributes = new Dictionary<string, object>();
+        private Dictionary<string, object> _attributes = new Dictionary<string, object>();
+
+        protected Database _backup;
+        public override void Backup()
+        {
+            _backup = new Database(this);
+        }
+
+        protected void RestoreFrom(Database backup)
+        {
+            base.RestoreFrom(backup);
+            DbaUserName = backup.DbaUserName;
+            Encoding = backup.Encoding;
+            DefaultTablespace = backup.DefaultTablespace;
+            ConnectionInfo = backup.ConnectionInfo;
+            Version = backup.Version;
+            IsCurrent = backup.IsCurrent;
+            _attributes = new Dictionary<string, object>(backup._attributes);
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(_backup);
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            return DbaUserName == _backup.DbaUserName
+                && Encoding == _backup.Encoding
+                && DefaultTablespace == _backup.DefaultTablespace
+                && ConnectionInfo.Equals(_backup.ConnectionInfo)
+                && Version == _backup.Version
+                && DictionaryEquals(_attributes, _backup._attributes);
+        }
 
         public Database(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, Schema.CollectionIndex.None)
         {
             Schema = null;
+        }
+
+        internal Database(Database basedOn) : base(basedOn)
+        {
+            Schema = null;
+            DbaUserName = basedOn.DbaUserName;
+            Encoding = basedOn.Encoding;
+            DefaultTablespace= basedOn.DefaultTablespace;
+            ConnectionInfo = basedOn.ConnectionInfo;
+            Version = basedOn.Version;
+            IsCurrent = basedOn.IsCurrent;
+            _attributes = new Dictionary<string, object>(basedOn._attributes);
         }
 
         //public event PropertyChangedEventHandler PropertyChanged;
@@ -184,15 +219,6 @@ namespace Db2Source
         {
             _attributes[name] = value;
         }
-
-        //public int CompareTo(object obj)
-        //{
-        //    if (!(obj is Database))
-        //    {
-        //        return -1;
-        //    }
-        //    return string.Compare(Name, ((Database)obj).Name);
-        //}
 
         public override bool Equals(object obj)
         {

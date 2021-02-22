@@ -17,19 +17,19 @@ namespace Db2Source
 
     public partial class Column : NamedObject, ICommentable, IComparable, IDbTypeDef
     {
-        [Flags]
-        public enum ColumnGeneration
-        {
-            New = 1,
-            Old = 2
-        };
+        //[Flags]
+        //public enum ColumnGeneration
+        //{
+        //    New = 1,
+        //    Old = 2
+        //};
 
         public string GetSqlType()
         {
             return "COLUMN";
         }
-        public ColumnGeneration Generation { get; private set; }
-        private Column _oldColumn = null;
+        //public ColumnGeneration Generation { get; private set; }
+        internal Column _backup = null;
         public Db2SourceContext Context { get; private set; }
         public Schema Schema { get; private set; }
         public string SchemaName
@@ -83,9 +83,61 @@ namespace Db2Source
 
             _owner = Context.Selectables[SchemaName, _tableName];
         }
+
+        internal Column Backup(Selectable owner)
+        {
+            _backup = new Column(Table, this);
+            return _backup;
+        }
+        public override void Backup()
+        {
+            //Backup(Table);
+            throw new NotImplementedException();
+        }
+        protected internal void RestoreFrom(Column backup)
+        {
+            //Schema = backup.Schema;
+            //Index = backup.Index;
+            //TableName = backup.TableName;
+            Name = backup.Name;
+            BaseType = backup.BaseType;
+            DataLength = backup.DataLength;
+            Precision = backup.Precision;
+            WithTimeZone = backup.WithTimeZone;
+            IsSupportedType = backup.IsSupportedType;
+            DataType = backup.DataType;
+            ValueType = backup.ValueType;
+            DefaultValue = backup.DefaultValue;
+            NotNull = backup.NotNull;
+            HiddenLevel = backup.HiddenLevel;
+        }
+        public override void Restore()
+        {
+            if (_backup != null)
+            {
+                RestoreFrom(_backup);
+            }
+            Comment.Restore();
+        }
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            Column c = (Column)obj;
+            return BaseType == c.BaseType
+                && DataLength == c.DataLength
+                && Precision == c.Precision
+                && WithTimeZone == c.WithTimeZone
+                && DataType == c.DataType
+                && DefaultValue == c.DefaultValue
+                && NotNull == c.NotNull
+                && CommentText == c.CommentText;
+        }
         public override bool IsModified()
         {
-            return (Comment != null) && Comment.IsModified();
+            return (_backup != null) && _backup.IsModified();
         }
 
         protected void OnPropertyChanged(PropertyChangedEventArgs e)
@@ -149,33 +201,48 @@ namespace Db2Source
         {
             return Identifier;
         }
-        public Column BecomeModifiedColumn()
-        {
-            if (Context.IsChangeLogDisabled())
-            {
-                return null;
-            }
-            if ((Generation & ColumnGeneration.New) == 0)
-            {
-                return this;
-            }
-            if (_oldColumn != null)
-            {
-                return _oldColumn;
-            }
-            Generation = ColumnGeneration.New;
-            Column ret = (Column)MemberwiseClone();
-            ret.Generation = ColumnGeneration.Old;
-            _oldColumn = ret;
-            Schema sc = ret.Schema;
-            if (sc == null)
-            {
-                return ret;
-            }
-            sc.Columns.Add(ret);
-            sc.InvalidateColumns();
-            return ret;
-        }
+        //public Column BecomeModifiedColumn()
+        //{
+        //    if (Context.IsChangeLogDisabled())
+        //    {
+        //        return null;
+        //    }
+        //    if ((Generation & ColumnGeneration.New) == 0)
+        //    {
+        //        return this;
+        //    }
+        //    if (_backup != null)
+        //    {
+        //        return _backup;
+        //    }
+        //    Generation = ColumnGeneration.New;
+        //    Column ret = (Column)MemberwiseClone();
+        //    ret.Generation = ColumnGeneration.Old;
+        //    _backup = ret;
+        //    Schema sc = ret.Schema;
+        //    if (sc == null)
+        //    {
+        //        return ret;
+        //    }
+        //    sc.Columns.Add(ret);
+        //    sc.InvalidateColumns();
+        //    return ret;
+        //}
+
+        //public void CommitChanges()
+        //{
+        //    if (Generation == (ColumnGeneration.New | ColumnGeneration.Old))
+        //    {
+        //        return;
+        //    }
+        //    if (_backup == null)
+        //    {
+        //        return;
+        //    }
+        //    Schema.Columns.Remove(_backup);
+        //    Schema.InvalidateColumns();
+        //    _backup = null;
+        //}
 
         public Selectable Table
         {
@@ -250,7 +317,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                BecomeModifiedColumn();
+                //BecomeModifiedColumn();
                 PropertyChangedEventArgs e = new PropertyChangedEventArgs("DataType", value, _dataType);
                 _dataType = value;
                 OnPropertyChanged(e);
@@ -272,7 +339,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                BecomeModifiedColumn();
+                //BecomeModifiedColumn();
                 PropertyChangedEventArgs e = new PropertyChangedEventArgs("DefaultValue", value, _defaultValue);
                 _defaultValue = value;
                 OnPropertyChanged(e);
@@ -302,7 +369,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                BecomeModifiedColumn();
+                //BecomeModifiedColumn();
                 PropertyChangedEventArgs e = new PropertyChangedEventArgs("DefaultValue", value, _notNull);
                 _notNull = value;
                 OnPropertyChanged(e);
@@ -356,9 +423,28 @@ namespace Db2Source
 
         internal Column(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Columns)
         {
-            Generation = (ColumnGeneration.New | ColumnGeneration.Old);
+            //Generation = (ColumnGeneration.New | ColumnGeneration.Old);
             Context = context;
             Schema = context.RequireSchema(schema);
+        }
+        internal Column(Selectable owner, Column basedOn): base(null)
+        {
+            _owner = owner;
+            Schema = basedOn.Schema;
+            Index = basedOn.Index;
+            TableName = basedOn.TableName;
+            Name = basedOn.Name;
+            BaseType = basedOn.BaseType;
+            DataLength = basedOn.DataLength;
+            Precision = basedOn.Precision;
+            WithTimeZone = basedOn.WithTimeZone;
+            IsSupportedType = basedOn.IsSupportedType;
+            DataType = basedOn.DataType;
+            ValueType = basedOn.ValueType;
+            DefaultValue = basedOn.DefaultValue;
+            NotNull = basedOn.NotNull;
+            Comment = basedOn.Comment;
+            HiddenLevel = basedOn.HiddenLevel;
         }
         protected override void Dispose(bool disposing)
         {
@@ -389,10 +475,12 @@ namespace Db2Source
     public sealed class ColumnCollection : IList<Column>, IList
     {
         private Selectable _owner;
-        private List<Column>[] _list = null;
+        //private List<Column>[] _list = null;
+        private List<Column> _list = null;
         private Column[] _hiddenColumns = null;
         private Column[] _allColumns = null;
-        private Dictionary<string, Column>[] _nameToColumn = null;
+        //private Dictionary<string, Column>[] _nameToColumn = null;
+        private Dictionary<string, Column> _nameToColumn = null;
 
         public ColumnCollection(Selectable owner)
         {
@@ -413,7 +501,8 @@ namespace Db2Source
             {
                 return;
             }
-            _list = new List<Column>[] { new List<Column>(), new List<Column>() };
+            //_list = new List<Column>[] { new List<Column>(), new List<Column>() };
+            _list = new List<Column>();
             List<Column> hidden = new List<Column>();
             if (_owner == null || _owner.Schema == null)
             {
@@ -434,17 +523,19 @@ namespace Db2Source
                     hidden.Add(c);
                     continue;
                 }
-                if ((c.Generation & Column.ColumnGeneration.New) != 0)
-                {
-                    _list[0].Add(c);
-                }
-                if ((c.Generation & Column.ColumnGeneration.Old) != 0)
-                {
-                    _list[1].Add(c);
-                }
+                _list.Add(c);
+                //if ((c.Generation & Column.ColumnGeneration.New) != 0)
+                //{
+                //    _list[0].Add(c);
+                //}
+                //if ((c.Generation & Column.ColumnGeneration.Old) != 0)
+                //{
+                //    _list[1].Add(c);
+                //}
             }
-            _list[0].Sort();
-            _list[1].Sort();
+            //_list[0].Sort();
+            //_list[1].Sort();
+            _list.Sort();
             hidden.Sort();
             _hiddenColumns = hidden.ToArray();
         }
@@ -457,7 +548,8 @@ namespace Db2Source
             RequireItems();
             List<Column> l = new List<Column>();
             l.AddRange(_hiddenColumns);
-            l.AddRange(_list[0]);
+            //l.AddRange(_list[0]);
+            l.AddRange(_list);
             l.Sort();
             _allColumns = l.ToArray();
         }
@@ -467,15 +559,20 @@ namespace Db2Source
             {
                 return;
             }
-            _nameToColumn = new Dictionary<string, Column>[] { new Dictionary<string, Column>(), new Dictionary<string, Column>() };
+            //_nameToColumn = new Dictionary<string, Column>[] { new Dictionary<string, Column>(), new Dictionary<string, Column>() };
+            _nameToColumn = new Dictionary<string, Column>();
             RequireItems();
-            foreach (Column c in _list[0])
+            //foreach (Column c in _list[0])
+            //{
+            //    _nameToColumn[0].Add(c.Name, c);
+            //}
+            //foreach (Column c in _list[1])
+            //{
+            //    _nameToColumn[1].Add(c.Name, c);
+            //}
+            foreach (Column c in _list)
             {
-                _nameToColumn[0].Add(c.Name, c);
-            }
-            foreach (Column c in _list[1])
-            {
-                _nameToColumn[1].Add(c.Name, c);
+                _nameToColumn.Add(c.Name, c);
             }
         }
         //public Column this[int index] {
@@ -518,7 +615,8 @@ namespace Db2Source
             get
             {
                 RequireItems();
-                return _list[0][index];
+                //return _list[0][index];
+                return _list[index];
             }
         }
         public Column this[int index, bool isOld]
@@ -526,7 +624,13 @@ namespace Db2Source
             get
             {
                 RequireItems();
-                return _list[isOld ? 1 : 0][index];
+                //return _list[isOld ? 1 : 0][index];
+                Column c = _list[index];
+                if (isOld && c._backup != null)
+                {
+                    c = c._backup;
+                }
+                return c;
             }
         }
         public Column this[string name]
@@ -546,9 +650,17 @@ namespace Db2Source
                 }
                 RequireNameToColumn();
                 Column ret;
-                if (!_nameToColumn[isOld ? 1 : 0].TryGetValue(name, out ret))
+                //if (!_nameToColumn[isOld ? 1 : 0].TryGetValue(name, out ret))
+                //{
+                //    return null;
+                //}
+                if (!_nameToColumn.TryGetValue(name, out ret))
                 {
                     return null;
+                }
+                if (isOld && ret._backup != null)
+                {
+                    ret = ret._backup;
                 }
                 return ret;
             }
@@ -575,7 +687,8 @@ namespace Db2Source
             get
             {
                 RequireItems();
-                return _list[0].Count;
+                //return _list[0].Count;
+                return _list.Count;
             }
         }
 
@@ -599,7 +712,8 @@ namespace Db2Source
         {
             get
             {
-                return ((IList)_list[0]).SyncRoot;
+                //return ((IList)_list[0]).SyncRoot;
+                return ((IList)_list).SyncRoot;
             }
         }
 
@@ -607,7 +721,8 @@ namespace Db2Source
         {
             get
             {
-                return ((IList)_list[0]).IsSynchronized;
+                //return ((IList)_list[0]).IsSynchronized;
+                return ((IList)_list).IsSynchronized;
             }
         }
 
@@ -616,13 +731,15 @@ namespace Db2Source
             get
             {
                 RequireItems();
-                return ((IList)_list[0])[index];
+                //return ((IList)_list[0])[index];
+                return ((IList)_list)[index];
             }
 
             set
             {
                 RequireItems();
-                ((IList)_list[0])[index] = value;
+                //((IList)_list[0])[index] = value;
+                ((IList)_list)[index] = value;
             }
         }
 
@@ -631,13 +748,15 @@ namespace Db2Source
             get
             {
                 RequireItems();
-                return _list[0][index];
+                //return _list[0][index];
+                return _list[index];
             }
 
             set
             {
                 RequireItems();
-                _list[0][index] = value;
+                //_list[0][index] = value;
+                _list[index] = value;
             }
         }
 
@@ -648,14 +767,15 @@ namespace Db2Source
                 throw new ColumnNameException(item.Name);
             }
             RequireItems();
-            if ((item.Generation & Column.ColumnGeneration.New) != 0)
-            {
-                _list[0].Add(item);
-            }
-            if ((item.Generation & Column.ColumnGeneration.Old) != 0)
-            {
-                _list[1].Add(item);
-            }
+            //if ((item.Generation & Column.ColumnGeneration.New) != 0)
+            //{
+            //    _list[0].Add(item);
+            //}
+            //if ((item.Generation & Column.ColumnGeneration.Old) != 0)
+            //{
+            //    _list[1].Add(item);
+            //}
+            _list.Add(item);
             _nameToColumn = null;
         }
         int IList.Add(object value)
@@ -667,70 +787,78 @@ namespace Db2Source
             }
             RequireItems();
             int ret = -1;
-            if ((item.Generation & Column.ColumnGeneration.New) != 0)
-            {
-                ret = ((IList)_list).Add(item);
-            }
-            if ((item.Generation & Column.ColumnGeneration.Old) != 0)
-            {
-                _list[1].Add(item);
-            }
+            //if ((item.Generation & Column.ColumnGeneration.New) != 0)
+            //{
+            //    ret = ((IList)_list).Add(item);
+            //}
+            //if ((item.Generation & Column.ColumnGeneration.Old) != 0)
+            //{
+            //    _list[1].Add(item);
+            //}
+            ret = ((IList)_list).Add(item);
             _nameToColumn = null;
             return ret;
         }
 
         public void Clear()
         {
-            if (_list != null)
-            {
-                _list[0]?.Clear();
-            }
+            _list.Clear();
+            //if (_list != null)
+            //{
+            //    _list[0]?.Clear();
+            //}
             _nameToColumn = null;
         }
 
-        public void Clear(bool isOld)
-        {
-            if (_list != null)
-            {
-                _list[isOld ? 1 : 0]?.Clear();
-            }
-            _nameToColumn = null;
-        }
+        //public void Clear(bool isOld)
+        //{
+        //    if (_list != null)
+        //    {
+        //        _list[isOld ? 1 : 0]?.Clear();
+        //    }
+        //    _nameToColumn = null;
+        //}
 
         public bool Contains(Column item)
         {
             RequireItems();
-            return _list[0].Contains(item);
+            //return _list[0].Contains(item);
+            return _list.Contains(item);
         }
 
         bool IList.Contains(object value)
         {
             RequireItems();
+            //return ((IList)_list[0]).Contains(value);
             return ((IList)_list).Contains(value);
         }
 
         public void CopyTo(Column[] array, int arrayIndex)
         {
             RequireItems();
-            _list[0].CopyTo(array, arrayIndex);
+            //_list[0].CopyTo(array, arrayIndex);
+            _list.CopyTo(array, arrayIndex);
         }
 
         public void CopyTo(Array array, int index)
         {
             RequireItems();
-            ((IList)_list[0]).CopyTo(array, index);
+            //((IList)_list[0]).CopyTo(array, index);
+            ((IList)_list).CopyTo(array, index);
         }
 
         public IEnumerator<Column> GetEnumerator()
         {
             RequireItems();
-            return _list[0].GetEnumerator();
+            //return _list[0].GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         public bool Remove(Column item)
         {
             RequireItems();
-            bool ret = _list[0].Remove(item);
+            //bool ret = _list[0].Remove(item);
+            bool ret = _list.Remove(item);
             if (ret)
             {
                 _nameToColumn = null;
@@ -741,53 +869,60 @@ namespace Db2Source
         void IList.Remove(object value)
         {
             RequireItems();
-            bool ret = _list[0].Remove(value as Column);
+            //bool ret = _list[0].Remove(value as Column);
+            bool ret = _list.Remove(value as Column);
             if (ret)
             {
                 _nameToColumn = null;
             }
         }
 
-        public bool Remove(Column item, bool isOld)
-        {
-            RequireItems();
-            bool ret = _list[isOld ? 1 : 0].Remove(item);
-            if (ret)
-            {
-                _nameToColumn = null;
-            }
-            return ret;
-        }
+        //public bool Remove(Column item, bool isOld)
+        //{
+        //    RequireItems();
+        //    bool ret = _list[isOld ? 1 : 0].Remove(item);
+        //    if (ret)
+        //    {
+        //        _nameToColumn = null;
+        //    }
+        //    return ret;
+        //}
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             RequireItems();
-            return _list[0].GetEnumerator();
+            //return _list[0].GetEnumerator();
+            return _list.GetEnumerator();
         }
 
         public int IndexOf(Column item)
         {
-            return _list[0].IndexOf(item);
+            //return _list[0].IndexOf(item);
+            return _list.IndexOf(item);
         }
 
         int IList.IndexOf(object value)
         {
-            return ((IList)_list[0]).IndexOf(value);
+            //return ((IList)_list[0]).IndexOf(value);
+            return ((IList)_list).IndexOf(value);
         }
 
         public void Insert(int index, Column item)
         {
-            _list[0].Insert(index, item);
+            //_list[0].Insert(index, item);
+            _list.Insert(index, item);
         }
         void IList.Insert(int index, object value)
         {
-            ((IList)_list[0]).Insert(index, value);
+            //((IList)_list[0]).Insert(index, value);
+            ((IList)_list).Insert(index, value);
         }
 
 
         public void RemoveAt(int index)
         {
-            _list[0].RemoveAt(index);
+            //_list[0].RemoveAt(index);
+            _list.RemoveAt(index);
         }
         #endregion
     }
@@ -809,6 +944,12 @@ namespace Db2Source
         internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, Schema.CollectionIndex.Objects)
         {
             Columns = new ColumnCollection(this);
+        }
+
+        internal Selectable(Selectable basedOn) : base(basedOn)
+        {
+            Columns = new ColumnCollection(this);
+            basedOn.BackupColumns(this);
         }
 
         protected override void Dispose(bool disposing)
@@ -840,27 +981,50 @@ namespace Db2Source
         {
             Columns.Invalidate();
         }
-        public override bool IsModified()
+
+        internal Selectable _backup;
+
+        protected void BackupColumns(Selectable destination)
         {
-            if (base.IsModified())
+            foreach (Column c in Columns)
             {
-                return true;
+                destination.Columns.Add(c.Backup(destination));
+            }
+        }
+
+        protected void RestoreFrom(Selectable backup)
+        {
+            foreach (Column c in Columns)
+            {
+                c.RestoreFrom(c._backup);
+            }
+        }
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            Selectable s = (Selectable)obj;
+            if (Columns.Count != s.Columns.Count)
+            {
+                return false;
             }
             for (int i = 0; i < Columns.Count; i++)
             {
-                Column newCol = Columns[i, false];
-                if (newCol.IsModified())
+                if (!Columns[i].ContentEquals(s.Columns[i]))
                 {
-                    return true;
-                }
-                Column oldCol = Columns[i, true];
-                if (newCol.CompareTo(oldCol) != 0)
-                {
-                    return true;
+                    return false;
                 }
             }
-            return false;
+            return true;
         }
+
+        public override bool IsModified()
+        {
+            return (_backup != null) && !ContentEquals(_backup);
+        }
+
         public string GetColumnsSQL(string alias, HiddenLevel visibleLevel)
         {
             StringBuilder buf = new StringBuilder();

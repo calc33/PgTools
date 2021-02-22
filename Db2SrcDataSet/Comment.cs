@@ -46,7 +46,33 @@ namespace Db2Source
         /// 変更を重ねて元と同じになった場合はfalseを返す
         /// </summary>
         /// <returns></returns>
-        public override bool IsModified() { return _text != _oldText; }
+        public override bool IsModified()
+        {
+            return _text != _oldText;
+        }
+        public override void Backup()
+        {
+            _oldText = _text;
+        }
+
+        public override void Restore()
+        {
+            _text = _oldText;
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if (Identifier != obj.Identifier)
+            {
+                return false;
+            }
+            Comment c = (Comment)obj;
+            return Text == c.Text;
+        }
         private string _target;
         public string Target
         {
@@ -65,7 +91,7 @@ namespace Db2Source
             }
         }
         private string _text;
-        private readonly string _oldText;
+        private string _oldText;
         public string Text
         {
             get
@@ -103,12 +129,13 @@ namespace Db2Source
         {
             return Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName);
         }
+
         internal Comment(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Comments)
         {
             Context = context;
             Schema = context.RequireSchema(schema);
         }
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+
         internal Comment(Db2SourceContext context, string schema, string target, string comment, bool isLoaded) : base(context.RequireSchema(schema).Comments)
         {
             Context = context;

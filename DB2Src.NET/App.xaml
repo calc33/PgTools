@@ -204,6 +204,11 @@
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,1.5 l11,0 l0,3 l-4,4 l0,5 l-4,0 l0,-5 l-4,-4 l0,-3 z"/>
             </Canvas>
         </DataTemplate>
+        <DataTemplate x:Key="ImageRightArrow14">
+            <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M2,5 l5,0 l0,-3 l5,5 l-5,5 l0,-3 l-5,0 z"/>
+            </Canvas>
+        </DataTemplate>
         <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
         <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>

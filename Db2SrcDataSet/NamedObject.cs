@@ -23,6 +23,68 @@ namespace Db2Source
         protected bool disposedValue;
 
         internal event EventHandler IdentifierInvalidated;
+
+        public abstract void Backup();
+
+        public abstract void Restore();
+
+        protected internal static bool ArrayEquals<T>(T[] a, T[] b) where T: class
+        {
+            if (a.Length != b.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < a.Length; i++)
+            {
+                if (a[i] != b[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        protected internal static bool DictionaryEquals<K, V>(Dictionary<K, V> a, Dictionary<K, V> b) where K: class where V: class
+        {
+            if (a == null) {
+                throw new ArgumentNullException("a");
+            }
+            if (b == null)
+            {
+                throw new ArgumentNullException("b");
+            }
+            if (a.Count != b.Count)
+            {
+                return false;
+            }
+            foreach (KeyValuePair<K, V> kv in a)
+            {
+                V v;
+                if (!b.TryGetValue(kv.Key, out v) || kv.Value != v)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public virtual bool ContentEquals(NamedObject obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (GetType() != obj.GetType())
+            {
+                return false;
+            }
+            if (Identifier != obj.Identifier)
+            {
+                return false;
+            }
+            return true;
+        }
+
         internal NamedObject(NamedCollection owner)
         {
             if (owner != null)

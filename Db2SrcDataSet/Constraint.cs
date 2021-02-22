@@ -21,7 +21,7 @@ namespace Db2Source
         Table Table { get; set; }
     }
 
-    public class Constraint : SchemaObject, IComparable, IConstraint
+    public abstract class Constraint : SchemaObject, IComparable, IConstraint
     {
         internal Constraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred) : base(context, owner, schema, name, Schema.CollectionIndex.Constraints)
         {
@@ -33,6 +33,15 @@ namespace Db2Source
             _deferred = deferred;
         }
 
+        internal Constraint(Table owner, Constraint basedOn) : base(basedOn)
+        {
+            _tableSchema = basedOn.TableSchema;
+            _tableName = basedOn.TableName;
+            _table = owner;
+            _isTemporaryName = basedOn.IsTemporaryName;
+            _deferrable = basedOn.Deferrable;
+            _deferred = basedOn.Deferred;
+        }
         protected override string GetIdentifier()
         {
             //return Table?.Identifier + "+" + Name;
@@ -72,7 +81,7 @@ namespace Db2Source
             return Schema.CollectionIndex.Constraints;
         }
 
-        private readonly bool? _isTemporaryName;
+        private bool? _isTemporaryName;
         private Table _table;
         private string _tableSchema;
         private string _tableName;
@@ -202,6 +211,44 @@ namespace Db2Source
                 InvalidateTable();
             }
         }
+
+        internal Constraint _backup;
+        protected internal abstract Constraint Backup(Table owner);
+        public override void Backup()
+        {
+            throw new NotImplementedException();
+        }
+        protected void RestoreFrom(Table owner, Constraint backup)
+        {
+            base.RestoreFrom(backup);
+            _tableSchema = owner.SchemaName;
+            _tableName = owner.Name;
+            _table = owner;
+            _isTemporaryName = backup.IsTemporaryName;
+            _deferrable = backup.Deferrable;
+            _deferred = backup.Deferred;
+        }
+        //public override void Restore()
+        //{
+        //    RestoreFrom(_backup);
+        //}
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            Constraint c = (Constraint)obj;
+            return TableSchema == c.TableSchema
+                && TableName == c.TableName
+                && IsTemporaryName == c.IsTemporaryName
+                && Deferrable == c.Deferrable
+                && Deferred == c.Deferred;
+        }
+        public override bool IsModified()
+        {
+            return (_backup != null) && !ContentEquals(_backup);
+        }
         public override int CompareTo(object obj)
         {
             if (!(obj is Constraint))
@@ -223,11 +270,15 @@ namespace Db2Source
         public string[] Columns { get; set; }
         internal ColumnsConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred)
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred) { }
+        internal ColumnsConstraint(Table owner, ColumnsConstraint basedOn):base(owner, basedOn)
+        {
+            Columns = (string[])basedOn.Columns.Clone();
+        }
     }
 
     public partial class KeyConstraint : ColumnsConstraint
     {
-        private readonly bool _isPrimary = false;
+        private bool _isPrimary = false;
         public override ConstraintType ConstraintType { get { return _isPrimary ? ConstraintType.Primary : ConstraintType.Unique; } }
         public string[] ExtraInfo { get; set; }
 
@@ -235,6 +286,38 @@ namespace Db2Source
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred)
         {
             _isPrimary = isPrimary;
+        }
+        internal KeyConstraint(Table owner, KeyConstraint basedOn): base(owner, basedOn)
+        {
+            _isPrimary = basedOn._isPrimary;
+            ExtraInfo = (string[])basedOn.ExtraInfo.Clone();
+        }
+        protected internal override Constraint Backup(Table owner)
+        {
+            _backup = new KeyConstraint(owner, this);
+            return _backup;
+        }
+        internal void RestoreFrom(Table owner, KeyConstraint backup)
+        {
+            base.RestoreFrom(owner, backup);
+            _isPrimary = backup._isPrimary;
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(Table, (KeyConstraint)_backup);
+        }
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            KeyConstraint c = (KeyConstraint)obj;
+            return _isPrimary == c._isPrimary;
         }
     }
 
@@ -417,6 +500,51 @@ namespace Db2Source
             UpdateRule = updateRule;
             DeleteRule = deleteRule;
         }
+
+        internal ForeignKeyConstraint(Table owner, ForeignKeyConstraint basedOn) : base(owner, basedOn)
+        {
+            ReferenceSchemaName = basedOn.ReferenceSchemaName;
+            ReferenceConstraintName = basedOn.ReferenceConstraintName;
+            UpdateRule = basedOn.UpdateRule;
+            DeleteRule = basedOn.DeleteRule;
+        }
+
+        protected internal override Constraint Backup(Table owner)
+        {
+            _backup = new ForeignKeyConstraint(owner, this);
+            return _backup;
+        }
+
+        internal void RestoreFrom(Table owner, ForeignKeyConstraint backup)
+        {
+            base.RestoreFrom(owner, backup);
+            ReferenceSchemaName = backup.ReferenceSchemaName;
+            ReferenceConstraintName = backup.ReferenceConstraintName;
+            UpdateRule = backup.UpdateRule;
+            DeleteRule = backup.DeleteRule;
+        }
+
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(Table, (ForeignKeyConstraint)_backup);
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            ForeignKeyConstraint c = (ForeignKeyConstraint)obj;
+            return ReferenceSchemaName == c.ReferenceSchemaName
+                && ReferenceConstraintName == c.ReferenceConstraintName
+                && UpdateRule == c.UpdateRule
+                && DeleteRule == c.DeleteRule;
+        }
     }
 
     public partial class CheckConstraint : Constraint
@@ -434,6 +562,42 @@ namespace Db2Source
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, false, false)
         {
             Condition = condition;
+        }
+
+        internal CheckConstraint(Table owner, CheckConstraint basedOn) : base(owner, basedOn)
+        {
+            Condition = basedOn.Condition;
+        }
+
+        protected internal override Constraint Backup(Table owner)
+        {
+            _backup = new CheckConstraint(owner, this);
+            return _backup;
+        }
+
+        internal void RestoreFrom(Table owner, CheckConstraint backup)
+        {
+            base.RestoreFrom(owner, backup);
+            Condition = backup.Condition;
+        }
+
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(Table, (CheckConstraint)_backup);
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            if (!base.ContentEquals(obj))
+            {
+                return false;
+            }
+            CheckConstraint c = (CheckConstraint)obj;
+            return Condition == c.Condition;
         }
     }
 

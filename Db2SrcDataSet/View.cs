@@ -29,6 +29,14 @@
                 OnPropertyChanged(e);
             }
         }
+        public override void Backup()
+        {
+            _oldDefinition = _definition;
+        }
+        public override void Restore()
+        {
+            _definition = _oldDefinition;
+        }
         public override bool IsModified()
         {
             return _definition != _oldDefinition;

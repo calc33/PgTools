@@ -1,0 +1,9 @@
+select r.oid
+from pg_catalog.pg_class r
+  inner join pg_catalog.pg_namespace ns
+    on (r.relnamespace = ns.oid and not pg_is_other_temp_schema(r.relnamespace) and ns.nspname = :schema)
+where r.relname = :name and r.relkind = :kind
+  and (not r.relkind in ('c', 'r', 'v', 'f')
+    or pg_has_role(r.relowner, 'USAGE'::text)
+    or has_table_privilege(r.oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+    or has_any_column_privilege(r.oid, 'SELECT, INSERT, UPDATE, REFERENCES'))

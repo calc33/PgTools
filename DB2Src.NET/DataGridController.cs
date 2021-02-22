@@ -985,7 +985,8 @@ namespace Db2Source
                 if (_list.IndexOf(r) == -1)
                 {
                     r.AcceptChanges();
-                    _list.Add(r);
+                    //_list.Add(r);
+                    Add(r);
                 }
             }
             //_deletedRows = new List<Row>();
@@ -1019,7 +1020,8 @@ namespace Db2Source
                 Row row = _list[i];
                 if (row._added && row._deleted)
                 {
-                    _list.RemoveAt(i);
+                    //_list.RemoveAt(i);
+                    RemoveAt(i);
                 }
             }
         }
@@ -1123,6 +1125,7 @@ namespace Db2Source
         public void Insert(int index, Row item)
         {
             _list.Insert(index, item);
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
             InvalidateKeyToRow();
             if (item.ChangeKind != ChangeKind.New)
             {
@@ -1130,20 +1133,24 @@ namespace Db2Source
             }
             item.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(item));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void RemoveAt(int index)
         {
+            if (index == -1)
+            {
+                return;
+            }
             Row item = _list[index];
             _list.RemoveAt(index);
-            InvalidateKeyToRow();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            InvalidateKeyToRow();
         }
 
         public void Add(Row item)
         {
             _list.Add(item);
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
             InvalidateKeyToRow();
             if (item.ChangeKind != ChangeKind.New)
             {
@@ -1151,15 +1158,14 @@ namespace Db2Source
             }
             item.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(item));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
 
         public void Clear()
         {
             _list.Clear();
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             InvalidateKeyToRow();
             _oldKeyToRow.Clear();
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
         public bool Contains(Row item)
@@ -1181,8 +1187,11 @@ namespace Db2Source
                 return false;
             }
             InvalidateKeyToRow();
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
-            return true;
+            if (f1)
+            {
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            }
+            return f1;
         }
 
         public IEnumerator<Row> GetEnumerator()
@@ -1202,15 +1211,15 @@ namespace Db2Source
                 throw new ArgumentException("value");
             }
             int ret = ((IList)_list).Add(value);
-            InvalidateKeyToRow();
             Row row = (Row)value;
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
+            InvalidateKeyToRow();
             if (row.ChangeKind != ChangeKind.New)
             {
                 _oldKeyToRow.Add(row.GetOldKeys(), row);
             }
             row.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(row));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
             return ret;
 
         }
@@ -1232,15 +1241,15 @@ namespace Db2Source
                 throw new ArgumentException("value");
             }
             ((IList)_list).Insert(index, value);
-            InvalidateKeyToRow();
             Row row = (Row)value;
+            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
+            InvalidateKeyToRow();
             if (row.ChangeKind != ChangeKind.New)
             {
                 _oldKeyToRow.Add(row.GetOldKeys(), row);
             }
             row.BecomeUndeleted();
             _owner?.OnRowAdded(new RowChangedEventArgs(row));
-            CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, row));
         }
 
         public void Remove(object value)
@@ -1253,8 +1262,8 @@ namespace Db2Source
             }
             Row row = _list[i];
             _list.RemoveAt(i);
-            InvalidateKeyToRow();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, row));
+            InvalidateKeyToRow();
             return;
         }
 

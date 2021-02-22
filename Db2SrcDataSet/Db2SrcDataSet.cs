@@ -699,6 +699,7 @@ namespace Db2Source
 
         public abstract string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetAlterSQL(Trigger after, Trigger before, string prefix, string postfix, int indent, bool addNewline);
 
         public abstract string GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
@@ -934,6 +935,8 @@ namespace Db2Source
             SchemaLoaded?.Invoke(this, EventArgs.Empty);
         }
         public abstract void LoadSchema(IDbConnection connection, bool clearBeforeLoad);
+        public abstract SchemaObject Refresh(SchemaObject obj, IDbConnection connection);
+
         public void LoadSchema()
         {
             using (IDbConnection conn = NewConnection(true))
@@ -1025,7 +1028,8 @@ namespace Db2Source
             Schema.CollectionIndex idx = table.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
-                LoadSchema(conn, false);
+                Refresh(table, conn);
+                //LoadSchema(conn, false);
                 //LoadTable(schnm, objid, conn);
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);
@@ -1178,6 +1182,29 @@ namespace Db2Source
                         {
                             OnLog("[エラー] " + t.Message, LogStatus.Error, s);
                         }
+                    }
+                }
+            }
+        }
+
+        public void ExecSql(string sql)
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                using (IDbCommand cmd = GetSqlCommand(sql, null, conn))
+                {
+                    OnLog(sql, LogStatus.Aux, null);
+                    try
+                    {
+                        int n = cmd.ExecuteNonQuery();
+                        if (0 < n)
+                        {
+                            OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, sql);
+                        }
+                    }
+                    catch (Exception t)
+                    {
+                        OnLog("[エラー] " + t.Message, LogStatus.Error, sql);
                     }
                 }
             }

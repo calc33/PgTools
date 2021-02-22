@@ -224,6 +224,55 @@ namespace Db2Source
             {
                 _owner = owner;
             }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is StringCollection))
+                {
+                    return false;
+                }
+                List<string> l1 = new List<string>(_items);
+                List<string> l2 = new List<string>((StringCollection)obj);
+                if (l1.Count != l2.Count)
+                {
+                    return false;
+                }
+                l1.Sort();
+                l2.Sort();
+                for (int i = 0; i < l1.Count; i++)
+                {
+                    if (l1[i] != l2[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            public override int GetHashCode()
+            {
+                int ret = 0;
+                foreach (string s in _items)
+                {
+                    ret = ret * 17 + s.GetHashCode();
+                }
+                return ret;
+            }
+            public override string ToString()
+            {
+                if (Count == 0)
+                {
+                    return "[]";
+                }
+                StringBuilder buf = new StringBuilder();
+                buf.Append('[');
+                buf.Append(_items[0]);
+                for (int i = 1; i < _items.Count; i++)
+                {
+                    buf.Append(", ");
+                    buf.Append(_items[i]);
+                }
+                buf.Append(']');
+                return buf.ToString();
+            }
         }
         public override string GetSqlType()
         {
@@ -258,7 +307,8 @@ namespace Db2Source
         private string _referenceNewRow;
         private string _referenceOldRow;
         private string _definition;
-        private string _oldDefinition;
+        private Trigger _backup;
+        //private string _oldDefinition;
 
         public TriggerTiming Timing
         {
@@ -695,6 +745,7 @@ namespace Db2Source
                 OnPropertyChanged(e);
             }
         }
+
         public string Definition
         {
             get
@@ -712,9 +763,38 @@ namespace Db2Source
                 OnPropertyChanged(e);
             }
         }
-        public override bool IsModified()
+
+        public override void Backup()
         {
-            return _definition != _oldDefinition;
+            _backup = new Trigger(this);
+        }
+
+        protected void RestoreFrom(Trigger backup)
+        {
+            base.RestoreFrom(backup);
+            UpdateEventColumns.Clear();
+            UpdateEventColumns.AddRange(backup.UpdateEventColumns);
+            TableSchema = backup.TableSchema;
+            TableName = backup.TableName;
+            Definition = backup.Definition;
+        }
+        public override void Restore()
+        {
+            if (_backup == null)
+            {
+                return;
+            }
+            RestoreFrom(_backup);
+        }
+
+        public override bool ContentEquals(NamedObject obj)
+        {
+            Trigger t = obj as Trigger;
+            return base.ContentEquals(obj)
+                && UpdateEventColumns.Equals(t.UpdateEventColumns)
+                && (TableSchema == t.TableSchema)
+                && (TableName == t.TableName)
+                && (Definition == t.Definition);
         }
 
         public override Schema.CollectionIndex GetCollectionIndex()
@@ -728,10 +808,50 @@ namespace Db2Source
             _tableSchema = tableSchema;
             _tableName = tableName;
             _definition = defintion;
-            if (isLoaded)
+            //if (isLoaded)
+            //{
+            //    _oldDefinition = _definition;
+            //}
+        }
+        public Trigger(Trigger basedOn): base(basedOn)
+        {
+            _updateEventColumns = new StringCollection(this);
+            _updateEventColumns.AddRange(basedOn.UpdateEventColumns);
+            _tableSchema = basedOn.TableSchema;
+            _tableName = basedOn.TableName;
+            _definition = basedOn.Definition;
+            //_oldDefinition = _definition;
+        }
+
+        public string[] GetAlterSQL(string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (_backup == null)
             {
-                _oldDefinition = _definition;
+                return new string[0];
             }
+            return Context.GetAlterSQL(this, _backup, prefix, postfix, indent, addNewline);
+        }
+
+        /// <summary>
+        /// GetAlterSQLで返したSQLを実行して失敗した場合に元に戻すSQLを返す
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="postfix"></param>
+        /// <param name="indent"></param>
+        /// <param name="addNewline"></param>
+        /// <returns></returns>
+        public string[] GetRecoverSQL(string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (_backup == null)
+            {
+                return new string[0];
+            }
+            string s = Context.GetSQL(_backup, string.Empty, string.Empty, 0, false);
+            if (string.IsNullOrEmpty(s))
+            {
+                return new string[0];
+            }
+            return new string[] { s };
         }
     }
 
@@ -744,6 +864,14 @@ namespace Db2Source
         public TriggerCollection(SchemaObject owner)
         {
             _owner = owner;
+        }
+        internal TriggerCollection(SchemaObject owner, TriggerCollection basedOn)
+        {
+            _owner = owner;
+            foreach (Trigger t in basedOn)
+            {
+                Add(new Trigger(t));
+            }
         }
 
         public void Invalidate()

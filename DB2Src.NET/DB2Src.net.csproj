@@ -181,6 +181,9 @@
     <Compile Include="SearchTextBoxControl.xaml.cs">
       <DependentUpon>SearchTextBoxControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TriggerControl.xaml.cs">
+      <DependentUpon>TriggerControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
@@ -290,6 +293,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="SearchTextBoxControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TriggerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -19,7 +19,8 @@ namespace Db2Source
             Triggers = 6,
             //Procedures = 7,
         }
-        public Db2SourceContext Owner { get; private set; }
+        public Db2SourceContext Context { get; private set; }
+
         private string _name;
         public string Name
         {
@@ -37,6 +38,24 @@ namespace Db2Source
                 InvalidateIdentifier();
             }
         }
+
+        private string _owner;
+        public string Owner
+        {
+            get
+            {
+                return _owner;
+            }
+            set
+            {
+                if (_owner == value)
+                {
+                    return;
+                }
+                _owner = value;
+            }
+        }
+
         private bool? _isHidden = null;
         public bool IsHidden
         {
@@ -44,17 +63,18 @@ namespace Db2Source
             {
                 if (!_isHidden.HasValue)
                 {
-                    _isHidden = Owner.IsHiddenSchema(Name);
+                    _isHidden = Context.IsHiddenSchema(Name);
                 }
                 return _isHidden.Value;
             }
         }
+
         private NamedCollection[] _collections;
         public NamedCollection GetCollection(CollectionIndex index)
         {
             return _collections[(int)index];
         }
-        public NamedCollection<SchemaObject> Nones { get; } = new NamedCollection<SchemaObject>();
+        //public NamedCollection<SchemaObject> Nones { get; } = new NamedCollection<SchemaObject>();
         public NamedCollection<SchemaObject> Objects { get; } = new NamedCollection<SchemaObject>();
         public NamedCollection<Column> Columns { get; } = new NamedCollection<Column>();
         public NamedCollection<Comment> Comments { get; } = new NamedCollection<Comment>();
@@ -64,9 +84,9 @@ namespace Db2Source
         //public NamedCollection<StoredFunction> Procedures { get; } = new NamedCollection<StoredFunction>();
         internal Schema(Db2SourceContext owner, string name) : base(owner.Schemas)
         {
-            Owner = owner;
+            Context = owner;
             Name = name;
-            _collections = new NamedCollection[] { Nones, Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
+            _collections = new NamedCollection[] { null, Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
         }
 
         protected override string GetIdentifier()
@@ -105,6 +125,18 @@ namespace Db2Source
             }
         }
 
+        public override void Backup()
+        {
+            throw new NotImplementedException();
+        }
+        public override void Restore()
+        {
+            throw new NotImplementedException();
+        }
+        public override bool IsModified()
+        {
+            return false;
+        }
         public override bool Equals(object obj)
         {
             if (!(obj is Schema))
@@ -112,12 +144,12 @@ namespace Db2Source
                 return false;
             }
             Schema sc = (Schema)obj;
-            return ((Owner != null) ? Owner.Equals(sc.Owner) : (Owner == sc.Owner)) && (Name == sc.Name);
+            return ((Context != null) ? Context.Equals(sc.Context) : (Context == sc.Context)) && (Name == sc.Name);
         }
 
         public override int GetHashCode()
         {
-            return ((Owner != null) ? Owner.GetHashCode() : 0) + (string.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode());
+            return ((Context != null) ? Context.GetHashCode() : 0) * 13 + (string.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode());
         }
 
         public override string ToString()
@@ -142,13 +174,13 @@ namespace Db2Source
             {
                 return ret;
             }
-            if (Owner == null)
+            if (Context == null)
             {
-                ret = (sc.Owner == null) ? 0 : 1;
+                ret = (sc.Context == null) ? 0 : 1;
             }
             else
             {
-                ret = Owner.CompareTo(sc.Owner);
+                ret = Context.CompareTo(sc.Context);
             }
             return ret;
         }
