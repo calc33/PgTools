@@ -936,6 +936,13 @@ namespace Db2Source
         }
         public abstract void LoadSchema(IDbConnection connection, bool clearBeforeLoad);
         public abstract SchemaObject Refresh(SchemaObject obj, IDbConnection connection);
+        public SchemaObject Refresh(SchemaObject obj)
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                return Refresh(obj, conn);
+            }
+        }
 
         public void LoadSchema()
         {
@@ -1029,10 +1036,6 @@ namespace Db2Source
             using (IDbConnection conn = NewConnection(true))
             {
                 Refresh(table, conn);
-                //LoadSchema(conn, false);
-                //LoadTable(schnm, objid, conn);
-                //LoadColumn(schnm, objid, conn);
-                //LoadComment(schnm, objid, conn);
             }
             Table newObj = sch.GetCollection(idx)[objid] as Table;
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, table));

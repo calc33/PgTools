@@ -23,7 +23,7 @@ namespace Db2Source
     /// <summary>
     /// ComplexTypeControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class ComplexTypeControl: UserControl, ISchemaObjectControl
+    public partial class ComplexTypeControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ComplexType), typeof(ComplexTypeControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(ComplexTypeControl));

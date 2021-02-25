@@ -234,9 +234,10 @@ namespace Db2Source
         private object TabItemLock = new object();
         public TabItem RequireTabItem(SchemaObject target, Style tabItemStyle)
         {
-            Control ctrl = target.Control as Control;
+            ISchemaObjectWpfControl ctrl = target.Control as ISchemaObjectWpfControl;
             if (ctrl != null)
             {
+                ctrl.Target = CurrentDataSet.Refresh(target);
                 return ctrl.Parent as TabItem;
             }
 
@@ -251,7 +252,7 @@ namespace Db2Source
                 {
                     return null;
                 }
-                TabItem item = NewTabItem(tabControlMain, target.FullName, ctrl, tabItemStyle);
+                TabItem item = NewTabItem(tabControlMain, target.FullName, ctrl as UIElement, tabItemStyle);
                 item.Tag = target;
                 return item;
             }
@@ -263,9 +264,9 @@ namespace Db2Source
             {
                 throw new ArgumentException("schemaObjectClassはSchemaObjectを継承していません");
             }
-            if (!typeof(ISchemaObjectControl).IsAssignableFrom(controlClass))
+            if (!typeof(ISchemaObjectWpfControl).IsAssignableFrom(controlClass))
             {
-                throw new ArgumentException("controlClassがISchemaObjectControlを実装していません");
+                throw new ArgumentException("controlClassがIWpfSchemaObjectControlを実装していません");
             }
             _schemaObjectToControl[schemaObjectClass] = controlClass;
         }
@@ -273,21 +274,22 @@ namespace Db2Source
         {
             _schemaObjectToControl.Remove(schemaObjectClass);
         }
-        protected Control NewControl(SchemaObject target)
+        
+        protected ISchemaObjectWpfControl NewControl(SchemaObject target)
         {
             Type t;
             if (!_schemaObjectToControl.TryGetValue(target.GetType(), out t))
             {
                 return null;
             }
-            ISchemaObjectControl ret = t.GetConstructor(new Type[0]).Invoke(null) as ISchemaObjectControl;
+            ISchemaObjectWpfControl ret = t.GetConstructor(new Type[0]).Invoke(null) as ISchemaObjectWpfControl;
             if (ret == null)
             {
                 return null;
             }
             ret.Target = target;
             target.Control = ret;
-            return ret as Control;
+            return ret;
         }
 
         private void UpdateSchema()
@@ -380,7 +382,7 @@ namespace Db2Source
 
         private void OpenViewer(SchemaObject target)
         {
-            ISchemaObjectControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectControl;
+            ISchemaObjectWpfControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectWpfControl;
 
             TabItem item = RequireTabItem(target, FindResource("TabItemStyleClosable") as Style);
             if (item == null)
@@ -392,7 +394,7 @@ namespace Db2Source
                 tabControlMain.Items.Add(item);
             }
             tabControlMain.SelectedItem = item;
-            ISchemaObjectControl newCtl = item.Content as ISchemaObjectControl;
+            ISchemaObjectWpfControl newCtl = item.Content as ISchemaObjectWpfControl;
             if (newCtl != null && curCtl != null)
             {
                 newCtl.SelectedTabKey = curCtl.SelectedTabKey;
@@ -435,7 +437,7 @@ namespace Db2Source
 
         private SchemaObject GetTarget(TabItem item)
         {
-            return (item.Content as ISchemaObjectControl)?.Target;
+            return (item.Content as ISchemaObjectWpfControl)?.Target;
         }
         private void ReplaceSchemaObjectRecursive(TreeViewItem treeViewItem, SchemaObject newObj, SchemaObject oldObj)
         {
@@ -483,7 +485,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                ISchemaObjectControl obj = (item.Content as ISchemaObjectControl);
+                ISchemaObjectWpfControl obj = (item.Content as ISchemaObjectWpfControl);
                 if (obj != null && obj.Target == e.Old)
                 {
                     if (e.New == null)
@@ -822,7 +824,7 @@ namespace Db2Source
         {
             foreach (TabItem c in tabControlMain.Items)
             {
-                ISchemaObjectControl obj = c.Content as ISchemaObjectControl;
+                ISchemaObjectWpfControl obj = c.Content as ISchemaObjectWpfControl;
                 if (obj == null)
                 {
                     continue;

@@ -20,12 +20,13 @@ namespace Db2Source
     /// <summary>
     /// DatabaseControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class DatabaseControl : UserControl, ISchemaObjectControl
+    public partial class DatabaseControl : UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(NpgsqlDataSet), typeof(DatabaseControl));
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlDatabase), typeof(DatabaseControl));
         public static readonly DependencyProperty UsersProperty = DependencyProperty.Register("Users", typeof(ObservableCollection<User>), typeof(DatabaseControl));
         public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(DatabaseControl));
+        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(DatabaseControl));
         public NpgsqlDataSet DataSet
         {
             get
@@ -68,6 +69,18 @@ namespace Db2Source
             set
             {
                 SetValue(TablespacesProperty, value);
+            }
+        }
+
+        public bool IsEditing
+        {
+            get
+            {
+                return (bool)GetValue(IsEditingProperty);
+            }
+            set
+            {
+                SetValue(IsEditingProperty, value);
             }
         }
 

@@ -1085,11 +1085,10 @@ namespace Db2Source
                 Classes = new PgObjectCollection<PgClass>(DataSet.Properties.Resources.PgClass_SQL, connection, dict);
                 return Classes;
             }
-            public static PgObjectCollection<PgClass> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgClass> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgClass_SQL, string.Format("oid = {0}::oid", oid));
-                Classes = new PgObjectCollection<PgClass>(sql, connection, dict);
-                return Classes;
+                store.Fill(sql, connection, dict, false);
             }
             public static uint? GetOid(NpgsqlConnection connection, string schema, string name, char relkind)
             {
@@ -1352,10 +1351,9 @@ namespace Db2Source
                     return store;
                 }
             }
-            public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgType> store, NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Types = new PgObjectCollection<PgType>(DataSet.Properties.Resources.PgType_SQL, connection, dict);
-                return Types;
+                store.Fill(DataSet.Properties.Resources.PgType_SQL, connection, dict, false);
             }
             public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
@@ -1505,7 +1503,7 @@ namespace Db2Source
 
             //public override string Name { get { return conname; } }
             public PgConstraint() : base() { }
-            public static PgObjectCollection<PgConstraint> Constraints = null;
+            //public static PgObjectCollection<PgConstraint> Constraints = null;
 
             public static readonly Dictionary<char, ForeignKeyRule> CharToForeignKeyRule = new Dictionary<char, ForeignKeyRule>
             {
@@ -1531,14 +1529,13 @@ namespace Db2Source
             }
             public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Constraints = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection, dict);
-                return Constraints;
+                PgObjectCollection<PgConstraint> l = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection, dict);
+                return l;
             }
-            public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgConstraint> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgConstraint_SQL, string.Format("conrelid = {0}::oid", oid));
-                Constraints = new PgObjectCollection<PgConstraint>(sql, connection, dict);
-                return Constraints;
+                store.Fill(sql, connection, dict, false);
             }
             public override void FillReference(WorkingData working)
             {
@@ -1743,18 +1740,10 @@ namespace Db2Source
                 Attributes = new PgOidSubidCollection<PgAttribute>(DataSet.Properties.Resources.PgAttribute_SQL, connection);
                 return Attributes;
             }
-            public static PgOidSubidCollection<PgAttribute> Load(NpgsqlConnection connection, uint oid, PgOidSubidCollection<PgAttribute> store)
+            public static void FillByOid(PgOidSubidCollection<PgAttribute> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgAttribute_SQL, string.Format("attrelid = {0}::oid", oid));
-                if (store == null)
-                {
-                    return new PgOidSubidCollection<PgAttribute>(sql, connection);
-                }
-                else
-                {
-                    store.Fill(sql, connection, false);
-                    return store;
-                }
+                store.Fill(sql, connection, false);
             }
             private static string AbbrivatedTypeName(string typename)
             {
@@ -1870,11 +1859,10 @@ namespace Db2Source
                 Descriptions = new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection, dict);
                 return Descriptions;
             }
-            public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgDescription> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgDescription_SQL, string.Format("objoid = {0}::oid", oid));
-                Descriptions = new PgObjectCollection<PgDescription>(sql, connection, dict);
-                return Descriptions;
+                store.Fill(sql, connection, dict, false);
             }
 
             public override void FillReference(WorkingData working)
@@ -2007,7 +1995,7 @@ namespace Db2Source
             public PgProc Procedure;
             public PgAttribute[] UpdateColumns;
             //public Schema Schema;
-            public static PgObjectCollection<PgTrigger> Triggers;
+            //public static PgObjectCollection<PgTrigger> Triggers;
             public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, PgObjectCollection<PgTrigger> store, Dictionary<uint, PgObject> dict)
             {
                 if (store == null)
@@ -2022,8 +2010,7 @@ namespace Db2Source
             }
             public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                Triggers = new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgProc_SQL, connection, dict);
-                return Triggers;
+                return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgProc_SQL, connection, dict);
             }
 
             public override void FillReference(WorkingData working)
@@ -2787,10 +2774,10 @@ namespace Db2Source
             }
             public void FillTableByOid(uint oid, NpgsqlConnection connection)
             {
-                PgClasses = PgClass.Load(connection, oid, OidToObject);
-                PgAttributes = PgAttribute.Load(connection, oid, null);
-                PgConstraints = PgConstraint.Load(connection, oid, OidToObject);
-                PgDescriptions = PgDescription.Load(connection, oid, OidToObject);
+                PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
+                PgAttribute.FillByOid(PgAttributes, connection, oid);
+                PgConstraint.FillByOid(PgConstraints, connection, oid, OidToObject);
+                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
 
                 PgClasses.BeginFillReference(this);
                 PgAttributes.BeginFillReference(this);
@@ -2813,10 +2800,10 @@ namespace Db2Source
             }
             public void FillTypeByOid(uint oid, NpgsqlConnection connection)
             {
-                PgClasses = PgClass.Load(connection, oid, OidToObject);
-                PgTypes = PgType.Load(connection, OidToObject);
-                PgAttributes = PgAttribute.Load(connection, oid, null);
-                PgDescriptions = PgDescription.Load(connection, oid, OidToObject);
+                PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
+                PgType.FillByOid(PgTypes, connection, OidToObject);
+                PgAttribute.FillByOid(PgAttributes, connection, oid);
+                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
 
                 PgClasses.BeginFillReference(this);
                 PgTypes.BeginFillReference(this);
@@ -2975,15 +2962,19 @@ namespace Db2Source
         }
         internal void RefreshTable(string schema, string tableName, NpgsqlConnection connection)
         {
-            uint? oid = PgClass.GetOid(connection, schema, Name, 'r');
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+                return;
+            }
+            uint? oid = PgClass.GetOid(connection, schema, tableName, 'r');
             Table tbl = Tables[schema, tableName];
             tbl.Release();
             if (!oid.HasValue)
             {
                 return;
             }
-            WorkingData w = new WorkingData(this);
-            w.FillTableByOid(oid.Value, connection);
+            _backend.FillTableByOid(oid.Value, connection);
         }
         public override SchemaObject Refresh(SchemaObject obj, IDbConnection connection)
         {

@@ -24,15 +24,15 @@
             <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
         <ToolBar Grid.ColumnSpan="3">
-            <ToggleButton x:Name="buttonEditTrigger" ContentTemplate="{StaticResource ImageEdit14}" ToolTip="編集" IsChecked="{Binding IsEditing, ElementName=userControl}"/>
+            <Button x:Name="buttonEditTrigger" ContentTemplate="{StaticResource ImageEdit14}" ToolTip="編集" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
             <Separator/>
-            <Button x:Name="buttonApplyTrigger" ContentTemplate="{StaticResource ImageApply14}" ToolTip="変更を適用" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}" Click="buttonApplyTrigger_Click"/>
-            <Button x:Name="buttonRevertTrigger" ContentTemplate="{StaticResource ImageRevert14}" ToolTip="変更を取り消し" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}" Click="buttonRevertTrigger_Click"/>
+            <Button x:Name="buttonApplyTrigger" ContentTemplate="{StaticResource ImageApply14}" ToolTip="変更を適用" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplyTrigger_Click"/>
+            <Button x:Name="buttonRevertTrigger" ContentTemplate="{StaticResource ImageRevert14}" ToolTip="変更を取り消し" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertTrigger_Click"/>
             <Separator/>
-            <Button x:Name="buttonDropTrigger" ContentTemplate="{StaticResource ImageDelete14}" ToolTip="トリガーを削除" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger, Converter={StaticResource InvertBooleanConverter}}"/>
+            <Button x:Name="buttonDropTrigger" ContentTemplate="{StaticResource ImageDelete14}" ToolTip="トリガーを削除" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         </ToolBar>
         <TextBlock Text="操作：" VerticalAlignment="Center" Grid.Row="1" Grid.RowSpan="2"/>
-        <ComboBox Grid.Column="1" SelectedIndex="0" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center" SelectedValuePath="Value" DisplayMemberPath="Text" MinWidth="60" SelectedValue="{Binding Target.Timing, ElementName=userControl}" Margin="0,8" IsReadOnly="{Binding IsChecked, ElementName=buttonEditTrigger, Converter={StaticResource InvertBooleanConverter}}">
+        <ComboBox Grid.Column="1" SelectedIndex="0" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center" SelectedValuePath="Value" DisplayMemberPath="Text" MinWidth="60" SelectedValue="{Binding Target.Timing, ElementName=userControl}" Margin="0,8" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}">
             <ComboBox.Items>
                 <local:TimingItem Value="Unknown" Text=""/>
                 <local:TimingItem Value="Before" Text="Before"/>
@@ -40,20 +40,20 @@
             </ComboBox.Items>
         </ComboBox>
         <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">
-            <CheckBox x:Name="checkBoxInsertTrigger" Content="Insert" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}"/>
-            <CheckBox x:Name="checkBoxDeleteTrigger" Content="Delete" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}"/>
-            <CheckBox x:Name="checkBoxTruncateTrigger" Content="Truncate" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}"/>
+            <CheckBox x:Name="checkBoxInsertTrigger" Content="Insert" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsEditing, ElementName=userControl}"/>
+            <CheckBox x:Name="checkBoxDeleteTrigger" Content="Delete" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsEditing, ElementName=userControl}"/>
+            <CheckBox x:Name="checkBoxTruncateTrigger" Content="Truncate" Margin="4,2" VerticalAlignment="Center" IsEnabled="{Binding IsEditing, ElementName=userControl}"/>
         </StackPanel>
         <DockPanel Grid.Column="2" Grid.Row="2">
-            <CheckBox x:Name="checkBoxUpdateTrigger" Content="Update" Margin="4,2" VerticalAlignment="Center" DockPanel.Dock="Left" IsEnabled="{Binding IsChecked, ElementName=buttonEditTrigger}"/>
-            <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding Target.UpdateEventColumnsText, ElementName=userControl}" IsReadOnly="{Binding IsChecked, ElementName=buttonEditTrigger, Converter={StaticResource InvertBooleanConverter}}"/>
+            <CheckBox x:Name="checkBoxUpdateTrigger" Content="Update" Margin="4,2" VerticalAlignment="Center" DockPanel.Dock="Left" IsEnabled="{Binding IsEditing, ElementName=userControl}"/>
+            <TextBox VerticalAlignment="Center" HorizontalAlignment="Stretch" Text="{Binding Target.UpdateEventColumnsText, ElementName=userControl}" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         </DockPanel>
         <TextBlock Grid.Row="3" Text="条件：" VerticalAlignment="Center" Margin="0,3"/>
-        <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2" Text="{Binding Target.Condition, ElementName=userControl}" IsReadOnly="{Binding IsChecked, ElementName=buttonEditTrigger, Converter={StaticResource InvertBooleanConverter}}"/>
+        <TextBox Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,2" Text="{Binding Target.Condition, ElementName=userControl}" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         <TextBlock Grid.Row="4" Text="処理：" VerticalAlignment="Center" Margin="0,3"/>
         <DockPanel Grid.Column="1" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,2">
             <Button x:Name="buttonOpenTriggerDef" DockPanel.Dock="Right" ContentTemplate="{StaticResource ImageRightArrow14}" ToolTip="定義を開く"/>
-            <ComboBox HorizontalAlignment="Stretch" IsEditable="True" Text="{Binding Target.Definition, ElementName=userControl}" IsReadOnly="{Binding IsChecked, ElementName=buttonEditTrigger, Converter={StaticResource InvertBooleanConverter}}"/>
+            <ComboBox HorizontalAlignment="Stretch" IsEditable="True" Text="{Binding Target.Definition, ElementName=userControl}" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         </DockPanel>
         <TextBox x:Name="textBoxTriggerBodySQL" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
         <local:SearchTextBoxControl Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTriggerBodySQL}" Visibility="Collapsed" Grid.Column="2"/>

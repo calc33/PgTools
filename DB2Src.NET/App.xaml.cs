@@ -36,7 +36,7 @@ namespace Db2Source
             {
                 return;
             }
-            ISchemaObjectControl ctrl = item.Content as ISchemaObjectControl;
+            ISchemaObjectWpfControl ctrl = item.Content as ISchemaObjectWpfControl;
             bool cancel = false;
             ctrl?.OnTabClosing(sender, ref cancel);
             if (cancel)
@@ -486,6 +486,11 @@ namespace Db2Source
             }
             Name = DEFAULE_NAME;
         }
+    }
+
+    public interface ISchemaObjectWpfControl : ISchemaObjectControl
+    {
+        DependencyObject Parent { get; }
     }
 
     public class InvertBooleanConverter: IValueConverter

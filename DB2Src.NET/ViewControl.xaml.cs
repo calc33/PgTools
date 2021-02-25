@@ -21,7 +21,7 @@ namespace Db2Source
     /// <summary>
     /// ViewControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class ViewControl: UserControl, ISchemaObjectControl
+    public partial class ViewControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(View), typeof(ViewControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(ViewControl));

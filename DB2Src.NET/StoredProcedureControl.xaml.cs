@@ -23,7 +23,7 @@ namespace Db2Source
     /// <summary>
     /// StoredProcedureControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class StoredProcedureControl: UserControl, ISchemaObjectControl
+    public partial class StoredProcedureControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(StoredProcedureControl));

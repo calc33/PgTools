@@ -24,16 +24,38 @@ namespace Db2Source
     /// <summary>
     /// TableControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class TableControl: UserControl, ISchemaObjectControl
+    public partial class TableControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableControl));
         public static readonly DependencyProperty JoinTablesProperty = DependencyProperty.Register("JoinTables", typeof(JoinTableCollection), typeof(TableControl));
-        public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(TableControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(TableControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(TableControl));
         public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl));
         //public static readonly DependencyProperty SelectedTriggerProperty = DependencyProperty.Register("SelectedTrigger", typeof(Trigger), typeof(TableControl));
 
+        private HiddenLevelDisplayItem[] HiddenLevelItems = new HiddenLevelDisplayItem[0];
+        private void UpdateHiddenLevelDisplayItems()
+        {
+            Column oid = Target.Columns["oid"];
+            bool hasOid = (oid != null && oid.HiddenLevel == HiddenLevel.Hidden);
+            HiddenLevel lv = hasOid ? HiddenLevel.Hidden : HiddenLevel.Visible;
+            HiddenLevelDisplayItem sel = null;
+            List<HiddenLevelDisplayItem> l = new List<HiddenLevelDisplayItem>();
+            foreach (HiddenLevelDisplayItem item in (HiddenLevelDisplayItem[])Resources["DefaultHiddenLevelDisplayItems"])
+            {
+                if (item.Level == lv)
+                {
+                    sel = item;
+                }
+                if (hasOid || item.Level != HiddenLevel.Hidden)
+                {
+                    l.Add(item);
+                }
+            }
+            HiddenLevelItems = l.ToArray();
+            comboBoxSystemColumn.ItemsSource = HiddenLevelItems;
+            comboBoxSystemColumn.SelectedItem = sel;
+        }
         public Table Target
         {
             get
@@ -89,17 +111,6 @@ namespace Db2Source
             }
         }
 
-        public bool IsTargetModified
-        {
-            get
-            {
-                return (bool)GetValue(IsTargetModifiedProperty);
-            }
-            set
-            {
-                SetValue(IsTargetModifiedProperty, value);
-            }
-        }
         public DataGridController DataGridControllerResult
         {
             get
@@ -153,23 +164,6 @@ namespace Db2Source
             InitializeComponent();
             JoinTables = new JoinTableCollection();
         }
-
-        private void UpdateIsTargetModified()
-        {
-            IsTargetModified = Target.IsModified();
-        }
-        private void UpdateDataGridColumns()
-        {
-            bool? flg = checkBoxShowHidden.IsChecked;
-            if (flg.HasValue && flg.Value)
-            {
-                dataGridColumns.ItemsSource = Target.Columns.AllColumns;
-            }
-            else
-            {
-                dataGridColumns.ItemsSource = Target.Columns;
-            }
-        }
         
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -182,14 +176,13 @@ namespace Db2Source
             Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
             Target.CommentChanged += Target_CommentChanged;
             //dataGridColumns.ItemsSource = new List<Column>(Target.Columns);
-            UpdateDataGridColumns();
             DataGridControllerResult.Table = Target;
             sortFields.Target = Target;
             //dataGridReferTo.ItemsSource = Target.ReferTo;
             //dataGridReferedBy.ItemsSource = Target.ReferFrom;
             UpdateTextBoxSource();
-            UpdateIsTargetModified();
             UpdateTextBoxTemplateSql();
+            UpdateHiddenLevelDisplayItems();
             Dispatcher.Invoke(Fetch, DispatcherPriority.ApplicationIdle);
         }
 
@@ -226,6 +219,15 @@ namespace Db2Source
             UpdateTextBoxSelectSql();
         }
 
+        private void VisibleLevelPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue == e.OldValue)
+            {
+                return;
+            }
+            TryRefetch();
+        }
+
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.Property == TargetProperty)
@@ -236,8 +238,13 @@ namespace Db2Source
             {
                 JoinTablesPropertyChanged(e);
             }
+            if (e.Property == VisibleLevelProperty)
+            {
+                VisibleLevelPropertyChanged(e);
+            }
             base.OnPropertyChanged(e);
         }
+
         private void UpdateTextBlockWarningLimit()
         {
             bool flag = false;
@@ -484,6 +491,7 @@ namespace Db2Source
             UpdateTextBoxDeleteSql();
         }
 
+        private bool _fetched = false;
         public void Fetch(string condition)
         {
             textBoxCondition.Text = condition;
@@ -491,6 +499,7 @@ namespace Db2Source
         }
         public void Fetch()
         {
+            _fetched = false;
             if (DataGridControllerResult.IsModified)
             {
                 MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
@@ -547,22 +556,20 @@ namespace Db2Source
             {
                 UpdateTextBlockWarningLimit();
             }
+            _fetched = true;
         }
-        private void buttonFetch_Click(object sender, RoutedEventArgs e)
+        private void TryRefetch()
         {
+            if (!_fetched)
+            {
+                return;
+            }
             Fetch();
         }
 
-        private void dataGridColumns_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
-            DataGrid g = sender as DataGrid;
-            double w = e.NewSize.Width;
-            double h = Math.Max(g.FontSize + 4.0, e.NewSize.Height / 2.0);
-            DataGridResultMaxHeight = h;
-            foreach (DataGridColumn c in g.Columns)
-            {
-                c.MaxWidth = w;
-            }
+            Fetch();
         }
 
         private void checkBoxSource_Checked(object sender, RoutedEventArgs e)
@@ -577,15 +584,12 @@ namespace Db2Source
 
         private void Target_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            UpdateIsTargetModified();
         }
         private void Target_ColumnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            UpdateIsTargetModified();
         }
         private void Target_CommentChanged(object sender, CommentChangedEventArgs e)
         {
-            UpdateIsTargetModified();
         }
 
         private static readonly Regex NumericStrRegex = new Regex("[0-9]+");
@@ -594,52 +598,10 @@ namespace Db2Source
             e.Handled = NumericStrRegex.IsMatch(e.Text);
         }
 
-        private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
-        {
-            Db2SourceContext ctx = Target.Context;
-            List<string> sqls = new List<string>();
-            if ((Target.Comment != null) && Target.Comment.IsModified())
-            {
-                sqls.Add(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
-            }
-            for (int i = 0; i < Target.Columns.Count; i++)
-            {
-                Column newC = Target.Columns[i, false];
-                if (newC.IsModified())
-                {
-                    Column oldC = Target.Columns[i, true];
-                    sqls.AddRange(ctx.GetAlterColumnSQL(newC, oldC));
-                }
-                if ((newC.Comment != null) && newC.Comment.IsModified())
-                {
-                    sqls.Add(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
-                }
-            }
-            try
-            {
-                if (sqls.Count != 0)
-                {
-                    ctx.ExecSqls(sqls);
-                }
-            }
-            finally
-            {
-                ctx.Revert(Target);
-            }
-        }
-
-        private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
-        {
-            Db2SourceContext ctx = Target.Context;
-            ctx.Revert(Target);
-        }
-
         private void UserControl_Initialized(object sender, EventArgs e)
         {
             DataGridControllerResult = new DataGridController();
-            //DataGridControllerResult.Context = null;
             DataGridControllerResult.Grid = dataGridResult;
-            //Dispatcher.Invoke(Fetch, DispatcherPriority.ApplicationIdle);
             CommandBinding b;
             b = new CommandBinding(ApplicationCommands.Find, FindCommand_Executed);
             dataGridResult.CommandBindings.Add(b);
@@ -779,11 +741,6 @@ namespace Db2Source
             _columnFilterWindow = null;
         }
 
-        private void checkBoxShowHidden_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateDataGridColumns();
-        }
-
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
@@ -796,51 +753,35 @@ namespace Db2Source
             }
         }
 
-        //private WeakReference<SearchDataGridTextWindow> _searchDataGridTextWindow = null;
-        private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
-        private SearchDataGridWindow RequireSearchWindowDataGridColumns()
-        {
-            SearchDataGridWindow win;
-            if (_searchWindowDataGridColumns != null && _searchWindowDataGridColumns.TryGetTarget(out win))
-            {
-                return win;
-            }
-            win = new SearchDataGridWindow();
-            win.Target = dataGridColumns;
-            win.Owner = Window.GetWindow(this);
-            win.Closed += SearchWindowDataGridColumns_Closed;
-            _searchWindowDataGridColumns = new WeakReference<SearchDataGridWindow>(win);
-            return win;
-        }
+        //private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
+        //private SearchDataGridWindow RequireSearchWindowDataGridColumns()
+        //{
+        //    SearchDataGridWindow win;
+        //    if (_searchWindowDataGridColumns != null && _searchWindowDataGridColumns.TryGetTarget(out win))
+        //    {
+        //        return win;
+        //    }
+        //    win = new SearchDataGridWindow();
+        //    win.Target = dataGridColumns;
+        //    win.Owner = Window.GetWindow(this);
+        //    win.Closed += SearchWindowDataGridColumns_Closed;
+        //    _searchWindowDataGridColumns = new WeakReference<SearchDataGridWindow>(win);
+        //    return win;
+        //}
 
-        private void SearchWindowDataGridColumns_Closed(object sender, EventArgs e)
-        {
-            _searchWindowDataGridColumns = null;
-        }
+        //private void SearchWindowDataGridColumns_Closed(object sender, EventArgs e)
+        //{
+        //    _searchWindowDataGridColumns = null;
+        //}
 
         private void FindCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (tabControlMain.SelectedItem == tabItemData)
-            {
-                DataGridControllerResult.ShowSearchWinodow();
-            }
-            else if (tabControlMain.SelectedItem == tabItemInfo)
-            {
-                SearchDataGridWindow win = RequireSearchWindowDataGridColumns();
-                win.Show();
-            }
+            DataGridControllerResult.ShowSearchWinodow();
         }
 
         private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (tabControlMain.SelectedItem == tabItemData)
-            {
-                DataGridControllerResult.SearchGridTextForward();
-            }
-            else if (tabControlMain.SelectedItem == tabItemInfo)
-            {
-
-            }
+            DataGridControllerResult.SearchGridTextForward();
         }
 
         private void FindPreviousCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -1081,16 +1022,6 @@ namespace Db2Source
             {
                 e.Cancel = true;
             }
-        }
-
-        private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)
-        {
-            SearchDataGridWindow win = new SearchDataGridWindow();
-            FrameworkElement elem = sender as FrameworkElement ?? dataGridColumns;
-            WindowLocator.LocateNearby(elem, win, NearbyLocation.UpLeft);
-            win.Owner = Window.GetWindow(this);
-            win.Target = dataGridColumns;
-            win.Show();
         }
 
         private void MenuItemAddJoin_Click(object sender, RoutedEventArgs e)

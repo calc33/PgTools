@@ -72,12 +72,12 @@
                     </Grid.RowDefinitions>
                     <StackPanel Grid.ColumnSpan="2" Orientation="Horizontal">
                         <ToolBar>
-                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更"/>
+                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更" IsChecked="{Binding IsEditing, ElementName=userControl}" Focusable="False"/>
                             <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存"/>
-                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し"/>
+                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存" Focusable="False"/>
+                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し" Focusable="False"/>
                             <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="ユーザーを削除"/>
+                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="ユーザーを削除" Focusable="False"/>
                         </ToolBar>
                     </StackPanel>
                     <TextBlock Grid.Row="1" Text="ユーザー名：" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.ColumnSpan="2"/>

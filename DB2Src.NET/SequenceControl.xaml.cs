@@ -19,7 +19,7 @@ namespace Db2Source
     /// <summary>
     /// SequenceControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class SequenceControl: UserControl, ISchemaObjectControl
+    public partial class SequenceControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Sequence), typeof(SequenceControl));
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(SequenceControl));
