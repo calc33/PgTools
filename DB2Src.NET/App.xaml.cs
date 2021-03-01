@@ -357,6 +357,10 @@ namespace Db2Source
             }
             while (obj != null)
             {
+                if (obj is T)
+                {
+                    return (T)obj;
+                }
                 if (obj is Visual)
                 {
                     obj = VisualTreeHelper.GetParent(obj);
@@ -366,10 +370,28 @@ namespace Db2Source
                     PropertyInfo prop = obj.GetType().GetProperty("Parent");
                     obj = prop?.GetValue(obj) as DependencyObject;
                 }
+            }
+            return null;
+        }
+
+        public static T FindLogicalParent<T>(DependencyObject item) where T : DependencyObject
+        {
+            if (item == null)
+            {
+                return null;
+            }
+            if (item is T)
+            {
+                return (T)item;
+            }
+            DependencyObject obj = LogicalTreeHelper.GetParent(item);
+            while (obj != null)
+            {
                 if (obj is T)
                 {
                     return (T)obj;
                 }
+                obj = LogicalTreeHelper.GetParent(obj);
             }
             return null;
         }
@@ -469,6 +491,15 @@ namespace Db2Source
             DataGrid grid = FindVisualParent<DataGrid>(sender as DependencyObject);
             grid.CommitEdit(DataGridEditingUnit.Row, true);
             row.RevertChanges();
+        }
+    }
+
+    public class SqlLogger
+    {
+        internal StringBuilder Buffer { get; } = new StringBuilder();
+        internal void Log(object sender, LogEventArgs e)
+        {
+            Buffer.AppendLine(e.Text);
         }
     }
 

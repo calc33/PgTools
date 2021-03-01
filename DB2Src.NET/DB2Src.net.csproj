@@ -107,6 +107,9 @@
     </Compile>
     <Compile Include="DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
+    <Compile Include="DropSchemaPopup.xaml.cs">
+      <DependentUpon>DropSchemaPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="EditConnectionListWindow.xaml.cs">
       <DependentUpon>EditConnectionListWindow.xaml</DependentUpon>
     </Compile>
@@ -200,6 +203,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="DatabaseControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DropSchemaPopup.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

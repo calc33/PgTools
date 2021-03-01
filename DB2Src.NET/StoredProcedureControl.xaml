@@ -10,6 +10,15 @@
     <UserControl.Resources>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+        <ContextMenu x:Key="dropProcedureContextMenu">
+            <MenuItem Header="ストアド手続きを削除" Click="menuItemDropProcedue_Click"/>
+        </ContextMenu>
+        <ContextMenu x:Key="dropFunctionContextMenu">
+            <MenuItem Header="ストアド関数を削除" Click="menuItemDropProcedue_Click"/>
+        </ContextMenu>
+        <sys:String x:Key="messageDropProcedure">ストアド手続きを削除します。削除したストアド手続きは元に戻せません。よろしいですか?</sys:String>
+        <sys:String x:Key="messageDropFunction">ストアド関数を削除します。削除したストアド関数は元に戻せません。よろしいですか?</sys:String>
     </UserControl.Resources>
     <TabControl x:Name="tabControlMain">
         <TabItem x:Name="tabItemExecute" Header="実行">
@@ -23,7 +32,7 @@
                     <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
-                    <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" MinWidth="40" MaxHeight="50" DockPanel.Dock="Right" Margin="2,0"/>
+                    <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="40" MaxHeight="50" DockPanel.Dock="Right" Margin="2,0"/>
                     <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}"  MinWidth="64"/>
@@ -64,15 +73,27 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <StackPanel>
+                    <ToolBarTray Orientation="Horizontal">
+                        <ToolBar>
+                            <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False"/>
+                            <Separator/>
+                            <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>
+                            <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertSchema_Click" Focusable="False"/>
+                            <Separator/>
+                            <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
+                            <Separator/>
+                            <Button x:Name="buttonOptions" Margin="1,2" ToolTip="その他" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
+                        </ToolBar>
+                    </ToolBarTray>
                     <StackPanel Orientation="Horizontal" Margin="2,2">
-                        <TextBlock Text="所有者："/>
-                        <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
+                        <TextBlock Text="所有者：" VerticalAlignment="Center"/>
+                        <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
-                    <StackPanel Orientation="Horizontal">
+                    <!--<StackPanel Orientation="Horizontal">
                         <Button x:Name="buttonApplySchema" Margin="1,2" Padding="2" ToolTip="コメントの変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
                         <Button x:Name="buttonRevertSchema" Margin="1,2" Padding="2" ToolTip="コメントの変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
-                    </StackPanel>
+                    </StackPanel>-->
                 </StackPanel>
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
             </Grid>
@@ -115,7 +136,7 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
                 <Grid>
-                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" Margin="0,-16,0,16"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>

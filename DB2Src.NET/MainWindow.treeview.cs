@@ -204,6 +204,15 @@ namespace Db2Source
                 {
                     foreach (TreeViewItem itemGr in itemSc.Items)
                     {
+                        for (int i = itemGr.Items.Count - 1; 0 <= i; i--)
+                        {
+                            TreeViewItem item = (TreeViewItem)itemGr.Items[i];
+                            SchemaObject o = (item.Tag as TreeNode)?.Target as SchemaObject;
+                            if (o == null || o.IsReleased)
+                            {
+                                itemGr.Items.RemoveAt(i);
+                            }
+                        }
                         int n = 0;
                         foreach (TreeViewItem item in itemGr.Items)
                         {

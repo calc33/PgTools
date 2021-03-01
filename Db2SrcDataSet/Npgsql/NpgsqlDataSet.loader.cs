@@ -2844,10 +2844,14 @@ namespace Db2Source
             }
             private void LoadFromPgTablespaces()
             {
+                List<string> l = new List<string>();
                 foreach (PgTablespace ts in PgTablespaces)
                 {
-                    ts.ToTablespace(Context);
+                    Tablespace t = ts.ToTablespace(Context);
+                    l.Add(t.Name);
                 }
+                l.Sort();
+                Context.TablespaceNames = l.ToArray();
             }
 
             private void LoadFromPgSettings()
@@ -2864,10 +2868,17 @@ namespace Db2Source
             }
             private void LoadFromPgRoles()
             {
+                List<string> l = new List<string>();
                 foreach (PgRole ts in PgRoles)
                 {
-                    ts.ToUser(Context);
+                    PgsqlUser u = ts.ToUser(Context);
+                    if (u.CanLogin)
+                    {
+                        l.Add(u.Id);
+                    }
                 }
+                l.Sort();
+                Context.UserIds = l.ToArray();
             }
 
             private void LoadFromPgDatabases()
@@ -2969,7 +2980,7 @@ namespace Db2Source
             }
             uint? oid = PgClass.GetOid(connection, schema, tableName, 'r');
             Table tbl = Tables[schema, tableName];
-            tbl.Release();
+            tbl?.Release();
             if (!oid.HasValue)
             {
                 return;

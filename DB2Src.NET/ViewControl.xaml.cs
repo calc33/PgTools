@@ -350,7 +350,7 @@ namespace Db2Source
             {
                 if (sqls.Count != 0)
                 {
-                    ctx.ExecSqls(sqls);
+                    ctx.ExecSqlsWithLog(sqls);
                 }
             }
             finally

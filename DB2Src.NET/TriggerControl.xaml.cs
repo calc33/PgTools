@@ -91,7 +91,7 @@ namespace Db2Source
                 IsEditing = false;
                 return;
             }
-            Db2SourceContext dataSet = Target.Context;
+            Db2SourceContext ctx = Target.Context;
             string[] sqls = Target.GetAlterSQL(string.Empty, string.Empty, 0, false);
             if (sqls == null || sqls.Length == 0)
             {
@@ -99,7 +99,7 @@ namespace Db2Source
             }
             try
             {
-                dataSet.ExecSqls(sqls);
+                ctx.ExecSqlsWithLog(sqls);
             }
             catch (Exception t)
             {
@@ -109,14 +109,14 @@ namespace Db2Source
                 {
                     try
                     {
-                        dataSet.ExecSqls(s);
+                        ctx.ExecSqlsWithLog(s);
                     }
                     catch (Exception t2)
                     {
-                        recoverMsg = string.Format("(修復失敗: {0})", t2.Message);
+                        recoverMsg = string.Format("(修復失敗: {0})", ctx.GetExceptionMessage(t2));
                     }
                 }
-                MessageBox.Show(string.Format("エラー: {0}{1}", t.Message, recoverMsg));
+                MessageBox.Show(string.Format("エラー: {0}{1}", ctx.GetExceptionMessage(t), recoverMsg));
             }
         }
 

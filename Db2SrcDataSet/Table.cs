@@ -467,6 +467,10 @@ namespace Db2Source
             return Context.GetDeleteSql(this, where, indent, charPerLine, postfix);
         }
 
+        public string GetDropSql(string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            return Context.GetDropSQL(this, prefix, postfix, indent, cascade, addNewline);
+        }
         protected void BackupConstraints(Table destination)
         {
             foreach (Constraint c in Constraints)
@@ -582,7 +586,7 @@ namespace Db2Source
                 _nameToConstraint.Add(c.Name, c);
             }
         }
-        public Constraint this[int index]
+        public ForeignKeyConstraint this[int index]
         {
             get
             {

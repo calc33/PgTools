@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Db2Source
 {
@@ -186,7 +187,25 @@ namespace Db2Source
         }
         private static string GetExceptionMessage(Npgsql.PostgresException t)
         {
-            return t.MessageText + Environment.NewLine + Environment.NewLine + t.Where;
+            StringBuilder buf = new StringBuilder();
+            buf.Append(t.Message);
+            if (!string.IsNullOrEmpty(t.Detail))
+            {
+                buf.AppendLine();
+                buf.Append(t.Detail);
+            }
+            if (!string.IsNullOrEmpty(t.Hint))
+            {
+                buf.AppendLine();
+                buf.Append(t.Hint);
+            }
+            if (!string.IsNullOrEmpty(t.Where))
+            {
+                buf.AppendLine();
+                buf.AppendLine();
+                buf.Append(t.Where);
+            }
+            return buf.ToString();
         }
         /// <summary>
         /// 例外のダイアログ出力用メッセージを取得
@@ -202,6 +221,16 @@ namespace Db2Source
             return t.Message;
         }
 
+        public override bool SuggestsDropCascade(Exception t)
+        {
+            Npgsql.NpgsqlException ex = t as Npgsql.PostgresException;
+            if (ex == null)
+            {
+                return false;
+            }
+            string code = (string)ex.Data["Code"];
+            return code == "2BP01";
+        }
         public override bool AllowOutputParameter
         {
             get

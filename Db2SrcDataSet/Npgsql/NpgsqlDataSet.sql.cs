@@ -71,7 +71,7 @@ namespace Db2Source
             for (int i = 0; i < n; i++)
             {
                 string s = table.Columns[i].Name;
-                if (i == 0 || PreferedCharsPerLine < l + s.Length + 1)
+                if (i == 0 || PreferredCharsPerLine < l + s.Length + 1)
                 {
                     buf.AppendLine();
                     buf.Append(colSpc);
@@ -88,7 +88,7 @@ namespace Db2Source
             }
             {
                 string s = table.Columns[n].Name;
-                if (PreferedCharsPerLine < l + s.Length + 1)
+                if (PreferredCharsPerLine < l + s.Length + 1)
                 {
                     buf.AppendLine();
                     buf.Append(colSpc);
@@ -1171,6 +1171,10 @@ namespace Db2Source
                 buf.AppendLine();
             }
             return buf.ToString();
+        }
+        public override string GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            throw new NotImplementedException();
         }
         public override string GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {

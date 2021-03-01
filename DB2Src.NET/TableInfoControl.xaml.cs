@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -109,7 +111,6 @@ namespace Db2Source
 
         }
 
-
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateDataGridColumns();
@@ -168,7 +169,7 @@ namespace Db2Source
             }
             if (sqls.Count != 0)
             {
-                ctx.ExecSqls(sqls);
+                ctx.ExecSqlsWithLog(sqls);
             }
             ctx.Revert(Target);
             IsEditing = false;
@@ -204,9 +205,25 @@ namespace Db2Source
             dataGridColumns.CommandBindings.Add(b);
         }
 
-        private void buttonEdit_Click(object sender, RoutedEventArgs e)
+        private void buttonOptions_Click(object sender, RoutedEventArgs e)
         {
-            IsEditing = true;
+            ContextMenu menu = Resources["dropTableContextMenu"] as ContextMenu;
+            menu.PlacementTarget = buttonOptions;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+
+        private void menuItemDropTable_Click(object sender, RoutedEventArgs e)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropTable"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (ret != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            MenuItem menu = sender as MenuItem;
+            TableControl ctl = App.FindLogicalParent<TableControl>(this);
+            ctl?.DropTarget((bool)menu.Tag);
         }
     }
 }

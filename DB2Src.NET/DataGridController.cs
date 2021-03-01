@@ -398,7 +398,7 @@ namespace Db2Source
         }
         public void SetError(Exception t)
         {
-            SetError(t.Message);
+            SetError(_owner.DataSet.GetExceptionMessage(t));
         }
         public void SetError(string message)
         {
@@ -1695,7 +1695,13 @@ namespace Db2Source
                 //UpdateFieldComment();
             }
         }
-
+        public Db2SourceContext DataSet
+        {
+            get
+            {
+                return _table?.Context;
+            }
+        }
         public bool HasError
         {
             get

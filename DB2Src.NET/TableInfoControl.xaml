@@ -4,11 +4,25 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Db2Source"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Initialized="UserControl_Initialized">
     <UserControl.Resources>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <ContextMenu x:Key="dropTableContextMenu">
+            <MenuItem Header="表を削除" Click="menuItemDropTable_Click">
+                <MenuItem.Tag>
+                    <sys:Boolean>False</sys:Boolean>
+                </MenuItem.Tag>
+            </MenuItem>
+            <MenuItem Header="依存オブジェクトと共に表を削除" Click="menuItemDropTable_Click">
+                <MenuItem.Tag>
+                    <sys:Boolean>True</sys:Boolean>
+                </MenuItem.Tag>
+            </MenuItem>
+        </ContextMenu>
+        <sys:String x:Key="messageDropTable">表を削除します。削除した表は元に戻せません。よろしいですか?</sys:String>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -19,20 +33,21 @@
         <StackPanel>
             <ToolBarTray Orientation="Horizontal">
                 <ToolBar>
-                    <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonEdit_Click" Focusable="False"/>
+                    <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False"/>
                     <Separator/>
                     <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>
                     <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertSchema_Click" Focusable="False"/>
                     <Separator/>
                     <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
                     <Separator/>
+                    <Button x:Name="buttonOptions" Margin="1,2" ToolTip="その他" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
                 </ToolBar>
             </ToolBarTray>
             <StackPanel Orientation="Horizontal" Margin="0,2">
-                <TextBlock Text="所有者："/>
-                <ComboBox IsEditable="True" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" SelectedValue="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" DisplayMemberPath="Name" SelectedValuePath="Name" ItemsSource="{Binding Target.Context.Users, ElementName=userControl}"/>
-                <TextBlock Text="表領域：" Margin="8,0,0,0"/>
-                <ComboBox IsEditable="True" SelectedValue="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" DisplayMemberPath="Name" SelectedValuePath="Name" ItemsSource="{Binding Target.Context.Tablespaces, ElementName=userControl}"/>
+                <TextBlock Text="所有者：" VerticalAlignment="Center"/>
+                <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center"/>
+                <TextBlock Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center"/>
                 <CheckBox Margin="8,0,0,0" x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click"/>
             </StackPanel>
         </StackPanel>

@@ -839,5 +839,25 @@ namespace Db2Source
                 }
             }
         }
+
+        private SchemaObject[] GetStrongReferred(Table table)
+        {
+            List<SchemaObject> l = new List<SchemaObject>();
+            foreach (ForeignKeyConstraint c in table.ReferFrom)
+            {
+                l.Add(c);
+            }
+            return l.ToArray();
+        }
+
+        public override SchemaObject[] GetStrongReferred(SchemaObject target)
+        {
+            Table tbl = target as Table;
+            if (tbl != null)
+            {
+                return GetStrongReferred(tbl);
+            }
+            return new SchemaObject[0];
+        }
     }
 }

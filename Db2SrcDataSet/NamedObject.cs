@@ -24,6 +24,13 @@ namespace Db2Source
 
         internal event EventHandler IdentifierInvalidated;
 
+        public bool IsReleased
+        {
+            get
+            {
+                return _released;
+            }
+        }
         public abstract void Backup();
 
         public abstract void Restore();

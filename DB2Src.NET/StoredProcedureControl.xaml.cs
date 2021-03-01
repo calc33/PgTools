@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -29,6 +30,7 @@ namespace Db2Source
         public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
+        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl));
 
         public StoredFunction Target
         {
@@ -103,6 +105,19 @@ namespace Db2Source
                 SetValue(DataGridResultMaxHeightProperty, value);
             }
         }
+
+        public bool IsEditing
+        {
+            get
+            {
+                return (bool)GetValue(IsEditingProperty);
+            }
+            set
+            {
+                SetValue(IsEditingProperty, value);
+            }
+        }
+
         private void AddLog(string text, string sql, LogStatus status, bool notice)
         {
             LogListBoxItem item = new LogListBoxItem();
@@ -138,7 +153,21 @@ namespace Db2Source
         {
             IsTargetModified = Target.IsModified();
         }
-        private void TargetChanged(DependencyPropertyChangedEventArgs e)
+        private void UpdateStringResources()
+        {
+            if (Target is StoredFunction)
+            {
+                _contextMenu_DropProcedure = Resources["dropFunctionContextMenu"] as ContextMenu;
+                _message_DropProcedure = (string)Resources["messageDropFunction"];
+            }
+            else
+            {
+                _contextMenu_DropProcedure = Resources["dropProcedureContextMenu"] as ContextMenu;
+                _message_DropProcedure = (string)Resources["messageDropProcedure"];
+            }
+        }
+
+        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             //dataGridColumns.ItemsSource = Target.Columns;
             Target.PropertyChanged += Target_PropertyChanged;
@@ -150,6 +179,7 @@ namespace Db2Source
             UpdateTabItemExecuteVisiblity();
             UpdateTextBoxSource();
             UpdateIsTargetModified();
+            UpdateStringResources();
             //Dispatcher.Invoke(Execute, DispatcherPriority.Normal);
         }
 
@@ -157,7 +187,7 @@ namespace Db2Source
         {
             if (e.Property == TargetProperty)
             {
-                TargetChanged(e);
+                TargetPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -390,6 +420,67 @@ namespace Db2Source
         private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
         {
             listBoxLog.Items.Clear();
+        }
+
+        private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private ContextMenu _contextMenu_DropProcedure;
+        private void buttonOptions_Click(object sender, RoutedEventArgs e)
+        {
+            _contextMenu_DropProcedure.PlacementTarget = buttonOptions;
+            _contextMenu_DropProcedure.Placement = PlacementMode.Bottom;
+            _contextMenu_DropProcedure.IsOpen = true;
+        }
+
+        private string _message_DropProcedure;
+
+        private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            MessageBoxResult ret = MessageBox.Show(owner, _message_DropProcedure, Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (ret != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            Db2SourceContext ctx = Target.Context;
+            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            SqlLogger logger = new SqlLogger();
+            bool failed = false;
+            try
+            {
+                ctx.ExecSql(sql, logger.Log);
+            }
+            catch (Exception t)
+            {
+                logger.Buffer.AppendLine(ctx.GetExceptionMessage(t));
+                failed = true;
+            }
+            string s = logger.Buffer.ToString().TrimEnd();
+            if (!string.IsNullOrEmpty(s))
+            {
+                if (failed)
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Result, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            if (failed)
+            {
+                return;
+            }
+            TabItem tab = App.FindLogicalParent<TabItem>(this);
+            if (tab != null)
+            {
+                (tab.Parent as TabControl).Items.Remove(tab);
+                Target.Release();
+                MainWindow.Current.FilterTreeView(true);
+            }
         }
     }
     public class ParamEditor: DependencyObject

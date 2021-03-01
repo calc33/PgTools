@@ -234,6 +234,9 @@ namespace Db2Source
             }
         }
 
+        public string[] UserIds { get; set; }
+        public string[] TablespaceNames { get; set; }
+
         public string GetTreeNodeHeader()
         {
             return ConnectionInfo?.GetTreeNodeHeader();
@@ -459,7 +462,7 @@ namespace Db2Source
         /// <summary>
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
-        public int PreferedCharsPerLine { get; set; } = 80;
+        public int PreferredCharsPerLine { get; set; } = 80;
         public virtual IDbConnection NewConnection(bool withOpening)
         {
             return ConnectionInfo?.NewConnection(withOpening);
@@ -701,6 +704,7 @@ namespace Db2Source
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(Trigger after, Trigger before, string prefix, string postfix, int indent, bool addNewline);
 
+        public abstract string GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string GetDropSQL(Column column, string prefix, string postfix, int indent, bool cascade, bool addNewline);
@@ -1164,7 +1168,34 @@ namespace Db2Source
             Log?.Invoke(this, new LogEventArgs(text, status, sql));
         }
 
-        public void ExecSqls(IEnumerable<string> sqls)
+        /// <summary>
+        /// 複数のSQLを実行します。SQLの実行はエラーが出たところで停止します。
+        /// </summary>
+        /// <param name="sqls"></param>
+        /// <param name="logEvent"></param>
+        /// <returns>最後に実行したSQLで影響を受けた行数</returns>
+        public int ExecSqls(IEnumerable<string> sqls, EventHandler<LogEventArgs> logEvent)
+        {
+            int rowsAffected = 0;
+            using (IDbConnection conn = NewConnection(true))
+            {
+                foreach (string s in sqls)
+                {
+                    using (IDbCommand cmd = GetSqlCommand(s, logEvent, conn))
+                    {
+                        rowsAffected = cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            return rowsAffected;
+        }
+
+        /// <summary>
+        /// 複数のSQLを実行します。SQLの実行はエラーが出たところで停止します。
+        /// エラーはログメッセージとして出力されます。
+        /// </summary>
+        /// <param name="sqls"></param>
+        public void ExecSqlsWithLog(IEnumerable<string> sqls)
         {
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1190,7 +1221,31 @@ namespace Db2Source
             }
         }
 
-        public void ExecSql(string sql)
+        /// <summary>
+        /// SQLを実行します。
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="logEvent"></param>
+        /// <returns>影響を受けた行数</returns>
+        public int ExecSql(string sql, EventHandler<LogEventArgs> logEvent)
+        {
+            int n = 0;
+            using (IDbConnection conn = NewConnection(true))
+            {
+                using (IDbCommand cmd = GetSqlCommand(sql, logEvent, conn))
+                {
+                    n = cmd.ExecuteNonQuery();
+                }
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// SQLを実行します。
+        /// エラーはログメッセージとして出力されます。
+        /// </summary>
+        /// <param name="sql"></param>
+        public void ExecSqlWithLog(string sql)
         {
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1226,6 +1281,8 @@ namespace Db2Source
             }
             return ret;
         }
+
+        public abstract SchemaObject[] GetStrongReferred(SchemaObject target);
 
         public Db2SourceContext(ConnectionInfo info)
         {

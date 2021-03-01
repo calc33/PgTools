@@ -567,6 +567,47 @@ namespace Db2Source
             Fetch();
         }
 
+        public void DropTarget(bool cascade)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            Db2SourceContext ctx = Target.Context;
+            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            SqlLogger logger = new SqlLogger();
+            bool failed = false;
+            try
+            {
+                ctx.ExecSql(sql, logger.Log);
+            }
+            catch (Exception t)
+            {
+                logger.Buffer.AppendLine(ctx.GetExceptionMessage(t));
+                failed = true;
+            }
+            string s = logger.Buffer.ToString().TrimEnd();
+            if (!string.IsNullOrEmpty(s))
+            {
+                if (failed)
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Result, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            if (failed)
+            {
+                return;
+            }
+            TabItem tab = App.FindLogicalParent<TabItem>(this);
+            if (tab != null)
+            {
+                (tab.Parent as TabControl).Items.Remove(tab);
+                Target.Release();
+                MainWindow.Current.FilterTreeView(true);
+            }
+        }
+
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
             Fetch();
