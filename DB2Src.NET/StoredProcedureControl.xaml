@@ -90,10 +90,6 @@
                         <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
-                    <!--<StackPanel Orientation="Horizontal">
-                        <Button x:Name="buttonApplySchema" Margin="1,2" Padding="2" ToolTip="コメントの変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonApplySchema_Click"/>
-                        <Button x:Name="buttonRevertSchema" Margin="1,2" Padding="2" ToolTip="コメントの変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsTargetModified, ElementName=userControl}" Click="buttonRevertSchema_Click"/>
-                    </StackPanel>-->
                 </StackPanel>
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
             </Grid>
@@ -136,7 +132,7 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
                 <Grid>
-                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" Margin="0,-16,0,16"/>
+                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>

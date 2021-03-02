@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisiblityConverter"/>
         <ContextMenu x:Key="dropTableContextMenu">
             <MenuItem Header="表を削除" Click="menuItemDropTable_Click">
                 <MenuItem.Tag>
@@ -23,12 +24,79 @@
             </MenuItem>
         </ContextMenu>
         <sys:String x:Key="messageDropTable">表を削除します。削除した表は元に戻せません。よろしいですか?</sys:String>
+        <Style x:Key="OptionMarkFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="CheckBoxShowHiddenStyle" TargetType="{x:Type CheckBox}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource OptionMark.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource OptionMark.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type CheckBox}">
+                        <Grid x:Name="templateRoot" Background="Transparent" SnapsToDevicePixels="True">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="checkBoxBorder" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                                <Grid x:Name="markGrid">
+                                    <Path x:Name="optionMark" Data="F1 M 9.97498,1.22334L 4.6983,9.09834L 4.52164,9.09834L 0,5.19331L 1.27664,3.52165L 4.255,6.08833L 8.33331,1.52588e-005L 9.97498,1.22334 Z " Fill="{StaticResource OptionMark.Static.Glyph}" Margin="1" Opacity="0" Stretch="None"/>
+                                    <Rectangle x:Name="indeterminateMark" Fill="{StaticResource OptionMark.Static.Glyph}" Margin="2" Opacity="0"/>
+                                </Grid>
+                            </Border>
+                            <ContentPresenter x:Name="contentPresenter" Grid.Column="1" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasContent" Value="true">
+                                <Setter Property="FocusVisualStyle" Value="{StaticResource OptionMarkFocusVisual}"/>
+                                <Setter Property="Padding" Value="4,-1,0,0"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.MouseOver.Border}"/>
+                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.MouseOver.Glyph}"/>
+                                <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.MouseOver.Glyph}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Disabled.Border}"/>
+                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.Disabled.Glyph}"/>
+                                <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.Disabled.Glyph}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Pressed.Border}"/>
+                                <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.Pressed.Glyph}"/>
+                                <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.Pressed.Glyph}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Opacity" TargetName="optionMark" Value="1"/>
+                                <Setter Property="Opacity" TargetName="indeterminateMark" Value="0"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="{x:Null}">
+                                <Setter Property="Opacity" TargetName="optionMark" Value="0"/>
+                                <Setter Property="Opacity" TargetName="indeterminateMark" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="62*"/>
+            <RowDefinition Height="1*"/>
         </Grid.RowDefinitions>
         <StackPanel>
             <ToolBarTray Orientation="Horizontal">
@@ -38,101 +106,116 @@
                     <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>
                     <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertSchema_Click" Focusable="False"/>
                     <Separator/>
-                    <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
-                    <Separator/>
                     <Button x:Name="buttonOptions" Margin="1,2" ToolTip="その他" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
                 </ToolBar>
             </ToolBarTray>
-            <StackPanel Orientation="Horizontal" Margin="0,2">
+            <Grid Margin="0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <TextBlock Text="所有者：" VerticalAlignment="Center"/>
-                <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center"/>
-                <TextBlock Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center"/>
-                <CheckBox Margin="8,0,0,0" x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click"/>
-            </StackPanel>
+                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisiblityConverter}}"/>
+                <TextBox Grid.Column="1" Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+                <TextBlock Grid.Column="2" Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="3" IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisiblityConverter}}"/>
+                <TextBox Grid.Column="3" Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+            </Grid>
         </StackPanel>
-        <Grid Grid.Row="1">
-            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
+        <Grid Grid.Row="1" MinHeight="34" MaxHeight="150">
+            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
             <local:SearchTextBoxControl x:Name="searchTextBoxTableComment" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTableComment}" FontFamily="Yu Gothic UI"/>
         </Grid>
-        <DataGrid x:Name="dataGridColumns" Margin="0,0,0,4" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" Grid.Row="2" SelectionUnit="Cell" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="TextAlignment" Value="Right"/>
-                            <Setter Property="Margin" Value="2,1"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="必須" Binding="{Binding NotNull, Converter={StaticResource NotNullTextConverter}}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="TextAlignment" Value="Center"/>
-                            <Setter Property="Margin" Value="2,1"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="項目名" Binding="{Binding Name}" IsReadOnly="True">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Margin" Value="2,1"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="型" Binding="{Binding DataType}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Margin" Value="2,1"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="初期値" Binding="{Binding DefaultValue}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="Margin" Value="2,1"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="外部キー" Binding="{Binding ForeignKeys}">
-                    <DataGridTextColumn.CellStyle>
-                        <Style  TargetType="{x:Type DataGridCell}">
-                            <Setter Property="ContentTemplate">
-                                <Setter.Value>
-                                    <DataTemplate>
-                                        <ItemsControl ItemsSource="{Binding ForeignKeys}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Grid ToolTip="{Binding Description}" Margin="2,1">
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="Auto"/>
-                                                            <ColumnDefinition Width="1*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Canvas VerticalAlignment="Center" Width="16" Height="16">
-                                                            <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type DataGridCell}}}" Data="M2,5 l5,0 l0,-3 l5,5 l-5,5 l0,-3 l-5,0 z"/>
-                                                        </Canvas>
-                                                        <TextBlock Grid.Column="1" Text="{Binding ReferenceTableName, Mode=OneWay}"/>
-                                                    </Grid>
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </DataTemplate>
-                                </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </DataGridTextColumn.CellStyle>
-                </DataGridTextColumn>
-                <DataGridTextColumn Header="コメント" Binding="{Binding CommentText}">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="{x:Type TextBlock}">
-                            <Setter Property="TextWrapping" Value="Wrap"/>
-                            <Setter Property="Margin" Value="2,1"/>
-                            <Setter Property="MaxHeight" Value="{Binding DataGridColumnsMaxHeight, ElementName=userControl}"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <DockPanel Margin="0,0,0,4" Grid.Row="2">
+            <ToolBarTray DockPanel.Dock="Top">
+                <ToolBar>
+                    <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
+                    <Separator/>
+                    <CheckBox Grid.Column="4" Margin="2,0" x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click" Style="{DynamicResource CheckBoxShowHiddenStyle}"/>
+                </ToolBar>
+            </ToolBarTray>
+            <DataGrid x:Name="dataGridColumns" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" SelectionUnit="Cell" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="TextAlignment" Value="Right"/>
+                                <Setter Property="Margin" Value="2,1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="必須" Binding="{Binding NotNull, Converter={StaticResource NotNullTextConverter}}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="TextAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="2,1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="項目名" Binding="{Binding Name}" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Margin" Value="2,1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="型" Binding="{Binding DataType}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Margin" Value="2,1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="初期値" Binding="{Binding DefaultValue}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Margin" Value="2,1"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="外部キー" Binding="{Binding ForeignKeys}">
+                        <DataGridTextColumn.CellStyle>
+                            <Style  TargetType="{x:Type DataGridCell}">
+                                <Setter Property="ContentTemplate">
+                                    <Setter.Value>
+                                        <DataTemplate>
+                                            <ItemsControl ItemsSource="{Binding ForeignKeys}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid ToolTip="{Binding Description}" Margin="2,1">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="1*"/>
+                                                            </Grid.ColumnDefinitions>
+                                                            <Canvas VerticalAlignment="Center" Width="16" Height="16">
+                                                                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type DataGridCell}}}" Data="M2,5 l5,0 l0,-3 l5,5 l-5,5 l0,-3 l-5,0 z"/>
+                                                            </Canvas>
+                                                            <TextBlock Grid.Column="1" Text="{Binding ReferenceTableName, Mode=OneWay}"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </DataTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </DataGridTextColumn.CellStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="コメント" Binding="{Binding CommentText}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="TextWrapping" Value="Wrap"/>
+                                <Setter Property="Margin" Value="2,1"/>
+                                <Setter Property="MaxHeight" Value="{Binding DataGridColumnsMaxHeight, ElementName=userControl}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
         <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>
     </Grid>
 </UserControl>

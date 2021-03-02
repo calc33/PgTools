@@ -116,7 +116,8 @@
         <DataTemplate x:Key="ImageEdit14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,11 l0,1.5 l1.5,0"/>
-                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M2.5,9.5 l5.5,-5.5 l2,2 l-5.5,5.5 l-2,-2 z M9.5,2.5 l1,-1 l2,2 l-1,1 l-2,-2 z"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1"
+                      Data="M2.5,9.5 l5.5,-5.5 l2,2 l-5.5,5.5 l-2,-2 z M9.5,2.5 l1,-1 l2,2 l-1,1 l-2,-2 z"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageSearch20">

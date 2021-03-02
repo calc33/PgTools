@@ -1181,16 +1181,16 @@ namespace Db2Source
         public bool Remove(Row item)
         {
             bool f1 = _list.Remove(item);
+            if (f1)
+            {
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
+            }
             bool f2 = _temporaryRows.Remove(item);
             if (!f1 && !f2)
             {
                 return false;
             }
             InvalidateKeyToRow();
-            if (f1)
-            {
-                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
-            }
             return f1;
         }
 
