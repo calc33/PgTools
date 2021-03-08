@@ -37,6 +37,23 @@ namespace Db2Source
             dataGridParameters.ItemsSource = _parameters;
             dataGridParameters.Visibility = _parameters.Count != 0 ? Visibility.Visible : Visibility.Collapsed;
             splitterParameters.Visibility = dataGridParameters.Visibility;
+            ColumnDefinition c1 = gridSql.ColumnDefinitions[1];
+            if (dataGridParameters.Visibility == Visibility.Visible)
+            {
+                if (c1.Tag is GridLength)
+                {
+                    c1.Width = (GridLength)c1.Tag;
+                    c1.Tag = null;
+                }
+            }
+            else
+            {
+                if (c1.Width.IsAbsolute)
+                {
+                    c1.Tag = c1.Width;
+                    c1.Width = new GridLength(0, GridUnitType.Auto);
+                }
+            }
         }
 
         public ParameterStoreCollection Parameters

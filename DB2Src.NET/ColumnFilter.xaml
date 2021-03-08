@@ -7,7 +7,7 @@
         xmlns:Data="clr-namespace:System.Data;assembly=System.Data" x:Class="Db2Source.ColumnFilterWindow"
         mc:Ignorable="d" Height="300" Width="190" ShowInTaskbar="False" WindowStyle="ToolWindow" SizeToContent="Height">
     <Window.Resources>
-        <local:VisiblityToBooleanConverter x:Key="VisiblityToBooleanConverter"/>
+        <local:VisibilityToBooleanConverter x:Key="VisibilityToBooleanConverter"/>
         <SolidColorBrush x:Key="Item.MouseOver.Background" Color="#1F26A0DA"/>
         <SolidColorBrush x:Key="Item.MouseOver.Border" Color="#a826A0Da"/>
         <SolidColorBrush x:Key="Item.SelectedInactive.Background" Color="#3DDADADA"/>

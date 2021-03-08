@@ -270,7 +270,7 @@ namespace Db2Source
         public string[] Columns { get; set; }
         internal ColumnsConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred)
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred) { }
-        internal ColumnsConstraint(Table owner, ColumnsConstraint basedOn):base(owner, basedOn)
+        internal ColumnsConstraint(Table owner, ColumnsConstraint basedOn) : base(owner, basedOn)
         {
             Columns = (string[])basedOn.Columns.Clone();
         }

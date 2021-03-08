@@ -1,0 +1,4 @@
+select p.oid, p.proname, p.proargtypes, p.proallargtypes,
+from pg_catalog.pg_proc p
+  join pg_catalog.pg_namespace ns on (p.pronamespace = ns.oid and ns.nspname = :schema)
+where p.proname = :name

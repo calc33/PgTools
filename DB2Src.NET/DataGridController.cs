@@ -2874,7 +2874,7 @@ namespace Db2Source
         }
     }
 
-    public class HasErrorToVisiblityConverter : IValueConverter
+    public class HasErrorToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

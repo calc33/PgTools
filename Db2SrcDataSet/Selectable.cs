@@ -1,34 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 
 namespace Db2Source
 {
-    public class ColumnPropertyChangedEventArgs : PropertyChangedEventArgs
+    public partial class Column : NamedObject, ICommentable, IComparable, IDbTypeDef, INotifyPropertyChanged
     {
-        public Column Column { get; private set; }
-        internal ColumnPropertyChangedEventArgs(object sender, PropertyChangedEventArgs e) : base(e.Property, e.NewValue, e.OldValue)
-        {
-            Column = sender as Column;
-        }
-    }
-
-    public partial class Column : NamedObject, ICommentable, IComparable, IDbTypeDef
-    {
-        //[Flags]
-        //public enum ColumnGeneration
-        //{
-        //    New = 1,
-        //    Old = 2
-        //};
-
         public string GetSqlType()
         {
             return "COLUMN";
         }
-        //public ColumnGeneration Generation { get; private set; }
         internal Column _backup = null;
         public Db2SourceContext Context { get; private set; }
         public Schema Schema { get; private set; }
@@ -46,7 +30,21 @@ namespace Db2Source
         {
             return Table?.Identifier + "." + Name;
         }
-        public int Index { get; set; }
+        private int _index;
+        public int Index { get
+            {
+                return _index;
+            }
+            set
+            {
+                if (_index == value)
+                {
+                    return;
+                }
+                _index = value;
+                OnPropertyChanged("Index");
+            }
+        }
         public string TableName
         {
             get { return _tableName; }
@@ -59,6 +57,7 @@ namespace Db2Source
                 _tableName = value;
                 _owner = null;
                 InvalidateIdentifier();
+                OnPropertyChanged("TableName");
             }
         }
 
@@ -137,22 +136,25 @@ namespace Db2Source
         }
         public override bool IsModified()
         {
-            return (_backup != null) && _backup.IsModified();
+            return (_backup != null) && !ContentEquals(_backup);
         }
 
-        protected void OnPropertyChanged(PropertyChangedEventArgs e)
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected void OnPropertyChanged(string propertyName)
         {
-            Table.OnColumnPropertyChanged(new ColumnPropertyChangedEventArgs(this, e));
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
 
         void ICommentable.OnCommentChanged(CommentChangedEventArgs e)
         {
-            Table.OnCommentChanged(e);
+            OnPropertyChanged("CommentText");
         }
 
         protected void OnCommentChanged(CommentChangedEventArgs e)
         {
-            Table.OnCommentChanged(e);
+            OnPropertyChanged("CommentText");
         }
 
         public override int CompareTo(object obj)
@@ -201,48 +203,6 @@ namespace Db2Source
         {
             return Identifier;
         }
-        //public Column BecomeModifiedColumn()
-        //{
-        //    if (Context.IsChangeLogDisabled())
-        //    {
-        //        return null;
-        //    }
-        //    if ((Generation & ColumnGeneration.New) == 0)
-        //    {
-        //        return this;
-        //    }
-        //    if (_backup != null)
-        //    {
-        //        return _backup;
-        //    }
-        //    Generation = ColumnGeneration.New;
-        //    Column ret = (Column)MemberwiseClone();
-        //    ret.Generation = ColumnGeneration.Old;
-        //    _backup = ret;
-        //    Schema sc = ret.Schema;
-        //    if (sc == null)
-        //    {
-        //        return ret;
-        //    }
-        //    sc.Columns.Add(ret);
-        //    sc.InvalidateColumns();
-        //    return ret;
-        //}
-
-        //public void CommitChanges()
-        //{
-        //    if (Generation == (ColumnGeneration.New | ColumnGeneration.Old))
-        //    {
-        //        return;
-        //    }
-        //    if (_backup == null)
-        //    {
-        //        return;
-        //    }
-        //    Schema.Columns.Remove(_backup);
-        //    Schema.InvalidateColumns();
-        //    _backup = null;
-        //}
 
         public Selectable Table
         {
@@ -272,12 +232,80 @@ namespace Db2Source
                 _name = value;
                 InvalidateIdentifier();
                 _owner?.Columns?.ColumnNameChanged(this);
+                OnPropertyChanged("Name");
             }
         }
-        public string BaseType { get; set; }
-        public int? DataLength { get; set; }
-        public int? Precision { get; set; }
-        public bool? WithTimeZone { get; set; }
+        private string _baseType;
+
+        public string BaseType
+        {
+            get
+            {
+                return _baseType;
+            }
+            set
+            {
+                if (_baseType == value)
+                {
+                    return;
+                }
+                _baseType = value;
+                OnPropertyChanged("BaseType");
+            }
+        }
+        private int? _dataLength;
+        public int? DataLength
+        {
+            get
+            {
+                return _dataLength;
+            }
+            set
+            {
+                if (_dataLength == value)
+                {
+                    return;
+                }
+                _dataLength = value;
+                OnPropertyChanged("DataLength");
+            }
+        }
+        private int? _precision;
+        public int? Precision
+        {
+            get
+            {
+                return _precision;
+            }
+            set
+            {
+                if (_precision == value)
+                {
+                    return;
+                }
+                _precision = value;
+                OnPropertyChanged("Precision");
+            }
+        }
+        private bool? _withTimeZone;
+        public bool? WithTimeZone
+        {
+            get
+            {
+                return _withTimeZone;
+            }
+            set
+            {
+                if (_withTimeZone == value)
+                {
+                    return;
+                }
+                _withTimeZone = value;
+                OnPropertyChanged("WithTimeZone");
+            }
+        }
+
+        public bool _isSupportedType;
         public bool IsSupportedType { get; set; }
         public string StringFormat
         {
@@ -317,10 +345,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                //BecomeModifiedColumn();
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("DataType", value, _dataType);
                 _dataType = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("DataType");
             }
         }
 
@@ -340,9 +366,8 @@ namespace Db2Source
                     return;
                 }
                 //BecomeModifiedColumn();
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("DefaultValue", value, _defaultValue);
                 _defaultValue = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("DefaultValue");
             }
         }
         public object EvalDefaultValue()
@@ -369,13 +394,12 @@ namespace Db2Source
                 {
                     return;
                 }
-                //BecomeModifiedColumn();
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("DefaultValue", value, _notNull);
                 _notNull = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("NotNull");
             }
         }
         private Comment _comment;
+
         public Comment Comment
         {
             get
@@ -388,9 +412,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                CommentChangedEventArgs e = new CommentChangedEventArgs(value);
                 _comment = value;
-                OnCommentChanged(e);
+                OnCommentChanged(new CommentChangedEventArgs(_comment));
             }
         }
 
@@ -423,7 +446,6 @@ namespace Db2Source
 
         internal Column(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Columns)
         {
-            //Generation = (ColumnGeneration.New | ColumnGeneration.Old);
             Context = context;
             Schema = context.RequireSchema(schema);
         }
@@ -935,11 +957,6 @@ namespace Db2Source
 
     public abstract class Selectable : SchemaObject
     {
-        public event EventHandler<ColumnPropertyChangedEventArgs> ColumnPropertyChanged;
-        protected internal void OnColumnPropertyChanged(ColumnPropertyChangedEventArgs e)
-        {
-            ColumnPropertyChanged?.Invoke(this, e);
-        }
         public ColumnCollection Columns { get; private set; }
         internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, Schema.CollectionIndex.Objects)
         {

@@ -8,35 +8,21 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="SettingsWindow" Height="300" Width="300">
-    <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="1*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="1*"/>
-        </Grid.RowDefinitions>
-        <TextBlock Text="システム項目の表示：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <ComboBox x:Name="comboBoxSystemColumn" Grid.Column="1" SelectedIndex="0" VerticalAlignment="Center" Margin="0,1">
-            <ComboBox.Items>
-                <ComboBoxItem Content="表示しない">
-                    <ComboBoxItem.Tag>
-                        <local2:HiddenLevel>Visible</local2:HiddenLevel>
-                    </ComboBoxItem.Tag>
-                </ComboBoxItem>
-                <ComboBoxItem Content="OIDのみ">
-                    <ComboBoxItem.Tag>
-                        <local2:HiddenLevel>Hidden</local2:HiddenLevel>
-                    </ComboBoxItem.Tag>
-                </ComboBoxItem>
-                <ComboBoxItem Content="すべて表示">
-                    <ComboBoxItem.Tag>
-                        <local2:HiddenLevel>SystemInternal</local2:HiddenLevel>
-                    </ComboBoxItem.Tag>
-                </ComboBoxItem>
-            </ComboBox.Items>
-        </ComboBox>
-    </Grid>
+    <DockPanel>
+        <TreeView DockPanel.Dock="Left">
+            <TreeViewItem Header="表示" IsExpanded="True">
+                <TreeViewItem Header="フォント"/>
+            </TreeViewItem>
+        </TreeView>
+        <TabControl>
+            <TabItem>
+                <DataGrid>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header=""/>
+                        <DataGridTextColumn Header="フォント"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
 </Window>

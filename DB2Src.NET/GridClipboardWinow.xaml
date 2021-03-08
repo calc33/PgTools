@@ -58,7 +58,7 @@
                 <CheckBox x:Name="checkBoxIgnoreEmpty" Content="空のセルは置換しない" Margin="4,2" IsChecked="{Binding Clipboard.IgnoreEmptyCell, ElementName=window}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <TextBlock Text="貼り付け先の項目に適合しないデータがあります" Foreground="Red" Margin="4,2" Visibility="{Binding Clipboard.IsValid, ElementName=window, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+                <TextBlock Text="貼り付け先の項目に適合しないデータがあります" Foreground="Red" Margin="4,2" Visibility="{Binding Clipboard.IsValid, ElementName=window, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
             </StackPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">

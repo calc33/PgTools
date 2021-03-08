@@ -18,7 +18,7 @@
         <DockPanel Margin="0,0,0,4">
             <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" DockPanel.Dock="Right" Margin="2,0" TabIndex="1" VerticalAlignment="Top" MinWidth="40" MinHeight="50"/>
             <ListBox x:Name="listBoxErrors" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
-            <Grid>
+            <Grid x:Name="gridSql">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
                     <ColumnDefinition Width="auto"/>

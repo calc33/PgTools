@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Reflection;
 using System.Text;
 
@@ -42,20 +43,7 @@ namespace Db2Source
         }
     }
 
-    public class PropertyChangedEventArgs : EventArgs
-    {
-        public string Property { get; private set; }
-        public object OldValue { get; private set; }
-        public object NewValue { get; set; }
-        internal PropertyChangedEventArgs(string property, object newValue, object oldValue)
-        {
-            Property = property;
-            NewValue = newValue;
-            OldValue = oldValue;
-        }
-    }
-    
-    public abstract partial class SchemaObject : NamedObject, ICommentable, IComparable
+    public abstract partial class SchemaObject : NamedObject, ICommentable, IComparable, INotifyPropertyChanged
     {
         private Schema _schema;
         private string _name;
@@ -136,17 +124,14 @@ namespace Db2Source
             Name = backup.Name;
             Triggers = new TriggerCollection(this, backup.Triggers);
         }
-        //public override void Restore() { }
-        //{
-        //    Owner = _old.Owner;
-        //    _schema = _old.Schema;
-        //    Name = _old.Name;
-        //    Triggers = new TriggerCollection(this);
-        //    foreach (Trigger t in _old.Triggers)
-        //    {
-        //        Triggers.Add(new Trigger(t));
-        //    }
 
+        //public override void Restore()
+        //{
+        //    if (_backup == null)
+        //    {
+        //        return;
+        //    }
+        //    RestoreFrom(_backup);
         //}
 
         public override bool ContentEquals(NamedObject obj)
@@ -174,15 +159,7 @@ namespace Db2Source
 
         //public override bool IsModified()
         //{
-        //    if (!ContentEquals(_old))
-        //    {
-        //        return true;
-        //    }
-        //    if (_comment != null)
-        //    {
-        //        return _comment.IsModified();
-        //    }
-        //    return false;
+        //    return (_backup != null) && !ContentEquals(_backup);
         //}
 
         private Comment _comment;
@@ -224,29 +201,28 @@ namespace Db2Source
         public string SqlDef { get; set; } = null;
         public TriggerCollection Triggers { get; private set; }
 
-        public event EventHandler<PropertyChangedEventArgs> PropertyChanged;
-        protected internal void OnPropertyChanged(PropertyChangedEventArgs e)
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected internal void OnPropertyChanged(string propertyName)
         {
-            PropertyChanged?.Invoke(this, e);
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-        public event EventHandler<CommentChangedEventArgs> CommentChanged;
         void ICommentable.OnCommentChanged(CommentChangedEventArgs e)
         {
-            CommentChanged?.Invoke(this, e);
+            OnPropertyChanged("CommentText");
         }
 
         protected internal void OnCommentChanged(CommentChangedEventArgs e)
         {
-            CommentChanged?.Invoke(this, e);
+            OnPropertyChanged("CommentText");
         }
 
         public event EventHandler<CollectionOperationEventArgs<string>> UpdateColumnChanged;
+
         protected internal void OnUpdateColumnChanged(CollectionOperationEventArgs<string> e)
         {
             UpdateColumnChanged?.Invoke(this, e);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         internal SchemaObject(Db2SourceContext context, string owner, string schema, string objectName, Schema.CollectionIndex index) : base(context.RequireSchema(schema).GetCollection(index))
         {
             Context = context;
@@ -267,6 +243,7 @@ namespace Db2Source
                 Triggers.Add(new Trigger(t));
             }
         }
+
         protected override void Dispose(bool disposing)
         {
             if (!disposedValue)

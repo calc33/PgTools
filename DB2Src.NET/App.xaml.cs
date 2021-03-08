@@ -536,7 +536,7 @@ namespace Db2Source
             return !(bool)value;
         }
     }
-    public class InvertBooleanToVisiblityConverter : IValueConverter
+    public class InvertBooleanToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -560,7 +560,7 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-    public class ItemsSourceToColumnFilterButtonVisiblityConverter: IValueConverter
+    public class ItemsSourceToColumnFilterButtonVisibilityConverter: IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

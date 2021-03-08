@@ -812,7 +812,8 @@ namespace Db2Source
             PgDumpOptionWindow win = new PgDumpOptionWindow();
             win.Owner = this;
             win.DataSet = CurrentDataSet;
-            win.ShowDialog();
+            win.Show();
+            //win.ShowDialog();
         }
 
         private void menuItemQueryHistory_Click(object sender, RoutedEventArgs e)

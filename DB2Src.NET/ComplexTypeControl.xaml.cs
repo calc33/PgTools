@@ -26,7 +26,7 @@ namespace Db2Source
     public partial class ComplexTypeControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ComplexType), typeof(ComplexTypeControl));
-        public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(ComplexTypeControl));
+        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(ComplexTypeControl));
 
         public ComplexType Target
         {
@@ -68,15 +68,16 @@ namespace Db2Source
                 }
             }
         }
-        public bool IsTargetModified
+
+            public bool IsEditing
         {
             get
             {
-                return (bool)GetValue(IsTargetModifiedProperty);
+                return (bool)GetValue(IsEditingProperty);
             }
             set
             {
-                SetValue(IsTargetModifiedProperty, value);
+                SetValue(IsEditingProperty, value);
             }
         }
 
@@ -85,10 +86,6 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void UpdateIsTargetModified()
-        {
-            IsTargetModified = Target.IsModified();
-        }
         private void UpdateDataGridColumns()
         {
             dataGridColumns.ItemsSource = Target.Columns.AllColumns;
@@ -96,12 +93,8 @@ namespace Db2Source
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             //dataGridColumns.ItemsSource = Target.Columns;
-            Target.PropertyChanged += Target_PropertyChanged;
-            Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
-            Target.CommentChanged += Target_CommentChanged;
             UpdateDataGridColumns();
             UpdateTextBoxSource();
-            UpdateIsTargetModified();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -174,19 +167,6 @@ namespace Db2Source
             UpdateTextBoxSource();
         }
 
-        private void Target_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_ColumnPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_CommentChanged(object sender, CommentChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
         {
             Db2SourceContext ctx = Target.Context;
@@ -219,12 +199,14 @@ namespace Db2Source
             {
                 ctx.Revert(Target);
             }
+            IsEditing = false;
         }
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
         {
             Db2SourceContext ctx = Target.Context;
             ctx.Revert(Target);
+            IsEditing = false;
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)
@@ -241,5 +223,15 @@ namespace Db2Source
         }
 
         public void OnTabClosed(object sender) { }
+
+        private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)
+        {
+            SearchDataGridWindow win = new SearchDataGridWindow();
+            FrameworkElement elem = sender as FrameworkElement ?? dataGridColumns;
+            WindowLocator.LocateNearby(elem, win, NearbyLocation.UpLeft);
+            win.Owner = Window.GetWindow(this);
+            win.Target = dataGridColumns;
+            win.Show();
+        }
     }
 }

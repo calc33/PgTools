@@ -19,7 +19,7 @@ namespace Db2Source.DataSet.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -47,7 +47,7 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
+        ///   厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
         ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -173,7 +173,7 @@ namespace Db2Source.DataSet.Properties {
         ///from pg_catalog.pg_class r
         ///  inner join pg_catalog.pg_namespace ns
         ///    on (r.relnamespace = ns.oid and not pg_is_other_temp_schema(r.relnamespace) and ns.nspname = :schema)
-        ///where r.relname = :name
+        ///where r.relname = :name and r.relkind = :kind
         ///  and (not r.relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;)
         ///    or pg_has_role(r.relowner, &apos;USAGE&apos;::text)
         ///    or has_table_privilege(r.oid, &apos;SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER&apos;)
@@ -271,6 +271,20 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgProc_SQL {
             get {
                 return ResourceManager.GetString("PgProc_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select p.oid, p.proname,
+        ///  p.pronargs, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proargnames, p.protrftypes, prosrc, probin, proconfig
+        ///from pg_catalog.pg_proc p
+        ///  join pg_catalog.pg_namespace ns on (p.pronamespace = ns.oid and ns.nspname = :schema)
+        ///where p.proname = :name に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgProcOid_SQL {
+            get {
+                return ResourceManager.GetString("PgProcOid_SQL", resourceCulture);
             }
         }
         

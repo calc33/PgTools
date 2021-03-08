@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -24,7 +25,7 @@ namespace Db2Source
     public partial class ViewControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(View), typeof(ViewControl));
-        public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(ViewControl));
+        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(ViewControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(ViewControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(ViewControl));
 
@@ -68,15 +69,15 @@ namespace Db2Source
                 }
             }
         }
-        public bool IsTargetModified
+        public bool IsEditing
         {
             get
             {
-                return (bool)GetValue(IsTargetModifiedProperty);
+                return (bool)GetValue(IsEditingProperty);
             }
             set
             {
-                SetValue(IsTargetModifiedProperty, value);
+                SetValue(IsEditingProperty, value);
             }
         }
         public DataGridController DataGridControllerResult
@@ -106,21 +107,11 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void UpdateIsTargetModified()
-        {
-            IsTargetModified = Target.IsModified();
-        }
         private void TargetChanged(DependencyPropertyChangedEventArgs e)
         {
-            //dataGridColumns.ItemsSource = Target.Columns;
-            Target.PropertyChanged += Target_PropertyChanged;
-            Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
-            Target.CommentChanged += Target_CommentChanged;
-            //dataGridColumns.ItemsSource = new List<Column>(Target.Columns);
             dataGridColumns.ItemsSource = Target.Columns;
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
-            UpdateIsTargetModified();
             Dispatcher.Invoke(Fetch, DispatcherPriority.Normal);
         }
 
@@ -311,18 +302,6 @@ namespace Db2Source
         {
             e.Handled = NumericStrRegex.IsMatch(e.Text);
         }
-        private void Target_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_ColumnPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_CommentChanged(object sender, CommentChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
 
         private void UserControl_Initialized(object sender, EventArgs e)
         {
@@ -357,6 +336,7 @@ namespace Db2Source
             {
                 ctx.Revert(Target);
             }
+            IsEditing = false;
         }
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
@@ -367,5 +347,75 @@ namespace Db2Source
         public void OnTabClosing(object sender, ref bool cancel) { }
 
         public void OnTabClosed(object sender) { }
+
+        private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
+        {
+            Db2SourceContext ctx = Target.Context;
+            ctx.Revert(Target);
+            IsEditing = false;
+        }
+
+        private void buttonOptions_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu menu;
+            menu = (ContextMenu)Resources["dropViewContextMenu"];
+            menu.PlacementTarget = buttonOptions;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+
+        }
+
+        private void DropTarget(bool cascade)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            Db2SourceContext ctx = Target.Context;
+            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            SqlLogger logger = new SqlLogger();
+            bool failed = false;
+            try
+            {
+                ctx.ExecSql(sql, logger.Log);
+            }
+            catch (Exception t)
+            {
+                logger.Buffer.AppendLine(ctx.GetExceptionMessage(t));
+                failed = true;
+            }
+            string s = logger.Buffer.ToString().TrimEnd();
+            if (!string.IsNullOrEmpty(s))
+            {
+                if (failed)
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Result, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            if (failed)
+            {
+                return;
+            }
+            TabItem tab = App.FindLogicalParent<TabItem>(this);
+            if (tab != null)
+            {
+                (tab.Parent as TabControl).Items.Remove(tab);
+                Target.Release();
+                MainWindow.Current.FilterTreeView(true);
+            }
+        }
+
+        private void menuItemDropView_Click(object sender, RoutedEventArgs e)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropView"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (ret != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            MenuItem menu = sender as MenuItem;
+            DropTarget((bool)menu.Tag);
+        }
     }
 }

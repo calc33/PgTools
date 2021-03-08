@@ -347,31 +347,4 @@ namespace Db2Source
             Target = info0;
         }
     }
-    public class InvertBooleanToVisibilityConverter: IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if ((bool)value)
-            {
-                return Visibility.Hidden;
-            }
-            else
-            {
-                return Visibility.Visible;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            switch ((Visibility)value)
-            {
-                case Visibility.Visible:
-                    return false;
-                case Visibility.Hidden:
-                case Visibility.Collapsed:
-                    return true;
-            }
-            return false;
-        }
-    }
 }

@@ -16,7 +16,7 @@
         <local:ForeignKeyRuleConverter x:Key="ForeignKeyRuleConverter"/>
         <local:RefButtonVisibilityConverter x:Key="RefButtonVisibilityConverter"/>
         <local:DataGridCellToCellInfoConverter x:Key="DataGridCellToCellInfoConverter"/>
-        <local:JoinKindToVisiblityConverter x:Key="JoinKindToVisiblityConverter"/>
+        <local:JoinKindToVisibilityConverter x:Key="JoinKindToVisibilityConverter"/>
         <local:JoinTableCandidatesCountToEnabledConverter x:Key="JoinTableCandidatesCountToEnabledConverter"/>
         <SolidColorBrush x:Key="ModifiedBackgroundBrush" Color="#FFFFFFC0"/>
         <SolidColorBrush x:Key="NotNullErrorBackgroundBrush" Color="#FFFFC0C0"/>
@@ -125,7 +125,7 @@
                         <TextBlock Grid.Column="1" Grid.RowSpan="2" Text=" as " VerticalAlignment="Center"/>
                         <TextBox Grid.Column="2" Grid.RowSpan="2" Text="{Binding Content.Alias, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=TwoWay}" VerticalAlignment="Center" MinWidth="16" Margin="0,2,2,2" LostFocus="TextBoxAlias_LostFocus" KeyDown="TextBoxAlias_KeyDown"/>
                         <Button Grid.Column="3" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageJoinTableClose}" Click="buttonCloseJoin_Click"
-                                Visibility="{Binding Content.Kind, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource JoinKindToVisiblityConverter}}" Focusable="False"/>
+                                Visibility="{Binding Content.Kind, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource JoinKindToVisibilityConverter}}" Focusable="False"/>
                         <Button Grid.Column="3" Grid.Row="1" ContentTemplate="{StaticResource ImageJoinTableAdd}" Click="buttonAddJoin_Click"
                                 DataContext="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}"
                                 VerticalAlignment="Bottom" Background="Transparent" BorderThickness="0" Width="10" Height="10" Margin="2" Focusable="False" IsEnabled="{Binding SelectableForeignKeys, Converter={StaticResource JoinTableCandidatesCountToEnabledConverter}}"/>

@@ -1,4 +1,6 @@
-﻿namespace Db2Source
+﻿using System.ComponentModel;
+
+namespace Db2Source
 {
     public class ComplexType: Selectable
     {

@@ -39,25 +39,25 @@
                 {
                     return;
                 }
-                PropertyChangedEventArgs e1 = null;
-                PropertyChangedEventArgs e2 = null;
+                string p1 = null;
+                string p2 = null;
                 if (_tableSchema != _table.SchemaName)
                 {
-                    e1 = new PropertyChangedEventArgs("TableSchema", _table.SchemaName, _tableSchema);
                     _tableSchema = _table.SchemaName;
+                    p1 = "TableSchema";
                 }
                 if (_tableName != _table.Name)
                 {
-                    e2 = new PropertyChangedEventArgs("TableName", _table.Name, _tableName);
-                    _tableSchema = _table.SchemaName;
+                    _tableName = _table.Name;
+                    p2 = "TableName";
                 }
-                if (e1 != null)
+                if (p1 != null)
                 {
-                    OnPropertyChanged(e1);
+                    OnPropertyChanged(p1);
                 }
-                if (e2 != null)
+                if (p2 != null)
                 {
-                    OnPropertyChanged(e2);
+                    OnPropertyChanged(p2);
                 }
             }
         }
@@ -73,10 +73,9 @@
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("TableSchema", value, _tableSchema);
                 _tableSchema = value;
                 InvalidateTable();
-                OnPropertyChanged(e);
+                OnPropertyChanged("TableSchema");
             }
         }
         public string TableName
@@ -91,10 +90,9 @@
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("TableName", value, _tableName);
                 _tableName = value;
                 InvalidateTable();
-                OnPropertyChanged(e);
+                OnPropertyChanged("TableName");
             }
         }
         public string IndexType { get; set; }

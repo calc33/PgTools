@@ -27,9 +27,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                string old = _dbaUserName;
                 _dbaUserName = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("DbaUserName", _dbaUserName, old));
+                OnPropertyChanged("DbaUserName");
             }
         }
 
@@ -45,9 +44,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                string old = _encoding;
                 _encoding = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("Encoding", _encoding, old));
+                OnPropertyChanged("Encoding");
             }
         }
 
@@ -63,9 +61,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                string old = _defaultTablespace;
                 _defaultTablespace = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("DefaultTablespace", _defaultTablespace, old));
+                OnPropertyChanged("DefaultTablespace");
             }
         }
 
@@ -81,9 +78,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                ConnectionInfo old = _connectionInfo;
                 _connectionInfo = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("ConnectionInfo", _connectionInfo, old));
+                OnPropertyChanged("ConnectionInfo");
             }
         }
 
@@ -99,9 +95,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                string old = _version;
                 _version = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("Version", _version, old));
+                OnPropertyChanged("Version");
             }
         }
 
@@ -117,9 +112,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                bool old = _isCurrent;
                 _isCurrent = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("IsCurrent", _isCurrent, old));
+                OnPropertyChanged("IsCurrent");
             }
         }
 

@@ -322,9 +322,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Timing", value, _timing);
                 _timing = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Timing");
             }
         }
         public string TimingText
@@ -339,9 +338,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("TimingText", value, _timingText);
                 _timingText = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("TimingText");
             }
         }
         public TriggerEvent Event
@@ -356,9 +354,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Event", value, _event);
                 _event = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Event");
             }
         }
         public string EventText
@@ -373,9 +370,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("EventText", value, _eventText);
                 _eventText = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("EventText");
             }
         }
 
@@ -497,25 +493,25 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e1 = null;
-                PropertyChangedEventArgs e2 = null;
+                string p1 = null;
+                string p2 = null;
                 if (_tableSchema != _table.SchemaName)
                 {
-                    e1 = new PropertyChangedEventArgs("TableSchema", _table.SchemaName, _tableSchema);
+                    p1 = "TableSchema";
                     _tableSchema = _table.SchemaName;
                 }
                 if (_tableName != _table.Name)
                 {
-                    e2 = new PropertyChangedEventArgs("TableName", _table.Name, _tableName);
+                    p2 = "TableName";
                     _tableSchema = _table.SchemaName;
                 }
-                if (e1 != null)
+                if (p1 != null)
                 {
-                    OnPropertyChanged(e1);
+                    OnPropertyChanged(p1);
                 }
-                if (e2 != null)
+                if (p2 != null)
                 {
-                    OnPropertyChanged(e2);
+                    OnPropertyChanged(p2);
                 }
             }
         }
@@ -531,10 +527,9 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("TableSchema", value, _tableSchema);
                 _tableSchema = value;
                 InvalidateTable();
-                OnPropertyChanged(e);
+                OnPropertyChanged("TableSchema");
             }
         }
         public string TableName
@@ -549,10 +544,9 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("TableName", value, _tableName);
                 _tableName = value;
                 InvalidateTable();
-                OnPropertyChanged(e);
+                OnPropertyChanged("TableName");
             }
         }
 
@@ -585,10 +579,9 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ProcedureSchema", value, _procedureSchema);
                 _procedureSchema = value;
                 InvalidateProcedure();
-                OnPropertyChanged(e);
+                OnPropertyChanged("ProcedureSchema");
             }
         }
         public string ProcedureName
@@ -600,10 +593,9 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ProcedureName", value, _procedureName);
                 _procedureName = value;
                 InvalidateProcedure();
-                OnPropertyChanged(e);
+                OnPropertyChanged("ProcedureName");
             }
         }
 
@@ -619,9 +611,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ReferencedTableName", value, _referencedTableName);
                 _referencedTableName = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("ReferencedTableName");
             }
         }
         public TriggerOrientation Orientation
@@ -636,9 +627,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Orientation", value, _orientation);
                 _orientation = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Orientation");
             }
         }
 
@@ -654,9 +644,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("OrientationText", value, _orientationText);
                 _orientationText = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("OrientationText");
             }
         }
         public string ReferenceNewTable
@@ -671,9 +660,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ReferenceNewTable", value, _referenceNewTable);
                 _referenceNewTable = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("ReferenceNewTable");
             }
         }
         public string ReferenceOldTable
@@ -688,9 +676,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ReferenceOldTable", value, _referenceOldTable);
                 _referenceOldTable = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("ReferenceOldTable");
             }
         }
         public string Condition
@@ -705,9 +692,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Condition", value, _condition);
                 _condition = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Condition");
             }
         }
 
@@ -723,9 +709,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ReferenceNewRow", value, _referenceNewRow);
                 _referenceNewRow = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("ReferenceNewRow");
             }
         }
         public string ReferenceOldRow
@@ -740,9 +725,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("ReferenceOldRow", value, _referenceOldRow);
                 _referenceOldRow = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("ReferenceOldRow");
             }
         }
 
@@ -758,9 +742,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Definition", value, _definition);
                 _definition = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Definition");
             }
         }
 

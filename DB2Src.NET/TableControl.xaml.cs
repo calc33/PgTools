@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
@@ -172,10 +173,6 @@ namespace Db2Source
             jt.PropertyChanged += JoinTable_PropertyChanged;
             JoinTables.Add(jt);
             //dataGridColumns.ItemsSource = Target.Columns;
-            Target.PropertyChanged += Target_PropertyChanged;
-            Target.ColumnPropertyChanged += Target_ColumnPropertyChanged;
-            Target.CommentChanged += Target_CommentChanged;
-            //dataGridColumns.ItemsSource = new List<Column>(Target.Columns);
             DataGridControllerResult.Table = Target;
             sortFields.Target = Target;
             //dataGridReferTo.ItemsSource = Target.ReferTo;
@@ -621,16 +618,6 @@ namespace Db2Source
         private void checkBoxSource_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxSource();
-        }
-
-        private void Target_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-        }
-        private void Target_ColumnPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-        }
-        private void Target_CommentChanged(object sender, CommentChangedEventArgs e)
-        {
         }
 
         private static readonly Regex NumericStrRegex = new Regex("[0-9]+");
@@ -1227,7 +1214,7 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
-    public class JoinKindToVisiblityConverter : IValueConverter
+    public class JoinKindToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

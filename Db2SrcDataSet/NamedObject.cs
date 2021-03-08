@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Db2Source
 {
-    public abstract class NamedObject : IComparable, IDisposable
+    public abstract partial class NamedObject : IComparable, IDisposable
     {
         public string Identifier
         {
@@ -222,6 +222,7 @@ namespace Db2Source
                     }
                     if (old._serial < item._serial)
                     {
+                        old.ReplaceTo(item);
                         delIds[old._serial] = true;
                         dict[id] = item;
                     }

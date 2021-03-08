@@ -447,9 +447,8 @@ namespace Db2Source
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Definition", value, _definition);
                 _definition = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Definition");
             }
         }
         public virtual string HeaderDef

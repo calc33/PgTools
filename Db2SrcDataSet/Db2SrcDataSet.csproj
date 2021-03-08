@@ -185,6 +185,7 @@
     <None Include="Resources\PgNamespace_SQL.txt" />
     <None Include="Resources\PgSettings_SQL.txt" />
     <None Include="Resources\PgClassOid_SQL.txt" />
+    <None Include="Resources\PgProcOid_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

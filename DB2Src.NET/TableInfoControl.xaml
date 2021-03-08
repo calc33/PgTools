@@ -10,7 +10,7 @@
     <UserControl.Resources>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisiblityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <ContextMenu x:Key="dropTableContextMenu">
             <MenuItem Header="表を削除" Click="menuItemDropTable_Click">
                 <MenuItem.Tag>
@@ -95,8 +95,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto" MinHeight="40"/>
+            <RowDefinition Height="1*" MinHeight="34"/>
         </Grid.RowDefinitions>
         <StackPanel>
             <ToolBarTray Orientation="Horizontal">
@@ -106,7 +106,7 @@
                     <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>
                     <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertSchema_Click" Focusable="False"/>
                     <Separator/>
-                    <Button x:Name="buttonOptions" Margin="1,2" ToolTip="その他" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
+                    <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
                 </ToolBar>
             </ToolBarTray>
             <Grid Margin="0,2">
@@ -118,18 +118,19 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="所有者：" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisiblityConverter}}"/>
-                <TextBox Grid.Column="1" Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <TextBox Grid.Column="1" Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
                 <TextBlock Grid.Column="2" Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="3" IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisiblityConverter}}"/>
-                <TextBox Grid.Column="3" Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisiblityConverter}}"/>
+                <ComboBox Grid.Column="3" IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <TextBox Grid.Column="3" Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
             </Grid>
         </StackPanel>
-        <Grid Grid.Row="1" MinHeight="34" MaxHeight="150">
-            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
+        <Grid Grid.Row="1" Margin="0,0,0,4">
+            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" FontFamily="{DynamicResource CodeFontFamily}" FontSize="{DynamicResource CodeFontSize}"/>
             <local:SearchTextBoxControl x:Name="searchTextBoxTableComment" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTableComment}" FontFamily="Yu Gothic UI"/>
         </Grid>
-        <DockPanel Margin="0,0,0,4" Grid.Row="2">
+        <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>
+        <DockPanel Grid.Row="2">
             <ToolBarTray DockPanel.Dock="Top">
                 <ToolBar>
                     <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
@@ -216,6 +217,5 @@
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
-        <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>
     </Grid>
 </UserControl>

@@ -101,6 +101,9 @@
     <Compile Include="AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="BasicTypeControl.xaml.cs">
+      <DependentUpon>BasicTypeControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Commands.cs" />
     <Compile Include="DatabaseControl.xaml.cs">
       <DependentUpon>DatabaseControl.xaml</DependentUpon>
@@ -119,6 +122,7 @@
     <Compile Include="GridClipboardWinow.xaml.cs">
       <DependentUpon>GridClipboardWinow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GridSplitterEx.cs" />
     <Compile Include="LogListBoxItem.cs" />
     <Compile Include="MainWindow.treeview.cs" />
     <Compile Include="NewConnectionWindow.xaml.cs">
@@ -196,6 +200,10 @@
     <Compile Include="WindowLocator.cs" />
     <Compile Include="WindowUtility.cs" />
     <Page Include="AwaitWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="BasicTypeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

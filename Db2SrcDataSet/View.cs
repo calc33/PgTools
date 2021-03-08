@@ -1,4 +1,6 @@
-﻿namespace Db2Source
+﻿using System.ComponentModel;
+
+namespace Db2Source
 {
     public partial class View: Selectable
     {
@@ -24,9 +26,8 @@
                 {
                     return;
                 }
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs("Definition", value, _definition);
                 _definition = value;
-                OnPropertyChanged(e);
+                OnPropertyChanged("Definition");
             }
         }
         public override void Backup()

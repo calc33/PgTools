@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -27,7 +28,6 @@ namespace Db2Source
     public partial class StoredProcedureControl: UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl));
-        public static readonly DependencyProperty IsTargetModifiedProperty = DependencyProperty.Register("IsTargetModified", typeof(bool), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl));
@@ -72,17 +72,7 @@ namespace Db2Source
                 }
             }
         }
-        public bool IsTargetModified
-        {
-            get
-            {
-                return (bool)GetValue(IsTargetModifiedProperty);
-            }
-            set
-            {
-                SetValue(IsTargetModifiedProperty, value);
-            }
-        }
+
         public DataGridController DataGridControllerResult
         {
             get
@@ -149,10 +139,7 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void UpdateIsTargetModified()
-        {
-            IsTargetModified = Target.IsModified();
-        }
+
         private void UpdateStringResources()
         {
             if (Target is StoredFunction)
@@ -169,18 +156,10 @@ namespace Db2Source
 
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            //dataGridColumns.ItemsSource = Target.Columns;
-            Target.PropertyChanged += Target_PropertyChanged;
-            Target.ParameterChantged += Target_ColumnPropertyChanged;
-            Target.CommentChanged += Target_CommentChanged;
             UpdateDataGridParameters();
-            //dataGridColumns.ItemsSource = new List<Column>(Target.Columns);
-            //dataGridColumns.ItemsSource = Target.Parameters;
-            UpdateTabItemExecuteVisiblity();
+            UpdateTabItemExecuteVisibility();
             UpdateTextBoxSource();
-            UpdateIsTargetModified();
             UpdateStringResources();
-            //Dispatcher.Invoke(Execute, DispatcherPriority.Normal);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -272,7 +251,7 @@ namespace Db2Source
         {
             return checkBox.IsChecked.HasValue && checkBox.IsChecked.Value;
         }
-        private void UpdateTabItemExecuteVisiblity()
+        private void UpdateTabItemExecuteVisibility()
         {
             if (Target.DataType == "trigger")
             {
@@ -382,19 +361,6 @@ namespace Db2Source
         private void checkBoxSource_Unhecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxSource();
-        }
-
-        private void Target_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_ColumnPropertyChanged(object sender, CollectionOperationEventArgs<Parameter> e)
-        {
-            UpdateIsTargetModified();
-        }
-        private void Target_CommentChanged(object sender, CommentChangedEventArgs e)
-        {
-            UpdateIsTargetModified();
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)

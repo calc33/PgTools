@@ -20,7 +20,25 @@ namespace Db2Source
         public Type TargetType { get; set; }
         public bool IsBold { get; set; }
         public bool IsHidden { get; set; }
-        public object Target { get; set; }
+        private NamedObject _target;
+        public NamedObject Target
+        {
+            get
+            {
+                return _target;
+            }
+            set
+            {
+                if (_target == value)
+                {
+                    return;
+                }
+                NamedObject old = _target;
+                _target = value;
+                old?.RemoveNode(this);
+                _target?.AddNode(this);
+            }
+        }
         public TreeNode[] Children { get; set; }
         public TreeNode(string name, string nameBase, Type targetType, int styleIndex, bool isBold, bool isHidden)
         {
@@ -122,9 +140,70 @@ namespace Db2Source
         void OnTabClosed(object sender);
     }
 
-    partial class SchemaObject
+    partial class NamedObject
     {
+        protected internal List<TreeNode> Nodes { get; } = new List<TreeNode>();
+        /// <summary>
+        /// ReferenceEqualsで一致したnodeのインデックスを返す
+        /// </summary>
+        /// <param name="node"></param>
+        protected internal int IndexOfNode(TreeNode node)
+        {
+            for (int i = 0; i < Nodes.Count; i++)
+            {
+                if (ReferenceEquals(Nodes[i], node))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        internal void AddNode(TreeNode node)
+        {
+            if (IndexOfNode(node) != -1)
+            {
+                return;
+            }
+            Nodes.Add(node);
+        }
+
+        internal void RemoveNode(TreeNode node)
+        {
+            int i = IndexOfNode(node);
+            if (i == -1)
+            {
+                return;
+            }
+            Nodes.RemoveAt(i);
+        }
+
         public object Control { get; set; }
+        protected internal virtual void ReplaceTo(NamedObject target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            if (GetType() != target.GetType())
+            {
+                throw new ArgumentException();
+            }
+            if (target.Control == null && Control != null)
+            {
+                target.Control = Control;
+            }
+            Control = null;
+            for (int i = Nodes.Count - 1; 0 <= i; i--)
+            {
+                TreeNode node = Nodes[i];
+                if (node.Target == this)
+                {
+                    node.Target = target;
+                    target.Nodes.Add(node);
+                }
+            }
+            Nodes.Clear();
+        }
     }
     partial class StoredFunction
     {

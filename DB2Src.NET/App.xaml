@@ -7,13 +7,23 @@
              StartupUri="MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
     <Application.Resources>
+        <!-- Application Preferences -->
+        <FontFamily x:Key="CodeFontFamily">Yu Gothic UI</FontFamily>
+        <sys:Double x:Key="CodeFontSize">12</sys:Double>
+        <FontFamily x:Key="TreeFontFamily">Yu Gothic UI</FontFamily>
+        <sys:Double x:Key="TreeFontSize">12</sys:Double>
+        <!-- End of Application Preferences -->
+        <!-- Global Definitions -->
+        <x:Array x:Key="BasicTypeFunctions" Type="sys:String"/>
+        <!-- End of Global Definitions -->
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <local:InvertBooleanToVisiblityConverter x:Key="InvertBooleanToVisiblityConverter"/>
+        <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+        <local:InvertBooleanToVisibilityConverter x:Key="InvertBooleanToVisibilityConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
-        <local:ItemsSourceToColumnFilterButtonVisiblityConverter x:Key="ItemsSourceToColumnFilterButtonVisiblityConverter"/>
+        <local:ItemsSourceToColumnFilterButtonVisibilityConverter x:Key="ItemsSourceToColumnFilterButtonVisibilityConverter"/>
         <local:RowVisibleConverter x:Key="RowVisibleConverter"/>
         <local:HideNewItemPlaceHolderConverter x:Key="HideNewItemPlaceHolderConverter"/>
-        <local:HasErrorToVisiblityConverter x:Key="HasErrorToVisiblityConverter"/>
+        <local:HasErrorToVisibilityConverter x:Key="HasErrorToVisibilityConverter"/>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -217,12 +227,12 @@
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageTrash16">
-            <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
+            <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2" SnapsToDevicePixels="True">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M0,3.5 L15,3.5 M4.5,3.5 L4.5,2.5 C4.5,0.5 4.5,0.5 6.5,0.5 L8.5,0.5 C10.5,0.5 10.5,0.5 10.5,2.5 L10.5,3.5 M4.5,5.5 L4.5,13.5 M7.5,5.5 L7.5,13.5 M10.5,5.5 L10.5,13.5 M1.5,3.5 L1.5,13.5 C1.5,15.5 1.5,15.5 3.5,15.5 L11.5,15.5 C13.5,15.5 13.5,15.5 13.5,13.5 L13.5,3.5"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageTrash14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2" SnapsToDevicePixels="True">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M0,2.5 L12,2.5 M3.5,2.5 C3.5,0.5 3.5,0.5 5.5,0.5 L6.5,0.5 C8.5,0.5 8.5,0.5 8.5,2.5 M4.5,4.5 L4.5,11.5 M7.5,4.5 L7.5,11.5 M1.5,2.5 L1.5,10.5 C1.5,13.5 1.5,13.5 3.5,13.5 L8.5,13.5 C10.5,13.5 10.5,13.5 10.5,11.5 L10.5,2.5"/>
             </Canvas>
         </DataTemplate>

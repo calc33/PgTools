@@ -704,6 +704,18 @@ namespace Db2Source
                 return ret;
             }
 
+            public void RemoveByOid(uint oid)
+            {
+                for (int i = _items.Count - 1; 0 <= i; i--)
+                {
+                    T obj = _items[i];
+                    if (obj.Oid == oid)
+                    {
+                        _items.RemoveAt(i);
+                    }
+                }
+                InvalidateDictionary();
+            }
             public PgOidSubidCollection(string sql, NpgsqlConnection connection)
             {
                 Fill(sql, connection, false);
@@ -944,7 +956,7 @@ namespace Db2Source
             public uint oid;
 #pragma warning restore 0649
             //public abstract string Name { get; }
-            public NamedObject Generated;
+            public WeakReference<NamedObject> Generated;
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
             public abstract void FillReference(WorkingData working);
@@ -1161,6 +1173,11 @@ namespace Db2Source
 
             public View ToView(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (View)o;
+                }
                 if (relkind != 'v')
                 {
                     return null;
@@ -1175,11 +1192,16 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
-                Generated = v;
+                Generated = new WeakReference<NamedObject>(v);
                 return v;
             }
             public Table ToTable(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Table)o;
+                }
                 if (relkind != 'r')
                 {
                     return null;
@@ -1197,11 +1219,16 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
-                Generated = t;
+                Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
             public ComplexType ToComplexType(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (ComplexType)o;
+                }
                 if (relkind != 'c')
                 {
                     return null;
@@ -1216,12 +1243,17 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
-                Generated = t;
+                Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
 
             public Index ToIndex(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Index)o;
+                }
                 if (relkind != 'i')
                 {
                     return null;
@@ -1233,7 +1265,7 @@ namespace Db2Source
                     IndexType = indextype,
                     SqlDef = NormalizeSql(indexdef)
                 };
-                Generated = idx;
+                Generated = new WeakReference<NamedObject>(idx);
                 return idx;
             }
             public Sequence ToSequence(NpgsqlDataSet context)
@@ -1266,10 +1298,6 @@ namespace Db2Source
 
             public SchemaObject ToSchemaObject(NpgsqlDataSet context)
             {
-                if (Generated is SchemaObject)
-                {
-                    return (SchemaObject)Generated;
-                }
                 switch (relkind)
                 {
                     case 'r':
@@ -1611,13 +1639,18 @@ namespace Db2Source
             }
             public Constraint ToConstraint(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Constraint)o;
+                }
                 //Constraint c = null;
                 //c = new Constraint(context, RefObject?.ownername, Schema?.nspname, conname, RefObject?.Schema?.nspname, RefObject?.relname, false);
                 switch (contype)
                 {
                     case 'c': // 検査制約
                         CheckConstraint cc = new CheckConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname, checkdef, false);
-                        Generated = cc;
+                        Generated = new WeakReference<NamedObject>(cc);
                         return cc;
                     case 'f': // 外部キー制約
                         ForeignKeyConstraint rc = new ForeignKeyConstraint(context, Object?.ownername, Schema?.nspname, conname, Object?.Schema?.nspname, Object?.relname,
@@ -1626,7 +1659,7 @@ namespace Db2Source
                             Columns = GetNameArray(Keys),
                             RefColumns = GetNameArray(RefKeys)
                         };
-                        Generated = rc;
+                        Generated = new WeakReference<NamedObject>(rc);
                         return rc;
                     case 'p': // プライマリキー制約
                     case 'u': // 一意性制約
@@ -1642,7 +1675,7 @@ namespace Db2Source
                         {
                             kc.Columns[i] = Keys[i].attname;
                         }
-                        Generated = kc;
+                        Generated = new WeakReference<NamedObject>(kc);
                         return kc;
                     case 't': // 制約トリガ
                     case 'x': // 排他制約
@@ -1660,7 +1693,7 @@ namespace Db2Source
         {
             public abstract uint Oid { get; }
             public abstract int Subid { get; }
-            public NamedObject Generated;
+            public WeakReference<NamedObject> Generated;
             public virtual void FillReference(WorkingData working) { }
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
@@ -1742,6 +1775,7 @@ namespace Db2Source
             }
             public static void FillByOid(PgOidSubidCollection<PgAttribute> store, NpgsqlConnection connection, uint oid)
             {
+                store.RemoveByOid(oid);
                 string sql = AddCondition(DataSet.Properties.Resources.PgAttribute_SQL, string.Format("attrelid = {0}::oid", oid));
                 store.Fill(sql, connection, false);
             }
@@ -1791,6 +1825,11 @@ namespace Db2Source
             }
             public Column ToColumn(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Column)o;
+                }
                 Column c = new Column(context, Owner?.Schema?.nspname)
                 {
                     TableName = Owner?.relname,
@@ -1822,7 +1861,7 @@ namespace Db2Source
                     c.HiddenLevel = (attname == "oid") ? HiddenLevel.Hidden : HiddenLevel.SystemInternal;
                     c.Index = attnum;
                 }
-                Generated = c;
+                Generated = new WeakReference<NamedObject>(c);
                 return c;
             }
             public override string ToString()
@@ -2037,6 +2076,11 @@ namespace Db2Source
             private static readonly string[] TimingToText = new string[] { string.Empty, "before", "after", "instead of" };
             public Trigger ToTrigger(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Trigger)o;
+                }
                 if (tgisinternal)
                 {
                     return null;
@@ -2135,7 +2179,7 @@ namespace Db2Source
                         t.UpdateEventColumns.Add(context.GetEscapedIdentifier(a.attname));
                     }
                 }
-                Generated = t;
+                Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
         }
@@ -2172,6 +2216,11 @@ namespace Db2Source
 
             public PgsqlTablespace ToTablespace(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (PgsqlTablespace)o;
+                }
                 PgsqlTablespace ts = new PgsqlTablespace(context.Tablespaces)
                 {
                     Oid = oid,
@@ -2179,7 +2228,7 @@ namespace Db2Source
                     Options = spcoptions,
                     Path = location
                 };
-                Generated = ts;
+                Generated = new WeakReference<NamedObject>(ts);
                 return ts;
 
             }
@@ -2246,6 +2295,51 @@ namespace Db2Source
                 }
                 buf.Append(')');
                 return buf.ToString();
+            }
+            public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            {
+                string sql = AddCondition(DataSet.Properties.Resources.PgProc_SQL, string.Format("oid = {0}::oid", oid));
+                store.Fill(sql, connection, dict, false);
+            }
+            public static uint? GetOid(WorkingData backend, NpgsqlConnection connection, string schema, string name, string[] argtypes)
+            {
+                using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.PgProcOid_SQL, connection))
+                {
+                    cmd.Parameters.Add(new NpgsqlParameter("schema", schema));
+                    cmd.Parameters.Add(new NpgsqlParameter("name", name));
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            uint oid = reader.GetFieldValue<uint>(0);
+                            string proname = reader.GetString(1);
+                            uint[] proargtypes = reader.GetFieldValue<uint[]>(2);
+                            if (proargtypes == null || proargtypes.Length == 0 && argtypes.Length == 0)
+                            {
+                                return oid;
+                            }
+                            if (proargtypes.Length != argtypes.Length)
+                            {
+                                continue;
+                            }
+                            bool matched = true;
+                            for (int i = 0; i < proargtypes.Length; i++)
+                            {
+                                PgType t = backend.PgTypes.FindByOid(proargtypes[i]);
+                                if (t.formatname != argtypes[i])
+                                {
+                                    matched = false;
+                                    break;
+                                }
+                            }
+                            if (matched)
+                            {
+                                return oid;
+                            }
+                        }
+                    }
+                    return null;
+                }
             }
             public static PgObjectCollection<PgProc> Load(NpgsqlConnection connection, PgObjectCollection<PgProc> store, Dictionary<uint, PgObject> dict)
             {
@@ -2316,6 +2410,11 @@ namespace Db2Source
             }
             public StoredFunction ToStoredFunction(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (StoredFunction)o;
+                }
                 StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetInternalName(), prosrc, true)
                 {
                     DataType = ReturnType?.formatname,
@@ -2360,7 +2459,7 @@ namespace Db2Source
                         }
                     }
                 }
-                Generated = fn;
+                Generated = new WeakReference<NamedObject>(fn);
                 return fn;
             }
         }
@@ -2655,6 +2754,11 @@ namespace Db2Source
 
             public PgsqlUser ToUser(NpgsqlDataSet context)
             {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (PgsqlUser)o;
+                }
                 PgsqlUser u = new PgsqlUser(context.Users)
                 {
                     Oid = oid,
@@ -2671,7 +2775,7 @@ namespace Db2Source
                     Config = rolconfig,
                     ConnectionLimit = rolconnlimit
                 };
-                Generated = u;
+                Generated = new WeakReference<NamedObject>(u);
                 return u;
             }
         };
@@ -2824,6 +2928,24 @@ namespace Db2Source
                 LoadFromPgConstraint();
                 LoadFromPgDescription();
             }
+            public void FillProcByOid(uint oid, NpgsqlConnection connection)
+            {
+                PgProc.FillByOid(PgProcs, connection, oid, OidToObject);
+                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
+
+                PgProcs.BeginFillReference(this);
+                PgDescriptions.BeginFillReference(this);
+
+                PgProcs.FillReference(this);
+                PgDescriptions.FillReference(this);
+
+                PgProcs.EndFillReference(this);
+                PgDescriptions.EndFillReference(this);
+
+                LoadFromPgProc();
+                LoadFromPgDescription();
+            }
+
             public void LoadProc(NpgsqlConnection connection, uint oid)
             {
 
@@ -2971,33 +3093,88 @@ namespace Db2Source
             _backend.FillAll(conn);
             OnSchemaLoaded();
         }
-        internal void RefreshTable(string schema, string tableName, NpgsqlConnection connection)
+        internal Table RefreshTable(Table table, NpgsqlConnection connection)
         {
+            Table ret = null;
+            string sch = table.SchemaName;
+            string name = table.Name;
             if (_backend == null)
             {
                 LoadSchema(connection, false);
-                return;
             }
-            uint? oid = PgClass.GetOid(connection, schema, tableName, 'r');
-            Table tbl = Tables[schema, tableName];
-            tbl?.Release();
-            if (!oid.HasValue)
+            else
             {
-                return;
+                uint? oid = PgClass.GetOid(connection, table.SchemaName, table.Name, 'r');
+                if (!oid.HasValue)
+                {
+                    table.Release();
+                    return null;
+                }
+                _backend.FillTableByOid(oid.Value, connection);
             }
-            _backend.FillTableByOid(oid.Value, connection);
+            ret = Tables[sch, name];
+            if (ret != table)
+            {
+                table.ReplaceTo(ret);
+                table.Release();
+            }
+            return ret;
+        }
+        internal StoredFunction RefreshStoredFunction(StoredFunction function,  NpgsqlConnection connection)
+        {
+            StoredFunction ret = null;
+            string sch = function.SchemaName;
+            string name = function.Name;
+            string id = function.Identifier;
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+                ret = StoredFunctions[sch, id];
+            }
+            else
+            {
+                List<string> args = new List<string>();
+                foreach (Parameter p in function.Parameters)
+                {
+                    if ((p.Direction & ParameterDirection.Input) != 0)
+                    {
+                        args.Add(p.DataType);
+                    }
+                }
+                uint? oid = PgProc.GetOid(_backend, connection, function.SchemaName, function.Name, args.ToArray());
+                if (!oid.HasValue)
+                {
+                    function.Release();
+                    return null;
+                }
+                _backend.FillProcByOid(oid.Value, connection);
+            }
+            ret = StoredFunctions[sch, id];
+            if (ret != function)
+            {
+                function.ReplaceTo(ret);
+                function.Release();
+            }
+            return ret;
         }
         public override SchemaObject Refresh(SchemaObject obj, IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
+            SchemaObject ret = obj;
             if (obj is Table)
             {
-                string sc = obj.SchemaName;
-                string tbl = obj.Name;
-                RefreshTable(sc, tbl, conn);
-                return Tables[sc, tbl];
+                ret = RefreshTable((Table)obj, conn);
             }
-            return obj;
+            else if (obj is StoredFunction)
+            {
+                StoredFunction fn = (StoredFunction)obj;
+                RefreshStoredFunction(fn, conn);
+            }
+            if (obj != ret)
+            {
+                obj.ReplaceTo(ret);
+            }
+            return ret;
         }
     }
 }
