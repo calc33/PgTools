@@ -13,7 +13,7 @@ namespace Db2Source
             return "Type";
         }
 
-        public TypeReferenceCollection ReferFrom { get; } = new TypeReferenceCollection();
+        //public TypeReferenceCollection ReferFrom { get; } = new TypeReferenceCollection();
 
 
         public override void Backup()

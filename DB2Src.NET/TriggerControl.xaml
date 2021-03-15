@@ -3,11 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:Db2Source"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
+        <ContextMenu x:Key="contextMenuDropTrigger">
+            <MenuItem x:Name="menuItemDropTrigger" Header="トリガーを削除" Click="menuItemDropTrigger_Click"/>
+        </ContextMenu>
+        <sys:String x:Key="messageDropTrigger">トリガーを削除します。削除しすると元に戻せません。よろしいですか?</sys:String>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -22,6 +27,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto" MinHeight="40"/>
         </Grid.RowDefinitions>
         <ToolBar Grid.ColumnSpan="3">
             <Button x:Name="buttonEditTrigger" ContentTemplate="{StaticResource ImageEdit14}" ToolTip="編集" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
@@ -29,7 +35,7 @@
             <Button x:Name="buttonApplyTrigger" ContentTemplate="{StaticResource ImageApply14}" ToolTip="変更を適用" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplyTrigger_Click"/>
             <Button x:Name="buttonRevertTrigger" ContentTemplate="{StaticResource ImageRevert14}" ToolTip="変更を取り消し" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertTrigger_Click"/>
             <Separator/>
-            <Button x:Name="buttonDropTrigger" ContentTemplate="{StaticResource ImageDelete14}" ToolTip="トリガーを削除" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
+            <Button x:Name="buttonDropTrigger" ContentTemplate="{StaticResource ImageTrash14}" ToolTip="トリガーを削除" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonDropTrigger_Click"/>
         </ToolBar>
         <TextBlock Text="操作：" VerticalAlignment="Center" Grid.Row="1" Grid.RowSpan="2"/>
         <ComboBox Grid.Column="1" SelectedIndex="0" Grid.Row="1" Grid.RowSpan="2" VerticalAlignment="Center" SelectedValuePath="Value" DisplayMemberPath="Text" MinWidth="60" SelectedValue="{Binding Target.Timing, ElementName=userControl}" Margin="0,8" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}">
@@ -57,5 +63,7 @@
         </DockPanel>
         <TextBox x:Name="textBoxTriggerBodySQL" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
         <local:SearchTextBoxControl Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTriggerBodySQL}" Visibility="Collapsed" Grid.Column="2"/>
+        <TextBox x:Name="textBoxComment" Grid.ColumnSpan="3" Grid.Row="6" Margin="0,4,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" ToolTip="(コメント)" Text="{Binding Target.CommentText, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+        <GridSplitter Grid.ColumnSpan="3" Grid.Row="6" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="4"/>
     </Grid>
 </UserControl>

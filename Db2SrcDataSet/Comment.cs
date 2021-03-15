@@ -109,7 +109,7 @@ namespace Db2Source
         }
         public virtual ICommentable GetTarget()
         {
-            SchemaObject o = Schema.Objects[Target];
+            SchemaObject o = Schema?.Objects[Target];
             return o;
         }
         public void Link()

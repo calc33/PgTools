@@ -218,7 +218,7 @@ namespace Db2Source
         {
             throw new NotImplementedException();
         }
-        protected void RestoreFrom(Table owner, Constraint backup)
+        protected internal void RestoreFrom(Table owner, Constraint backup)
         {
             base.RestoreFrom(backup);
             _tableSchema = owner.SchemaName;

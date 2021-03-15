@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -56,7 +57,12 @@ namespace Db2Source
             checkBoxUpdateTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Update) != 0);
             if (t != null && t.Procedure != null)
             {
-                textBoxTriggerBodySQL.Text = t.Context.GetSQL(t.Procedure, string.Empty, string.Empty, 0, false);
+                StringBuilder buf = new StringBuilder();
+                foreach (string s in t.Context.GetSQL(t.Procedure, string.Empty, string.Empty, 0, true))
+                {
+                    buf.Append(s);
+                }
+                textBoxTriggerBodySQL.Text = buf.ToString();
             }
             else
             {
@@ -129,6 +135,66 @@ namespace Db2Source
         {
             Target.Restore();
             IsEditing = false;
+        }
+
+        private void buttonDropTrigger_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu menu = (ContextMenu)Resources["contextMenuDropTrigger"];
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = sender as UIElement;
+            menu.IsOpen = true;
+        }
+
+        public void DropTarget(bool cascade)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            Db2SourceContext ctx = Target.Context;
+            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            SqlLogger logger = new SqlLogger();
+            bool failed = false;
+            try
+            {
+                ctx.ExecSqls(sql, logger.Log);
+            }
+            catch (Exception t)
+            {
+                logger.Buffer.AppendLine(ctx.GetExceptionMessage(t));
+                failed = true;
+            }
+            string s = logger.Buffer.ToString().TrimEnd();
+            if (!string.IsNullOrEmpty(s))
+            {
+                if (failed)
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else
+                {
+                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Result, MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            if (failed)
+            {
+                return;
+            }
+            TabItem tab = App.FindLogicalParent<TabItem>(this);
+            if (tab != null)
+            {
+                (tab.Parent as TabControl).Items.Remove(tab);
+                Target.Release();
+                MainWindow.Current.FilterTreeView(true);
+            }
+        }
+
+        private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)
+        {
+            Window owner = App.FindVisualParent<Window>(this);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropTrigger"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (ret != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            DropTarget(false);
         }
     }
 }

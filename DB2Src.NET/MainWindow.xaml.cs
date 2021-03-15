@@ -549,6 +549,9 @@ namespace Db2Source
             RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
             RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
             RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
+            RegisterSchemaObjectControl(typeof(PgsqlBasicType), typeof(PgsqlTypeControl));
+            RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
+            RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
             RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             TitleBase = Title;
         }

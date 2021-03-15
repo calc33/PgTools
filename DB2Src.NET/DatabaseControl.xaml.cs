@@ -263,11 +263,6 @@ namespace Db2Source
             UpdateListBoxSelection(listBoxTablespaces);
         }
     }
-    public class NameValue
-    {
-        public string Name { get; set; }
-        public object Value { get; set; }
-    }
     public class StrArayToTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

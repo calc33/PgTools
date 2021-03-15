@@ -152,7 +152,7 @@ namespace Db2Source
             List<string> sqls = new List<string>();
             if ((Target.Comment != null) && Target.Comment.IsModified())
             {
-                sqls.Add(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
+                sqls.AddRange(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
             }
             for (int i = 0; i < Target.Columns.Count; i++)
             {
@@ -164,7 +164,7 @@ namespace Db2Source
                 }
                 if ((newC.Comment != null) && newC.Comment.IsModified())
                 {
-                    sqls.Add(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
+                    sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }
             }
             if (sqls.Count != 0)

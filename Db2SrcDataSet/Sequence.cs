@@ -17,11 +17,19 @@
         public string Increment { get; set; }
         public bool IsCycled { get; set; }
         public int Cache { get; set; } = 1;
-        public string OwnedSchema { get; set; }
-        public string OwnedTable { get; set; }
+        public string OwnedSchemaName { get; set; }
+        public string OwnedTableName { get; set; }
         public string OwnedColumn { get; set; }
 
+        public Table OwnedTable { get; set; }
+
         internal Sequence _backup;
+        protected internal Sequence Backup(Table owner)
+        {
+            _backup = new Sequence(this);
+            _backup.OwnedTable = owner;
+            return _backup;
+        }
         public override void Backup()
         {
             _backup = new Sequence(this);
@@ -35,8 +43,8 @@
             Increment = backup.Increment;
             IsCycled = backup.IsCycled;
             Cache = backup.Cache;
-            OwnedSchema = backup.OwnedSchema;
-            OwnedTable = backup.OwnedTable;
+            OwnedSchemaName = backup.OwnedSchemaName;
+            OwnedTableName = backup.OwnedTableName;
             OwnedColumn = backup.OwnedColumn;
         }
         public override void Restore()
@@ -46,6 +54,12 @@
                 return;
             }
             RestoreFrom(_backup);
+        }
+
+        public override void Release()
+        {
+            base.Release();
+            OwnedTable?.Sequences.Remove(this);
         }
 
         public override bool ContentEquals(NamedObject obj)
@@ -61,8 +75,8 @@
                 && Increment == seq.Increment
                 && IsCycled == seq.IsCycled
                 && Cache == seq.Cache
-                && OwnedSchema == seq.OwnedSchema
-                && OwnedTable == seq.OwnedTable
+                && OwnedSchemaName == seq.OwnedSchemaName
+                && OwnedTableName == seq.OwnedTableName
                 && OwnedColumn == seq.OwnedColumn;
         }
 
@@ -75,8 +89,8 @@
             Increment = basedOn.Increment;
             IsCycled = basedOn.IsCycled;
             Cache = basedOn.Cache;
-            OwnedSchema = basedOn.OwnedSchema;
-            OwnedTable = basedOn.OwnedTable;
+            OwnedSchemaName = basedOn.OwnedSchemaName;
+            OwnedTableName = basedOn.OwnedTableName;
             OwnedColumn = basedOn.OwnedColumn;
         }
     }

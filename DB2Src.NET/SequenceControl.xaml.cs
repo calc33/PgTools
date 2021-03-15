@@ -118,13 +118,19 @@ namespace Db2Source
                 StringBuilder buf = new StringBuilder();
                 if (IsChecked(checkBoxSourceMain))
                 {
-                    buf.Append(ctx.GetSQL(Target, string.Empty, ";", 0, true, true));
+                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true, false, false))
+                    {
+                        buf.Append(s);
+                    }
                 }
                 if (IsChecked(checkBoxSourceComment))
                 {
                     if (!string.IsNullOrEmpty(Target.CommentText))
                     {
-                        buf.Append(ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true));
+                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
                     }
                     buf.AppendLine();
                 }
@@ -185,12 +191,12 @@ namespace Db2Source
                 return;
             }
             Db2SourceContext ctx = Target.Context;
-            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
             SqlLogger logger = new SqlLogger();
             bool failed = false;
             try
             {
-                ctx.ExecSql(sql, logger.Log);
+                ctx.ExecSqls(sql, logger.Log);
             }
             catch (Exception t)
             {

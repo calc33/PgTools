@@ -101,7 +101,10 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.AppendLine(DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
+            foreach (string s in DataSet.GetSQL(table, string.Empty, ";", 0, true, true))
+            {
+                buffer.AppendLine(s);
+            }
             List<Constraint> list = new List<Constraint>(table.Constraints);
             list.Sort();
             int lastLength = buffer.Length;
@@ -201,7 +204,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true));
+            buffer.Append(DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, true));
         }
         private void ExportComplexType(StringBuilder buffer, ComplexType type)
         {
@@ -211,7 +214,7 @@ namespace Db2Source
             }
             buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportEnumType(StringBuilder buffer, EnumType type)
+        private void ExportEnumType(StringBuilder buffer, PgsqlEnumType type)
         {
             if (type == null)
             {
@@ -219,7 +222,7 @@ namespace Db2Source
             }
             buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportBasicType(StringBuilder buffer, BasicType type)
+        private void ExportBasicType(StringBuilder buffer, PgsqlBasicType type)
         {
             if (type == null)
             {
@@ -227,7 +230,7 @@ namespace Db2Source
             }
             buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportRangeType(StringBuilder buffer, RangeType type)
+        private void ExportRangeType(StringBuilder buffer, PgsqlRangeType type)
         {
             if (type == null)
             {
@@ -265,17 +268,17 @@ namespace Db2Source
                     {
                         ExportComplexType(buf, (ComplexType)obj);
                     }
-                    else if (obj is EnumType)
+                    else if (obj is PgsqlEnumType)
                     {
-                        ExportEnumType(buf, (EnumType)obj);
+                        ExportEnumType(buf, (PgsqlEnumType)obj);
                     }
-                    else if (obj is BasicType)
+                    else if (obj is PgsqlBasicType)
                     {
-                        ExportBasicType(buf, (BasicType)obj);
+                        ExportBasicType(buf, (PgsqlBasicType)obj);
                     }
-                    else if (obj is RangeType)
+                    else if (obj is PgsqlRangeType)
                     {
-                        ExportRangeType(buf, (RangeType)obj);
+                        ExportRangeType(buf, (PgsqlRangeType)obj);
                     }
                     if (buf.Length != 0)
                     {

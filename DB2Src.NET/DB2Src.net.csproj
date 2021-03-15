@@ -101,8 +101,8 @@
     <Compile Include="AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="BasicTypeControl.xaml.cs">
-      <DependentUpon>BasicTypeControl.xaml</DependentUpon>
+    <Compile Include="PgsqlTypeControl.xaml.cs">
+      <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Commands.cs" />
     <Compile Include="DatabaseControl.xaml.cs">
@@ -112,6 +112,9 @@
     <Compile Include="Db2SrcDataSetController.cs" />
     <Compile Include="EditConnectionListWindow.xaml.cs">
       <DependentUpon>EditConnectionListWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="EnumTypeControl.xaml.cs">
+      <DependentUpon>EnumTypeControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ErrorListBoxItem.cs" />
     <Compile Include="ExportSchema.xaml.cs">
@@ -203,7 +206,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="BasicTypeControl.xaml">
+    <Page Include="PgsqlTypeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -212,6 +215,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="EditConnectionListWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EnumTypeControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

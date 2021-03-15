@@ -829,12 +829,7 @@ namespace Db2Source
             {
                 return new string[0];
             }
-            string s = Context.GetSQL(_backup, string.Empty, string.Empty, 0, false);
-            if (string.IsNullOrEmpty(s))
-            {
-                return new string[0];
-            }
-            return new string[] { s };
+            return Context.GetSQL(_backup, string.Empty, string.Empty, 0, false);
         }
     }
 

@@ -183,19 +183,28 @@ namespace Db2Source
                 StringBuilder buf = new StringBuilder();
                 if (IsChecked(checkBoxSourceMain))
                 {
-                    buf.Append(ctx.GetSQL(Target, string.Empty, ";", 0, true));
+                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
+                    {
+                        buf.Append(s);
+                    }
                 }
                 if (IsChecked(checkBoxSourceComment))
                 {
                     if (!string.IsNullOrEmpty(Target.CommentText))
                     {
-                        buf.Append(ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true));
+                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
                     }
                     foreach (Column c in Target.Columns)
                     {
                         if (!string.IsNullOrEmpty(c.CommentText))
                         {
-                            buf.Append(ctx.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                            foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                            {
+                                buf.Append(s);
+                            }
                         }
                     }
                     buf.AppendLine();
@@ -315,14 +324,14 @@ namespace Db2Source
             List<string> sqls = new List<string>();
             if ((Target.Comment != null) && Target.Comment.IsModified())
             {
-                sqls.Add(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
+                sqls.AddRange(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
             }
             for (int i = 0; i < Target.Columns.Count; i++)
             {
                 Column newC = Target.Columns[i, false];
                 if ((newC.Comment != null) && newC.Comment.IsModified())
                 {
-                    sqls.Add(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
+                    sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }
             }
             try
@@ -369,12 +378,12 @@ namespace Db2Source
         {
             Window owner = App.FindVisualParent<Window>(this);
             Db2SourceContext ctx = Target.Context;
-            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
             SqlLogger logger = new SqlLogger();
             bool failed = false;
             try
             {
-                ctx.ExecSql(sql, logger.Log);
+                ctx.ExecSqls(sql, logger.Log);
             }
             catch (Exception t)
             {

@@ -393,6 +393,8 @@ namespace Db2Source
             }
         }
 
+        public List<Sequence> Sequences { get; } = new List<Sequence>();
+
         public override void Backup()
         {
             _backup = new Table(this);
@@ -467,7 +469,7 @@ namespace Db2Source
             return Context.GetDeleteSql(this, where, indent, charPerLine, postfix);
         }
 
-        public string GetDropSql(string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public string[] GetDropSql(string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             return Context.GetDropSQL(this, prefix, postfix, indent, cascade, addNewline);
         }
@@ -493,6 +495,10 @@ namespace Db2Source
             foreach (Constraint c in basedOn.Constraints)
             {
                 Constraints.Add(c.Backup(this));
+            }
+            foreach (Sequence seq in basedOn.Sequences)
+            {
+                Sequences.Add(seq.Backup(this));
             }
             //Constraints
             //Indexes

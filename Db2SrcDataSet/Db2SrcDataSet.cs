@@ -134,6 +134,12 @@ namespace Db2Source
         Crlf
     }
 
+    public class NameValue
+    {
+        public string Name { get; set; }
+        public object Value { get; set; }
+    }
+
     public abstract partial class Db2SourceContext: IComparable
     {
         private static string InitAppDataDir()
@@ -502,6 +508,10 @@ namespace Db2Source
         /// <returns></returns>
         public string GetEscapedIdentifier(string objectName)
         {
+            if (string.IsNullOrEmpty(objectName))
+            {
+                return objectName;
+            }
             if (!IsQuotedIdentifier(objectName) && NeedQuotedIdentifier(objectName))
             {
                 return GetQuotedIdentifier(objectName);
@@ -679,48 +689,48 @@ namespace Db2Source
         public abstract SQLParts SplitSQL(string sql);
         //public abstract IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters);
 
-        public abstract string GetSQL(Table table, string prefix, string postfix, int indent, bool addNewline, bool includePrimaryKey);
-        public abstract string GetSQL(View table, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(Column column, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(Comment comment, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(KeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
-        public abstract string GetSQL(ForeignKeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
-        public abstract string GetSQL(CheckConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
-        public abstract string GetSQL(Constraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
-        public abstract string GetSQL(Trigger trigger, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(Index index, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline, bool ignoreOwned);
-        public abstract string GetSQL(Parameter p);
-        public abstract string GetSQL(StoredFunction function, string prefix, string postfix, int indent, bool addNewline);
-        //public abstract string GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(ComplexType type, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(EnumType type, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(RangeType type, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(BasicType type, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string GetSQL(User user, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Table table, string prefix, string postfix, int indent, bool addNewline, bool includePrimaryKey);
+        public abstract string[] GetSQL(View table, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Column column, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Comment comment, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(KeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
+        public abstract string[] GetSQL(ForeignKeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
+        public abstract string[] GetSQL(CheckConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
+        public abstract string[] GetSQL(Constraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline);
+        public abstract string[] GetSQL(Trigger trigger, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Index index, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline, bool skipOwned, bool ignoreOwned);
+        public abstract string[] GetSQL(Parameter p);
+        public abstract string[] GetSQL(StoredFunction function, string prefix, string postfix, int indent, bool addNewline);
+        //public abstract string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(ComplexType type, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(User user, string prefix, string postfix, int indent, bool addNewline);
 
         public abstract string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(Trigger after, Trigger before, string prefix, string postfix, int indent, bool addNewline);
 
-        public abstract string GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Column column, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Comment comment, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Constraint constraint, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Trigger trigger, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Index index, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Sequence sequence, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(StoredFunction function, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        //public abstract string GetDropSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(ComplexType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(EnumType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(RangeType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(BasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Column column, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Comment comment, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Constraint constraint, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Trigger trigger, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Index index, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Sequence sequence, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(StoredFunction function, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        //public abstract string[] GetDropSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(ComplexType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline);
 
         protected abstract void LoadEncodings(IDbConnection connection);
         public abstract string GetServerEncoding();
@@ -834,6 +844,7 @@ namespace Db2Source
         public SchemaObjectCollection<Comment> Comments { get; private set; }
         public SchemaObjectCollection<Constraint> Constraints { get; private set; }
         public SchemaObjectCollection<Trigger> Triggers { get; private set; }
+        public SchemaObjectCollection<Sequence> Sequences { get; private set; }
         /// <summary>
         /// 文字列のnullをDbNullに置換
         /// </summary>
@@ -1295,6 +1306,7 @@ namespace Db2Source
             Comments = new SchemaObjectCollection<Comment>(this, "Comments");
             Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints");
             Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers");
+            Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences");
         }
 
         public override string ToString()

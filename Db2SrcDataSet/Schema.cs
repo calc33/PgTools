@@ -17,7 +17,8 @@ namespace Db2Source
             Comments = 4,
             Indexes = 5,
             Triggers = 6,
-            //Procedures = 7,
+            Sequences = 7,
+            //Procedures = 8,
         }
         public Db2SourceContext Context { get; private set; }
 
@@ -81,12 +82,13 @@ namespace Db2Source
         public NamedCollection<Constraint> Constraints { get; } = new NamedCollection<Constraint>();
         public NamedCollection<Index> Indexes { get; } = new NamedCollection<Index>();
         public NamedCollection<Trigger> Triggers { get; } = new NamedCollection<Trigger>();
+        public NamedCollection<Sequence> Sequences { get; } = new NamedCollection<Sequence>();
         //public NamedCollection<StoredFunction> Procedures { get; } = new NamedCollection<StoredFunction>();
         internal Schema(Db2SourceContext owner, string name) : base(owner.Schemas)
         {
             Context = owner;
             Name = name;
-            _collections = new NamedCollection[] { null, Objects, Constraints, Columns, Comments, Indexes, Triggers /*, Procedures */ };
+            _collections = new NamedCollection[] { null, Objects, Constraints, Columns, Comments, Indexes, Triggers, Sequences /*, Procedures */ };
         }
 
         protected override string GetIdentifier()
@@ -124,6 +126,13 @@ namespace Db2Source
                 (o as Table)?.InvalidateIndexes();
             }
         }
+        //public void InvalidateSequences()
+        //{
+        //    foreach (SchemaObject o in Objects)
+        //    {
+        //        (o as Table)?.invalidateSequences();
+        //    }
+        //}
 
         public override void Backup()
         {

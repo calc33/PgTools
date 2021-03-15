@@ -12,13 +12,21 @@ namespace Db2Source
     public class ExportSchema
     {
         public Db2SourceContext DataSet { get; set; }
+        private void AppendToBuffer(StringBuilder buffer, string[] strs)
+        {
+            foreach (string s in strs)
+            {
+                buffer.Append(s);
+            }
+        }
         private void ExportTable(StringBuilder buffer, Table table)
         {
             if (table == null)
             {
                 return;
             }
-            buffer.AppendLine(DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
+            buffer.AppendLine();
             List<Constraint> list = new List<Constraint>(table.Constraints);
             list.Sort();
             int lastLength = buffer.Length;
@@ -30,13 +38,13 @@ namespace Db2Source
                         // 本体ソース内で出力している
                         break;
                     case ConstraintType.Unique:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendToBuffer(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.ForeignKey:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendToBuffer(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.Check:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendToBuffer(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                 }
             }
@@ -47,13 +55,13 @@ namespace Db2Source
             lastLength = buffer.Length;
             if (!string.IsNullOrEmpty(table.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
+                AppendToBuffer(buffer, DataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in table.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    buffer.Append(DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendToBuffer(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             if (lastLength < buffer.Length)
@@ -63,7 +71,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Trigger t in table.Triggers)
             {
-                buffer.Append(DataSet.GetSQL(t, string.Empty, ";", 0, true));
+                AppendToBuffer(buffer, DataSet.GetSQL(t, string.Empty, ";", 0, true));
                 buffer.AppendLine();
             }
             if (lastLength < buffer.Length)
@@ -73,7 +81,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Index i in table.Indexes)
             {
-                buffer.Append(DataSet.GetSQL(i, string.Empty, ";", 0, true));
+                AppendToBuffer(buffer, DataSet.GetSQL(i, string.Empty, ";", 0, true));
             }
             if (lastLength < buffer.Length)
             {
@@ -86,16 +94,16 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(view, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(view, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(view.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
+                AppendToBuffer(buffer, DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in view.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    buffer.Append(DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendToBuffer(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             buffer.AppendLine();
@@ -106,10 +114,10 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(function, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(function, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(function.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
+                AppendToBuffer(buffer, DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
             }
         }
         private void ExportSequence(StringBuilder buffer, Sequence sequence)
@@ -118,7 +126,11 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true));
+            if (!string.IsNullOrEmpty(sequence.OwnedTableName))
+            {
+                return;
+            }
+            AppendToBuffer(buffer, DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, false));
         }
         private void ExportComplexType(StringBuilder buffer, ComplexType type)
         {
@@ -126,31 +138,31 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportEnumType(StringBuilder buffer, EnumType type)
+        private void ExportEnumType(StringBuilder buffer, PgsqlEnumType type)
         {
             if (type == null)
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportBasicType(StringBuilder buffer, BasicType type)
+        private void ExportBasicType(StringBuilder buffer, PgsqlBasicType type)
         {
             if (type == null)
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private void ExportRangeType(StringBuilder buffer, RangeType type)
+        private void ExportRangeType(StringBuilder buffer, PgsqlRangeType type)
         {
             if (type == null)
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private async Task ExportAsync(Db2SourceContext dataSet, List<string> schemas, List<string> excludedSchemas, string baseDir, Encoding encoding)
         {
@@ -202,17 +214,17 @@ namespace Db2Source
                     {
                         ExportComplexType(buf, (ComplexType)obj);
                     }
-                    else if (obj is EnumType)
+                    else if (obj is PgsqlEnumType)
                     {
-                        ExportEnumType(buf, (EnumType)obj);
+                        ExportEnumType(buf, (PgsqlEnumType)obj);
                     }
-                    else if (obj is BasicType)
+                    else if (obj is PgsqlBasicType)
                     {
-                        ExportBasicType(buf, (BasicType)obj);
+                        ExportBasicType(buf, (PgsqlBasicType)obj);
                     }
-                    else if (obj is RangeType)
+                    else if (obj is PgsqlRangeType)
                     {
-                        ExportRangeType(buf, (RangeType)obj);
+                        ExportRangeType(buf, (PgsqlRangeType)obj);
                     }
                     if (buf.Length != 0)
                     {

@@ -326,7 +326,10 @@ namespace Db2Source
                 }
                 if (IsChecked(checkBoxSourceMain))
                 {
-                    buf.AppendLine(ctx.GetSQL(Target, string.Empty, ";", 0, true, IsChecked(checkBoxSourceKeyCons)));
+                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true, true))
+                    {
+                        buf.Append(s);
+                    }
                 }
                 List<Constraint> list = new List<Constraint>(Target.Constraints);
                 list.Sort();
@@ -339,25 +342,37 @@ namespace Db2Source
                             if (!IsChecked(checkBoxSourceMain) && IsChecked(checkBoxSourceKeyCons))
                             {
                                 // 本体ソース内で出力しているので本体を出力しない場合のみ
-                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
+                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                {
+                                    buf.Append(s);
+                                }
                             }
                             break;
                         case ConstraintType.Unique:
                             if (IsChecked(checkBoxSourceKeyCons))
                             {
-                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
+                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                {
+                                    buf.Append(s);
+                                }
                             }
                             break;
                         case ConstraintType.ForeignKey:
                             if (IsChecked(checkBoxSourceRefCons))
                             {
-                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
+                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                {
+                                    buf.Append(s);
+                                }
                             }
                             break;
                         case ConstraintType.Check:
                             if (IsChecked(checkBoxSourceCons))
                             {
-                                buf.Append(ctx.GetSQL(c, string.Empty, ";", 0, true, true));
+                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                {
+                                    buf.Append(s);
+                                }
                             }
                             break;
                     }
@@ -371,13 +386,19 @@ namespace Db2Source
                     lastLength = buf.Length;
                     if (!string.IsNullOrEmpty(Target.CommentText))
                     {
-                        buf.Append(ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true));
+                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
                     }
                     foreach (Column c in Target.Columns)
                     {
                         if (!string.IsNullOrEmpty(c.CommentText))
                         {
-                            buf.Append(ctx.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                            foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                            {
+                                buf.Append(s);
+                            }
                         }
                     }
                     if (lastLength < buf.Length)
@@ -390,7 +411,10 @@ namespace Db2Source
                     lastLength = buf.Length;
                     foreach (Trigger t in Target.Triggers)
                     {
-                        buf.Append(ctx.GetSQL(t, string.Empty, ";", 0, true));
+                        foreach (string s in ctx.GetSQL(t, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
                         buf.AppendLine();
                     }
                     if (lastLength < buf.Length)
@@ -403,7 +427,10 @@ namespace Db2Source
                     lastLength = buf.Length;
                     foreach (Index i in Target.Indexes)
                     {
-                        buf.Append(ctx.GetSQL(i, string.Empty, ";", 0, true));
+                        foreach (string s in ctx.GetSQL(i, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
                     }
                     if (lastLength < buf.Length)
                     {
@@ -415,7 +442,10 @@ namespace Db2Source
                     lastLength = buf.Length;
                     foreach (ForeignKeyConstraint f in Target.ReferFrom)
                     {
-                        buf.Append(ctx.GetSQL(f, string.Empty, ";", 0, true, true));
+                        foreach (string s in ctx.GetSQL(f, string.Empty, ";", 0, true, true))
+                        {
+                            buf.Append(s);
+                        }
                     }
                     if (lastLength < buf.Length)
                     {
@@ -568,12 +598,12 @@ namespace Db2Source
         {
             Window owner = App.FindVisualParent<Window>(this);
             Db2SourceContext ctx = Target.Context;
-            string sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
             SqlLogger logger = new SqlLogger();
             bool failed = false;
             try
             {
-                ctx.ExecSql(sql, logger.Log);
+                ctx.ExecSqls(sql, logger.Log);
             }
             catch (Exception t)
             {

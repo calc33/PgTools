@@ -1066,6 +1066,7 @@ namespace Db2Source
             public PgNamespace Schema;
             public PgClass IndexTable;
             public PgTablespace TableSpace;
+            public PgClass OwnedTable;
             public bool IsImplicit;
             public string[] IndexColumns;
             public List<PgAttribute> Columns = new List<PgAttribute>();
@@ -1117,6 +1118,10 @@ namespace Db2Source
                     return (uint)ret;
                 }
             }
+            internal string GetIdentifier()
+            {
+                return Schema?.nspname + "." + relname;
+            }
             public override void BeginFillReference(WorkingData working)
             {
                 Columns.Clear();
@@ -1151,6 +1156,13 @@ namespace Db2Source
                                 PgAttribute a = working.PgAttributes.FindByOidNum(indrelid, i);
                                 Columns.Add(a);
                             }
+                        }
+                        break;
+                    case 'S':
+                        OwnedTable = null;
+                        if (!string.IsNullOrEmpty(owned_table))
+                        {
+                            OwnedTable = working.FindPgClassByName(owned_schema, owned_table);
                         }
                         break;
                 }
@@ -1290,9 +1302,14 @@ namespace Db2Source
                 }
                 seq.Increment = (increment != 1) ? increment.ToString() : null;
                 seq.IsCycled = cycle_option;
-                seq.OwnedSchema = owned_schema;
-                seq.OwnedTable = owned_table;
+                seq.OwnedSchemaName = owned_schema;
+                seq.OwnedTableName = owned_table;
                 seq.OwnedColumn = owned_field;
+                Table owned = OwnedTable?.ToTable(context);
+                if (owned != null)
+                {
+                    owned.Sequences.Add(seq);
+                }
                 return seq;
             }
 
@@ -1405,22 +1422,34 @@ namespace Db2Source
                 //ArrayType = working.PgTypes.FindByOid(typarray);
             }
 
-            public BasicType ToBasicType(NpgsqlDataSet context)
+            private static string FuncStr(string value)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return string.Empty;
+                }
+                if (value == "-")
+                {
+                    return string.Empty;
+                }
+                return value;
+            }
+            public PgsqlBasicType ToBasicType(NpgsqlDataSet context)
             {
                 if (typtype != 'b' || typcategory == 'A')
                 {
                     return null;
                 }
-                BasicType ret = new BasicType(context, ownername, Schema?.nspname, typname)
+                PgsqlBasicType ret = new PgsqlBasicType(context, ownername, Schema?.nspname, typname)
                 {
-                    InputFunction = typinput,
-                    OutputFunction = typoutput,
-                    ReceiveFunction = typreceive,
-                    SendFunction = typsend,
-                    TypmodInFunction = typmodin,
-                    TypmodOutFunction = typmodout,
-                    AnalyzeFunction = typanalyze,
-                    //InternalLengthFunction = ,
+                    InputFunction = FuncStr(typinput),
+                    OutputFunction = FuncStr(typoutput),
+                    ReceiveFunction = FuncStr(typreceive),
+                    SendFunction = FuncStr(typsend),
+                    TypmodInFunction = FuncStr(typmodin),
+                    TypmodOutFunction = FuncStr(typmodout),
+                    AnalyzeFunction = FuncStr(typanalyze),
+                    InternalLength = typlen,
                     PassedbyValue = typbyval
                 };
                 switch (typalign)
@@ -1879,6 +1908,9 @@ namespace Db2Source
             public string description;
 #pragma warning restore 0649
             public PgClass TargetClass;
+            public PgConstraint TargetConstraint;
+            public PgProc TargetProc;
+            public PgTrigger TargetTrigger;
             public PgAttribute TargetAttribute;
             public static PgObjectCollection<PgDescription> Descriptions;
             public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, PgObjectCollection<PgDescription> store, Dictionary<uint, PgObject> dict)
@@ -1907,24 +1939,47 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
                 TargetClass = working.PgClasses.FindByOid(objoid);
+                TargetConstraint = working.PgConstraints.FindByOid(objoid);
+                TargetProc = working.PgProcs.FindByOid(objoid);
+                TargetTrigger = working.PgTriggers.FindByOid(objoid);
                 TargetAttribute = null;
                 if (objsubid != 0)
                 {
                     TargetAttribute = working.PgAttributes.FindByOidNum(objoid, objsubid);
                 }
             }
+            private string[] GetTargetName()
+            {
+                if (TargetClass != null)
+                {
+                    return new string[] { TargetClass.Schema?.nspname, TargetClass.relname };
+                }
+                if (TargetConstraint != null)
+                {
+                    return new string[] { TargetConstraint.Schema?.nspname, TargetConstraint.conname };
+                }
+                if (TargetProc != null)
+                {
+                    return new string[] { TargetProc.Schema?.nspname, TargetProc.GetInternalName() };
+                }
+                if (TargetTrigger != null)
+                {
+                    return new string[] { TargetTrigger.Target?.Schema.nspname, TargetTrigger.tgname };
+                }
+                return new string[2];
+            }
 
             public Comment ToComment(NpgsqlDataSet context)
             {
-                if (TargetClass == null)
-                {
-                    return null;
-                }
                 Comment c;
                 if (TargetAttribute != null)
                 {
                     c = new ColumnComment(context, TargetClass?.Schema?.nspname, TargetClass?.relname, TargetAttribute.attname, description, true);
                 }
+                //else if (TargetTrigger != null)
+                //{
+                //    c = new TriggerComment
+                //}
                 else
                 {
                     c = new Comment(context, TargetClass?.Schema?.nspname, TargetClass?.relname, description, true);
@@ -2049,9 +2104,14 @@ namespace Db2Source
             }
             public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
             {
-                return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgProc_SQL, connection, dict);
+                return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgTrigger_SQL, connection, dict);
             }
 
+            public static void FillByOid(PgObjectCollection<PgTrigger> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            {
+                string sql = AddCondition(DataSet.Properties.Resources.PgTrigger_SQL, string.Format("tgrelid = {0}::oid", oid));
+                store.Fill(sql, connection, dict, false);
+            }
             public override void FillReference(WorkingData working)
             {
                 Target = working.PgClasses.FindByOid(tgrelid);
@@ -2279,7 +2339,8 @@ namespace Db2Source
                 StringBuilder buf = new StringBuilder();
                 buf.Append(proname);
                 buf.Append('(');
-                PgType[] args = AllArgTypes ?? ArgTypes;
+                //PgType[] args = AllArgTypes ?? ArgTypes;
+                PgType[] args = ArgTypes;
                 if (args != null)
                 {
                     bool needComma = false;
@@ -2298,7 +2359,7 @@ namespace Db2Source
             }
             public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
-                string sql = AddCondition(DataSet.Properties.Resources.PgProc_SQL, string.Format("oid = {0}::oid", oid));
+                string sql = AddCondition(DataSet.Properties.Resources.PgProc_SQL, string.Format("p.oid = {0}::oid", oid));
                 store.Fill(sql, connection, dict, false);
             }
             public static uint? GetOid(WorkingData backend, NpgsqlConnection connection, string schema, string name, string[] argtypes)
@@ -2785,6 +2846,7 @@ namespace Db2Source
             public NpgsqlDataSet Context;
             public Dictionary<uint, PgObject> OidToObject = new Dictionary<uint, PgObject>();
             public PgObjectCollection<PgClass> PgClasses;
+            private Dictionary<string, PgClass> _nameToPgClass = null;
             public PgObjectCollection<PgConstraint> PgConstraints;
             public PgObjectCollection<PgNamespace> PgNamespaces;
             public PgOidSubidCollection<PgAttribute> PgAttributes;
@@ -2804,6 +2866,7 @@ namespace Db2Source
                 PgTablespaces = PgTablespace.Load(connection, null, OidToObject);
                 PgDatabases = PgDatabase.Load(connection, null, OidToObject);
                 PgClasses = PgClass.Load(connection, null, OidToObject);
+                _nameToPgClass = null;
                 PgTypes = PgType.Load(connection, null, OidToObject);
                 PgAttributes = PgAttribute.Load(connection, null);
                 PgProcs = PgProc.Load(connection, null, OidToObject);
@@ -2832,6 +2895,7 @@ namespace Db2Source
                 PgTablespaces.FillReference(this);
                 PgDatabases.FillReference(this);
                 PgClasses.FillReference(this);
+                _nameToPgClass = null;
                 PgTypes.FillReference(this);
                 PgAttributes.FillReference(this);
                 PgProcs.FillReference(this);
@@ -2882,24 +2946,29 @@ namespace Db2Source
                 PgAttribute.FillByOid(PgAttributes, connection, oid);
                 PgConstraint.FillByOid(PgConstraints, connection, oid, OidToObject);
                 PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
+                PgTrigger.FillByOid(PgTriggers, connection, oid, OidToObject);
 
                 PgClasses.BeginFillReference(this);
                 PgAttributes.BeginFillReference(this);
                 PgConstraints.BeginFillReference(this);
+                PgTriggers.BeginFillReference(this);
                 PgDescriptions.BeginFillReference(this);
 
                 PgClasses.FillReference(this);
                 PgAttributes.FillReference(this);
                 PgConstraints.FillReference(this);
+                PgTriggers.FillReference(this);
                 PgDescriptions.FillReference(this);
 
                 PgClasses.EndFillReference(this);
                 PgAttributes.EndFillReference(this);
                 PgConstraints.EndFillReference(this);
+                PgTriggers.EndFillReference(this);
                 PgDescriptions.EndFillReference(this);
 
                 LoadFromPgClass();
                 LoadFromPgConstraint();
+                LoadFromPgTrigger();
                 LoadFromPgDescription();
             }
             public void FillTypeByOid(uint oid, NpgsqlConnection connection)
@@ -3078,6 +3147,40 @@ namespace Db2Source
                     t.ToType(Context);
                 }
             }
+
+            private object _nameToPgClassLock = new object();
+            private void UpdateNameToPgClass()
+            {
+                if (_nameToPgClass != null)
+                {
+                    return;
+                }
+                lock (_nameToPgClassLock)
+                {
+                    if (_nameToPgClass != null)
+                    {
+                        return;
+                    }
+                    Dictionary<string, PgClass> dict = new Dictionary<string, PgClass>();
+                    foreach (PgClass c in PgClasses)
+                    {
+                        dict[c.GetIdentifier()] = c;
+                    }
+                    _nameToPgClass = dict;
+                }
+            }
+            internal PgClass FindPgClassByName(string schema, string name)
+            {
+                UpdateNameToPgClass();
+                string id = schema + "." + name;
+                PgClass c;
+                if (_nameToPgClass.TryGetValue(id, out c))
+                {
+                    return c;
+                }
+                return null;
+            }
+
         }
         private WorkingData _backend;
 
