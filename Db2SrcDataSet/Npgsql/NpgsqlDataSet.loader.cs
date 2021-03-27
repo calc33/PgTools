@@ -1371,6 +1371,11 @@ namespace Db2Source
             public int typndims;
             public uint typcollation;
             public string typdefault;
+            public string rngsubtypename;
+            public string rngcollationname;
+            public string rngsubopcname;
+            public string rngcanonical;
+            public string rngsubdiff;
             public string formatname;
             public string baseformatname;
             public string elemformatname;
@@ -1494,6 +1499,33 @@ namespace Db2Source
                 ret.Collatable = (typcollation != 0);
                 return ret;
             }
+            public PgsqlEnumType ToEnumType(NpgsqlDataSet context)
+            {
+                if (typtype != 'e')
+                {
+                    return null;
+                }
+                PgsqlEnumType ret = new PgsqlEnumType(context, ownername, Schema?.nspname, typname)
+                {
+                };
+                return ret;
+            }
+            public PgsqlRangeType ToRangeType(NpgsqlDataSet context)
+            {
+                if (typtype != 'r')
+                {
+                    return null;
+                }
+                PgsqlRangeType ret = new PgsqlRangeType(context, ownername, Schema?.nspname, typname)
+                {
+                    Subtype = rngsubtypename,
+                    SubtypeDiff = rngsubdiff,
+                    SubtypeOpClass = rngsubopcname,
+                    Collation = rngcollationname,
+                    CanonicalFunction = rngcanonical
+                };
+                return ret;
+            }
             public SchemaObject ToType(NpgsqlDataSet context)
             {
                 switch (typtype)
@@ -1505,11 +1537,11 @@ namespace Db2Source
                     case 'd':   // 派生型
                         return null;
                     case 'e':   // 列挙型
-                        return null;
+                        return ToEnumType(context);
                     case 'p':   // 疑似型
                         return null;
                     case 'r':   // 範囲型
-                        return null;
+                        return ToRangeType(context);
                     default:
                         return null;
                 }

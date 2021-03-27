@@ -764,6 +764,7 @@ namespace Db2Source
                     }
                 }
             }
+            l.Sort(ConnectionInfo.CompareByName);
             return l;
         }
         private List<ConnectionInfo> LoadKnownConnections()

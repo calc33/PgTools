@@ -233,8 +233,9 @@ namespace Db2Source
                 }
                 if (delIds.Count != 0)
                 {
-                    foreach (NamedObject item in _list)
+                    for (int i = _list.Count - 1; 0 <= i; i--)
                     {
+                        NamedObject item = _list[i];
                         if (item._released)
                         {
                             continue;

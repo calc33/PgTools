@@ -6,8 +6,15 @@ select t.oid,
   t.typmodin::text as typmodin, t.typmodout::text as typmodout,
   t.typanalyze::text as typanalyze, t.typalign, t.typstorage, t.typnotnull,
   t.typbasetype, t.typtypmod, t.typndims, t.typcollation, t.typdefault,
+  ts.typname as rngsubtypename, c.collname as rngcollationname,
+  op.opcname as rngsubopcname,
+  r.rngcanonical::text as rngcanonical, rngsubdiff::text as rngsubdiff,
   format_type(t.oid, null) as formatname,
   format_type(t.typbasetype, t.typtypmod) as baseformatname,
   format_type(t.typelem, null) as elemformatname,
   pg_get_userbyid(t.typowner) as ownername
 from pg_catalog.pg_type t
+  left outer join pg_catalog.pg_range r on (t.oid = r.rngtypid)
+  left outer join pg_catalog.pg_type ts on (r.rngsubtype = ts.oid)
+  left outer join pg_catalog.pg_collation c on (r.rngcollation = c.oid)
+  left outer join pg_catalog.pg_opclass op on (r.rngsubopc = op.oid)
