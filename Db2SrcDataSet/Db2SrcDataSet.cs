@@ -549,7 +549,7 @@ namespace Db2Source
                 {
                     return string.Format("TO_DATE('{0:yyyy-M-d}', 'YYYY-MM-DD')", dt);
                 }
-                return string.Format("TO_DATE('{0:yyyy-M-d HH:mm:ss}', 'YYYY-MM-DD HH:MI:SS')", dt);
+                return string.Format("TO_DATE('{0:yyyy-M-d HH:mm:ss}', 'YYYY-MM-DD HH24:MI:SS')", dt);
             }
             return ToLiteralStr(value.ToString());
         }

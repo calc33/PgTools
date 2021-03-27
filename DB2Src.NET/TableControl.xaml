@@ -97,6 +97,7 @@
         <ContextMenu x:Key="ContextMenuCopyTable" Placement="Bottom">
             <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
             <MenuItem Header="データのみ(_D)" Command="local:DataGridCommands.CopyTableContent" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
+            <MenuItem Header="_Insert文形式" Command="local:DataGridCommands.CopyTableAsInsert" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
         </ContextMenu>
         <!--<ContextMenu x:Key="ContextMenuPasteTable" Placement="Bottom">
             <MenuItem Header="セルに貼り付け" Command="ApplicationCommands.Paste" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>

@@ -459,13 +459,14 @@
                     <MenuItem Header="表をコピー(_V)">
                         <MenuItem Header="タイトル+データ(_T)" InputGestureText="Ctrl+Shift+T" Command="local:DataGridCommands.CopyTable"/>
                         <MenuItem Header="データのみ(_D)" InputGestureText="Ctrl+Shift+D" Command="local:DataGridCommands.CopyTableContent"/>
-                        <MenuItem Header="_INSERT文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert" Visibility="Collapsed"/>
+                        <MenuItem Header="_Insert文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert"/>
                         <MenuItem Header="_COPY文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsCopy" Visibility="Collapsed"/>
                     </MenuItem>
                     <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
                     <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
                     <Separator/>
                     <MenuItem Header="すべて選択(_A)" InputGestureText="Ctrl+A" Command="ApplicationCommands.SelectAll"/>
+                    <MenuItem Header="すべてのセルを選択(_A)" InputGestureText="Ctrl+Shift+A" Command="local:DataGridCommands.SelectAllCells"/>
                     <Separator/>
                     <MenuItem Header="SQLを正規化(_R)" Command="local:QueryCommands.NormalizeSQL"/>
                 </MenuItem>
