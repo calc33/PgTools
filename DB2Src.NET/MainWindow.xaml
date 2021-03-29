@@ -537,7 +537,7 @@
                             <local:MovableTabItem.Header>
                                 <TextBlock Text="クエリ"/>
                             </local:MovableTabItem.Header>
-                            <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}" Margin="0,-1,0,1"/>
+                            <local:QueryControl CurrentDataSet="{Binding CurrentDataSet, ElementName=window}"/>
                         </local:MovableTabItem>
                     </TabControl>
                     <GridSplitter Grid.Row="0" Height="4" Cursor="SizeNS" ResizeDirection="Rows" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"

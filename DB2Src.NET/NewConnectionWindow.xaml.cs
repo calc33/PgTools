@@ -63,7 +63,7 @@ namespace Db2Source
             }
             return attr1.Order.CompareTo(attr2.Order);
         }
-        private void OnTargetChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue == e.OldValue)
             {
@@ -274,7 +274,7 @@ namespace Db2Source
         {
             if (e.Property == TargetProperty)
             {
-                OnTargetChanged(e);
+                OnTargetPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -328,7 +328,7 @@ namespace Db2Source
             //
         }
 
-        private void window_Loaded(object sender, RoutedEventArgs e)
+        private void window_Initialized(object sender, EventArgs e)
         {
             ConnectionList l = App.Connections;
             ConnectionInfo info0 = new NewNpgsqlConnectionInfo(true);

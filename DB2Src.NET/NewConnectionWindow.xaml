@@ -5,7 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="新規データベース接続" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled" WindowStartupLocation="CenterOwner" Height="Auto" VerticalAlignment="Top" HorizontalAlignment="Left" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" SizeToContent="WidthAndHeight" Loaded="window_Loaded">
+        Title="新規データベース接続" Height="Auto" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled"
+        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight" Background="White"
+        HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+        Initialized="window_Initialized">
     <Window.Resources/>
     <StackPanel x:Name="StackPanelMain" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top">
         <Grid x:Name="GridProperties">
