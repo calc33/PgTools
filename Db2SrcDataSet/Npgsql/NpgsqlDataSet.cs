@@ -341,12 +341,12 @@ namespace Db2Source
         private static readonly string[] TimestampFormats = new string[]
         {
             "{0:yyyy-MM-dd HH:mm:ss}",
-            "{0:yyyy-MM-dd HH:mm:ss.f}",
-            "{0:yyyy-MM-dd HH:mm:ss.ff}",
-            "{0:yyyy-MM-dd HH:mm:ss.fff}",
-            "{0:yyyy-MM-dd HH:mm:ss.ffff}",
-            "{0:yyyy-MM-dd HH:mm:ss.fffff}",
-            "{0:yyyy-MM-dd HH:mm:ss.ffffff}",
+            "{0:yyyy-MM-dd HH:mm:ss.F}",
+            "{0:yyyy-MM-dd HH:mm:ss.FF}",
+            "{0:yyyy-MM-dd HH:mm:ss.FFF}",
+            "{0:yyyy-MM-dd HH:mm:ss.FFFF}",
+            "{0:yyyy-MM-dd HH:mm:ss.FFFFF}",
+            "{0:yyyy-MM-dd HH:mm:ss.FFFFFF}",
         };
         public override string GetImmediatedStr(ColumnInfo column, object value)
         {
@@ -366,13 +366,10 @@ namespace Db2Source
                     case "timestamp":
                         int n = Math.Min(column.Column.Precision ?? 6, TimestampFormats.Length - 1);
                         string s = string.Format(TimestampFormats[n], dt);
-                        if (0 < n)
-                        {
-                            s = s.TrimEnd('0');
-                        }
+                        s = s.TrimEnd('.');
                         return string.Format("timestamp '{0}'", s);
                     case "date":
-                        return string.Format("date {0:yyyy-MM-dd}", dt);
+                        return string.Format("date '{0:yyyy-MM-dd}'", dt);
                 }
             }
             return ToLiteralStr(value.ToString());

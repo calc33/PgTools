@@ -107,7 +107,7 @@ namespace Db2Source
         private static RoutedCommand InitCopyTable()
         {
             RoutedCommand ret = new RoutedCommand("表をコピー", typeof(DataGrid));
-            ret.InputGestures.Add(new KeyGesture(Key.T, ModifierKeys.Control | ModifierKeys.Shift));
+            ret.InputGestures.Add(new KeyGesture(Key.C, ModifierKeys.Control | ModifierKeys.Shift));
             return ret;
         }
         private static RoutedCommand InitCopyTableContent()
