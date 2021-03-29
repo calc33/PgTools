@@ -348,6 +348,23 @@ namespace Db2Source
             "{0:yyyy-MM-dd HH:mm:ss.FFFFF}",
             "{0:yyyy-MM-dd HH:mm:ss.FFFFFF}",
         };
+        private string GetImmediatedDateTimeStr(Column column, DateTime value)
+        {
+            string baseType = string.Empty;
+            int precision = 6;
+            if (column != null)
+            {
+                baseType = column.BaseType.ToLower();
+                precision = Math.Min(column.Precision ?? 6, TimestampFormats.Length - 1);
+            }
+            if (baseType == "date")
+            {
+                return string.Format("date '{0:yyyy-MM-dd}'", value);
+            }
+            string s = string.Format(TimestampFormats[precision], value);
+            s = s.TrimEnd('.');
+            return string.Format("timestamp '{0}'", s);
+        }
         public override string GetImmediatedStr(ColumnInfo column, object value)
         {
             if (value == null || value is DBNull)
@@ -358,19 +375,10 @@ namespace Db2Source
             {
                 return base.GetImmediatedStr(column, value);
             }
-            if (column.IsDateTime && column.Column != null && value != null)
+            if (column.IsDateTime)
             {
                 DateTime dt = Convert.ToDateTime(value);
-                switch (column.Column.BaseType.ToLower())
-                {
-                    case "timestamp":
-                        int n = Math.Min(column.Column.Precision ?? 6, TimestampFormats.Length - 1);
-                        string s = string.Format(TimestampFormats[n], dt);
-                        s = s.TrimEnd('.');
-                        return string.Format("timestamp '{0}'", s);
-                    case "date":
-                        return string.Format("date '{0:yyyy-MM-dd}'", dt);
-                }
+                return GetImmediatedDateTimeStr(column.Column, dt);
             }
             return ToLiteralStr(value.ToString());
         }
