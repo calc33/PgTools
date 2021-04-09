@@ -255,6 +255,7 @@ namespace Db2Source
 
         private void UpdateDataGridResult(IDbCommand command)
         {
+            dataGridResult.CancelEdit();
             DateTime start = DateTime.Now;
             try
             {
@@ -262,6 +263,11 @@ namespace Db2Source
                 try
                 {
                     Style style = FindResource("DataGridCellRefColumnStyle") as Style;
+                    Style elementStyle = Resources["DataGridTextBlockStyle"] as Style;
+
+                    Style elementStyleR = new Style(typeof(TextBlock), elementStyle);
+                    elementStyleR.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
+
                     reader = command.ExecuteReader();
                     DataGridControllerResult.Load(reader, Target);
                     foreach (DataGridColumn c in dataGridResult.Columns)
@@ -276,6 +282,21 @@ namespace Db2Source
                             continue;
                         }
                         c.CellStyle = style;
+                        if (c is DataGridTextColumn)
+                        {
+                            DataGridTextColumn tc = (DataGridTextColumn)c;
+                            if (info.IsNumeric)
+                            {
+                                tc.ElementStyle = elementStyleR;
+                                Style editStyle = new Style(typeof(TextBox), tc.EditingElementStyle);
+                                editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Right));
+                                tc.EditingElementStyle = editStyle;
+                            }
+                            else
+                            {
+                                tc.ElementStyle = elementStyle;
+                            }
+                        }
                     }
                 }
                 catch (Exception t)
@@ -526,8 +547,13 @@ namespace Db2Source
         }
         public void Fetch()
         {
+            Fetch(false);
+        }
+        public void Fetch(bool force)
+        {
+            dataGridResult.CommitEdit();
             _fetched = false;
-            if (DataGridControllerResult.IsModified)
+            if (!force && DataGridControllerResult.IsModified)
             {
                 MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 switch (ret)
@@ -582,6 +608,7 @@ namespace Db2Source
             finally
             {
                 UpdateTextBlockWarningLimit();
+                GC.Collect(0);
             }
             _fetched = true;
         }
@@ -695,7 +722,7 @@ namespace Db2Source
         private void ButtonRevert_Click(object sender, RoutedEventArgs e)
         {
             DataGridControllerResult.Revert();
-            Fetch();
+            //Fetch(true);
         }
 
         private void dataGridResult_AddingNewItem(object sender, AddingNewItemEventArgs e)
@@ -1047,28 +1074,28 @@ namespace Db2Source
                     {
                         return;
                     }
-                    gr.CancelEdit();
+                    gr.CommitEdit();
                     break;
                 case Key.PageDown:
                     if (tb.GetLineIndexFromCharacterIndex(tb.SelectionStart + tb.SelectionLength) < tb.LineCount - 1)
                     {
                         return;
                     }
-                    gr.CancelEdit();
+                    gr.CommitEdit();
                     break;
                 case Key.Home:
                     if (0 < tb.SelectionStart || 0 < tb.SelectionLength)
                     {
                         return;
                     }
-                    gr.CancelEdit();
+                    gr.CommitEdit();
                     break;
                 case Key.End:
                     if (tb.SelectionStart < tb.Text.Length)
                     {
                         return;
                     }
-                    gr.CancelEdit();
+                    gr.CommitEdit();
                     break;
             }
         }
@@ -1127,6 +1154,28 @@ namespace Db2Source
             }
             JoinTable join = obj.DataContext as JoinTable;
             JoinTables.Remove(join);
+        }
+
+        private void buttonSetNull_Click(object sender, RoutedEventArgs e)
+        {
+            DataGridCellInfo cell = dataGridResult.CurrentCell;
+            if (!cell.IsValid)
+            {
+                return;
+            }
+            Row row = cell.Item as Row;
+            if (row == null)
+            {
+                return;
+            }
+            ColumnInfo col = cell.Column.Header as ColumnInfo;
+            if (col == null)
+            {
+                return;
+            }
+            dataGridResult.CommitEdit();
+            //row[col.Index] = null;
+            row[col.Index] = DBNull.Value;
         }
     }
 

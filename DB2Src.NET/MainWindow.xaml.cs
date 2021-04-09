@@ -41,6 +41,30 @@ namespace Db2Source
         }
 
         private int _queryControlIndex = 1;
+
+        private DrawingBrush CreateDBNullBrush()
+        {
+            Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+            FormattedText text = new FormattedText("<null>", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, FontSize, SystemColors.GrayTextBrush);
+            //FontFamily font = Resources["CodeFontFamily"] as FontFamily;
+            //double size = (double)Resources["CodeFontSize"];
+            //Typeface typeface = new Typeface(font, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            //FormattedText text = new FormattedText("<null>", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, size, SystemColors.GrayTextBrush);
+            Geometry textGeometry = text.BuildGeometry(new Point());
+            DrawingGroup group = new DrawingGroup();
+            using (DrawingContext context = group.Open())
+            {
+                context.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, text.Width, text.Height));
+                context.DrawGeometry(SystemColors.GrayTextBrush, null, textGeometry);
+            }
+            DrawingBrush brush = new DrawingBrush(group);
+            brush.Stretch = Stretch.None;
+            brush.AlignmentX = AlignmentX.Left;
+            brush.AlignmentY = AlignmentY.Top;
+            brush.TileMode = TileMode.None;
+            return brush;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -554,6 +578,7 @@ namespace Db2Source
             RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
             RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             TitleBase = Title;
+            Application.Current.Resources["DBNullBrush"] = CreateDBNullBrush();
         }
 
         private void menuItemRefreshSchema_Click(object sender, RoutedEventArgs e)
@@ -616,19 +641,21 @@ namespace Db2Source
                 ServerName = App.Registry.GetString("Connection", "ServerName", App.Hostname),
                 ServerPort = App.Registry.GetInt32("Connection", "ServerPort", App.Port),
                 DatabaseName = App.Registry.GetString("Connection", "DatabaseName", App.Database),
-                UserName = App.Registry.GetString("Connection", "UserName", App.Username)
+                UserName = App.Registry.GetString("Connection", "UserName", App.Username),
+                SearchPath = App.Registry.GetString("Connection", "SearchPath", App.SearchPath),
             };
-            App.Connections.FillPassword(info);
             info.FillStoredPassword(false);
+            info = App.Connections.Find(info) as NpgsqlConnectionInfo;
             return info;
         }
         private void SaveConnectionInfoToRegistry(ConnectionInfo info)
         {
             NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
-            App.Registry.SetValue(0, "Connection", "ServerName", obj.ServerName);
+            App.Registry.SetValue(0, "Connection", "ServerName", obj.ServerName ?? string.Empty);
             App.Registry.SetValue(0, "Connection", "ServerPort", obj.ServerPort);
-            App.Registry.SetValue(0, "Connection", "DatabaseName", obj.DatabaseName);
-            App.Registry.SetValue(0, "Connection", "UserName", obj.UserName);
+            App.Registry.SetValue(0, "Connection", "DatabaseName", obj.DatabaseName ?? string.Empty);
+            App.Registry.SetValue(0, "Connection", "UserName", obj.UserName ?? string.Empty);
+            App.Registry.SetValue(0, "Connection", "SearchPath", obj.SearchPath ?? string.Empty);
         }
         private void Connect(ConnectionInfo info)
         {

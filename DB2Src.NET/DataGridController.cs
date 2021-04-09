@@ -146,166 +146,231 @@ namespace Db2Source
         Forward,
         Backward
     }
-    public class CellInfo: INotifyPropertyChanged
+    public class CellInfo: DependencyObject
     {
-        public Row Row { get; private set; }
-        public ColumnInfo Column { get; private set; }
-        public int Index { get; private set; }
+        public static readonly DependencyProperty CellProperty = DependencyProperty.Register("Cell", typeof(DataGridCell), typeof(CellInfo));
+        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(Row), typeof(CellInfo));
+        public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(CellInfo));
+        public static readonly DependencyProperty IndexProperty = DependencyProperty.Register("Index", typeof(int), typeof(CellInfo));
+        public static readonly DependencyProperty DataProperty = DependencyProperty.Register("Data", typeof(object), typeof(CellInfo));
+        public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(CellInfo));
+        public static readonly DependencyProperty IsFaultProperty = DependencyProperty.Register("IsFault", typeof(bool), typeof(CellInfo));
+        public static readonly DependencyProperty IsNullableProperty = DependencyProperty.Register("IsNullable", typeof(bool), typeof(CellInfo));
+        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(CellInfo));
+        public static readonly DependencyProperty HorizontalAlignmentProperty = DependencyProperty.Register("HorizontalAlignment", typeof(HorizontalAlignment), typeof(CellInfo));
+
+        public CellInfo() : base()
+        {
+            BindingOperations.SetBinding(this, RowProperty, new Binding("Cell.DataContext") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+            BindingOperations.SetBinding(this, ColumnProperty, new Binding("Cell.Column.Header") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+            BindingOperations.SetBinding(this, IndexProperty, new Binding("Column.Index") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+        }
+
+        public DataGridCell Cell
+        {
+            get
+            {
+                return (DataGridCell)GetValue(CellProperty);
+            }
+            set
+            {
+                SetValue(CellProperty, value);
+            }
+        }
+        public Row Row
+        {
+            get
+            {
+                return (Row)GetValue(RowProperty);
+            }
+            private set
+            {
+                SetValue(RowProperty, value);
+            }
+        }
+        public ColumnInfo Column
+        {
+            get
+            {
+                return (ColumnInfo)GetValue(ColumnProperty);
+            }
+            private set
+            {
+                SetValue(ColumnProperty, value);
+            }
+        }
+        private string _indexPropertyName;
+        public int Index
+        {
+            get
+            {
+                return (int)GetValue(IndexProperty);
+            }
+            private set
+            {
+                SetValue(IndexProperty, value);
+            }
+        }
         public object Data
         {
             get
             {
-                return Row[Index];
+                return GetValue(DataProperty);
             }
             set
             {
-                if (Row[Index] == value)
-                {
-                    return;
-                }
-                Row[Index] = value;
+                SetValue(DataProperty, value);
             }
         }
         public object Old
         {
             get
             {
-                return Row.Old(Index);
+                return Row?.Old(Index);
             }
         }
         public bool IsModified
         {
             get
             {
-                return Row.IsModified(Index);
+                return (bool)GetValue(IsModifiedProperty);
+            }
+            private set
+            {
+                SetValue(IsModifiedProperty, value);
             }
         }
         public bool IsFault
         {
             get
             {
-                return Column.IsNotNull && (Row[Index] == null);
+                return (bool)GetValue(IsFaultProperty);
+            }
+            private set
+            {
+                SetValue(IsFaultProperty, value);
             }
         }
         public bool IsNullable
         {
             get
             {
-                return Column.IsNullable;
+                return (bool)GetValue(IsNullableProperty);
             }
-        }
-        internal CellInfo(Row row, ColumnInfo column)
-        {
-            Row = row;
-            Column = column;
-            Index = Column.Index;
-        }
-
-        internal void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-    }
-
-    public class CellInfoCollection: IList<CellInfo>
-    {
-        private readonly List<CellInfo> _list = new List<CellInfo>();
-
-        internal CellInfoCollection(Row owner)
-        {
-            if (owner == null)
+            private set
             {
-                throw new ArgumentNullException("owner");
-            }
-            ColumnInfo[] cols = owner.Owner.Fields;
-            _list = new List<CellInfo>(cols.Length);
-            foreach (ColumnInfo col in cols)
-            {
-                _list.Add(new CellInfo(owner, col));
+                SetValue(IsNullableProperty, value);
             }
         }
-
-        #region IListの実装
-        public CellInfo this[int index]
+        public bool IsNull
         {
             get
             {
-                return _list[index];
+                return (bool)GetValue(IsNullProperty);
             }
-
-            set
+            private set
             {
-                _list[index] = value;
+                SetValue(IsNullProperty, value);
             }
         }
 
-        public int Count
+        public HorizontalAlignment HorizontalAlignment
         {
             get
             {
-                return _list.Count;
+                return (HorizontalAlignment)GetValue(HorizontalAlignmentProperty);
             }
-        }
-
-        public bool IsReadOnly
-        {
-            get
+            private set
             {
-                return false;
+                SetValue(HorizontalAlignmentProperty, value);
             }
         }
 
-        public void Add(CellInfo item)
+        private void UpdateData()
         {
-            _list.Add(item);
+            if (Row == null || Column == null)
+            {
+                Data = null;
+                IsModified = false;
+                IsFault = false;
+                IsNullable = true;
+                IsNull = false;
+                HorizontalAlignment = HorizontalAlignment.Left;
+                return;
+            }
+            object o = Row[Index];
+            Data = o;
+            IsModified = Row.IsModified(Index);
+            IsNullable = Column.IsNullable;
+            IsNull = (o == null) || (o is DBNull);
+            IsFault = Column.IsNotNull && IsNull;
+            HorizontalAlignment = Column.IsNumeric ? HorizontalAlignment.Right : HorizontalAlignment.Left;
         }
 
-        public void Clear()
+        private void Row_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            _list.Clear();
+            if (e.PropertyName == _indexPropertyName)
+            {
+                UpdateData();
+            }
         }
 
-        public bool Contains(CellInfo item)
+        private void RowPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            return _list.Contains(item);
+            if (e.OldValue == e.NewValue)
+            {
+                return;
+            }
+            Row row = e.OldValue as Row;
+            if (row != null)
+            {
+                row.PropertyChanged -= Row_PropertyChanged;
+            }
+            row = e.NewValue as Row;
+            if (row != null)
+            {
+                row.PropertyChanged += Row_PropertyChanged;
+            }
+            UpdateData();
+        }
+        private void ColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue == e.NewValue)
+            {
+                return;
+            }
+            UpdateData();
+        }
+        private void UpdateIndexPropertyName()
+        {
+            _indexPropertyName = string.Format("[{0}]", Index);
+        }
+        private void IndexPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            UpdateIndexPropertyName();
+            if (e.OldValue == e.NewValue)
+            {
+                return;
+            }
+            UpdateData();
         }
 
-        public void CopyTo(CellInfo[] array, int arrayIndex)
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            _list.CopyTo(array, arrayIndex);
+            if (e.Property == RowProperty)
+            {
+                RowPropertyChanged(e);
+            }
+            if (e.Property == ColumnProperty)
+            {
+                ColumnPropertyChanged(e);
+            }
+            if (e.Property == IndexProperty)
+            {
+                IndexPropertyChanged(e);
+            }
+            base.OnPropertyChanged(e);
         }
-
-        public IEnumerator<CellInfo> GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-
-        public int IndexOf(CellInfo item)
-        {
-            return _list.IndexOf(item);
-        }
-
-        public void Insert(int index, CellInfo item)
-        {
-            _list.Insert(index, item);
-        }
-
-        public bool Remove(CellInfo item)
-        {
-            return _list.Remove(item);
-        }
-
-        public void RemoveAt(int index)
-        {
-            _list.RemoveAt(index);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-        #endregion
     }
 
     public class Row: IList<object>, IComparable, IChangeSetRow, INotifyPropertyChanged
@@ -521,7 +586,6 @@ namespace Db2Source
                 return FlagsToChangeKind[_added ? 1 : 0, _deleted ? 1 : 0, (_hasChanges.HasValue && _hasChanges.Value) ? 1 : 0];
             }
         }
-        public CellInfoCollection Cells { get; private set; }
 
         internal void OnPropertyChanged(string propertyName)
         {
@@ -621,10 +685,6 @@ namespace Db2Source
             _owner?.OnCellValueChanged(new CellValueChangedEventArgs(this, index));
             OnPropertyChanged(string.Format("[{0}]", index));
             Owner.Rows.OnRowChanged(this);
-            CellInfo cell = Cells[index];
-            cell.OnPropertyChanged("Data");
-            cell.OnPropertyChanged("IsModified");
-            cell.OnPropertyChanged("IsFault");
             InvalidateHasChanges();
         }
 
@@ -753,7 +813,6 @@ namespace Db2Source
             _deleted = false;
             _data = new object[reader.FieldCount];
             _old = new object[reader.FieldCount];
-            Cells = new CellInfoCollection(this);
             for (int i = 0; i < _old.Length; i++)
             {
                 try
@@ -783,7 +842,6 @@ namespace Db2Source
             _deleted = false;
             _data = new object[owner.Fields.Length];
             _old = new object[owner.Fields.Length];
-            Cells = new CellInfoCollection(this);
             int i = 0;
             foreach (ColumnInfo info in owner.Fields)
             {
@@ -800,7 +858,6 @@ namespace Db2Source
             _deleted = false;
             _data = new object[0];
             _old = new object[0];
-            Cells = new CellInfoCollection(this);
         }
         public override bool Equals(object obj)
         {
@@ -2029,11 +2086,11 @@ namespace Db2Source
                     b.StringFormat = info.StringFormat;
                     b.Converter = new ColumnInfoConverter(info);
                     c.Binding = b;
+                    c.ElementStyle = Application.Current.Resources["DataGridTextBlockStyle"] as Style;
                     if (info.IsNumeric)
                     {
-                        Style style = new Style(typeof(TextBlock));
+                        Style style = new Style(typeof(TextBlock), c.ElementStyle);
                         style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
-                        style.Setters.Add(new Setter(FrameworkElement.MarginProperty, new Thickness(2.0, 1.0, 2.0, 1.0)));
                         c.ElementStyle = style;
                         Style editStyle = new Style(typeof(TextBox), c.EditingElementStyle);
                         editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Right));
@@ -2926,7 +2983,16 @@ namespace Db2Source
             {
                 return null;
             }
-            return row.Cells[col.Index];
+            CellInfo info = DataGridController.GetCellInfo(cell);
+            if (info == null)
+            {
+                info = new CellInfo()
+                {
+                    Cell = cell
+                };
+                DataGridController.SetCellInfo(cell, info);
+            }
+            return info;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -2974,4 +3040,21 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
+    //public class ColumnInfoToHorizontalAlignmentConverter: IValueConverter
+    //{
+    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        ColumnInfo info = value as ColumnInfo;
+    //        if (info == null)
+    //        {
+    //            return HorizontalAlignment.Left;
+    //        }
+    //        return info.IsNumeric ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+    //    }
+
+    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+    //}
 }
