@@ -151,16 +151,4 @@ namespace Db2Source
             Column.Visibility = IsVisible ? Visibility.Visible : Visibility.Collapsed;
         }
     }
-    public class VisibilityToBooleanConverter: IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return (Visibility)value == Visibility.Visible;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return ((value != null) && (bool)value) ? Visibility.Visible : Visibility.Collapsed;
-        }
-    }
 }

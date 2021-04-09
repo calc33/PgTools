@@ -997,6 +997,10 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
             }
+            public override string ToString()
+            {
+                return string.Format("{0}({1})", nspname, oid);
+            }
         }
         private class PgClass: PgObject
         {
@@ -2020,6 +2024,11 @@ namespace Db2Source
                 //Generated = c;
                 return c;
             }
+
+            public override string ToString()
+            {
+                return description;
+            }
         }
 //        private class PgDepend
 //        {
@@ -2274,6 +2283,11 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
+
+            public override string ToString()
+            {
+                return tgname;
+            }
         }
         private class PgTablespace: PgObject
         {
@@ -2323,6 +2337,11 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(ts);
                 return ts;
 
+            }
+
+            public override string ToString()
+            {
+                return spcname;
             }
         }
 
@@ -2555,6 +2574,11 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(fn);
                 return fn;
             }
+
+            public override string ToString()
+            {
+                return proname;
+            }
         }
 
         private class PgDatabase : PgObject
@@ -2620,6 +2644,11 @@ namespace Db2Source
                     Version = version
                 };
                 return ret;
+            }
+
+            public override string ToString()
+            {
+                return datname;
             }
         }
 

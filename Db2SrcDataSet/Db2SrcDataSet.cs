@@ -993,7 +993,7 @@ namespace Db2Source
                 s = CurrentSchema;
             }
             Schema ret = Schemas[s];
-            if (ret == null)
+            if (ret == null && !string.IsNullOrEmpty(s))
             {
                 ret = new Schema(this, s);
             }

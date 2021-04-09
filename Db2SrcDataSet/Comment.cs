@@ -136,7 +136,7 @@ namespace Db2Source
             Schema = context.RequireSchema(schema);
         }
 
-        internal Comment(Db2SourceContext context, string schema, string target, string comment, bool isLoaded) : base(context.RequireSchema(schema).Comments)
+        internal Comment(Db2SourceContext context, string schema, string target, string comment, bool isLoaded) : base(context.RequireSchema(schema)?.Comments)
         {
             Context = context;
             Schema = context.RequireSchema(schema);

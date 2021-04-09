@@ -223,7 +223,7 @@ namespace Db2Source
             UpdateColumnChanged?.Invoke(this, e);
         }
 
-        internal SchemaObject(Db2SourceContext context, string owner, string schema, string objectName, Schema.CollectionIndex index) : base(context.RequireSchema(schema).GetCollection(index))
+        internal SchemaObject(Db2SourceContext context, string owner, string schema, string objectName, Schema.CollectionIndex index) : base(context.RequireSchema(schema)?.GetCollection(index))
         {
             Context = context;
             Owner = owner;

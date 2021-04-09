@@ -274,13 +274,14 @@ namespace Db2Source
         {
             get
             {
-                if (string.IsNullOrEmpty(name))
-                {
-                    return null;
-                }
+                string s = name ?? string.Empty;
+                //if (string.IsNullOrEmpty(name))
+                //{
+                //    return null;
+                //}
                 UpdateList();
                 NamedObject ret;
-                if (!_nameDict.TryGetValue(name, out ret))
+                if (!_nameDict.TryGetValue(s, out ret))
                 {
                     return null;
                 }

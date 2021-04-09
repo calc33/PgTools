@@ -744,6 +744,24 @@ namespace Db2Source
         {
             SaveInternal();
         }
+
+        public bool FillPassword(ConnectionInfo info)
+        {
+            if (info == null)
+            {
+                return false;
+            }
+            foreach (ConnectionInfo c in _list)
+            {
+                if (info.ContentEquals(c))
+                {
+                    info.Password = c.Password;
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public ConnectionInfo this[int index] { get { return _list[index]; } set { _list[index] = value; } }
         public ConnectionInfo this[string name]
         {

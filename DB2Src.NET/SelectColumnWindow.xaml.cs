@@ -22,6 +22,43 @@ namespace Db2Source
     {
         public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(SelectColumnWindow));
         public static readonly DependencyProperty SelectedColumnProperty = DependencyProperty.Register("SelectedColumn", typeof(DataGridColumn), typeof(SelectColumnWindow));
+
+        public static readonly DependencyProperty IsMovingProperty = DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(SelectColumnWindow));
+
+        public static bool GetIsMoving(DependencyObject obj)
+        {
+            return (bool)obj.GetValue(IsMovingProperty);
+        }
+        public static void SetIsMoving(DependencyObject obj, bool value)
+        {
+            obj.SetValue(IsMovingProperty, value);
+        }
+
+        private DependencyObject _movingItem = null;
+        public DependencyObject MovingItem
+        {
+            get
+            {
+                return _movingItem;
+            }
+            set
+            {
+                if (_movingItem == value)
+                {
+                    return;
+                }
+                if (_movingItem != null)
+                {
+                    SetIsMoving(_movingItem, false);
+                }
+                _movingItem = value;
+                if (_movingItem != null)
+                {
+                    SetIsMoving(_movingItem, true);
+                }
+            }
+        }
+
         public SelectColumnWindow()
         {
             InitializeComponent();
@@ -275,6 +312,39 @@ namespace Db2Source
                 textBoxFilter.SelectAll();
                 textBoxFilter.Focus();
             }
+        }
+
+        private void ListBoxItem_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+
+        }
+
+        private void listBoxColumns_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MovingItem = null;
+            ListBox viewer = sender as ListBox;
+            HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
+            if (ret == null)
+            {
+                return;
+            }
+            MovingItem = App.FindVisualParent<ListBoxItem>(ret.VisualHit);
+        }
+    }
+    public class VisibilityToBooleanConverter : IValueConverter
+    {
+        public VisibilityToBooleanConverter()
+        {
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (Visibility)value == Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return ((value != null) && (bool)value) ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 }

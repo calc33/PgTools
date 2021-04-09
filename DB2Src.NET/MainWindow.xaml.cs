@@ -618,6 +618,7 @@ namespace Db2Source
                 DatabaseName = App.Registry.GetString("Connection", "DatabaseName", App.Database),
                 UserName = App.Registry.GetString("Connection", "UserName", App.Username)
             };
+            App.Connections.FillPassword(info);
             info.FillStoredPassword(false);
             return info;
         }
@@ -1060,44 +1061,6 @@ namespace Db2Source
             tabControlMain.SelectedItem = sel;
         }
 
-        private T FindVisualParent<T>(DependencyObject item) where T: FrameworkElement
-        {
-            if (item == null)
-            {
-                return null;
-            }
-            if (item is T)
-            {
-                return (T)item;
-            }
-            DependencyObject obj;
-            if (item is Visual)
-            {
-                obj = VisualTreeHelper.GetParent(item);
-            }
-            else
-            {
-                PropertyInfo prop = item.GetType().GetProperty("Parent");
-                obj = prop?.GetValue(item) as DependencyObject;
-            }
-            while (obj != null)
-            {
-                if (obj is Visual)
-                {
-                    obj = VisualTreeHelper.GetParent(obj);
-                }
-                else
-                {
-                    PropertyInfo prop = obj.GetType().GetProperty("Parent");
-                    obj = prop?.GetValue(obj) as DependencyObject;
-                }
-                if (obj is T)
-                {
-                    return (T)obj;
-                }
-            }
-            return null;
-        }
         private MovableTabItem _movingTabItem = null;
         internal MovableTabItem MovingTabItem
         {
@@ -1137,7 +1100,7 @@ namespace Db2Source
             }
             if (e.MouseDevice.LeftButton == MouseButtonState.Pressed)
             {
-                ScrollViewer sv = FindVisualParent<ScrollViewer>(item);
+                ScrollViewer sv = App.FindVisualParent<ScrollViewer>(item);
                 if (sv != null && !sv.IsMouseCaptured)
                 {
                     Mouse.Capture(sv);
@@ -1203,7 +1166,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                goal = FindVisualParent<MovableTabItem>(ret.VisualHit);
+                goal = App.FindVisualParent<MovableTabItem>(ret.VisualHit);
                 double x = e.MouseDevice.GetPosition(goal).X;
                 if (x < 0 || MovingTabItem.ActualWidth < x)
                 {
@@ -1247,7 +1210,8 @@ namespace Db2Source
             {
                 return;
             }
-            MovingTabItem = FindVisualParent<MovableTabItem>(ret.VisualHit);
+            Control c = App.FindVisualParent<Control>(ret.VisualHit);
+            MovingTabItem = c as MovableTabItem;
         }
     }
     public class MovableTabItem: TabItem

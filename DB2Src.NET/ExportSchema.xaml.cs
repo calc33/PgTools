@@ -95,16 +95,20 @@ namespace Db2Source
             }
             textBoxFolder.Text = dlg.SelectedPath;
         }
+        private void AppendStrArray(StringBuilder buffer, string[] values)
+        {
+            foreach (string s in values)
+            {
+                buffer.Append(s);
+            }
+        }
         private void ExportTable(StringBuilder buffer, Table table)
         {
             if (table == null)
             {
                 return;
             }
-            foreach (string s in DataSet.GetSQL(table, string.Empty, ";", 0, true, true))
-            {
-                buffer.AppendLine(s);
-            }
+            AppendStrArray(buffer, DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
             List<Constraint> list = new List<Constraint>(table.Constraints);
             list.Sort();
             int lastLength = buffer.Length;
@@ -116,13 +120,13 @@ namespace Db2Source
                         // 本体ソース内で出力している
                         break;
                     case ConstraintType.Unique:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.ForeignKey:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.Check:
-                        buffer.Append(DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                 }
             }
@@ -133,13 +137,13 @@ namespace Db2Source
             lastLength = buffer.Length;
             if (!string.IsNullOrEmpty(table.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, DataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in table.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    buffer.Append(DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendStrArray(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             if (lastLength < buffer.Length)
@@ -149,7 +153,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Trigger t in table.Triggers)
             {
-                buffer.Append(DataSet.GetSQL(t, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, DataSet.GetSQL(t, string.Empty, ";", 0, true));
                 buffer.AppendLine();
             }
             if (lastLength < buffer.Length)
@@ -159,7 +163,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Index i in table.Indexes)
             {
-                buffer.Append(DataSet.GetSQL(i, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, DataSet.GetSQL(i, string.Empty, ";", 0, true));
             }
             if (lastLength < buffer.Length)
             {
@@ -172,16 +176,16 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(view, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(view, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(view.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in view.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    buffer.Append(DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendStrArray(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             buffer.AppendLine();
@@ -192,10 +196,10 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(function, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(function, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(function.CommentText))
             {
-                buffer.Append(DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
             }
         }
         private void ExportSequence(StringBuilder buffer, Sequence sequence)
@@ -204,7 +208,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, true));
+            AppendStrArray(buffer, DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, true));
         }
         private void ExportComplexType(StringBuilder buffer, ComplexType type)
         {
@@ -212,7 +216,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportEnumType(StringBuilder buffer, PgsqlEnumType type)
         {
@@ -220,7 +224,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportBasicType(StringBuilder buffer, PgsqlBasicType type)
         {
@@ -228,7 +232,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportRangeType(StringBuilder buffer, PgsqlRangeType type)
         {
@@ -236,7 +240,7 @@ namespace Db2Source
             {
                 return;
             }
-            buffer.Append(DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private async Task ExportAsync(Db2SourceContext dataSet, IEnumerable<Schema> schemas, string baseDir)
         {

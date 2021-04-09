@@ -126,7 +126,7 @@
             </Grid>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0,0,0,4">
-            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" FontFamily="{DynamicResource CodeFontFamily}" FontSize="{DynamicResource CodeFontSize}"/>
+            <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
             <local:SearchTextBoxControl x:Name="searchTextBoxTableComment" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTableComment}" FontFamily="Yu Gothic UI"/>
         </Grid>
         <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>

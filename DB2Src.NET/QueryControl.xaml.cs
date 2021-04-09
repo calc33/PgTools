@@ -320,7 +320,14 @@ namespace Db2Source
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
-            DataGridCommands.CopyTable.Execute(null, dataGridResult);
+            Button btn = sender as Button;
+            ContextMenu menu = FindResource("ContextMenuCopyTable") as ContextMenu;
+            menu.PlacementTarget = btn;
+            menu.IsOpen = true;
+            foreach (MenuItem mi in menu.Items)
+            {
+                mi.CommandTarget = dataGridResult;
+            }
         }
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
@@ -331,6 +338,11 @@ namespace Db2Source
         private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
         {
             listBoxLog.Items.Clear();
+        }
+
+        private void buttonSearchWord_Click(object sender, RoutedEventArgs e)
+        {
+            ApplicationCommands.Find.Execute(null, dataGridResult);
         }
     }
     public class IsErrorBrushConverter: IValueConverter
