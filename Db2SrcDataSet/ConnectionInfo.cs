@@ -744,6 +744,10 @@ namespace Db2Source
         {
             SaveInternal();
         }
+        public void Save(ConnectionInfo info)
+        {
+            SaveInternal(info);
+        }
 
         public bool FillPassword(ConnectionInfo info)
         {
@@ -760,6 +764,28 @@ namespace Db2Source
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// 引数infoと同じ内容の登録済み設定を返す
+        /// 見つからない場合はinfoを返す
+        /// </summary>
+        /// <param name="info"></param>
+        /// <returns></returns>
+        public ConnectionInfo Find(ConnectionInfo info)
+        {
+            if (info == null)
+            {
+                return null;
+            }
+            foreach (ConnectionInfo item in _list)
+            {
+                if (item.ContentEquals(info))
+                {
+                    return item;
+                }
+            }
+            return info;
         }
 
         public ConnectionInfo this[int index] { get { return _list[index]; } set { _list[index] = value; } }

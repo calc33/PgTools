@@ -12,6 +12,8 @@
         <sys:Double x:Key="CodeFontSize">12</sys:Double>
         <FontFamily x:Key="TreeFontFamily">Yu Gothic UI</FontFamily>
         <sys:Double x:Key="TreeFontSize">12</sys:Double>
+        <sys:Object x:Key="DBNull"/>
+        <DrawingBrush x:Key="DBNullBrush"/> <!-- 描画内容はコード側で初期化 -->
         <!-- End of Application Preferences -->
         <!-- Global Definitions -->
         <x:Array x:Key="BasicTypeFunctions" Type="sys:String"/>
@@ -1128,6 +1130,15 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+        <Style x:Key="DataGridTextBlockStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="HorizontalAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource TemplatedParent}}"/>
+            <Setter Property="Margin" Value="2,0"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsNull, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource DBNullBrush}"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
     </Application.Resources>
 </Application>

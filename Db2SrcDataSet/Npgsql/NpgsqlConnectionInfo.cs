@@ -341,6 +341,7 @@ namespace Db2Source
         private const string DATABASE_DESC = "Postgres(NpgSql)";
         private int _serverPort;
         private string _databaseName;
+
         [InputField("ポート", 15)]
         public int ServerPort
         {
@@ -375,6 +376,10 @@ namespace Db2Source
                 KeyPropertyChanged();
             }
         }
+
+        [InputField("Search Path", 60)]
+        public string SearchPath { get; set; }
+
         public override string DatabaseType
         {
             get { return DATABASE_TYPE; }
@@ -431,6 +436,7 @@ namespace Db2Source
             ServerPort = builder.Port;
             UserName = builder.Username;
             Password = builder.Password;
+            SearchPath = builder.SearchPath;
         }
         public override string ToConnectionString(bool includePassord)
         {
@@ -453,6 +459,10 @@ namespace Db2Source
             if (File.Exists(pgpass))
             {
                 builder.Passfile = pgpass;
+            }
+            if (!string.IsNullOrEmpty(SearchPath))
+            {
+                builder.SearchPath = SearchPath;
             }
             return builder.ToString();
         }

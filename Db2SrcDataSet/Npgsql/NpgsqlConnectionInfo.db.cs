@@ -9,7 +9,7 @@ namespace Db2Source
 {
     partial class NpgsqlConnectionInfo
     {
-        private static readonly string[] _keyPropertyNames = new string[] { "ServerName", "ServerPort", "UserName" };
+        private static readonly string[] _keyPropertyNames = new string[] { "ServerName", "ServerPort", "UserName", "DatabaseName" };
         private static PropertyInfo[] InitKeyProperties()
         {
             List<PropertyInfo> l = new List<PropertyInfo>();

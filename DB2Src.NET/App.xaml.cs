@@ -107,6 +107,7 @@ namespace Db2Source
         public static string Database { get; private set; } = "postgres";
         public static string Username { get; private set; } = "postgres";
         //public static string Password { get; private set; } = null;
+        public static string SearchPath { get; private set; } = string.Empty;
         private static bool _showUsage = false;
         public static void AnalyzeArguments(string[] args)
         {
@@ -193,6 +194,7 @@ namespace Db2Source
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
         }
 

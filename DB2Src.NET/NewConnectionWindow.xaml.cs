@@ -297,7 +297,7 @@ namespace Db2Source
                 MessageBox.Show(t.Message, "接続エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            ConnectionList.Save();
+            ConnectionList.Save(Target);
             DialogResult = true;
         }
 

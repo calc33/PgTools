@@ -758,6 +758,7 @@ namespace Db2Source
                             {
                                 ConnectionInfo obj = ctor.Invoke(null) as ConnectionInfo;
                                 obj.ReadFromReader(reader, props);
+                                obj.IsPasswordHidden = true;
                                 l.Add(obj);
                             }
                         }
@@ -793,6 +794,25 @@ namespace Db2Source
                 foreach (ConnectionInfo info in _list)
                 {
                     info.SaveChanges(conn);
+                }
+            }
+        }
+        private void SaveInternal(ConnectionInfo info)
+        {
+            bool isNew = !info.Id.HasValue;
+            using (SQLiteConnection conn = RequireDatabase(Path))
+            {
+                info.SaveChanges(conn);
+            }
+            if (isNew && info.Id.HasValue)
+            {
+                for (int i = _list.Count - 1; 0 <= i; i--)
+                {
+                    ConnectionInfo obj = _list[i];
+                    if (obj.Id == info.Id && !ReferenceEquals(obj, info))
+                    {
+                        _list.RemoveAt(i);
+                    }
                 }
             }
         }
