@@ -10,7 +10,12 @@
         <local:VisibilityToBooleanConverter x:Key="VisibilityToBooleanConverter"/>
         <DataTemplate x:Key="ColumnItemTemplate">
             <Grid>
-                <CheckBox Content="{Binding Header}" IsChecked="{Binding Visibility, Converter={StaticResource VisibilityToBooleanConverter}, Mode=TwoWay}"/>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <CheckBox IsChecked="{Binding Visibility, Converter={StaticResource VisibilityToBooleanConverter}, Mode=TwoWay}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding Header}" VerticalAlignment="Center" Margin="2,0,0,0"/>
             </Grid>
         </DataTemplate>
         <Style x:Key="ListBoxItemStyle1" TargetType="{x:Type ListBoxItem}">
@@ -26,7 +31,8 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ListBoxItem}">
                         <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" PreviewMouseMove="ListBoxItem_PreviewMouseMove"/>
+                            <!--<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" PreviewMouseMove="ListBoxItem_PreviewMouseMove"/>-->
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <MultiTrigger>
@@ -60,9 +66,51 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <SolidColorBrush x:Key="ListBox.Static.Background" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="ListBox.Static.Border" Color="#FFABADB3"/>
+        <SolidColorBrush x:Key="ListBox.Disabled.Background" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="ListBox.Disabled.Border" Color="#FFD9D9D9"/>
+        <Style TargetType="{x:Type ListBox}">
+            <Setter Property="Background" Value="{StaticResource ListBox.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBox.Static.Border}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBox}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="1" SnapsToDevicePixels="true">
+                            <!--<ScrollViewer x:Name="listBoxScrollViewer" Focusable="false" Padding="{TemplateBinding Padding}" MouseMove="listBoxScrollViewer_MouseMove" PreviewMouseUp="listBoxScrollViewer_PreviewMouseUp" PreviewMouseDown="listBoxScrollViewer_PreviewMouseDown">-->
+                            <ScrollViewer x:Name="listBoxScrollViewer" Focusable="false" Padding="{TemplateBinding Padding}">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource ListBox.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource ListBox.Disabled.Border}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsGrouping" Value="true"/>
+                                    <Condition Property="VirtualizingPanel.IsVirtualizingWhenGrouping" Value="false"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="ScrollViewer.CanContentScroll" Value="false"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <DockPanel>
         <TextBox x:Name="textBoxFilter" ToolTip="(項目名で絞り込み)" DockPanel.Dock="Top" TextChanged="textBoxFilter_TextChanged" BorderThickness="1,1,1,0" PreviewKeyDown="textBoxFilter_PreviewKeyDown"/>
-        <ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" PreviewMouseDown="listBoxColumns_PreviewMouseDown" />
+        <!--<ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" PreviewMouseDown="listBoxColumns_PreviewMouseDown"/>-->
+        <ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}"/>
     </DockPanel>
 </Window>

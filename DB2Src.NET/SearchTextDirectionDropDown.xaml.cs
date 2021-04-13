@@ -33,7 +33,7 @@ namespace Db2Source
                     FontStretch = _target.FontStretch;
                     FontStyle = _target.FontStyle;
                     FontWeight = _target.FontWeight;
-                    WindowUtil.MoveFormNearby(this, _target, false, false);
+                    WindowLocator.LocateNearby(_target, this, NearbyLocation.DownLeft);
                 }
             }
         }

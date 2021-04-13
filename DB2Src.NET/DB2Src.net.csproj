@@ -101,6 +101,7 @@
     <Compile Include="AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="MovableTabItem.cs" />
     <Compile Include="PgsqlTypeControl.xaml.cs">
       <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
     </Compile>
@@ -197,11 +198,7 @@
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ColumnFilter.xaml.cs">
-      <DependentUpon>ColumnFilter.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WindowLocator.cs" />
-    <Compile Include="WindowUtility.cs" />
     <Page Include="AwaitWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -323,10 +320,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ViewControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="ColumnFilter.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

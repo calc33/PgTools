@@ -285,7 +285,7 @@ namespace Db2Source
                 delim = ", ";
             }
             buf.Append(") references ");
-            buf.Append(rcons.Table.EscapedIdentifier(constraint.TableSchema));
+            buf.Append(rcons.Table.EscapedIdentifier(CurrentSchema));
             if (rcons.ConstraintType == ConstraintType.Unique)
             {
                 delim = "(";
@@ -484,7 +484,7 @@ namespace Db2Source
                 buf.Append("index ");
                 buf.Append(GetEscapedIdentifier(index.Name));
                 buf.Append(" on ");
-                buf.Append(GetEscapedIdentifier(index.TableSchema, index.TableName, null));
+                buf.Append(GetEscapedIdentifier(index.TableSchema, index.TableName, CurrentSchema));
                 if (!string.IsNullOrEmpty(index.IndexType))
                 {
                     buf.Append(" using ");
@@ -1119,7 +1119,7 @@ namespace Db2Source
             if (after.Name != before.Name)
             {
                 l.Add(string.Format("{0}{1}alter tablespace {2} on {3} rename to {4}{5}{6}", spc, prefix,
-                    before.Name, before.Table.EscapedIdentifier(string.Empty), after.Name, postfix, nl));
+                    before.Name, before.Table.EscapedIdentifier(CurrentSchema), after.Name, postfix, nl));
             }
             return new string[0];
         }
@@ -1270,7 +1270,7 @@ namespace Db2Source
             string spc = new string(' ', indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("alter table {0} drop constraint {1}", constraint.Table.EscapedIdentifier(CurrentSchema), constraint.EscapedIdentifier(constraint.Table.SchemaName));
+            buf.AppendFormat("alter table {0} drop constraint {1}", constraint.Table.EscapedIdentifier(CurrentSchema), GetEscapedIdentifier(constraint.Name));
             buf.Append(postfix);
             if (addNewline)
             {

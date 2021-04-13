@@ -26,6 +26,7 @@
         <local:RowVisibleConverter x:Key="RowVisibleConverter"/>
         <local:HideNewItemPlaceHolderConverter x:Key="HideNewItemPlaceHolderConverter"/>
         <local:HasErrorToVisibilityConverter x:Key="HasErrorToVisibilityConverter"/>
+        <local:DataGridCellToCellInfoConverter x:Key="DataGridCellToCellInfoConverter"/>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -93,6 +94,7 @@
         <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
+        <SolidColorBrush x:Key="DataGrid.SelectedRow.Background" Color="#FFEDF5FC"/>
         <DataTemplate x:Key="ImageAdd14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
@@ -914,7 +916,7 @@
                                                     </Grid.ColumnDefinitions>
                                                     <ScrollBar x:Name="PART_HorizontalScrollBar" Grid.Column="1" Maximum="{TemplateBinding ScrollableWidth}" Orientation="Horizontal" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
                                                 </Grid>
-                                                <Button x:Name="PART_ColumnSearchButton" Focusable="False" ContentTemplate="{StaticResource ImageDropDown10}" Padding="2" BorderThickness="0" ToolTip="項目を検索" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" BorderBrush="{TemplateBinding BorderBrush}" Grid.Column="2" Click="GridSelectColumnButton_Click" Background="{x:Null}"/>
+                                                <Button x:Name="PART_ColumnSearchButton" Focusable="False" ContentTemplate="{StaticResource ImageDropDown10}" Padding="2" BorderThickness="0" ToolTip="項目を検索" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Visibility="{Binding HeadersVisibility, ConverterParameter={x:Static DataGridHeadersVisibility.All}, Converter={x:Static DataGrid.HeadersVisibilityConverter}, RelativeSource={RelativeSource AncestorType={x:Type DataGrid}}}" BorderBrush="{TemplateBinding BorderBrush}" Grid.Column="2" Click="GridSelectColumnButton_Click" Background="Transparent"/>
                                             </Grid>
                                         </ControlTemplate>
                                     </ScrollViewer.Template>
@@ -936,6 +938,7 @@
             </Style.Triggers>
         </Style>
         <Style x:Key="DataGridControlCellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="local:DataGridController.CellInfo" Value="{Binding RelativeSource={RelativeSource Self}, Converter={StaticResource DataGridCellToCellInfoConverter}, Mode=OneWay}"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -948,9 +951,11 @@
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
-                
             </Setter>
             <Style.Triggers>
+                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsCurrentRow, RelativeSource={RelativeSource Self}}" Value="true">
+                    <Setter Property="Background" Value="{StaticResource DataGrid.SelectedRow.Background}"/>
+                </DataTrigger>
                 <Trigger Property="IsKeyboardFocusWithin" Value="True">
                     <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
                 </Trigger>

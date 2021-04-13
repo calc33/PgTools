@@ -149,7 +149,7 @@ namespace Db2Source
     public class CellInfo: DependencyObject
     {
         public static readonly DependencyProperty CellProperty = DependencyProperty.Register("Cell", typeof(DataGridCell), typeof(CellInfo));
-        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(Row), typeof(CellInfo));
+        public static readonly DependencyProperty ItemProperty = DependencyProperty.Register("Item", typeof(object), typeof(CellInfo));
         public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(CellInfo));
         public static readonly DependencyProperty IndexProperty = DependencyProperty.Register("Index", typeof(int), typeof(CellInfo));
         public static readonly DependencyProperty DataProperty = DependencyProperty.Register("Data", typeof(object), typeof(CellInfo));
@@ -158,10 +158,11 @@ namespace Db2Source
         public static readonly DependencyProperty IsNullableProperty = DependencyProperty.Register("IsNullable", typeof(bool), typeof(CellInfo));
         public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(CellInfo));
         public static readonly DependencyProperty HorizontalAlignmentProperty = DependencyProperty.Register("HorizontalAlignment", typeof(HorizontalAlignment), typeof(CellInfo));
+        public static readonly DependencyProperty IsCurrentRowProperty = DependencyProperty.Register("IsCurrentRow", typeof(bool), typeof(CellInfo));
 
         public CellInfo() : base()
         {
-            BindingOperations.SetBinding(this, RowProperty, new Binding("Cell.DataContext") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
+            BindingOperations.SetBinding(this, ItemProperty, new Binding("Cell.DataContext") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
             BindingOperations.SetBinding(this, ColumnProperty, new Binding("Cell.Column.Header") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
             BindingOperations.SetBinding(this, IndexProperty, new Binding("Column.Index") { RelativeSource = new RelativeSource(RelativeSourceMode.Self) });
         }
@@ -181,11 +182,22 @@ namespace Db2Source
         {
             get
             {
-                return (Row)GetValue(RowProperty);
+                return Item as Row;
             }
             private set
             {
-                SetValue(RowProperty, value);
+                Item = value;
+            }
+        }
+        public object Item
+        {
+            get
+            {
+                return GetValue(ItemProperty);
+            }
+            private set
+            {
+                SetValue(ItemProperty, value);
             }
         }
         public ColumnInfo Column
@@ -286,6 +298,27 @@ namespace Db2Source
             }
         }
 
+        public bool IsCurrentRow
+        {
+            get
+            {
+                return (bool)GetValue(IsCurrentRowProperty);
+            }
+            set
+            {
+                SetValue(IsCurrentRowProperty, value);
+            }
+        }
+        
+        private DataGrid _grid;
+        public void UpdateCurrentRow()
+        {
+            if (_grid == null)
+            {
+                return;
+            }
+            IsCurrentRow = (_grid.CurrentCell.Item as Row == Row);
+        }
         private void UpdateData()
         {
             if (Row == null || Column == null)
@@ -315,7 +348,7 @@ namespace Db2Source
             }
         }
 
-        private void RowPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void ItemPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue == e.NewValue)
             {
@@ -354,12 +387,16 @@ namespace Db2Source
             }
             UpdateData();
         }
-
+        private void CellPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DataGridCell cell = e.NewValue as DataGridCell;
+            _grid = App.FindVisualParent<DataGrid>(cell);
+        }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == RowProperty)
+            if (e.Property == ItemProperty)
             {
-                RowPropertyChanged(e);
+                ItemPropertyChanged(e);
             }
             if (e.Property == ColumnProperty)
             {
@@ -368,6 +405,10 @@ namespace Db2Source
             if (e.Property == IndexProperty)
             {
                 IndexPropertyChanged(e);
+            }
+            if (e.Property == CellProperty)
+            {
+                CellPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }
@@ -1479,11 +1520,47 @@ namespace Db2Source
             }
         }
 
+        /// <summary>
+        /// Grid中の選択されたセルのうち
+        /// ascend=true の場合は先頭のセルを返す
+        /// ascend=falseの場合は末尾のセルを返す
+        /// どのセルも選択されていない場合はnullを返す
+        /// </summary>
+        /// <param name="ascend"></param>
+        /// <returns></returns>
+        public DataGridCellInfo? GetSelectedCell(bool ascend)
+        {
+            IList<DataGridCellInfo> l = Grid.SelectedCells;
+            if (0 < l.Count)
+            {
+                return ascend ? l.First() : l.Last();
+            }
+            return null;
+        }
+
+        public bool GetCurentCellPosition(bool searchForward, out int row, out int column)
+        {
+            row = -1;
+            column = -1;
+            if (Grid == null)
+            {
+                return false;
+            }
+            DataGridCellInfo? info = GetSelectedCell(searchForward);
+            if (!info.HasValue || !info.Value.IsValid)
+            {
+                return false;
+            }
+            row = Grid.Items.IndexOf(info.Value.Item);
+            column = info.Value.Column.DisplayIndex;
+            return true;
+        }
+
         private bool _isSearchEndValid = false;
         private int _searchEndRow = -1;
         private int _searchEndColumn = -1;
 
-        private void GetSearchEnd(out bool isFirst, out int endRow, out int endColumn)
+        private void GetSearchEnd(DataGridInfo info, bool searchForward, out bool isFirst, out int endRow, out int endColumn)
         {
             if (_isSearchEndValid)
             {
@@ -1492,14 +1569,23 @@ namespace Db2Source
                 endColumn = _searchEndColumn;
                 return;
             }
-            _isSearchEndValid = GetCurentCellPosition(out _searchEndRow, out _searchEndColumn);
-            if (_isSearchEndValid)
-            {
-                _searchEndColumn = GetDataPosition(_searchEndColumn);
-            }
+            _isSearchEndValid = GetCurentCellPosition(searchForward, out _searchEndRow, out _searchEndColumn);
             isFirst = true;
             endRow = _searchEndRow;
             endColumn = _searchEndColumn;
+            if (info.EndRow <= endRow)
+            {
+                endRow = info.EndRow;
+                endColumn = info.EndColumn;
+            }
+            else if (endColumn < info.StartColumn)
+            {
+                endColumn = info.StartColumn;
+            }
+            else if (info.EndColumn < endColumn)
+            {
+                endColumn = info.EndColumn;
+            }
         }
         private void InvalidateSearchEnd()
         {
@@ -2018,6 +2104,7 @@ namespace Db2Source
         {
             Grid.IsVisibleChanged += Grid_IsVisibleChanged;
             Grid_IsVisibleChanged(Grid, new DependencyPropertyChangedEventArgs(DataGrid.IsVisibleProperty, false, Grid.IsVisible));
+            Grid.SelectedCellsChanged += Grid_SelectedCellsChanged;
             bool editable = (Table != null) && (Table.FirstCandidateKey != null) && (Table.FirstCandidateKey.Columns.Length != 0);
             Grid.IsReadOnly = !editable;
             Grid.CanUserAddRows = editable;
@@ -2034,7 +2121,7 @@ namespace Db2Source
                 //btn.HeaderTemplate = Application.Current.FindResource("ImageRollback14") as DataTemplate;
                 //Grid.Columns.Add(btn);
 
-                DataGridTemplateColumn chk = new DataGridTemplateColumn
+                DataGridTemplateColumn chk = new DataGridTemplateColumn()
                 {
                     CellTemplate = Application.Current.FindResource("DataGridControlColumnTemplate") as DataTemplate,
                     CellStyle = Application.Current.FindResource("DataGridControlCellStyle") as Style,
@@ -2111,6 +2198,61 @@ namespace Db2Source
                 i++;
             }
             Grid.ItemsSource = Rows;
+        }
+
+        private void Grid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            List<object> lAdd = new List<object>();
+            foreach (DataGridCellInfo info in e.AddedCells)
+            {
+                lAdd.Add(info.Item);
+            }
+            lAdd.Sort();
+            for (int i = lAdd.Count - 1; 0 < i; i--)
+            {
+                if (lAdd[i] == lAdd[i - 1])
+                {
+                    lAdd.RemoveAt(i);
+                }
+            }
+            List<object> lDel = new List<object>();
+            foreach (DataGridCellInfo info in e.RemovedCells)
+            {
+                lDel.Add(info.Item);
+            }
+            lDel.Sort();
+            for (int i = lDel.Count - 1; 0 < i; i--)
+            {
+                if (lDel[i] == lDel[i - 1])
+                {
+                    lDel.RemoveAt(i);
+                }
+            }
+            for (int i = lDel.Count - 1; 0 <= i; i--)
+            {
+                int j = lAdd.IndexOf(lDel[i]);
+                if (j != -1)
+                {
+                    lDel.RemoveAt(i);
+                    lAdd.RemoveAt(j);
+                }
+            }
+            List<object> l = new List<object>();
+            l.AddRange(lAdd);
+            l.AddRange(lDel);
+            foreach (object item in l)
+            {
+                foreach (DataGridColumn col in Grid.Columns)
+                {
+                    DataGridCell cell = App.FindLogicalParent<DataGridCell>(col.GetCellContent(item));
+                    if (cell == null)
+                    {
+                        continue;
+                    }
+                    CellInfo info = GetCellInfo(cell);
+                    info?.UpdateCurrentRow();
+                }
+            }
         }
 
         private void Grid_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -2234,20 +2376,104 @@ namespace Db2Source
                 StringFormat = fmt;
             }
         }
-        private ColumnIndexInfo[] GetColumnsByDisplayIndex()
+        private struct DataGridInfo
         {
-            List<ColumnIndexInfo> cols = new List<ColumnIndexInfo>();
+            private ColumnIndexInfo[] _displayColumnMap;
+            private int _startRow;
+            private int _startColumn;
+            private int _endRow;
+            private int _endColumn;
+            
+            public ColumnIndexInfo[] ColumnsByDisplayIndex { get { return _displayColumnMap; } }
+            public int StartRow { get { return _startRow; } }
+            public int StartColumn { get { return _startColumn; } }
+            public int EndRow { get { return _endRow; } }
+            public int EndColumn { get { return _endColumn; } }
+
+            public void MoveNext(ref int row, ref int column)
+            {
+                column++;
+                if (column <= EndColumn)
+                {
+                    return;
+                }
+                column = StartColumn;
+                row++;
+                if (row <= EndRow)
+                {
+                    return;
+                }
+                row = StartRow;
+            }
+            public void MovePrevious(ref int row, ref int column)
+            {
+                column--;
+                if (StartColumn <= column)
+                {
+                    return;
+                }
+                column = EndColumn;
+                row--;
+                if (StartRow <= row)
+                {
+                    return;
+                }
+                row = EndRow;
+            }
+            private static ColumnIndexInfo[] GetDisplayColumnsMap(ColumnIndexInfo[] columns)
+            {
+                int n = 0;
+                foreach (ColumnIndexInfo c in columns)
+                {
+                    n = Math.Max(n, c.Column.DisplayIndex + 1);
+                }
+                ColumnIndexInfo[] cols = new ColumnIndexInfo[n];
+                foreach (ColumnIndexInfo c in columns)
+                {
+                    cols[c.Column.DisplayIndex] = c;
+                }
+                return cols;
+
+            }
+
+            public DataGridInfo(DataGridController controller)
+            {
+                if (controller == null)
+                {
+                    throw new ArgumentNullException("controller");
+                }
+                if (controller.Grid == null)
+                {
+                    throw new ArgumentNullException("controller.Grid");
+                }
+                DataGrid grid = controller.Grid;
+                ColumnIndexInfo[] cols = controller.GetDisplayColumns();
+                _displayColumnMap = GetDisplayColumnsMap(cols);
+                _startRow = 0;
+                for (_endRow = grid.Items.Count - 1; 0 <= _endRow && !(grid.Items[_endRow] is Row); _endRow--) ;
+                _startColumn = 0;
+                _endColumn = -1;
+                if (0 < cols.Length)
+                {
+                    _startColumn = cols.First().Column.DisplayIndex;
+                    _endColumn = cols.Last().Column.DisplayIndex;
+                }
+            }
+        }
+        private ColumnIndexInfo[] GetDisplayColumns()
+        {
+            List<ColumnIndexInfo> l = new List<ColumnIndexInfo>();
             for (int c = 0; c < Grid.Columns.Count; c++)
             {
                 DataGridColumn col = Grid.Columns[c];
                 int p;
                 if (col.Visibility == Visibility.Visible && (_columnToDataIndex.TryGetValue(col, out p) && p != -1))
                 {
-                    cols.Add(new ColumnIndexInfo(col, p));
+                    l.Add(new ColumnIndexInfo(col, p));
                 }
             }
-            cols.Sort(CompareByDisplayIndex);
-            return cols.ToArray();
+            l.Sort(CompareByDisplayIndex);
+            return l.ToArray();
         }
         public DataGridColumn[] GetDataGridColumnsByDisplayIndex()
         {
@@ -2282,50 +2508,6 @@ namespace Db2Source
                 s = string.Format(info.StringFormat, cell);
             }
             return s;
-        }
-
-        public DataGridCellInfo? GetSelectedCell()
-        {
-            IList<DataGridCellInfo> l = Grid.SelectedCells;
-            if (0 < l.Count)
-            {
-                return l[0];
-            }
-            return null;
-        }
-
-        public bool GetCurentCellPosition(out int row, out int column)
-        {
-            row = -1;
-            column = -1;
-            if (Grid == null)
-            {
-                return false;
-            }
-            DataGridCellInfo? info = GetSelectedCell();
-            if (!info.HasValue || !info.Value.IsValid)
-            {
-                return false;
-            }
-            row = Grid.Items.IndexOf(info.Value.Item);
-            column = info.Value.Column.DisplayIndex;
-            return true;
-        }
-
-        public int GetDataPosition(int column)
-        {
-            int cN = Grid.Columns.Count;
-            if (column < 0 || cN <= column)
-            {
-                return -1;
-            }
-            DataGridColumn col = Grid.Columns[column];
-            int pos;
-            if (_columnToDataIndex.TryGetValue(col, out pos))
-            {
-                return pos;
-            }
-            return -1;
         }
 
         private delegate bool MatchTextProc(string text, bool ignoreCase);
@@ -2429,7 +2611,7 @@ namespace Db2Source
             }
             win.Owner = Window.GetWindow(Grid);
             win.Target = this;
-            WindowLocator.LocateNearby(Grid, win, NearbyLocation.UpRight);
+            WindowLocator.LocateNearby(Grid, win, NearbyLocation.UpLeft);
             win.Show();
         }
 
@@ -2446,8 +2628,8 @@ namespace Db2Source
             {
                 return false;
             }
-            ColumnIndexInfo[] cols = GetColumnsByDisplayIndex();
-            if (cols.Length == 0)
+            DataGridInfo gridInfo = new DataGridInfo(this);
+            if (gridInfo.EndRow == -1 || gridInfo.EndColumn == -1)
             {
                 return false;
             }
@@ -2463,66 +2645,41 @@ namespace Db2Source
             bool isFirst;
             int endRow;
             int endColumn;
-            GetSearchEnd(out isFirst, out endRow, out endColumn);
-            DataGridCellInfo sel = Grid.SelectedCells.First();
-            int r0 = Grid.Items.IndexOf(sel.Item);
+            GetSearchEnd(gridInfo, false, out isFirst, out endRow, out endColumn);
+            int r0;
             int c0;
-            if (_columnToDataIndex.TryGetValue(sel.Column, out c0))
+            if (!GetCurentCellPosition(false, out r0, out c0))
             {
-                if (!isFirst)
-                {
-                    c0--;
-                }
+                r0 = gridInfo.StartRow;
+                c0 = gridInfo.StartColumn;
             }
-            if (r0 < endRow || (endRow == r0 && c0 <= endColumn))
+            int r = r0;
+            int c = c0;
+            if (!isFirst)
             {
-                for (int r = r0; 0 <= r; r--)
-                {
-                    object row = Grid.Items[r];
-                    if (!(row is Row))
-                    {
-                        continue;
-                    }
-                    for (int c = c0; 0 <= c; c--)
-                    {
-                        ColumnIndexInfo info = cols[c];
-                        object cell = ((Row)row)[info.DataIndex];
-                        string s = GetCellText(cell, info);
-                        if (MatchesText(s, row, info.Column, null))
-                        {
-                            Grid.SelectedCells.Clear();
-                            Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
-                            Grid.ScrollIntoView(row, info.Column);
-                            return true;
-                        }
-                    }
-                    c0 = cols.Length - 1;
-                }
-                r0 = Grid.Items.Count - 1;
+                gridInfo.MovePrevious(ref r, ref c);
             }
-            for (int r = r0; endRow <= r; r--)
+            do
             {
-                object row = Grid.Items[r];
-                if (!(row is Row))
+                Row row = Grid.Items[r] as Row;
+                if (row == null)
                 {
+                    gridInfo.MovePrevious(ref r, ref c);
                     continue;
                 }
-                int cN = (r == endRow) ? endColumn + 1 : 0;
-                for (int c = c0; cN <= c; c--)
+                ColumnIndexInfo info = gridInfo.ColumnsByDisplayIndex[c];
+                object cell = row[info.DataIndex];
+                string s = GetCellText(cell, info);
+                if (MatchesText(s, row, info.Column, null))
                 {
-                    ColumnIndexInfo info = cols[c];
-                    object cell = ((Row)row)[info.DataIndex];
-                    string s = GetCellText(cell, info);
-                    if (MatchesText(s, row, info.Column, null))
-                    {
-                        Grid.SelectedCells.Clear();
-                        Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
-                        Grid.ScrollIntoView(row, info.Column);
-                        return true;
-                    }
+                    Grid.SelectedCells.Clear();
+                    Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
+                    Grid.ScrollIntoView(row, info.Column);
+                    return true;
                 }
-                c0 = cols.Length - 1;
-            }
+                gridInfo.MovePrevious(ref r, ref c);
+            } while ((r != endRow || c != endColumn) && (r != r0 || c != c0));
+            // (r != r0 || c != c0) は本来不要だが無限ループ防止用に念のため
             InvalidateSearchEnd();
             return false;
         }
@@ -2540,8 +2697,8 @@ namespace Db2Source
             {
                 return false;
             }
-            ColumnIndexInfo[] cols = GetColumnsByDisplayIndex();
-            if (cols.Length == 0)
+            DataGridInfo gridInfo = new DataGridInfo(this);
+            if (gridInfo.EndRow == -1 || gridInfo.EndColumn == -1)
             {
                 return false;
             }
@@ -2557,66 +2714,41 @@ namespace Db2Source
             bool isFirst;
             int endRow;
             int endColumn;
-            GetSearchEnd(out isFirst, out endRow, out endColumn);
-            DataGridCellInfo sel = Grid.SelectedCells.First();
-            int r0 = Grid.Items.IndexOf(sel.Item);
+            GetSearchEnd(gridInfo, true, out isFirst, out endRow, out endColumn);
+            int r0;
             int c0;
-            if (_columnToDataIndex.TryGetValue(sel.Column, out c0))
+            if (!GetCurentCellPosition(true, out r0, out c0))
             {
-                if (!isFirst)
-                {
-                    c0++;
-                }
+                r0 = gridInfo.EndRow;
+                c0 = gridInfo.EndColumn;
             }
-            if (endRow < r0 || (endRow == r0 && endColumn <= c0))
+            int r = r0;
+            int c = c0;
+            if (!isFirst)
             {
-                for (int r = r0; r < Grid.Items.Count; r++)
-                {
-                    object row = Grid.Items[r];
-                    if (!(row is Row))
-                    {
-                        continue;
-                    }
-                    for (int c = c0; c < cols.Length; c++)
-                    {
-                        ColumnIndexInfo info = cols[c];
-                        object cell = ((Row)row)[info.DataIndex];
-                        string s = GetCellText(cell, info);
-                        if (MatchesText(s, row, info.Column, null))
-                        {
-                            Grid.SelectedCells.Clear();
-                            Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
-                            Grid.ScrollIntoView(row, info.Column);
-                            return true;
-                        }
-                    }
-                    c0 = 0;
-                }
-                r0 = 0;
+                gridInfo.MoveNext(ref r, ref c);
             }
-            for (int r = r0; r <= endRow; r++)
+            do
             {
-                object row = Grid.Items[r];
-                if (!(row is Row))
+                Row row = Grid.Items[r] as Row;
+                if (row == null)
                 {
+                    gridInfo.MoveNext(ref r, ref c);
                     continue;
                 }
-                int cN = (r == endRow) ? endColumn : cols.Length;
-                for (int c = c0; c < cN; c++)
+                ColumnIndexInfo info = gridInfo.ColumnsByDisplayIndex[c];
+                object cell = row[info.DataIndex];
+                string s = GetCellText(cell, info);
+                if (MatchesText(s, row, info.Column, null))
                 {
-                    ColumnIndexInfo info = cols[c];
-                    object cell = ((Row)row)[info.DataIndex];
-                    string s = GetCellText(cell, info);
-                    if (MatchesText(s, row, info.Column, null))
-                    {
-                        Grid.SelectedCells.Clear();
-                        Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
-                        Grid.ScrollIntoView(row, info.Column);
-                        return true;
-                    }
+                    Grid.SelectedCells.Clear();
+                    Grid.SelectedCells.Add(new DataGridCellInfo(row, info.Column));
+                    Grid.ScrollIntoView(row, info.Column);
+                    return true;
                 }
-                c0 = 0;
-            }
+                gridInfo.MoveNext(ref r, ref c);
+            } while ((r != endRow || c != endColumn) && (r != r0 || c != c0));
+            // (r != r0 || c != c0) は本来不要だが無限ループ防止用に念のため
             InvalidateSearchEnd();
             return false;
         }
@@ -2624,7 +2756,7 @@ namespace Db2Source
         private string[][] GetCellData(bool includesHeader)
         {
             List<string[]> data = new List<string[]>();
-            ColumnIndexInfo[] cols = GetColumnsByDisplayIndex();
+            ColumnIndexInfo[] cols = GetDisplayColumns();
             if (cols.Length == 0)
             {
                 return new string[0][];
@@ -2970,16 +3102,6 @@ namespace Db2Source
         {
             DataGridCell cell = value as DataGridCell;
             if (cell == null)
-            {
-                return null;
-            }
-            ColumnInfo col = cell.Column.Header as ColumnInfo;
-            if (col == null || col.Index == -1)
-            {
-                return null;
-            }
-            Row row = cell.DataContext as Row;
-            if (row == null)
             {
                 return null;
             }

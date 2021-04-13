@@ -245,77 +245,6 @@ namespace Db2Source
             }
         }
 
-        public static TabItem NewTabItem(TabControl parent, string header, UIElement element, Style tabItemStyle)
-        {
-            MovableTabItem item = new MovableTabItem();
-            item.Content = element;
-            item.Header = new TextBlock() { Text = header };
-            item.Style = tabItemStyle;
-            parent.Items.Add(item);
-            return item;
-        }
-
-        private object TabItemLock = new object();
-        public TabItem RequireTabItem(SchemaObject target, Style tabItemStyle)
-        {
-            ISchemaObjectWpfControl ctrl = target.Control as ISchemaObjectWpfControl;
-            if (ctrl != null)
-            {
-                ctrl.Target = CurrentDataSet.Refresh(target);
-                return ctrl.Parent as TabItem;
-            }
-
-            lock (TabItemLock)
-            {
-                if (ctrl != null)
-                {
-                    return ctrl.Parent as TabItem;
-                }
-                ctrl = NewControl(target);
-                if (ctrl == null)
-                {
-                    return null;
-                }
-                TabItem item = NewTabItem(tabControlMain, target.FullName, ctrl as UIElement, tabItemStyle);
-                item.Tag = target;
-                return item;
-            }
-        }
-        private static Dictionary<Type, Type> _schemaObjectToControl = new Dictionary<Type, Type>();
-        public static void RegisterSchemaObjectControl(Type schemaObjectClass, Type controlClass)
-        {
-            if (!schemaObjectClass.IsSubclassOf(typeof(SchemaObject)) && schemaObjectClass != typeof(SchemaObject))
-            {
-                throw new ArgumentException("schemaObjectClassはSchemaObjectを継承していません");
-            }
-            if (!typeof(ISchemaObjectWpfControl).IsAssignableFrom(controlClass))
-            {
-                throw new ArgumentException("controlClassがIWpfSchemaObjectControlを実装していません");
-            }
-            _schemaObjectToControl[schemaObjectClass] = controlClass;
-        }
-        public static void UnregisterSchemaObjectControl(Type schemaObjectClass)
-        {
-            _schemaObjectToControl.Remove(schemaObjectClass);
-        }
-        
-        protected ISchemaObjectWpfControl NewControl(SchemaObject target)
-        {
-            Type t;
-            if (!_schemaObjectToControl.TryGetValue(target.GetType(), out t))
-            {
-                return null;
-            }
-            ISchemaObjectWpfControl ret = t.GetConstructor(new Type[0]).Invoke(null) as ISchemaObjectWpfControl;
-            if (ret == null)
-            {
-                return null;
-            }
-            ret.Target = target;
-            target.Control = ret;
-            return ret;
-        }
-
         private void UpdateSchema()
         {
             if (CurrentDataSet == null)
@@ -408,7 +337,7 @@ namespace Db2Source
         {
             ISchemaObjectWpfControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectWpfControl;
 
-            TabItem item = RequireTabItem(target, FindResource("TabItemStyleClosable") as Style);
+            TabItem item = MovableTabItem.RequireTabItem(target, FindResource("TabItemStyleClosable") as Style, tabControlMain, CurrentDataSet);
             if (item == null)
             {
                 return;
@@ -568,15 +497,15 @@ namespace Db2Source
 
             treeViewItemTop.Items.Clear();
 
-            RegisterSchemaObjectControl(typeof(Table), typeof(TableControl));
-            RegisterSchemaObjectControl(typeof(View), typeof(ViewControl));
-            RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
-            RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
-            RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
-            RegisterSchemaObjectControl(typeof(PgsqlBasicType), typeof(PgsqlTypeControl));
-            RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
-            RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
-            RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(Table), typeof(TableControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(View), typeof(ViewControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlBasicType), typeof(PgsqlTypeControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             TitleBase = Title;
             Application.Current.Resources["DBNullBrush"] = CreateDBNullBrush();
         }
@@ -597,7 +526,7 @@ namespace Db2Source
             Binding b = new Binding("CurrentDataSet");
             b.ElementName = "window";
             c.SetBinding(QueryControl.CurrentDataSetProperty, b);
-            TabItem item = NewTabItem(tabControlMain, "クエリ " + _queryControlIndex.ToString(), c, FindResource("TabItemStyleClosable") as Style);
+            TabItem item = MovableTabItem.NewTabItem(tabControlMain, "クエリ " + _queryControlIndex.ToString(), c, FindResource("TabItemStyleClosable") as Style);
             tabControlMain.SelectedItem = item;
             _queryControlIndex++;
         }
@@ -1088,6 +1017,7 @@ namespace Db2Source
             tabControlMain.SelectedItem = sel;
         }
 
+        #region タブのドラッグ&ドロップによる移動
         private MovableTabItem _movingTabItem = null;
         internal MovableTabItem MovingTabItem
         {
@@ -1240,21 +1170,7 @@ namespace Db2Source
             Control c = App.FindVisualParent<Control>(ret.VisualHit);
             MovingTabItem = c as MovableTabItem;
         }
-    }
-    public class MovableTabItem: TabItem
-    {
-        public static readonly DependencyProperty IsMovingProperty = DependencyProperty.Register("IsMoving", typeof(bool), typeof(MovableTabItem));
-        public bool IsMoving
-        {
-            get
-            {
-                return (bool)GetValue(IsMovingProperty);
-            }
-            set
-            {
-                SetValue(IsMovingProperty, value);
-            }
-        }
+        #endregion
     }
     public class RGBToColorBrushConverter : IValueConverter
     {

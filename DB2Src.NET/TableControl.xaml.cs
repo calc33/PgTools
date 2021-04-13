@@ -757,24 +757,24 @@ namespace Db2Source
             listBoxTrigger.SelectedItem = Target.Triggers[0];
         }
 
-        private ColumnFilterWindow _columnFilterWindow = null;
-        private object _columnFilterWindowLock = new object();
-        private ColumnFilterWindow GetColumnFilterWindow()
+        private SelectColumnWindow _selectColumnWindow = null;
+        private object _selectColumnWindowLock = new object();
+        private SelectColumnWindow GetColumnFilterWindow()
         {
-            if (_columnFilterWindow != null)
+            if (_selectColumnWindow != null)
             {
-                return _columnFilterWindow;
+                return _selectColumnWindow;
             }
-            lock (_columnFilterWindowLock)
+            lock (_selectColumnWindowLock)
             {
-                if (_columnFilterWindow != null)
+                if (_selectColumnWindow != null)
                 {
-                    return _columnFilterWindow;
+                    return _selectColumnWindow;
                 }
-                _columnFilterWindow = new ColumnFilterWindow();
+                _selectColumnWindow = new SelectColumnWindow();
 
-                _columnFilterWindow.Owner = Window.GetWindow(this);
-                return _columnFilterWindow;
+                _selectColumnWindow.Owner = Window.GetWindow(this);
+                return _selectColumnWindow;
             }
         }
 
@@ -808,22 +808,22 @@ namespace Db2Source
 
         private void buttonFilterColumns_Click(object sender, RoutedEventArgs e)
         {
-            ColumnFilterWindow w = GetColumnFilterWindow();
+            SelectColumnWindow w = GetColumnFilterWindow();
             if (w.IsVisible)
             {
                 return;
             }
             w.MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight / 2;
             w.Grid = dataGridResult;
-            w.StartIndex = 1;
-            WindowUtil.MoveFormNearby(w, buttonFilterColumns, false, false);
+            w.SelectedColumn = w.Grid.CurrentColumn;
+            WindowLocator.LocateNearby(buttonFilterColumns, w, NearbyLocation.DownLeft);
             w.Closed += ColumnFilterWindow_Closed;
             w.Show();
         }
 
         private void ColumnFilterWindow_Closed(object sender, EventArgs e)
         {
-            _columnFilterWindow = null;
+            _selectColumnWindow = null;
         }
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)

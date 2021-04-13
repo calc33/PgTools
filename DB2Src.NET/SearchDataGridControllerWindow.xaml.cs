@@ -37,7 +37,7 @@ namespace Db2Source
             comboBoxColumn.ItemsSource = l;
             if (old == null || l.IndexOf(old) == -1)
             {
-                comboBoxColumn.SelectedItem = obj.GetSelectedCell()?.Column;
+                comboBoxColumn.SelectedItem = obj.GetSelectedCell(true)?.Column;
             }
             else
             {

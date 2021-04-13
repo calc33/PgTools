@@ -15,7 +15,6 @@
         <local:PgsqlColumnArrayToTextConverter x:Key="PgsqlColumnArrayToTextConverter"/>
         <local:ForeignKeyRuleConverter x:Key="ForeignKeyRuleConverter"/>
         <local:RefButtonVisibilityConverter x:Key="RefButtonVisibilityConverter"/>
-        <local:DataGridCellToCellInfoConverter x:Key="DataGridCellToCellInfoConverter"/>
         <local:JoinKindToVisibilityConverter x:Key="JoinKindToVisibilityConverter"/>
         <local:JoinTableCandidatesCountToEnabledConverter x:Key="JoinTableCandidatesCountToEnabledConverter"/>
         <SolidColorBrush x:Key="ModifiedBackgroundBrush" Color="#FFFFFFC0"/>
@@ -49,6 +48,9 @@
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
+                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsCurrentRow, RelativeSource={RelativeSource Self}}" Value="true">
+                    <Setter Property="Background" Value="{StaticResource DataGrid.SelectedRow.Background}"/>
+                </DataTrigger>
                 <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsModified, RelativeSource={RelativeSource Self}}" Value="true">
                     <Setter Property="Background" Value="{StaticResource ModifiedBackgroundBrush}"/>
                 </DataTrigger>
@@ -366,6 +368,9 @@
                                     </Setter.Value>
                                 </Setter>
                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsCurrentRow, RelativeSource={RelativeSource Self}}" Value="true">
+                                        <Setter Property="Background" Value="{StaticResource DataGrid.SelectedRow.Background}"/>
+                                    </DataTrigger>
                                     <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsModified, RelativeSource={RelativeSource Self}}" Value="true">
                                         <Setter Property="Background" Value="{StaticResource ModifiedBackgroundBrush}"/>
                                     </DataTrigger>

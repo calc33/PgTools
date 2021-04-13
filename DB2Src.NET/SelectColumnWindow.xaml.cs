@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -34,27 +35,27 @@ namespace Db2Source
             obj.SetValue(IsMovingProperty, value);
         }
 
-        private DependencyObject _movingItem = null;
-        public DependencyObject MovingItem
+        private ListBoxItem _movingItemContainer = null;
+        public ListBoxItem MovingItemContainer
         {
             get
             {
-                return _movingItem;
+                return _movingItemContainer;
             }
             set
             {
-                if (_movingItem == value)
+                if (_movingItemContainer == value)
                 {
                     return;
                 }
-                if (_movingItem != null)
+                if (_movingItemContainer != null)
                 {
-                    SetIsMoving(_movingItem, false);
+                    SetIsMoving(_movingItemContainer, false);
                 }
-                _movingItem = value;
-                if (_movingItem != null)
+                _movingItemContainer = value;
+                if (_movingItemContainer != null)
                 {
-                    SetIsMoving(_movingItem, true);
+                    SetIsMoving(_movingItemContainer, true);
                 }
             }
         }
@@ -314,22 +315,211 @@ namespace Db2Source
             }
         }
 
+        #region ドラッグ&ドロップによるアイテムの移動
+
+        private struct ListBoxItemIndexRange
+        {
+            public ScrollViewer Viewer;
+            /// <summary>
+            /// 一部だけでも入っているItemIndexの最小値
+            /// </summary>
+            public int PartialMin;
+            /// <summary>
+            /// 完全に入っているItemIndexの最小値
+            /// </summary>
+            public int FullMin;
+            /// <summary>
+            /// 完全に入っているItemIndexの最大値
+            /// </summary>
+            public int FullMax;
+            /// <summary>
+            /// 一部だけでも入っているItemIndexの最大値
+            /// </summary>
+            public int PartialMax;
+            public ListBoxItemIndexRange(ListBox listBox)
+            {
+                ControlTemplate tmpl = listBox.Template as ControlTemplate;
+                Viewer = tmpl.FindName("listBoxScrollViewer", listBox) as ScrollViewer;
+                PartialMin = int.MaxValue;
+                FullMin = int.MaxValue;
+                FullMax = -1;
+                PartialMax = -1;
+                int n = listBox.Items.Count;
+                for (int i = 0; i < n; i++)
+                {
+                    ListBoxItem item = listBox.Items[i] as ListBoxItem;
+                    Point[] p = new Point[] { new Point(0, 0), new Point(item.ActualWidth + 1, item.ActualHeight + 1) };
+                    p[0] = item.TranslatePoint(p[0], Viewer);
+                    p[1] = item.TranslatePoint(p[1], Viewer);
+                    if (Viewer.ActualHeight <= p[1].X)
+                    {
+                        Normalize();
+                        return;
+                    }
+                    if (p[0].Y < Viewer.ActualHeight && 0 < p[1].Y)
+                    {
+                        PartialMin = Math.Min(PartialMin, i);
+                        PartialMax = i;
+                    }
+                    if (0 <= p[0].Y && p[1].Y < Viewer.ActualHeight)
+                    {
+                        FullMin = Math.Min(FullMin, i);
+                        FullMax = i;
+                    }
+                }
+                Normalize();
+            }
+            public void Normalize()
+            {
+                PartialMin = Math.Min(PartialMin, PartialMax);
+                FullMin = Math.Min(FullMin, FullMax);
+            }
+        }
+
         private void ListBoxItem_PreviewMouseMove(object sender, MouseEventArgs e)
         {
+            if (MovingItemContainer != null)
+            {
+                if (e.MouseDevice.LeftButton == MouseButtonState.Released)
+                {
+                    MovingItemContainer = null;
+                }
+                return;
+            }
+            ListBoxItem item = App.FindVisualParent<ListBoxItem>(e.Source as DependencyObject);
+            if (item == null)
+            {
+                return;
+            }
+            if (e.MouseDevice.LeftButton == MouseButtonState.Pressed)
+            {
+                ScrollViewer sv = App.FindVisualParent<ScrollViewer>(item);
+                if (sv != null && !sv.IsMouseCaptured)
+                {
+                    Mouse.Capture(sv);
+                }
+                MovingItemContainer = item;
+            }
+        }
 
+        private void MoveItem(ListBoxItem goal)
+        {
+            if (MovingItemContainer == null)
+            {
+                return;
+            }
+            if (MovingItemContainer == goal)
+            {
+                return;
+            }
+            ObservableCollection<DataGridColumn> l = Grid.Columns;
+            int goalPos = l.IndexOf(goal.Content as DataGridColumn);
+            int i = l.IndexOf(MovingItemContainer.Content as DataGridColumn);
+            //bool sel = MovingItemContainer.IsSelected;
+            l.Move(i, goalPos);
+            //if (sel)
+            //{
+            //    listBoxColumns.SelectedItem = MovingItemContainer.Content;
+            //}
+            listBoxColumns.UpdateLayout();
         }
 
         private void listBoxColumns_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            MovingItem = null;
+            e.Handled = false;
+            MovingItemContainer = null;
             ListBox viewer = sender as ListBox;
             HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
             if (ret == null)
             {
                 return;
             }
-            MovingItem = App.FindVisualParent<ListBoxItem>(ret.VisualHit);
+            ListBoxItem item = App.FindVisualParent<ListBoxItem>(ret.VisualHit);
+            MovingItemContainer = item;
         }
+
+        private void listBoxScrollViewer_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (MovingItemContainer == null)
+            {
+                return;
+            }
+            ScrollViewer viewer = sender as ScrollViewer;
+            if (viewer == null)
+            {
+                return;
+            }
+            if (e.MouseDevice.LeftButton == MouseButtonState.Pressed && !viewer.IsMouseCaptured)
+            {
+                viewer.CaptureMouse();
+            }
+            FrameworkElement parent = VisualTreeHelper.GetParent(viewer) as FrameworkElement;
+            Point p = e.MouseDevice.GetPosition(parent);
+            double dy = 0;
+            if (p.Y < 0)
+            {
+                dy = p.Y;
+            }
+            else if (viewer.ActualHeight < p.Y)
+            {
+                dy = p.Y - viewer.ActualHeight;
+            }
+            ListBoxItem goal;
+            if (dy == 0)
+            {
+                HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
+                if (ret == null)
+                {
+                    return;
+                }
+                goal = App.FindVisualParent<ListBoxItem>(ret.VisualHit);
+                double y = e.MouseDevice.GetPosition(goal).Y;
+                if (y < 0 || MovingItemContainer.ActualHeight < y)
+                {
+                    // 移動した結果マウスの位置が選択している項目の範囲外になって振動を起こさないように
+                    goal = null;
+                }
+            }
+            else if (dy < 0)
+            {
+                ListBoxItemIndexRange range = new ListBoxItemIndexRange(listBoxColumns);
+                goal = listBoxColumns.Items[Math.Max(0, range.PartialMin - 1)] as ListBoxItem;
+            }
+            else
+            {
+                ListBoxItemIndexRange range = new ListBoxItemIndexRange(listBoxColumns);
+                goal = listBoxColumns.Items[Math.Min(range.PartialMax + 1, listBoxColumns.Items.Count - 1)] as ListBoxItem;
+            }
+            if (goal == null || VisualTreeHelper.GetParent(goal) != VisualTreeHelper.GetParent(MovingItemContainer))
+            {
+                return;
+            }
+            MoveItem(goal);
+        }
+
+        private void listBoxScrollViewer_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        {
+            ScrollViewer viewer = sender as ScrollViewer;
+            if (viewer != null && viewer.IsMouseCaptured)
+            {
+                viewer.ReleaseMouseCapture();
+            }
+            MovingItemContainer = null;
+        }
+
+        private void listBoxScrollViewer_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            MovingItemContainer = null;
+            ScrollViewer viewer = sender as ScrollViewer;
+            HitTestResult ret = VisualTreeHelper.HitTest(viewer, e.MouseDevice.GetPosition(viewer));
+            if (ret == null)
+            {
+                return;
+            }
+            Control c = App.FindVisualParent<Control>(ret.VisualHit);
+            MovingItemContainer = c as ListBoxItem;
+        }
+        #endregion
     }
     public class VisibilityToBooleanConverter : IValueConverter
     {
