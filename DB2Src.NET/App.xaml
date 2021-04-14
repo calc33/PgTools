@@ -1137,13 +1137,21 @@
             </Setter>
         </Style>
         <Style x:Key="DataGridTextBlockStyle" TargetType="{x:Type TextBlock}">
-            <Setter Property="HorizontalAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource TemplatedParent}}"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="TextAlignment" Value="{Binding (local:DataGridController.CellInfo).TextAlignment, RelativeSource={RelativeSource AncestorType=DataGridCell}}"/>
             <Setter Property="Margin" Value="2,0"/>
             <Style.Triggers>
                 <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsNull, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Value="True">
                     <Setter Property="Background" Value="{DynamicResource DBNullBrush}"/>
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+        <Style x:Key="DataGridTextBoxStyle" TargetType="{x:Type TextBox}">
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+            <Setter Property="TextAlignment" Value="{Binding (local:DataGridController.CellInfo).TextAlignment, RelativeSource={RelativeSource AncestorType=DataGridCell}}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Background" Value="Transparent"/>
         </Style>
     </Application.Resources>
 </Application>

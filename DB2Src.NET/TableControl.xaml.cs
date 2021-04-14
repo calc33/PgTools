@@ -262,42 +262,8 @@ namespace Db2Source
                 IDataReader reader = null;
                 try
                 {
-                    Style style = FindResource("DataGridCellRefColumnStyle") as Style;
-                    Style elementStyle = Resources["DataGridTextBlockStyle"] as Style;
-
-                    Style elementStyleR = new Style(typeof(TextBlock), elementStyle);
-                    elementStyleR.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
-
                     reader = command.ExecuteReader();
                     DataGridControllerResult.Load(reader, Target);
-                    foreach (DataGridColumn c in dataGridResult.Columns)
-                    {
-                        ColumnInfo info = c.Header as ColumnInfo;
-                        if (info == null)
-                        {
-                            continue;
-                        }
-                        if (info.ForeignKeys == null || info.ForeignKeys.Length == 0)
-                        {
-                            continue;
-                        }
-                        c.CellStyle = style;
-                        if (c is DataGridTextColumn)
-                        {
-                            DataGridTextColumn tc = (DataGridTextColumn)c;
-                            if (info.IsNumeric)
-                            {
-                                tc.ElementStyle = elementStyleR;
-                                Style editStyle = new Style(typeof(TextBox), tc.EditingElementStyle);
-                                editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Right));
-                                tc.EditingElementStyle = editStyle;
-                            }
-                            else
-                            {
-                                tc.ElementStyle = elementStyle;
-                            }
-                        }
-                    }
                 }
                 catch (Exception t)
                 {

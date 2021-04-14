@@ -32,7 +32,7 @@ namespace Db2Source
             List<DataGridColumn> l = new List<DataGridColumn>();
             if (obj != null)
             {
-                l = new List<DataGridColumn>(obj.GetDataGridColumnsByDisplayIndex());
+                l = new List<DataGridColumn>(obj.GetDisplayDataGridColumns());
             }
             comboBoxColumn.ItemsSource = l;
             if (old == null || l.IndexOf(old) == -1)

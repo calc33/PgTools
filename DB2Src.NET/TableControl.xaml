@@ -20,64 +20,6 @@
         <SolidColorBrush x:Key="ModifiedBackgroundBrush" Color="#FFFFFFC0"/>
         <SolidColorBrush x:Key="NotNullErrorBackgroundBrush" Color="#FFFFC0C0"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <Style x:Key="DataGridCellRefColumnStyle" TargetType="{x:Type DataGridCell}">
-            <EventSetter Event="Selected" Handler="DataGridCell_Selected"/>
-            <Setter Property="local:DataGridController.CellInfo" Value="{Binding RelativeSource={RelativeSource Self}, Converter={StaticResource DataGridCellToCellInfoConverter}, Mode=OneWay}"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="HorizontalContentAlignment" Value="Right" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type DataGridCell}">
-                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
-                            <Grid>
-                                <DockPanel>
-                                    <Button DockPanel.Dock="Right" HorizontalAlignment="Right" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Style="{StaticResource ButtonStyleRef}" Click="DataGridCellRefColumnStyleButton_Click" Visibility="{Binding Content.Text, Converter={StaticResource RefButtonVisibilityConverter}, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" Focusable="False"/>
-                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                </DockPanel>
-                                <Border x:Name="strikeout" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
-                            </Grid>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <DataTrigger Binding="{Binding IsDeleted}" Value="true">
-                                <Setter Property="Visibility" Value="Visible" TargetName="strikeout"/>
-                            </DataTrigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsCurrentRow, RelativeSource={RelativeSource Self}}" Value="true">
-                    <Setter Property="Background" Value="{StaticResource DataGrid.SelectedRow.Background}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsModified, RelativeSource={RelativeSource Self}}" Value="true">
-                    <Setter Property="Background" Value="{StaticResource ModifiedBackgroundBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsFault, RelativeSource={RelativeSource Self}}" Value="true">
-                    <Setter Property="Background" Value="{StaticResource NotNullErrorBackgroundBrush}"/>
-                </DataTrigger>
-                <DataTrigger Binding="{Binding IsDeleted}" Value="true">
-                    <Setter Property="Foreground" Value="{StaticResource Button.Disabled.Foreground}"/>
-                    <Setter Property="Background" Value="{StaticResource Button.Disabled.Background}"/>
-                </DataTrigger>
-                <MultiTrigger>
-                    <MultiTrigger.Conditions>
-                        <Condition Property="IsSelected" Value="True"/>
-                        <Condition Property="IsEditing" Value="False"/>
-                    </MultiTrigger.Conditions>
-                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                </MultiTrigger>
-                <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="false">
-                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
-                </Trigger>
-            </Style.Triggers>
-        </Style>
         <DataTemplate x:Key="ImageJoinTableClose">
             <Canvas Width="8" Height="8">
                 <Path StrokeThickness="1" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Data="M1,1 L7,7 M7,1 L1,7"/>
@@ -318,15 +260,15 @@
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                         <ToolBarTray>
                             <ToolBar>
-                                <Button x:Name="buttonAdd" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageAdd14}" ToolTip="追加" Click="buttonAdd_Click" TabIndex="6" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
-                                <Button x:Name="buttonApply" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageApply14}" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
-                                <Button x:Name="buttonRevert" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageRollback14}" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9" VerticalAlignment="Bottom"/>
+                                <Button x:Name="buttonAdd" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageAdd14}" VerticalAlignment="Stretch" ToolTip="追加" Click="buttonAdd_Click" TabIndex="6" IsEnabled="{Binding IsReadOnly, Converter={StaticResource InvertBooleanConverter}, ElementName=dataGridResult}"/>
+                                <Button x:Name="buttonApply" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageApply14}" VerticalAlignment="Stretch" ToolTip="変更を保存" Click="ButtonApply_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="8"/>
+                                <Button x:Name="buttonRevert" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageRollback14}" VerticalAlignment="Stretch" ToolTip="変更を元に戻す" Click="ButtonRevert_Click" IsEnabled="{Binding DataGridControllerResult.IsModified, ElementName=userControl}" TabIndex="9"/>
                                 <Separator/>
-                                <Button x:Name="buttonFilterColumns" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageFilter14}" ToolTip="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
-                                <Button x:Name="buttonCopyAll" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageCopy14}" ToolTip="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
-                                <Button x:Name="buttonPasteTable" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImagePaste14}" ToolTip="貼り付け" TabIndex="10" Command="ApplicationCommands.Paste" CommandTarget="{Binding ElementName=dataGridResult}"/>
-                                <Button x:Name="buttonSearchWord" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageSearch14}" ToolTip="検索" Click="buttonSearchWord_Click"/>
-                                <Button x:Name="buttonSetNull" Margin="1" Padding="2,0" Focusable="False" Content="null" FontFamily="Yu Gothic UI" FontSize="10" ToolTip="セルにnullをセットする" Click="buttonSetNull_Click"/>
+                                <Button x:Name="buttonFilterColumns" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageFilter14}" VerticalAlignment="Stretch" ToolTip="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
+                                <Button x:Name="buttonCopyAll" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageCopy14}" VerticalAlignment="Stretch" ToolTip="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                                <Button x:Name="buttonPasteTable" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImagePaste14}" VerticalAlignment="Stretch" ToolTip="貼り付け" TabIndex="10" Command="ApplicationCommands.Paste" CommandTarget="{Binding ElementName=dataGridResult}"/>
+                                <Button x:Name="buttonSearchWord" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageSearch14}" VerticalAlignment="Stretch" ToolTip="検索" Click="buttonSearchWord_Click"/>
+                                <Button x:Name="buttonSetNull" Margin="1" Padding="2,0" Focusable="False" Content="&lt;null&gt;" FontFamily="Yu Gothic UI" FontSize="10" VerticalAlignment="Stretch" ToolTip="nullを設定する" Click="buttonSetNull_Click"/>
                                 <Separator/>
                                 <TextBlock Text="システム項目：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="6,0,0,0"/>
                                 <ComboBox x:Name="comboBoxSystemColumn" VerticalAlignment="Center" Margin="0,1" DisplayMemberPath="Name" SelectedValuePath="Level" SelectedValue="{Binding VisibleLevel, ElementName=userControl}" MinWidth="85" ItemsSource="{StaticResource DefaultHiddenLevelDisplayItems}"/>
@@ -355,8 +297,13 @@
                                         <ControlTemplate TargetType="{x:Type DataGridCell}">
                                             <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
                                                 <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
                                                     <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                                                    <Border x:Name="strikeout" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
+                                                    <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Style="{StaticResource ButtonStyleRef}" Click="DataGridCellRefColumnStyleButton_Click" Visibility="{Binding (local:DataGridController.CellInfo).RefButtonVisibility, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Focusable="False"/>
+                                                    <Border x:Name="strikeout" Grid.ColumnSpan="2" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
                                                 </Grid>
                                             </Border>
                                             <ControlTemplate.Triggers>
@@ -381,11 +328,15 @@
                                         <Setter Property="Foreground" Value="{StaticResource Button.Disabled.Foreground}"/>
                                         <Setter Property="Background" Value="{StaticResource Button.Disabled.Background}"/>
                                     </DataTrigger>
-                                    <Trigger Property="IsSelected" Value="True">
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                            <Condition Property="IsEditing" Value="False"/>
+                                        </MultiTrigger.Conditions>
                                         <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
                                         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
-                                    </Trigger>
+                                    </MultiTrigger>
                                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
                                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
                                     </Trigger>

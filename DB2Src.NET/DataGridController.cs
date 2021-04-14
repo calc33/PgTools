@@ -157,8 +157,9 @@ namespace Db2Source
         public static readonly DependencyProperty IsFaultProperty = DependencyProperty.Register("IsFault", typeof(bool), typeof(CellInfo));
         public static readonly DependencyProperty IsNullableProperty = DependencyProperty.Register("IsNullable", typeof(bool), typeof(CellInfo));
         public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(CellInfo));
-        public static readonly DependencyProperty HorizontalAlignmentProperty = DependencyProperty.Register("HorizontalAlignment", typeof(HorizontalAlignment), typeof(CellInfo));
+        public static readonly DependencyProperty TextAlignmentProperty = DependencyProperty.Register("TextAlignment", typeof(TextAlignment), typeof(CellInfo));
         public static readonly DependencyProperty IsCurrentRowProperty = DependencyProperty.Register("IsCurrentRow", typeof(bool), typeof(CellInfo));
+        public static readonly DependencyProperty RefButtonVisibilityProperty = DependencyProperty.Register("RefButtonVisibility", typeof(Visibility), typeof(CellInfo));
 
         public CellInfo() : base()
         {
@@ -286,15 +287,15 @@ namespace Db2Source
             }
         }
 
-        public HorizontalAlignment HorizontalAlignment
+        public TextAlignment TextAlignment
         {
             get
             {
-                return (HorizontalAlignment)GetValue(HorizontalAlignmentProperty);
+                return (TextAlignment)GetValue(TextAlignmentProperty);
             }
             private set
             {
-                SetValue(HorizontalAlignmentProperty, value);
+                SetValue(TextAlignmentProperty, value);
             }
         }
 
@@ -309,7 +310,19 @@ namespace Db2Source
                 SetValue(IsCurrentRowProperty, value);
             }
         }
-        
+
+        public Visibility RefButtonVisibility
+        {
+            get
+            {
+                return (Visibility)GetValue(RefButtonVisibilityProperty);
+            }
+            set
+            {
+                SetValue(RefButtonVisibilityProperty, value);
+            }
+        }
+
         private DataGrid _grid;
         public void UpdateCurrentRow()
         {
@@ -328,7 +341,8 @@ namespace Db2Source
                 IsFault = false;
                 IsNullable = true;
                 IsNull = false;
-                HorizontalAlignment = HorizontalAlignment.Left;
+                TextAlignment = TextAlignment.Left;
+                RefButtonVisibility = Visibility.Collapsed;
                 return;
             }
             object o = Row[Index];
@@ -337,7 +351,9 @@ namespace Db2Source
             IsNullable = Column.IsNullable;
             IsNull = (o == null) || (o is DBNull);
             IsFault = Column.IsNotNull && IsNull;
-            HorizontalAlignment = Column.IsNumeric ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+            TextAlignment = (Column.IsNumeric || Column.IsDateTime) ? TextAlignment.Right : TextAlignment.Left;
+            bool hasRef = Column.ForeignKeys != null && Column.ForeignKeys.Length != 0;
+            RefButtonVisibility = (hasRef && !IsNull) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void Row_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -391,6 +407,7 @@ namespace Db2Source
         {
             DataGridCell cell = e.NewValue as DataGridCell;
             _grid = App.FindVisualParent<DataGrid>(cell);
+            UpdateData();
         }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -2174,21 +2191,10 @@ namespace Db2Source
                     b.Converter = new ColumnInfoConverter(info);
                     c.Binding = b;
                     c.ElementStyle = Application.Current.Resources["DataGridTextBlockStyle"] as Style;
-                    if (info.IsNumeric)
+                    c.EditingElementStyle = Application.Current.Resources["DataGridTextBoxStyle"] as Style;
+                    if (info.IsDateTime && string.IsNullOrEmpty(b.StringFormat))
                     {
-                        Style style = new Style(typeof(TextBlock), c.ElementStyle);
-                        style.Setters.Add(new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Right));
-                        c.ElementStyle = style;
-                        Style editStyle = new Style(typeof(TextBox), c.EditingElementStyle);
-                        editStyle.Setters.Add(new Setter(TextBox.TextAlignmentProperty, TextAlignment.Right));
-                        c.EditingElementStyle = editStyle;
-                    }
-                    if (info.IsDateTime)
-                    {
-                        if (string.IsNullOrEmpty(b.StringFormat))
-                        {
-                            b.StringFormat = Db2SourceContext.DateTimeFormat;
-                        }
+                        b.StringFormat = Db2SourceContext.DateTimeFormat;
                     }
                     col = c;
                 }
@@ -2475,7 +2481,7 @@ namespace Db2Source
             l.Sort(CompareByDisplayIndex);
             return l.ToArray();
         }
-        public DataGridColumn[] GetDataGridColumnsByDisplayIndex()
+        public DataGridColumn[] GetDisplayDataGridColumns()
         {
             List<DataGridColumn> cols = new List<DataGridColumn>();
             int c0 = Grid.IsReadOnly ? 1 : 0;
