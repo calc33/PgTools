@@ -301,6 +301,7 @@
                                                         <ColumnDefinition Width="*"/>
                                                         <ColumnDefinition Width="Auto"/>
                                                     </Grid.ColumnDefinitions>
+                                                    <TextBlock x:Name="nullText" Text="&lt;null&gt;" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" HorizontalAlignment="Stretch" TextAlignment="{Binding (local:DataGridController.CellInfo).TextAlignment, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Visibility="Collapsed"/>
                                                     <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                                                     <Button Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Stretch" VerticalContentAlignment="Bottom" Style="{StaticResource ButtonStyleRef}" Click="DataGridCellRefColumnStyleButton_Click" Visibility="{Binding (local:DataGridController.CellInfo).RefButtonVisibility, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Focusable="False"/>
                                                     <Border x:Name="strikeout" Grid.ColumnSpan="2" VerticalAlignment="Center" Height="1" BorderThickness="0,1,0,0" BorderBrush="{TemplateBinding Foreground}" Visibility="Collapsed" Grid.ZIndex="1"/>
@@ -310,6 +311,13 @@
                                                 <DataTrigger Binding="{Binding IsDeleted}" Value="true">
                                                     <Setter Property="Visibility" Value="Visible" TargetName="strikeout"/>
                                                 </DataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding (local:DataGridController.CellInfo).IsNull, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                                        <Condition Binding="{Binding IsEditing, RelativeSource={RelativeSource Self}}" Value="false"/>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" TargetName="nullText"/>
+                                                </MultiDataTrigger>
                                             </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Setter.Value>
@@ -345,7 +353,8 @@
                                             <Condition Property="IsSelected" Value="true"/>
                                             <Condition Property="Selector.IsSelectionActive" Value="false"/>
                                         </MultiTrigger.Conditions>
-                                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                                        <!--<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>-->
+                                        <Setter Property="Background" Value="{DynamicResource DataGrid.SelectedInactive.Background}"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
                                         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
                                     </MultiTrigger>

@@ -15,14 +15,20 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <ComboBox x:Name="comboBoxConnections" Grid.Row="0" Grid.ColumnSpan="2" DisplayMemberPath="Name" SelectedItem="{Binding Path=Target, ElementName=window}" ItemsSource="{Binding Path=ConnectionList, ElementName=window}"/>
-            <TextBlock Grid.Column="0" Grid.Row="1" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Right">種別</TextBlock>
+            <TextBlock Grid.Column="0" Grid.Row="1" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Right" Text="種別"/>
             <TextBox Grid.Column="1" Grid.Row="1" Margin="2" IsReadOnly="True" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Text="{Binding Target.DatabaseType, ElementName=window, Mode=OneWay}" MinWidth="300"/>
+            <TextBlock x:Name="textBlockTitleColor" Grid.Column="0" Grid.Row="2" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Right" Text="タイトル色"/>
+            <StackPanel x:Name="stackPanelTitleColor" Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button x:Name="buttonTitleColor" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1" Width="40" VerticalAlignment="Stretch" Margin="2" Background="{Binding Target.BackgroundColor, ElementName=window, Converter={StaticResource RGBToBrushConverter}}" Click="buttonTitleColor_Click"/>
+                <CheckBox x:Name="checkBoxTitleColor" Content="既定値を使用" VerticalAlignment="Center" IsChecked="{Binding Target.UseDefaultBackgroundColor, ElementName=window}" Click="checkBoxTitleColor_Click"/>
+            </StackPanel>
         </Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="buttonTest" Width="80" Margin="8" Padding="2" Click="buttonTest_Click">接続テスト</Button>

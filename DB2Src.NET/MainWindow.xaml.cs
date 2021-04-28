@@ -42,29 +42,6 @@ namespace Db2Source
 
         private int _queryControlIndex = 1;
 
-        private DrawingBrush CreateDBNullBrush()
-        {
-            Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
-            FormattedText text = new FormattedText("<null>", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, FontSize, SystemColors.GrayTextBrush);
-            //FontFamily font = Resources["CodeFontFamily"] as FontFamily;
-            //double size = (double)Resources["CodeFontSize"];
-            //Typeface typeface = new Typeface(font, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
-            //FormattedText text = new FormattedText("<null>", CultureInfo.CurrentUICulture, FlowDirection.LeftToRight, typeface, size, SystemColors.GrayTextBrush);
-            Geometry textGeometry = text.BuildGeometry(new Point());
-            DrawingGroup group = new DrawingGroup();
-            using (DrawingContext context = group.Open())
-            {
-                context.DrawRectangle(Brushes.Transparent, null, new Rect(0, 0, text.Width, text.Height));
-                context.DrawGeometry(SystemColors.GrayTextBrush, null, textGeometry);
-            }
-            DrawingBrush brush = new DrawingBrush(group);
-            brush.Stretch = Stretch.None;
-            brush.AlignmentX = AlignmentX.Left;
-            brush.AlignmentY = AlignmentY.Top;
-            brush.TileMode = TileMode.None;
-            return brush;
-        }
-
         public MainWindow()
         {
             InitializeComponent();
@@ -507,7 +484,6 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             TitleBase = Title;
-            Application.Current.Resources["DBNullBrush"] = CreateDBNullBrush();
         }
 
         private void menuItemRefreshSchema_Click(object sender, RoutedEventArgs e)

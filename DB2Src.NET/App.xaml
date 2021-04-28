@@ -13,7 +13,6 @@
         <FontFamily x:Key="TreeFontFamily">Yu Gothic UI</FontFamily>
         <sys:Double x:Key="TreeFontSize">12</sys:Double>
         <sys:Object x:Key="DBNull"/>
-        <DrawingBrush x:Key="DBNullBrush"/> <!-- 描画内容はコード側で初期化 -->
         <!-- End of Application Preferences -->
         <!-- Global Definitions -->
         <x:Array x:Key="BasicTypeFunctions" Type="sys:String"/>
@@ -27,6 +26,8 @@
         <local:HideNewItemPlaceHolderConverter x:Key="HideNewItemPlaceHolderConverter"/>
         <local:HasErrorToVisibilityConverter x:Key="HasErrorToVisibilityConverter"/>
         <local:DataGridCellToCellInfoConverter x:Key="DataGridCellToCellInfoConverter"/>
+        <local:ColorToBrushConverter x:Key="ColorToBrushConverter"/>
+        <local:RGBToBrushConverter x:Key="RGBToBrushConverter"/>
         <Style x:Key="FocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -94,7 +95,8 @@
         <SolidColorBrush x:Key="Item.SelectedInactive.Border" Color="#FFDADADA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Background" Color="#3D26A0DA"/>
         <SolidColorBrush x:Key="Item.SelectedActive.Border" Color="#FF26A0DA"/>
-        <SolidColorBrush x:Key="DataGrid.SelectedRow.Background" Color="#FFEDF5FC"/>
+        <SolidColorBrush x:Key="DataGrid.SelectedRow.Background" Color="#FFEEF5FD"/>
+        <SolidColorBrush x:Key="DataGrid.SelectedInactive.Background" Color="#FFCFE3FA"/>
         <DataTemplate x:Key="ImageAdd14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" SnapsToDevicePixels="True" VerticalAlignment="Center">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M7,1 L7,13 M1,7 L13,7"/>
@@ -108,6 +110,11 @@
         <DataTemplate x:Key="ImageApply14">
             <Canvas Width="14" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M1,8 L5,11 L13,1"/>
+            </Canvas>
+        </DataTemplate>
+        <DataTemplate x:Key="ImageRevert10">
+            <Canvas Width="10" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1.5" Data="M1,1 L9,9 M1,9 L9,1"/>
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageRevert14">
@@ -1140,11 +1147,6 @@
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="TextAlignment" Value="{Binding (local:DataGridController.CellInfo).TextAlignment, RelativeSource={RelativeSource AncestorType=DataGridCell}}"/>
             <Setter Property="Margin" Value="2,0"/>
-            <Style.Triggers>
-                <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsNull, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Value="True">
-                    <Setter Property="Background" Value="{DynamicResource DBNullBrush}"/>
-                </DataTrigger>
-            </Style.Triggers>
         </Style>
         <Style x:Key="DataGridTextBoxStyle" TargetType="{x:Type TextBox}">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>

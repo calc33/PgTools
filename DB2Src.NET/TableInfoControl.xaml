@@ -109,21 +109,20 @@
                     <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
                 </ToolBar>
             </ToolBarTray>
-            <Grid Margin="0,2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="所有者：" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <TextBox Grid.Column="1" Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
-                <TextBlock Grid.Column="2" Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                <ComboBox Grid.Column="3" IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <TextBox Grid.Column="3" Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
-            </Grid>
+            <StackPanel Margin="0,2" Orientation="Horizontal">
+                <TextBlock Text="名称：" VerticalAlignment="Center"/>
+                <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Name, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
+                <TextBlock Text="所有者：" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <Grid>
+                    <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                </Grid>
+                <TextBlock Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                <Grid>
+                <ComboBox IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                </Grid>
+            </StackPanel>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0,0,0,4">
             <TextBox x:Name="textBoxTableComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>

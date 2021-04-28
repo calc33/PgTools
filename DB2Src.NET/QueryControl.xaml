@@ -78,7 +78,78 @@
                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom">
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible" SelectionUnit="Cell"/>
+                    <DataGrid x:Name="dataGridResult" AutoGenerateColumns="False" TabIndex="6" IsTabStop="True" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible" SelectionUnit="Cell">
+                        <DataGrid.CellStyle>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="local:DataGridController.CellInfo" Value="{Binding RelativeSource={RelativeSource Self}, Converter={StaticResource DataGridCellToCellInfoConverter}, Mode=OneWay}"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type DataGridCell}">
+                                            <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                                                <Grid>
+                                                    <TextBlock x:Name="nullText" Text="&lt;null&gt;" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" HorizontalAlignment="Stretch" TextAlignment="{Binding (local:DataGridController.CellInfo).TextAlignment, RelativeSource={RelativeSource AncestorType=DataGridCell}}" Visibility="Collapsed"/>
+                                                    <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                                </Grid>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding (local:DataGridController.CellInfo).IsNull, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                                        <Condition Binding="{Binding IsEditing, RelativeSource={RelativeSource Self}}" Value="false"/>
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Visibility" Value="Visible" TargetName="nullText"/>
+                                                </MultiDataTrigger>
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsSelected" Value="True"/>
+                                                        <Condition Property="IsEditing" Value="False"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" TargetName="nullText"/>
+                                                </MultiTrigger>
+                                                <MultiTrigger>
+                                                    <MultiTrigger.Conditions>
+                                                        <Condition Property="IsSelected" Value="true"/>
+                                                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                                                    </MultiTrigger.Conditions>
+                                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" TargetName="nullText"/>
+                                                </MultiTrigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding (local:DataGridController.CellInfo).IsCurrentRow, RelativeSource={RelativeSource Self}}" Value="true">
+                                        <Setter Property="Background" Value="{StaticResource DataGrid.SelectedRow.Background}"/>
+                                    </DataTrigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="True"/>
+                                            <Condition Property="IsEditing" Value="False"/>
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="IsSelected" Value="true"/>
+                                            <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                                        </MultiTrigger.Conditions>
+                                        <!--<Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>-->
+                                        <Setter Property="Background" Value="{DynamicResource DataGrid.SelectedInactive.Background}"/>
+                                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                                    </MultiTrigger>
+                                    <Trigger Property="IsEnabled" Value="false">
+                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+                    </DataGrid>
                 </DockPanel>
             </TabItem>
         </TabControl>

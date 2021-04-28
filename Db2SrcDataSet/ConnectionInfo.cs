@@ -333,11 +333,7 @@ namespace Db2Source
         public ExtraCommandCollecion ExtraCommands { get; } = new ExtraCommandCollecion();
 
         private RGB? _backgroundColor;
-        //private RGB? _defaultBackgroundColor;
-        //protected internal void InvalidateDefaultBackgroundColor()
-        //{
-        //    _defaultBackgroundColor = null;
-        //}
+
         protected virtual RGB GetDefaultBackgroundColor()
         {
             // 接続情報のHash値から色を決定
@@ -354,14 +350,7 @@ namespace Db2Source
             }
             return ColorConverter.FromHSV(h / 256f * 360f, 0.3f, 0.9f);
         }
-        //private void UpdateDefaultBackgroundColor()
-        //{
-        //    if (_defaultBackgroundColor.HasValue)
-        //    {
-        //        return;
-        //    }
-        //    _defaultBackgroundColor = GetDefaultBackgroundColor();
-        //}
+
         [JsonIgnore]
         public RGB BackgroundColor
         {
@@ -383,21 +372,45 @@ namespace Db2Source
                 _backgroundColor = value;
             }
         }
+
         public uint? BkColor
         {
             get
             {
-                return BackgroundColor.ColorCode;
+                return _backgroundColor?.ColorCode;
             }
             set
             {
                 if (!value.HasValue)
                 {
+                    _backgroundColor = null;
                     return;
                 }
                 BackgroundColor = new RGB(value.Value);
             }
         }
+
+        [JsonIgnore]
+        public bool UseDefaultBackgroundColor
+        {
+            get { return !_backgroundColor.HasValue; }
+            set
+            {
+                if (UseDefaultBackgroundColor == value)
+                {
+                    return;
+                }
+                if (!value)
+                {
+                    _backgroundColor = GetDefaultBackgroundColor();
+                }
+                else
+                {
+                    _backgroundColor = null;
+                }
+            }
+        }
+
         public virtual void Merge(ConnectionInfo item)
         {
             Password = item.Password;

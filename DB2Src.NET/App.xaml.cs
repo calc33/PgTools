@@ -579,4 +579,41 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
+    public class ColorToBrushConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is Color))
+            {
+                return Brushes.Transparent;
+            }
+            return new SolidColorBrush((Color)value);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is SolidColorBrush))
+            {
+                return Colors.Transparent;
+            }
+            return ((SolidColorBrush)value).Color;
+        }
+    }
+    public class RGBToBrushConverter: IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (!(value is RGB))
+            {
+                return Brushes.Transparent;
+            }
+            RGB rgb = (RGB)value;
+            return new SolidColorBrush(Color.FromRgb(rgb.R, rgb.G, rgb.B));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

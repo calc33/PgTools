@@ -101,6 +101,12 @@
     <Compile Include="AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ColorPickerControl.xaml.cs">
+      <DependentUpon>ColorPickerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ColorPickerWindow.xaml.cs">
+      <DependentUpon>ColorPickerWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MovableTabItem.cs" />
     <Compile Include="PgsqlTypeControl.xaml.cs">
       <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
@@ -200,6 +206,14 @@
     </Compile>
     <Compile Include="WindowLocator.cs" />
     <Page Include="AwaitWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ColorPickerControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ColorPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

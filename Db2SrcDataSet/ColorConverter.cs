@@ -138,7 +138,7 @@ namespace Db2Source
         public HSV(RGB color)
         {
             float r = color.ScR;
-            float g = color.ScR;
+            float g = color.ScG;
             float b = color.ScB;
 
             float max = Math.Max(r, Math.Max(g, b));
@@ -178,6 +178,14 @@ namespace Db2Source
         public HSV(float h, float s, float v)
         {
             H = h;
+            while (H < 0)
+            {
+                H += 360f;
+            }
+            while (360 <= H)
+            {
+                H -= 360f;
+            }
             S = s;
             V = v;
         }
@@ -186,63 +194,58 @@ namespace Db2Source
             float r, g, b;
             if (S == 0)
             {
-                r = V;
-                g = V;
-                b = V;
+                return new RGB(V, V, V);
+            }
+            float h = H / 60f;
+            int i = (int)Math.Floor(h);
+            float f = h - i;
+            float p = V * (1f - S);
+            float q;
+            if (i % 2 == 0)
+            {
+                //t
+                q = V * (1f - (1f - f) * S);
             }
             else
             {
-                float h = H / 60f;
-                int i = (int)Math.Floor(h);
-                float f = h - i;
-                float p = V * (1f - S);
-                float q;
-                if (i % 2 == 0)
-                {
-                    //t
-                    q = V * (1f - (1f - f) * S);
-                }
-                else
-                {
-                    q = V * (1f - f * S);
-                }
+                q = V * (1f - f * S);
+            }
 
-                switch (i)
-                {
-                    case 0:
-                        r = V;
-                        g = q;
-                        b = p;
-                        break;
-                    case 1:
-                        r = q;
-                        g = V;
-                        b = p;
-                        break;
-                    case 2:
-                        r = p;
-                        g = V;
-                        b = q;
-                        break;
-                    case 3:
-                        r = p;
-                        g = q;
-                        b = V;
-                        break;
-                    case 4:
-                        r = q;
-                        g = p;
-                        b = V;
-                        break;
-                    case 5:
-                        r = V;
-                        g = p;
-                        b = q;
-                        break;
-                    default:
-                        throw new ArgumentException(
-                            "色相の値が不正です。", "hsv");
-                }
+            switch (i)
+            {
+                case 0:
+                    r = V;
+                    g = q;
+                    b = p;
+                    break;
+                case 1:
+                    r = q;
+                    g = V;
+                    b = p;
+                    break;
+                case 2:
+                    r = p;
+                    g = V;
+                    b = q;
+                    break;
+                case 3:
+                    r = p;
+                    g = q;
+                    b = V;
+                    break;
+                case 4:
+                    r = q;
+                    g = p;
+                    b = V;
+                    break;
+                case 5:
+                    r = V;
+                    g = p;
+                    b = q;
+                    break;
+                default:
+                    throw new ArgumentException(
+                        "色相の値が不正です。", "hsv");
             }
             return new RGB(r, g, b);
         }

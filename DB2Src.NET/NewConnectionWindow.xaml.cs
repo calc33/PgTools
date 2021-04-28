@@ -81,18 +81,12 @@ namespace Db2Source
             props.Sort(ComparePropertyByInputFieldAttr);
 
             GridProperties.RowDefinitions.Clear();
-            RowDefinition row = new RowDefinition();
-            row.Height = GridLength.Auto;
-            GridProperties.RowDefinitions.Add(row);
-            row = new RowDefinition();
-            row.Height = GridLength.Auto;
-            GridProperties.RowDefinitions.Add(row);
+            GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
             int r = 2;
             for (int i = 0; i < props.Count; i++, r++)
             {
-                row = new RowDefinition();
-                row.Height = GridLength.Auto;
-                GridProperties.RowDefinitions.Add(row);
+                GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                 PropertyInfo prop = props[i];
                 InputFieldAttribute attr = (InputFieldAttribute)prop.GetCustomAttribute(typeof(InputFieldAttribute));
                 TextBlock lbl = new TextBlock();
@@ -113,7 +107,9 @@ namespace Db2Source
                         Mode = BindingMode.TwoWay
                     };
                     tb.SetBinding(TextBox.TextProperty, b1);
-                    RegisterName(tb.Name, tb);
+                    tb.TextChanged += TextBox_TextChanged;
+                    tb.LostFocus += TextBox_LostFocus;
+                RegisterName(tb.Name, tb);
                 }
                 else
                 {
@@ -151,9 +147,7 @@ namespace Db2Source
                     Grid.SetRow(pb, r);
                     GridProperties.Children.Add(pb);
 
-                    row = new RowDefinition();
-                    row.Height = GridLength.Auto;
-                    GridProperties.RowDefinitions.Add(row);
+                    GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                     r++;
 
                     newName = "checkBox" + prop.Name;
@@ -210,7 +204,21 @@ namespace Db2Source
                     GridProperties.Children.Add(cb);
                 }
             }
+            GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            Grid.SetRow(textBlockTitleColor, r);
+            Grid.SetRow(stackPanelTitleColor, r);
+            UpdateTitleColor();
             StackPanelMain.UpdateLayout();
+        }
+
+        private void TextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            UpdateTitleColor();
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            UpdateTitleColor();
         }
 
         private void UpdateCheckBoxPasswordEnabled(TextBox textBox)
@@ -345,6 +353,35 @@ namespace Db2Source
             }
             ConnectionList = l;
             Target = info0;
+            UpdateTitleColor();
+        }
+
+        private void UpdateTitleColor()
+        {
+            //buttonTitleColor.GetBindingExpression(BackgroundProperty)?.UpdateSource();
+            //checkBoxTitleColor.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();
+            buttonTitleColor.GetBindingExpression(BackgroundProperty)?.UpdateTarget();
+            checkBoxTitleColor.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateTarget();
+        }
+        private void buttonTitleColor_Click(object sender, RoutedEventArgs e)
+        {
+            ColorPickerWindow win = new ColorPickerWindow();
+            WindowLocator.LocateNearby(sender as Button, win, NearbyLocation.DownLeft);
+            RGB rgb = Target.BackgroundColor;
+            win.Color = Color.FromRgb(rgb.R, rgb.G, rgb.B);
+            win.Owner = this;
+            bool? ret = win.ShowDialog();
+            if (ret.HasValue && ret.Value)
+            {
+                rgb = new RGB(win.Color.R, win.Color.G, win.Color.B);
+                Target.BackgroundColor = rgb;
+                UpdateTitleColor();
+            }
+        }
+
+        private void checkBoxTitleColor_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateTitleColor();
         }
     }
 }
