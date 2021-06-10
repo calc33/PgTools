@@ -483,6 +483,7 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(SessionList), typeof(PgsqlSessionListControl));
             TitleBase = Title;
         }
 
@@ -1147,6 +1148,11 @@ namespace Db2Source
             MovingTabItem = c as MovableTabItem;
         }
         #endregion
+
+        private void menuItemSessionList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenViewer(CurrentDataSet.SessionList);
+        }
     }
     public class RGBToColorBrushConverter : IValueConverter
     {

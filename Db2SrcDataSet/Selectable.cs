@@ -65,12 +65,12 @@ namespace Db2Source
         {
             get
             {
-                return Context.GetEscapedIdentifier(Name);
+                return Context.GetEscapedIdentifier(Name, true);
             }
         }
         public string EscapedIdentifier(string baseSchemaName)
         {
-            return Context.GetEscapedIdentifier(SchemaName, new string[] { TableName, Name }, baseSchemaName);
+            return Context.GetEscapedIdentifier(SchemaName, new string[] { TableName, Name }, baseSchemaName, true);
         }
 
         private void UpdateSelectable()

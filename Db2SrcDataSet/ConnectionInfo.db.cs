@@ -188,6 +188,18 @@ namespace Db2Source
             return Convert.ToBase64String(crypt.TransformFinalBlock(b, 0, b.Length));
         }
 
+        /// <summary>
+        /// ConnectionInfo.dbのPASSWORDに格納する値
+        /// DataSet.Properties.Settings.Default.StorePassword がFalseの
+        /// 場合はパスワードを格納しないためnullを返す
+        /// </summary>
+        /// <returns></returns>
+        private object GetPasswordForStore()
+        {
+            string pass = DataSet.Properties.Settings.Default.StorePassword ? GetCryptedPassword() : null;
+            return string.IsNullOrEmpty(pass) ? DBNull.Value : (object)pass;
+        }
+
         private SQLiteCommand GetInsertSqlCommand(SQLiteConnection connection)
         {
             List<PropertyInfo> flds = new List<PropertyInfo>(GetStoredFields(GetType(), true));
@@ -219,10 +231,12 @@ namespace Db2Source
                     }
                     cmd.Parameters.Add(new SQLiteParameter("@" + f, o));
                 }
-                bufF.Append("PASSWORD, ");
-                bufV.Append("@PASSWORD, ");
-                string pass = GetCryptedPassword();
-                cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", string.IsNullOrEmpty(pass) ? (object)DBNull.Value : pass));
+                if (DataSet.Properties.Settings.Default.StorePassword)
+                {
+                    bufF.Append("PASSWORD, ");
+                    bufV.Append("@PASSWORD, ");
+                    cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", GetPasswordForStore()));
+                }
 
                 bufF.Append("BKCOLOR, ");
                 bufV.Append("@BKCOLOR, ");
@@ -362,9 +376,11 @@ namespace Db2Source
                     }
                     cmd.Parameters.Add(new SQLiteParameter("@" + f, o));
                 }
-                buf.AppendLine("  PASSWORD = @PASSWORD,");
-                string pass = GetCryptedPassword();
-                cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", string.IsNullOrEmpty(pass) ? (object)DBNull.Value : pass));
+                if (DataSet.Properties.Settings.Default.StorePassword)
+                {
+                    buf.AppendLine("  PASSWORD = @PASSWORD,");
+                    cmd.Parameters.Add(new SQLiteParameter("@PASSWORD", GetPasswordForStore()));
+                }
 
                 buf.AppendLine("  BKCOLOR = @BKCOLOR,");
                 cmd.Parameters.Add(new SQLiteParameter("@BKCOLOR", BkColor));

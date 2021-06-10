@@ -1,0 +1,39 @@
+﻿<UserControl x:Class="Db2Source.PgsqlSessionListControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Db2Source"
+             xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
+    <UserControl.Resources/>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top">
+            <ToolBarTray>
+                <ToolBar>
+                    <Button x:Name="buttonRefresh" ContentTemplate="{StaticResource ImageRollback14}" ToolTip="更新" Click="buttonRefresh_Click"/>
+                </ToolBar>
+            </ToolBarTray>
+        </StackPanel>
+        <DataGrid x:Name="dataGridSessionList" DataContext="{x:Type local2:NpgsqlSession}">
+            <DataGrid.Columns>
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Button Content="強制終了" Padding="4,2" Click="ButtonTerminate_Click"/>
+                            </Grid>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                <DataGridTextColumn Header="Pid" Binding="{Binding Pid}"/>
+                <DataGridTextColumn Header="Database" Binding="{Binding DatabaseName}"/>
+                <DataGridTextColumn Header="User" Binding="{Binding UserName}"/>
+                <DataGridTextColumn Header="Application" Binding="{Binding ApplicationName}"/>
+                <DataGridTextColumn Header="Host" Binding="{Binding Hostname}"/>
+                <DataGridTextColumn Header="Port" Binding="{Binding Port}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

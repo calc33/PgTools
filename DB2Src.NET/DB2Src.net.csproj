@@ -108,6 +108,9 @@
       <DependentUpon>ColorPickerWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="MovableTabItem.cs" />
+    <Compile Include="PgsqlSessionListControl.xaml.cs">
+      <DependentUpon>PgsqlSessionListControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PgsqlTypeControl.xaml.cs">
       <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
     </Compile>
@@ -214,6 +217,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ColorPickerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PgsqlSessionListControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

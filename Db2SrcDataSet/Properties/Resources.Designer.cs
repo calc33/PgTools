@@ -19,7 +19,7 @@ namespace Db2Source.DataSet.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -47,7 +47,7 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
+        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
         ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -275,9 +275,7 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   select p.oid, p.proname,
-        ///  p.pronargs, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
-        ///  p.proargnames, p.protrftypes, prosrc, probin, proconfig
+        ///   select p.oid, p.proname, p.proargtypes, p.proallargtypes
         ///from pg_catalog.pg_proc p
         ///  join pg_catalog.pg_namespace ns on (p.pronamespace = ns.oid and ns.nspname = :schema)
         ///where p.proname = :name に類似しているローカライズされた文字列を検索します。
@@ -308,6 +306,20 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgSettings_SQL {
             get {
                 return ResourceManager.GetString("PgSettings_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select
+        ///  pid, datname, usename, application_name,
+        ///  client_hostname, client_addr, client_port,
+        ///  wait_event_type, wait_event, &quot;state&quot;
+        ///from pg_catalog.pg_stat_activity
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgStatActivity_SQL {
+            get {
+                return ResourceManager.GetString("PgStatActivity_SQL", resourceCulture);
             }
         }
         

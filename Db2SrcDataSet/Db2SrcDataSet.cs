@@ -140,6 +140,14 @@ namespace Db2Source
         public object Value { get; set; }
     }
 
+    public interface ISession
+    {
+        //string GetId();
+        bool CanKill();
+        bool CanAbortQuery();
+        bool Kill(IDbConnection connection);
+        bool AbortQuery(IDbConnection connection);
+    }
     public abstract partial class Db2SourceContext: IComparable
     {
         private static string InitAppDataDir()
@@ -242,6 +250,8 @@ namespace Db2Source
 
         public string[] UserIds { get; set; }
         public string[] TablespaceNames { get; set; }
+
+        public SessionList SessionList { get; private set; }
 
         public string GetTreeNodeHeader()
         {
@@ -465,6 +475,8 @@ namespace Db2Source
         public string SessionLocale { get; protected set; }
         public Encoding SystemEncoding { get; protected set; }
         public Encoding SessionEncoding { get; protected set; }
+        public CaseRule ReservedWordCaseRule { get; set; } = CaseRule.Lowercase;
+        public CaseRule IdentifierCaseRule { get; set; } = CaseRule.Lowercase;
         /// <summary>
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
@@ -473,7 +485,7 @@ namespace Db2Source
         {
             return ConnectionInfo?.NewConnection(withOpening);
         }
-        public abstract bool NeedQuotedIdentifier(string value);
+        public abstract bool NeedQuotedIdentifier(string value, bool strict);
         protected static string GetQuotedIdentifier(string value)
         {
             StringBuilder buf = new StringBuilder();
@@ -506,13 +518,13 @@ namespace Db2Source
         /// </summary>
         /// <param name="objectName"></param>
         /// <returns></returns>
-        public string GetEscapedIdentifier(string objectName)
+        public string GetEscapedIdentifier(string objectName, bool strict)
         {
             if (string.IsNullOrEmpty(objectName))
             {
                 return objectName;
             }
-            if (!IsQuotedIdentifier(objectName) && NeedQuotedIdentifier(objectName))
+            if (!IsQuotedIdentifier(objectName) && NeedQuotedIdentifier(objectName, strict))
             {
                 return GetQuotedIdentifier(objectName);
             }
@@ -562,9 +574,9 @@ namespace Db2Source
         /// <param name="objectName"></param>
         /// <param name="baseSchemaName"></param>
         /// <returns></returns>
-        public string GetEscapedIdentifier(string schemaName, string objectName, string baseSchemaName)
+        public string GetEscapedIdentifier(string schemaName, string objectName, string baseSchemaName, bool strict)
         {
-            return GetEscapedIdentifier(schemaName, new string[] { objectName }, baseSchemaName);
+            return GetEscapedIdentifier(schemaName, new string[] { objectName }, baseSchemaName, strict);
         }
         /// <summary>
         /// objectNamesで指定した識別子を連結し、必要に応じてスキーマを先頭に付加して返す
@@ -574,7 +586,7 @@ namespace Db2Source
         /// <param name="objectNames"></param>
         /// <param name="baseSchemaName"></param>
         /// <returns></returns>
-        public string GetEscapedIdentifier(string schemaName, string[] objectNames, string baseSchemaName)
+        public string GetEscapedIdentifier(string schemaName, string[] objectNames, string baseSchemaName, bool strict)
         {
             if (objectNames == null)
             {
@@ -593,20 +605,20 @@ namespace Db2Source
                     string sb = string.IsNullOrEmpty(baseSchemaName) ? CurrentSchema : baseSchemaName;
                     if (!string.IsNullOrEmpty(schemaName) && string.Compare(schemaName, sb, true) != 0)
                     {
-                        buf.Append(GetEscapedIdentifier(schemaName));
+                        buf.Append(GetEscapedIdentifier(schemaName, strict));
                         buf.Append('.');
                     }
                     break;
                 case SourceSchemaOption.Every:
-                    buf.Append(GetEscapedIdentifier(schemaName));
+                    buf.Append(GetEscapedIdentifier(schemaName, strict));
                     buf.Append('.');
                     break;
             }
-            buf.Append(GetEscapedIdentifier(objectNames[0]));
+            buf.Append(GetEscapedIdentifier(objectNames[0], strict));
             for (int i = 1; i < objectNames.Length; i++)
             {
                 buf.Append('.');
-                buf.Append(GetEscapedIdentifier(objectNames[i]));
+                buf.Append(GetEscapedIdentifier(objectNames[i], strict));
             }
             return buf.ToString();
         }
@@ -685,6 +697,10 @@ namespace Db2Source
         /// <param name="sql"></param>
         /// <returns></returns>
         public abstract string NormalizeSQL(string sql, CaseRule reservedRule, CaseRule identifierRule);
+        public string NormalizeSQL(string sql)
+        {
+            return NormalizeSQL(sql, ReservedWordCaseRule, IdentifierCaseRule);
+        }
 
         public abstract SQLParts SplitSQL(string sql);
         //public abstract IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters);
@@ -1279,6 +1295,15 @@ namespace Db2Source
             }
         }
 
+        public abstract ISession[] GetSessions(IDbConnection connection);
+        public ISession[] GetSessions()
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                return GetSessions(conn);
+            }
+        }
+
         public virtual DbType ToDbType(Type type)
         {
             if (type == null)
@@ -1307,6 +1332,7 @@ namespace Db2Source
             Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints");
             Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers");
             Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences");
+            SessionList = new SessionList(this, "SessionList");
         }
 
         public override string ToString()

@@ -450,7 +450,7 @@ namespace Db2Source
             {
                 foreach (string c in FirstCandidateKey.Columns)
                 {
-                    l.Add(string.Format("{0}{1} = :old_{2}", a, Context.GetEscapedIdentifier(c), c));
+                    l.Add(string.Format("{0}{1} = :old_{2}", a, Context.GetEscapedIdentifier(c, true), c));
                 }
             }
             return l.ToArray();

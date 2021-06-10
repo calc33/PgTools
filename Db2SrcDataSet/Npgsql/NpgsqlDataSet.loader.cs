@@ -1901,7 +1901,7 @@ namespace Db2Source
                     Name = attname,
                     DataType = DefTypeName,
                     BaseType = BaseTypeName,
-                    DefaultValue = defaultexpr,
+                    DefaultValue = context.NormalizeSQL(defaultexpr),
                     NotNull = attnotnull
                 };
                 Type t;
@@ -2193,7 +2193,7 @@ namespace Db2Source
                 string def = null;
                 if (Procedure != null)
                 {
-                    def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, Target.Schema?.nspname) + "()";
+                    def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, Target.Schema?.nspname, true) + "()";
                 }
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
                 {
@@ -2277,7 +2277,7 @@ namespace Db2Source
                 {
                     foreach (PgAttribute a in UpdateColumns)
                     {
-                        t.UpdateEventColumns.Add(context.GetEscapedIdentifier(a.attname));
+                        t.UpdateEventColumns.Add(context.GetEscapedIdentifier(a.attname, true));
                     }
                 }
                 Generated = new WeakReference<NamedObject>(t);

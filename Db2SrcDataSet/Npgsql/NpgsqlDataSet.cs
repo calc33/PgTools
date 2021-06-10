@@ -60,22 +60,52 @@ namespace Db2Source
             return ret;
         }
         private static readonly Dictionary<string, bool> PgsqlReservedDict = InitPgsqlReservedDict();
-        private static readonly Regex PgSqlIdentifierRegex = new Regex("^[_A-z][_$0-9A-z]*$");
+        private static readonly Dictionary<bool, Regex> PgSqlIdentifierRegex = new Dictionary<bool, Regex>() {
+            { false, new Regex("^[_A-z][_$0-9A-z]*$") },
+            { true, new Regex("^[_a-z][_$0-9a-z]*$") }
+        };
+        // スキーマ情報読込時になぜか大文字で返されるキーワード一覧
+        private static readonly Dictionary<string, bool> UpperCaseEmbeddedWords = new Dictionary<string, bool>() {
+            { "CURRENT_DATE", true},
+            { "CURRENT_TIME", true},
+            { "CURRENT_TIMESTAMP", true}
+        };
+
         public static bool IsReservedWord(string value)
         {
             return PgsqlReservedDict.ContainsKey(value.ToUpper());
         }
-        public static bool NeedQuotedPgsqlIdentifier(string value)
+
+        /// <summary>
+        /// valueで渡された文字列が識別子として使う場合に引用符でエスケープする必要があるかどうかを判定する
+        /// エスケープが必要な場合はtrue、不要な場合はfalseを返す
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="strict">
+        /// false: 文字列はユーザーが入力した文字列なので大文字小文字の区別が曖昧である
+        /// true: 文字列はDBの定義情報を渡しているので大文字小文字の区別が厳格(大文字が渡された場合も引用符でエスケープする)
+        ///       なお、一部ワード(CURRENT_DATE等)はDBが定義情報を大文字で返すため例外扱いする
+        /// </param>
+        /// <returns></returns>
+        public static bool NeedQuotedPgsqlIdentifier(string value, bool strict)
         {
-            return !PgSqlIdentifierRegex.IsMatch(value) || IsReservedWord(value);
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+            if (strict && UpperCaseEmbeddedWords.ContainsKey(value))
+            {
+                return false;
+            }
+            return !PgSqlIdentifierRegex[strict].IsMatch(value) || IsReservedWord(value);
         }
-        public override bool NeedQuotedIdentifier(string value)
+        public override bool NeedQuotedIdentifier(string value, bool strict)
         {
-            return NeedQuotedPgsqlIdentifier(value);
+            return NeedQuotedPgsqlIdentifier(value, strict);
         }
-        public static string GetEscapedPgsqlIdentifier(string objectName)
+        public static string GetEscapedPgsqlIdentifier(string objectName, bool strict)
         {
-            if (!IsQuotedIdentifier(objectName) && NeedQuotedPgsqlIdentifier(objectName))
+            if (!IsQuotedIdentifier(objectName) && NeedQuotedPgsqlIdentifier(objectName, strict))
             {
                 return GetQuotedIdentifier(objectName);
             }
@@ -231,7 +261,7 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append("select * from ");
-            buf.Append(GetEscapedIdentifier(function.SchemaName, function.Name, null));
+            buf.Append(GetEscapedIdentifier(function.SchemaName, function.Name, null, true));
             buf.Append("(");
             bool needComma = false;
             List<NpgsqlParameter> l = new List<NpgsqlParameter>();
@@ -442,7 +472,7 @@ namespace Db2Source
                         w++;
                     }
                 }
-                string col = GetEscapedIdentifier(c.Name);
+                string col = GetEscapedIdentifier(c.Name, true);
                 string prm = ":" + c.Name;
                 w += Math.Max(col.Length, prm.Length);
                 bufF.Append(col);
@@ -518,7 +548,7 @@ namespace Db2Source
                         w++;
                     }
                 }
-                string col = GetEscapedIdentifier(c.Name);
+                string col = GetEscapedIdentifier(c.Name,  true);
                 ColumnInfo info = name2col[c.Name];
                 object v = data[info];
                 string val = GetImmediatedStr(info, v);
@@ -560,7 +590,7 @@ namespace Db2Source
                 }
                 buf.Append(spc);
                 buf.Append("  ");
-                buf.Append(GetEscapedIdentifier(c.Name));
+                buf.Append(GetEscapedIdentifier(c.Name, true));
                 buf.Append(" = :");
                 buf.Append(c.Name);
                 needComma = true;
@@ -643,7 +673,7 @@ namespace Db2Source
                     bufF.Append(", ");
                     bufP.Append(", ");
                 }
-                bufF.Append(GetEscapedIdentifier(f.Name));
+                bufF.Append(GetEscapedIdentifier(f.Name, true));
                 if (row[f.Index] == null || row[f.Index] is DBNull) {
                     if (f.IsDefaultDefined)
                     {
@@ -704,7 +734,7 @@ namespace Db2Source
                     bufF.AppendLine(", ");
                 }
                 bufF.Append("  ");
-                bufF.Append(GetEscapedIdentifier(f.Name));
+                bufF.Append(GetEscapedIdentifier(f.Name, true));
                 bufF.Append(" = :");
                 bufF.Append(f.Name);
                 NpgsqlParameter p = CreateParameterByFieldInfo(f, row[f.Index], false) as NpgsqlParameter;
@@ -732,11 +762,11 @@ namespace Db2Source
                 }
                 if (f.IsNullable)
                 {
-                    bufC.AppendFormat("(({0} = :old_{1}) or ({0} is null and :old_{1} is null))", GetEscapedIdentifier(f.Name), f.Name);
+                    bufC.AppendFormat("(({0} = :old_{1}) or ({0} is null and :old_{1} is null))", GetEscapedIdentifier(f.Name, true), f.Name);
                 }
                 else
                 {
-                    bufC.AppendFormat("({0} = :old_{1})", GetEscapedIdentifier(f.Name), f.Name);
+                    bufC.AppendFormat("({0} = :old_{1})", GetEscapedIdentifier(f.Name, true), f.Name);
                 }
                 bufC.AppendLine();
                 NpgsqlParameter p = CreateParameterByFieldInfo(f, row.Old(f.Index), true) as NpgsqlParameter;
@@ -779,11 +809,11 @@ namespace Db2Source
                 }
                 if (f.IsNullable)
                 {
-                    bufC.AppendFormat("(({0} = :old_{1}) or ({0} is null and :old_{1} is null))", GetEscapedIdentifier(f.Name), f.Name);
+                    bufC.AppendFormat("(({0} = :old_{1}) or ({0} is null and :old_{1} is null))", GetEscapedIdentifier(f.Name, true), f.Name);
                 }
                 else
                 {
-                    bufC.AppendFormat("({0} = :old_{1})", GetEscapedIdentifier(f.Name), f.Name);
+                    bufC.AppendFormat("({0} = :old_{1})", GetEscapedIdentifier(f.Name, true), f.Name);
                 }
                 bufC.AppendLine();
                 NpgsqlParameter p = CreateParameterByFieldInfo(f, row.Old(f.Index), true) as NpgsqlParameter;
