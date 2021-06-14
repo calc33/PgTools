@@ -274,7 +274,7 @@ namespace Db2Source
 
         private void textBoxSqlCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            textBoxSql.Text = CurrentDataSet.NormalizeSQL(textBoxSql.Text, CaseRule.Lowercase, CaseRule.Lowercase);
+            textBoxSql.Text = CurrentDataSet.NormalizeSQL(textBoxSql.Text);
             e.Handled = true;
         }
 

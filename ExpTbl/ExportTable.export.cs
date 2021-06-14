@@ -53,7 +53,7 @@ namespace Db2Source
                     {
                         continue;
                     }
-                    flds.Add(dataSet.GetEscapedIdentifier(c.Name));
+                    flds.Add(dataSet.GetEscapedIdentifier(c.Name, true));
                     string fmt = c.StringFormat;
                     if (c.BaseType == "date")
                     {
@@ -70,11 +70,11 @@ namespace Db2Source
                     {
                         buf.Append(Db2SourceContext.ToLiteralStr(v));
                         buf.Append(" as ");
-                        buf.Append(dataSet.GetEscapedIdentifier(c.Name));
+                        buf.Append(dataSet.GetEscapedIdentifier(c.Name, true));
                     }
                     else
                     {
-                        buf.Append(dataSet.GetEscapedIdentifier(c.Name));
+                        buf.Append(dataSet.GetEscapedIdentifier(c.Name, true));
                     }
                     prefix = ", ";
                 }
@@ -94,7 +94,7 @@ namespace Db2Source
                     foreach (string s in OrderBy)
                     {
                         buf.Append(prefix);
-                        buf.Append(dataSet.GetEscapedIdentifier(s));
+                        buf.Append(dataSet.GetEscapedIdentifier(s, true));
                         prefix = ", ";
                     }
                 }
@@ -322,7 +322,7 @@ namespace Db2Source
                 using (IDataReader reader = command.ExecuteReader())
                 {
                     sw.Write("COPY ");
-                    sw.Write(dataSet.GetEscapedIdentifier(table.Schema, table.TableName, null));
+                    sw.Write(dataSet.GetEscapedIdentifier(table.Schema, table.TableName, null, true));
                     string prefix = " (";
                     foreach (string f in table.Fields)
                     {

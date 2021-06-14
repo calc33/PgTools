@@ -740,7 +740,7 @@ namespace Db2Source
                 default:
                     throw new ArgumentException(string.Format("rule={0}に対する処理がありません", Enum.GetName(typeof(CaseRule), rule)));
             }
-            if (!noQuote && NeedQuotedPgsqlIdentifier(s))
+            if (!noQuote && NeedQuotedPgsqlIdentifier(s, false))
             {
                 s = GetQuotedIdentifier(s);
             }
@@ -759,6 +759,23 @@ namespace Db2Source
             int p1 = sql.IndexOf('$', 1);
             string mark1 = sql.Substring(0, p1 + 1);
             int p2 = sql.LastIndexOf('$', sql.Length - 2);
+            // 最後の改行コードを終端記号に含める(改行コードを残す)
+            if (0 < p2)
+            {
+                char c = sql[p2 - 1];
+                if (c == '\n')
+                {
+                    p2--;
+                    if (0 < p2 && sql[p2 - 1] == '\r')
+                    {
+                        p2--;
+                    }
+                }
+                else if (c == '\r')
+                {
+                    p2--;
+                }
+            }
             string mark2 = sql.Substring(p2);
             string body = sql.Substring(p1 + 1, p2 - p1 - 1);
             body = NormalizeSQL(body, reservedRule, identifierRule);
@@ -767,6 +784,10 @@ namespace Db2Source
 
         public override string NormalizeSQL(string sql, CaseRule reservedRule, CaseRule identifierRule)
         {
+            if (string.IsNullOrEmpty(sql))
+            {
+                return sql;
+            }
             StringBuilder buf = new StringBuilder();
             TokenizedSQL tsql = new TokenizedSQL(sql);
             bool wasLanguage = false;

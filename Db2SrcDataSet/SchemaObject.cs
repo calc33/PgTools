@@ -112,7 +112,7 @@ namespace Db2Source
         }
         public string EscapedIdentifier(string baseSchemaName)
         {
-            return Context.GetEscapedIdentifier(SchemaName, Name, baseSchemaName);
+            return Context.GetEscapedIdentifier(SchemaName, Name, baseSchemaName, true);
         }
 
         //protected override void Backup() { }

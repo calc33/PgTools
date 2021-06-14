@@ -210,7 +210,7 @@ namespace Db2Source
             }
             else
             {
-                return string.Format("{0}{1}constraint {2} {3}", new string(' ', indent), pre, GetEscapedIdentifier(constraint.Name), ConstraintTypeToStr[constraint.ConstraintType]);
+                return string.Format("{0}{1}constraint {2} {3}", new string(' ', indent), pre, GetEscapedIdentifier(constraint.Name, true), ConstraintTypeToStr[constraint.ConstraintType]);
             }
         }
         public override string[] GetSQL(KeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline)
@@ -410,7 +410,7 @@ namespace Db2Source
 
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("create trigger {0}", GetEscapedIdentifier(trigger.Name));
+            buf.AppendFormat("create trigger {0}", GetEscapedIdentifier(trigger.Name, true));
             buf.AppendLine();
             StringBuilder bufPart = new StringBuilder();
             spc += "  ";
@@ -423,7 +423,7 @@ namespace Db2Source
             buf.Append(trigger.GetUpdateEventColumnsSql(" of ", spc + "  ", ref c, ref l, LINE_SOFTLIMIT, LINE_HARDLIMIT));
             bufPart = new StringBuilder();
             bufPart.Append("on ");
-            bufPart.Append(GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema));
+            bufPart.Append(GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema, true));
             if (c < LINE_SOFTLIMIT && c + bufPart.Length + 1 < LINE_HARDLIMIT && l == 0)
             {
                 buf.Append(' ');
@@ -482,9 +482,9 @@ namespace Db2Source
                     buf.Append("unique ");
                 }
                 buf.Append("index ");
-                buf.Append(GetEscapedIdentifier(index.Name));
+                buf.Append(GetEscapedIdentifier(index.Name, true));
                 buf.Append(" on ");
-                buf.Append(GetEscapedIdentifier(index.TableSchema, index.TableName, CurrentSchema));
+                buf.Append(GetEscapedIdentifier(index.TableSchema, index.TableName, CurrentSchema, true));
                 if (!string.IsNullOrEmpty(index.IndexType))
                 {
                     buf.Append(" using ");
@@ -580,9 +580,9 @@ namespace Db2Source
             if (!ignoreOwned && !string.IsNullOrEmpty(sequence.OwnedColumn))
             {
                 buf.Append(" owned by ");
-                buf.Append(GetEscapedIdentifier(sequence.OwnedSchemaName, sequence.OwnedTableName, CurrentSchema));
+                buf.Append(GetEscapedIdentifier(sequence.OwnedSchemaName, sequence.OwnedTableName, CurrentSchema, true));
                 buf.Append('.');
-                buf.Append(GetEscapedIdentifier(sequence.OwnedColumn));
+                buf.Append(GetEscapedIdentifier(sequence.OwnedColumn, true));
             }
             buf.Append(postfix);
             if (addNewline)
@@ -609,7 +609,7 @@ namespace Db2Source
             buf.Append(GetParameterDirectionStr(p.Direction));
             if (!string.IsNullOrEmpty(p.Name))
             {
-                buf.Append(GetEscapedIdentifier(p.Name));
+                buf.Append(GetEscapedIdentifier(p.Name, true));
                 buf.Append(' ');
             }
             buf.Append(p.DataType);
@@ -903,7 +903,7 @@ namespace Db2Source
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("create tablespace ");
-            buf.Append(GetEscapedIdentifier(Name));
+            buf.Append(GetEscapedIdentifier(Name, true));
             if (ts != null && string.Compare(ts.Owner, ConnectionInfo.UserName, true) != 0)
             {
                 buf.Append(" owner ");
@@ -926,7 +926,7 @@ namespace Db2Source
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("create role ");
-            buf.Append(GetEscapedIdentifier(user.Id));
+            buf.Append(GetEscapedIdentifier(user.Id, true));
             StringBuilder bufOpt = new StringBuilder();
             if (u != null)
             {
@@ -1270,7 +1270,7 @@ namespace Db2Source
             string spc = new string(' ', indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("alter table {0} drop constraint {1}", constraint.Table.EscapedIdentifier(CurrentSchema), GetEscapedIdentifier(constraint.Name));
+            buf.AppendFormat("alter table {0} drop constraint {1}", constraint.Table.EscapedIdentifier(CurrentSchema), GetEscapedIdentifier(constraint.Name, true));
             buf.Append(postfix);
             if (addNewline)
             {
@@ -1382,7 +1382,7 @@ namespace Db2Source
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
             buf.Append("drop tablespace if exists ");
-            buf.Append(GetEscapedIdentifier(tablespace.Name));
+            buf.Append(GetEscapedIdentifier(tablespace.Name, true));
             buf.Append(postfix);
             if (addNewline)
             {
@@ -1399,7 +1399,7 @@ namespace Db2Source
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
             buf.Append("drop user if exists ");
-            buf.Append(GetEscapedIdentifier(user.Name));
+            buf.Append(GetEscapedIdentifier(user.Name, true));
             buf.Append(postfix);
             if (addNewline)
             {

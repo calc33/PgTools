@@ -667,7 +667,7 @@ namespace Db2Source
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            textBoxCondition.Text = Target.Context.NormalizeSQL(textBoxCondition.Text, CaseRule.Lowercase, CaseRule.Lowercase);
+            textBoxCondition.Text = Target.Context.NormalizeSQL(textBoxCondition.Text);
             e.Handled = true;
         }
 
@@ -1181,11 +1181,11 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append('(');
-            buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[0]));
+            buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[0], true));
             for (int i = 1; i < strs.Length; i++)
             {
                 buf.Append(", ");
-                buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[i]));
+                buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[i], true));
             }
             buf.Append(')');
             return buf.ToString();

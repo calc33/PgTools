@@ -39,7 +39,7 @@ namespace Db2Source
         }
         protected override string GetIdentifier()
         {
-            return Context.GetEscapedIdentifier(SchemaName, Target, null);
+            return Context.GetEscapedIdentifier(SchemaName, Target, null, true);
         }
         /// <summary>
         /// コメントが編集されていたらtrueを返す
@@ -127,7 +127,7 @@ namespace Db2Source
         }
         public virtual string EscapedIdentifier(string baseSchemaName)
         {
-            return Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName);
+            return Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName, true);
         }
 
         internal Comment(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Comments)
@@ -208,7 +208,7 @@ namespace Db2Source
         }
         public override string EscapedIdentifier(string baseSchemaName)
         {
-            return Context.GetEscapedIdentifier(SchemaName, new string[] { Target, Column }, baseSchemaName);
+            return Context.GetEscapedIdentifier(SchemaName, new string[] { Target, Column }, baseSchemaName, true);
         }
         internal ColumnComment(Db2SourceContext context, string schema) : base(context, schema) { }
         internal ColumnComment(Db2SourceContext context, string schema, string table, string column, string comment, bool isLoaded) : base(context, schema, table, comment, isLoaded)

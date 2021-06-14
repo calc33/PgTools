@@ -477,6 +477,7 @@
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
                     <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
+                    <MenuItem x:Name="menuItemSessionList" Header="セッション一覧" Click="menuItemSessionList_Click"/>
                     <MenuItem x:Name="menuItemQueryHistory" Header="クエリ履歴" Click="menuItemQueryHistory_Click"/>
                     <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
                     <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
