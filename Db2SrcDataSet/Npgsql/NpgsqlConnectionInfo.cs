@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Reflection;
 using System.Security;
 using System.Security.AccessControl;
 using System.Text;
@@ -445,7 +446,8 @@ namespace Db2Source
                 Host = ServerName,
                 Database = DatabaseName,
                 Port = ServerPort,
-                Username = UserName
+                Username = UserName,
+                ApplicationName = Assembly.GetEntryAssembly().GetName().Name
             };
             if (includePassord)
             {

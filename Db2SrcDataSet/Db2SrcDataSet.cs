@@ -1332,7 +1332,7 @@ namespace Db2Source
             Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints");
             Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers");
             Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences");
-            SessionList = new SessionList(this, "SessionList");
+            SessionList = new SessionList(this, "Sessions");
         }
 
         public override string ToString()

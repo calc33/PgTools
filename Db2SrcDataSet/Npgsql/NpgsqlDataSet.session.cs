@@ -15,7 +15,10 @@ namespace Db2Source
         public string DatabaseName { get; private set; }
         public string UserName { get; private set; }
         public string ApplicationName { get; private set; }
+        public string Client { get; private set; }
+
         public string Hostname { get; private set; }
+        public string Address { get; private set; }
         public int? Port { get; private set; }
         public string WaitEventType { get; private set; }
         public string WaitEvent { get; private set; }
@@ -28,13 +31,15 @@ namespace Db2Source
             DatabaseName = source.datname;
             UserName = source.usename;
             ApplicationName = source.application_name;
-            if (!string.IsNullOrEmpty(source.client_hostname))
+            Client = source.client_hostname;
+            Address = source.client_addr;
+            if (!string.IsNullOrEmpty(Client))
             {
-                Hostname = string.Format("{0}({1})", source.client_hostname, source.client_addr);
+                Hostname = string.Format("{0}({1})", Client, Address);
             }
             else
             {
-                Hostname = source.client_addr;
+                Hostname = Address;
             }
             Port = source.client_port;
             WaitEventType = source.wait_event_type;
