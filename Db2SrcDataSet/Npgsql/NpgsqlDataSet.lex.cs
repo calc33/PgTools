@@ -31,6 +31,7 @@ namespace Db2Source
             Period = 0x2e,      // .
             Slash = 0x2f,       // /
             Colon = 0x3a,       // :
+            DoubleColon = 0x3a3a,   // ::
             Semicolon = 0x3b,   // ;
             Less = 0x3c,        // <
             Equal = 0x3d,       // =
@@ -87,6 +88,12 @@ namespace Db2Source
             JsonOp4 = 0x233e3e,     // #>>
             JsonOp5 = 0x3f26,       // ?&
             RangeOp1 = 0x2d7c2d,    // -|-
+        // Virtual Token
+            Expr    = 0x7f000001,   // EXPR
+            Number  = 0x7f000002,   // NUMBER
+            Field   = 0x7f000003,   // column or table
+            Fields  = 0x7f000004,   // columns or tables
+            As      = 0x7f000005,   // AS
         }
         public enum TokenKind
         {
@@ -100,13 +107,101 @@ namespace Db2Source
             Semicolon,
             DefBody
         }
+        public struct TokenPosition: IComparable
+        {
+            /// <summary>
+            /// 文字位置(0から始まる)
+            /// </summary>
+            public int Index { get; set; }
+            /// <summary>
+            /// 行番号(1から始まる)
+            /// </summary>
+            public int Line { get; set; }
+            /// <summary>
+            /// 列番号(1から始まる)
+            /// </summary>
+            public int Column { get; set; }
+            public TokenPosition(int index, int line, int column)
+            {
+                Index = index;
+                Line = line;
+                Column = column;
+            }
+            public TokenPosition(TokenizedSQL sql, int index)
+            {
+                // 前回の位置情報を使って高速化(可能なら)
+                TokenPosition previous = sql._lastPos;
+                if (index < previous.Index)
+                {
+                    previous = Empty;
+                }
+                string text = sql.Sql;
+                Line = previous.Line;
+                Column = previous.Column;
+                Index = previous.Index;
+                int i = Index;
+                int l = Line;
+                int c = Column;
+                int n = Math.Min(index, text.Length - 1);
+                bool wasCR = false;
+                bool wasLF = false;
+                while (i <= n)
+                {
+                    char ch = text[i];
+                    if (wasCR && ch != '\n' || wasLF)
+                    {
+                        l++;
+                        c = 1;
+                    }
+
+                    Index = i;
+                    Line = l;
+                    Column = c;
+
+                    i++;
+                    c++;
+                    if (char.IsSurrogate(ch))
+                    {
+                        i++;
+                        c++;
+                    }
+                    wasCR = (ch == '\r');
+                    wasLF = (ch == '\n');
+                }
+                sql._lastPos = this;
+            }
+            public static readonly TokenPosition Empty = new TokenPosition(0, 1, 1);
+
+            public int CompareTo(object obj)
+            {
+                if (!(obj is TokenPosition))
+                {
+                    return -1;
+                }
+                return Index.CompareTo(((TokenPosition)obj).Index);
+            }
+            public override bool Equals(object obj)
+            {
+                if (!(obj is TokenPosition))
+                {
+                    return false;
+                }
+                return Index == ((TokenPosition)obj).Index;
+            }
+            public override int GetHashCode()
+            {
+                return Index.GetHashCode();
+            }
+        }
+
         public class Token
         {
             public TokenKind Kind { get; private set; }
             public TokenID ID { get; set; }
             private readonly TokenizedSQL _owner;
-            public int StartPos { get; private set; }
-            public int EndPos { get; private set; }
+            public TokenPosition Start { get; private set; }
+            public TokenPosition End { get; private set; }
+
             private string _value = null;
             private void UpdateValue()
             {
@@ -119,13 +214,25 @@ namespace Db2Source
                     _value = string.Empty;
                     return;
                 }
-                if (EndPos < StartPos)
+                if (End.Index < Start.Index)
                 {
                     _value = string.Empty;
                     return;
                 }
-                _value = _owner.Sql.Substring(StartPos, EndPos - StartPos + 1);
+                _value = _owner.Sql.Substring(Start.Index, End.Index - Start.Index + 1);
                 return;
+            }
+            public int HitTest(int pos)
+            {
+                if (pos < Start.Index)
+                {
+                    return -1;
+                }
+                if (End.Index < pos)
+                {
+                    return 1;
+                }
+                return 0;
             }
             private void InvalidateValue()
             {
@@ -144,8 +251,8 @@ namespace Db2Source
                 _owner = owner;
                 Kind = kind;
                 ID = identifier;
-                StartPos = start;
-                EndPos = current - 1;
+                Start = new TokenPosition(owner, start);
+                End = new TokenPosition(owner, current - 1);
             }
             internal Token(TokenizedSQL owner, TokenKind kind, char identifier, int start, int current)
             {
@@ -158,8 +265,8 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                StartPos = start;
-                EndPos = current - 1;
+                Start = new TokenPosition(owner, start);
+                End = new TokenPosition(owner, current - 1);
             }
             internal Token(TokenizedSQL owner, TokenKind kind, char[] ids, int start, int current)
             {
@@ -172,8 +279,8 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                StartPos = start;
-                EndPos = current - 1;
+                Start = new TokenPosition(owner, start);
+                End = new TokenPosition(owner, current - 1);
             }
             internal Token(TokenizedSQL owner, TokenKind kind, string ids, int start, int current)
             {
@@ -186,12 +293,12 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                StartPos = start;
-                EndPos = current - 1;
+                Start = new TokenPosition(owner, start);
+                End = new TokenPosition(owner, current - 1);
             }
             internal void Joint(Token token)
             {
-                EndPos = token.EndPos;
+                End = token.End;
                 InvalidateValue();
             }
             private string TokenIdStr()
@@ -218,16 +325,87 @@ namespace Db2Source
             }
         }
 
-        public class TokenizedSQL
+        public partial class TokenizedSQL
         {
             private readonly string _sql;
             public string Sql { get { return _sql; } }
             public Token[] Tokens { get; private set; }
+
             public Token Selected { get; set; }
+            internal TokenPosition _lastPos = TokenPosition.Empty;
 
             public string Extract(Token startToken, Token endToken)
             {
-                return _sql.Substring(startToken.StartPos, endToken.EndPos - startToken.StartPos + 1);
+                return _sql.Substring(startToken.Start.Index, endToken.End.Index - startToken.Start.Index + 1);
+            }
+
+            private int FindTokenIndexRecursive(int pos, int start, int end)
+            {
+                if (end < start)
+                {
+                    return -1;
+                }
+                int i = (start + end) / 2;
+                int hit = Tokens[i].HitTest(pos);
+                if (hit == 0)
+                {
+                    return i;
+                }
+                if (hit < 0)
+                {
+                    return FindTokenIndexRecursive(pos, start, i - 1);
+                }
+                return FindTokenIndexRecursive(pos, i + 1, end);
+            }
+            private int _lastSearchIndex = -1;
+            public Token GetTokenAt(int pos)
+            {
+                int i;
+                int i0 = 0;
+                int i1 = Tokens.Length - 1;
+                //前回探索位置の次を探索するケースが多いという想定で直前直後をまず探索
+                if (_lastSearchIndex != -1)
+                {
+                    i = _lastSearchIndex;
+                    int hit = Tokens[i].HitTest(pos);
+                    if (hit == 0)
+                    {
+                        return Tokens[i];
+                    }
+                    if (hit < 0)
+                    {
+                        i--;
+                        if (i0 <= i)
+                        {
+                            hit = Tokens[i].HitTest(pos);
+                            if (hit == 0)
+                            {
+                                return Tokens[i];
+                            }
+                        }
+                        i1 = i - 1;
+                    }
+                    else
+                    {
+                        i++;
+                        if (i <= i1)
+                        {
+                            hit = Tokens[i].HitTest(pos);
+                            if (hit == 0)
+                            {
+                                return Tokens[i];
+                            }
+                        }
+                    }
+                }
+                //二分探索
+                i = FindTokenIndexRecursive(pos, i0, i1);
+                _lastSearchIndex = i;
+                if (i == -1)
+                {
+                    return null;
+                }
+                return Tokens[i];
             }
 
             private static Dictionary<char, bool> InitIdentifierEndChars()
@@ -246,14 +424,14 @@ namespace Db2Source
                 tokens.Add(token);
                 if (token.ID == TokenID.Space)
                 {
-                    if (token.StartPos < selectedPos && selectedPos < token.EndPos)
+                    if (token.Start.Index < selectedPos && selectedPos < token.End.Index)
                     {
                         Selected = token;
                     }
                 }
                 else
                 {
-                    if (token.StartPos <= selectedPos && selectedPos <= token.EndPos)
+                    if (token.Start.Index <= selectedPos && selectedPos <= token.End.Index)
                     {
                         Selected = token;
                     }
@@ -340,7 +518,7 @@ namespace Db2Source
                                 if(c2 == ':')
                                 {
                                     p += 2;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, TokenID.DoubleColon, p0, p));
                                 }
                                 else
                                 {
@@ -687,7 +865,7 @@ namespace Db2Source
                 string s = tsql.Extract(t0, tsql.Tokens[i - 1]);
                 SQLPart sp = new SQLPart()
                 {
-                    Offset = t0.StartPos,
+                    Offset = t0.Start.Index,
                     SQL = s,
                     ParameterNames = GetParameterNames(s).ToArray(),
                 };

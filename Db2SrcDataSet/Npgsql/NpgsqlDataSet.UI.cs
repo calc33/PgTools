@@ -183,7 +183,7 @@ namespace Db2Source
             {
                 return null;
             }
-            return new Tuple<int, int>(sel.StartPos, sel.EndPos - sel.StartPos + 1);
+            return new Tuple<int, int>(sel.Start.Index, sel.End.Index - sel.Start.Index + 1);
         }
         private static string GetExceptionMessage(Npgsql.PostgresException t)
         {
