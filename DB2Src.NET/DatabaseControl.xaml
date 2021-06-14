@@ -29,29 +29,9 @@
                         </DataGrid>
                     </DockPanel>
                 </GroupBox>
-                <GroupBox Header="パラメータ" Margin="2">
-                    <DockPanel>
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2">
-                            <ToolBar>
-                                <TextBlock Text="カテゴリ" VerticalAlignment="Center"/>
-                                <ComboBox x:Name="comboBoxSettingCategory" MinWidth="100" Margin="2,0" DisplayMemberPath="Value" SelectedValuePath="Name" SelectionChanged="comboBoxSettingCategory_SelectionChanged"/>
-                                <Separator/>
-                                <ToggleButton x:Name="toggleButtonSettingFilter" ContentTemplate="{StaticResource ImageSearch14}" Click="toggleButtonSettingFilter_Click"/>
-                                <TextBox x:Name="textBoxSettingFilter" MinWidth="150" Visibility="{Binding IsChecked, ElementName=toggleButtonSettingFilter, Converter={StaticResource BooleanToVisibilityConverter}}" TextChanged="textBoxSettingFilter_TextChanged"/>
-                                <Separator/>
-                                <Button ContentTemplate="{StaticResource ImageRefresh16}" Click="buttonRefresh_Click"/>
-                            </ToolBar>
-                        </StackPanel>
-                        <DataGrid x:Name="dataGridSetting" Grid.Row="4" IsReadOnly="True" ItemsSource="{Binding Target.Settings, ElementName=userControl}" AutoGenerateColumns="False" SelectionUnit="Cell" CanUserResizeRows="False">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="パラメータ" IsReadOnly="True" Binding="{Binding Name}"/>
-                                <DataGridTextColumn Header="値" IsReadOnly="True" Binding="{Binding Setting}"/>
-                                <DataGridTextColumn Header="説明" IsReadOnly="True" Binding="{Binding ShortDesc}"/>
-                                <DataGridTextColumn Header="カテゴリ" IsReadOnly="True" Binding="{Binding Category}"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                    </DockPanel>
-                </GroupBox>
+                <DockPanel>
+                    
+                </DockPanel>
             </DockPanel>
         </TabItem>
         <TabItem Header="ユーザー">
@@ -148,6 +128,29 @@
                     <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
                     <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
                 </Grid>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="パラメータ" Height="22" VerticalAlignment="Top">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2">
+                    <ToolBar>
+                        <TextBlock Text="カテゴリ" VerticalAlignment="Center"/>
+                        <ComboBox x:Name="comboBoxSettingCategory" MinWidth="100" Margin="2,0" DisplayMemberPath="Value" SelectedValuePath="Name" SelectionChanged="comboBoxSettingCategory_SelectionChanged"/>
+                        <Separator/>
+                        <ToggleButton x:Name="toggleButtonSettingFilter" ContentTemplate="{StaticResource ImageSearch14}" Click="toggleButtonSettingFilter_Click"/>
+                        <TextBox x:Name="textBoxSettingFilter" MinWidth="150" Visibility="{Binding IsChecked, ElementName=toggleButtonSettingFilter, Converter={StaticResource BooleanToVisibilityConverter}}" TextChanged="textBoxSettingFilter_TextChanged"/>
+                        <Separator/>
+                        <Button ContentTemplate="{StaticResource ImageRefresh16}" Click="buttonRefresh_Click"/>
+                    </ToolBar>
+                </StackPanel>
+                <DataGrid x:Name="dataGridSetting" Grid.Row="4" IsReadOnly="True" ItemsSource="{Binding Target.Settings, ElementName=userControl}" AutoGenerateColumns="False" SelectionUnit="Cell" CanUserResizeRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="パラメータ" IsReadOnly="True" Binding="{Binding Name}"/>
+                        <DataGridTextColumn Header="値" IsReadOnly="True" Binding="{Binding Setting}"/>
+                        <DataGridTextColumn Header="説明" IsReadOnly="True" Binding="{Binding ShortDesc}"/>
+                        <DataGridTextColumn Header="カテゴリ" IsReadOnly="True" Binding="{Binding Category}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </DockPanel>
         </TabItem>
     </TabControl>
