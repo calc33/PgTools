@@ -179,7 +179,7 @@ namespace Db2Source
             public TransactionNode(Token token, SyntaxTreeNode prior, SyntaxTreeNode parent) : base(token, prior, parent) { }
         }
 
-        internal delegate Node TokenToNode(SyntaxTreeNode current);
+        internal delegate SyntaxTreeNode TokenToNode(SyntaxTreeNode current);
         internal class ParseRule
         {
             internal TokenID RuleId;

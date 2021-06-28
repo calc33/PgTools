@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="RecordViewerWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStyle="None" MaxWidth="600" MaxHeight="500" Deactivated="Window_Deactivated" Closing="Window_Closing" PreviewKeyUp="Window_PreviewKeyUp" Loaded="Window_Loaded">
+        Title="RecordViewerWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStyle="None" MaxWidth="600" MaxHeight="500" Loaded="Window_Loaded">
     <Window.Resources>
         <local:TypeToHorizontalAlignementConverter x:Key="TypeToHorizontalAlignementConverter"/>
         <local:HeaderBackgroundConverter x:Key="HeaderBackgroundConverter"/>

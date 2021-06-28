@@ -429,8 +429,12 @@ namespace Db2Source
                 else
                 {
                     buf.Append(spc);
-                    buf.Append(prefix.TrimEnd());
-                    buf.Append(' ');
+                    string pre = prefix.TrimEnd();
+                    if (!string.IsNullOrEmpty(pre))
+                    {
+                        buf.Append(pre);
+                        buf.Append(' ');
+                    }
                 }
                 buf.AppendLine(s);
                 needAnd = true;

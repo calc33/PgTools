@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -197,5 +199,48 @@ namespace Db2Source
             Dispose();
         }
         //private static readonly Thickness ResizeDelta = new Thickness(10, 0, 15, 0);
+    }
+
+    public class CloseOnDeactiveWindowHelper
+    {
+        private Window _window;
+        public CloseOnDeactiveWindowHelper(Window window, bool closeOnEscKey)
+        {
+            if (window == null)
+            {
+                throw new ArgumentNullException("window");
+            }
+            _window = window;
+            _window.Closing += Window_Closing;
+            _window.Deactivated += Window_Deactivated;
+            if (closeOnEscKey)
+            {
+                _window.PreviewKeyUp += _window_PreviewKeyUp;
+            }
+        }
+
+        private void _window_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                _window.Close();
+                e.Handled = true;
+            }
+        }
+
+        private bool _isClosing = false;
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _isClosing = true;
+        }
+
+        private void Window_Deactivated(object sender, EventArgs e)
+        {
+            if (_isClosing)
+            {
+                return;
+            }
+            Dispatcher.CurrentDispatcher.InvokeAsync(_window.Close);
+        }
     }
 }

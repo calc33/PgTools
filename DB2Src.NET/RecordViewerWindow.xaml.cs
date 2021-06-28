@@ -28,6 +28,7 @@ namespace Db2Source
         public RecordViewerWindow()
         {
             InitializeComponent();
+            new CloseOnDeactiveWindowHelper(this, true);
         }
 
         public Table Table
@@ -218,29 +219,6 @@ namespace Db2Source
             if (e.Property == RowProperty)
             {
                 OnRowPropertyChanged(e);
-            }
-        }
-
-        private bool _isClosing;
-        private void Window_Deactivated(object sender, EventArgs e)
-        {
-            if (!_isClosing)
-            {
-                Close();
-            }
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _isClosing = true;
-        }
-
-        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Escape)
-            {
-                e.Handled = true;
-                Close();
             }
         }
 

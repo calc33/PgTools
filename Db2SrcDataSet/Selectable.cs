@@ -632,6 +632,20 @@ namespace Db2Source
                 return _allColumns;
             }
         }
+
+        public Column[] GetVisibleColumns(HiddenLevel visibleLevel)
+        {
+            List<Column> l = new List<Column>();
+            foreach (Column c in AllColumns)
+            {
+                if (c.HiddenLevel <= visibleLevel)
+                {
+                    l.Add(c);
+                }
+            }
+            return l.ToArray();
+        }
+
         public Column this[int index]
         {
             get
@@ -1042,18 +1056,14 @@ namespace Db2Source
             return (_backup != null) && !ContentEquals(_backup);
         }
 
-        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel)
+        public string GetColumnsSQL(string alias, IEnumerable<Column> columns)
         {
             StringBuilder buf = new StringBuilder();
             string delim = "  ";
             int w = 0;
             string a = string.IsNullOrEmpty(alias) ? string.Empty : alias + ".";
-            foreach (Column c in Columns.AllColumns)
+            foreach (Column c in columns)
             {
-                if (visibleLevel < c.HiddenLevel)
-                {
-                    continue;
-                }
                 if (!c.IsSupportedType)
                 {
                     continue;
@@ -1074,6 +1084,12 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+
+        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel)
+        {
+            return GetColumnsSQL(alias, Columns.GetVisibleColumns(visibleLevel));
+        }
+
         public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();

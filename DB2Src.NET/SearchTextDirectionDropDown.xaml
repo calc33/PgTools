@@ -6,7 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="SearchTextDirectionDropDown" Height="42.614" Width="30.682" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStyle="None" Deactivated="Window_Deactivated">
+        Title="SearchTextDirectionDropDown" Height="42.614" Width="30.682" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStyle="None">
     <StackPanel>
         <Button Content="➡" Width="20" Height="20" Click="Button_Click" BorderThickness="0">
             <Button.Tag>

@@ -63,6 +63,8 @@ namespace Db2Source
         public SelectColumnWindow()
         {
             InitializeComponent();
+            new CloseOnDeactiveWindowHelper(this, false);
+            MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight * 0.5;
         }
 
         public DataGrid Grid
@@ -244,21 +246,12 @@ namespace Db2Source
             CommitSelection();
         }
 
-        private bool _closing = false;
-
-        private void window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _closing = true;
-        }
-
         private void window_Deactivated(object sender, EventArgs e)
         {
-            if (_closing)
+            if (IsVisible)
             {
-                return;
+                SelectedColumn = null;
             }
-            SelectedColumn = null;
-            Close();
         }
 
         private void textBoxFilter_TextChanged(object sender, TextChangedEventArgs e)

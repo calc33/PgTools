@@ -172,6 +172,11 @@
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M1,4 L9,4 L5,9"/>
             </Canvas>
         </DataTemplate>
+        <DataTemplate x:Key="ImageDropDown8">
+            <Canvas Width="8" Height="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M0,0 L8,0 L4,6 z"/>
+            </Canvas>
+        </DataTemplate>
         <DataTemplate x:Key="ImageLeftArrow8">
             <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
                 <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M6,0 L6,8 L0,4 z"/>

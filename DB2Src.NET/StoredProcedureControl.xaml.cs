@@ -160,6 +160,7 @@ namespace Db2Source
             UpdateTabItemExecuteVisibility();
             UpdateTextBoxSource();
             UpdateStringResources();
+            AdjustSelectedTabItem();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -262,6 +263,7 @@ namespace Db2Source
                 tabItemExecute.Visibility = Visibility.Visible;
             }
         }
+
         private void UpdateTextBoxSource()
         {
             if (textBoxSource == null)
@@ -343,6 +345,24 @@ namespace Db2Source
                 MessageBox.Show(ctx.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private void AdjustSelectedTabItem()
+        {
+            TabItem cur = tabControlMain.SelectedItem as TabItem;
+            if (cur != null && cur.IsVisible)
+            {
+                return;
+            }
+            foreach (TabItem item in tabControlMain.Items)
+            {
+                if (item.IsVisible)
+                {
+                    tabControlMain.SelectedItem = item;
+                    break;
+                }
+            }
+        }
+
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
             Execute();
@@ -373,6 +393,11 @@ namespace Db2Source
         {
             DataGridControllerResult = new DataGridController();
             DataGridControllerResult.Grid = dataGridResult;
+        }
+
+        private void userControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            AdjustSelectedTabItem();
         }
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
@@ -453,6 +478,34 @@ namespace Db2Source
                 Target.Release();
                 MainWindow.Current.FilterTreeView(true);
             }
+        }
+
+        private void dataGridDependency_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SchemaObject obj = ((KeyValuePair<string, NamedObject>)(sender as DataGrid).SelectedItem).Value as SchemaObject;
+            if (obj == null)
+            {
+                return;
+            }
+            if (obj is Trigger)
+            {
+                obj = ((Trigger)obj).Table;
+            }
+            MainWindow.Current.OpenViewer(obj);
+        }
+
+        private void dataGridDependOn_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SchemaObject obj = ((KeyValuePair<string, NamedObject>)(sender as DataGrid).SelectedItem).Value as SchemaObject;
+            if (obj == null)
+            {
+                return;
+            }
+            if (obj is Trigger)
+            {
+                obj = ((Trigger)obj).Table;
+            }
+            MainWindow.Current.OpenViewer(obj);
         }
     }
     public class ParamEditor: DependencyObject

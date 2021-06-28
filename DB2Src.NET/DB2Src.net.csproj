@@ -107,6 +107,9 @@
     <Compile Include="ColorPickerWindow.xaml.cs">
       <DependentUpon>ColorPickerWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ColumnCheckListWindow.xaml.cs">
+      <DependentUpon>ColumnCheckListWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MovableTabItem.cs" />
     <Compile Include="PgsqlSessionListControl.xaml.cs">
       <DependentUpon>PgsqlSessionListControl.xaml</DependentUpon>
@@ -207,7 +210,7 @@
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WindowLocator.cs" />
+    <Compile Include="WindowUtil.cs" />
     <Page Include="AwaitWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -217,6 +220,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ColorPickerWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ColumnCheckListWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

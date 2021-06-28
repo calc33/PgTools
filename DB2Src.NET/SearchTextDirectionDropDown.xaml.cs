@@ -40,6 +40,7 @@ namespace Db2Source
         public SearchTextDirectionDropDown()
         {
             InitializeComponent();
+            new CloseOnDeactiveWindowHelper(this, true);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -52,14 +53,6 @@ namespace Db2Source
             Target.Tag = b.Tag;
             Target.RenderTransform = b.RenderTransform?.Clone();
             Close();
-        }
-
-        private void Window_Deactivated(object sender, EventArgs e)
-        {
-            if (IsVisible)
-            {
-                Close();
-            }
         }
     }
 }

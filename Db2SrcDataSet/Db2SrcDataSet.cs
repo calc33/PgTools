@@ -253,6 +253,11 @@ namespace Db2Source
 
         public SessionList SessionList { get; private set; }
 
+        public void SetDependency(string fromId, string toId)
+        {
+            NamedObject.SetDependency(Objects[fromId], Objects[toId]);
+        }
+
         public string GetTreeNodeHeader()
         {
             return ConnectionInfo?.GetTreeNodeHeader();

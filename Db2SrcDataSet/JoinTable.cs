@@ -17,6 +17,11 @@ namespace Db2Source
         RightOuter,
         FullOuter
     }
+    public enum JoinDirection
+    {
+        ReferFrom,
+        ReferTo,
+    }
     public class JoinTable : INotifyPropertyChanged
     {
         private Selectable _table;
@@ -33,6 +38,7 @@ namespace Db2Source
                     return;
                 }
                 _table = value;
+                InitVisibleColumns();
                 OnPropertyChanged("Table");
             }
         }
@@ -109,6 +115,45 @@ namespace Db2Source
             }
         }
 
+        private JoinDirection _joinDirection;
+        public JoinDirection JoinDirection
+        {
+            get
+            {
+                return _joinDirection;
+            }
+            set
+            {
+                if (_joinDirection == value)
+                {
+                    return;
+                }
+                _joinDirection = value;
+                OnPropertyChanged("JoinDirection");
+            }
+        }
+
+        private static readonly Column[] EmptyColumns = new Column[0];
+        private Column[] _visibleColumns = EmptyColumns;
+        public Column[] VisibleColumns
+        {
+            get
+            {
+                return _visibleColumns;
+            }
+            set
+            {
+                if (_visibleColumns == value)
+                {
+                    return;
+                }
+                _visibleColumns = value;
+                OnPropertyChanged("VisibleColumns");
+            }
+        }
+        public string[] JoinColumns { get; private set; }
+        public string[] ReferrerColumns { get; private set; }
+
         private List<ForeignKeyConstraint> _selectableForeignKeys = new List<ForeignKeyConstraint>();
         public List<ForeignKeyConstraint> SelectableForeignKeys
         {
@@ -117,6 +162,12 @@ namespace Db2Source
                 return _selectableForeignKeys;
             }
         }
+
+        private void InitVisibleColumns()
+        {
+            VisibleColumns = (_table != null) ? _table.Columns.GetVisibleColumns(HiddenLevel.Visible) : EmptyColumns;
+        }
+
         public void UpdateSelectableForeignKeys(JoinTableCollection selected)
         {
             _selectableForeignKeys.Clear();
@@ -126,6 +177,10 @@ namespace Db2Source
                 bool found = false;
                 foreach (JoinTable jt in selected)
                 {
+                    if (jt.JoinDirection == JoinDirection.ReferFrom)
+                    {
+                        continue;
+                    }
                     if (!tbl.Equals(jt.Referrer?.Table))
                     {
                         continue;
@@ -145,9 +200,9 @@ namespace Db2Source
             OnPropertyChanged("SelectableForeignKeys");
         }
 
-        public string GetFieldsSQL(int indent, HiddenLevel visibleLevel)
+        public string GetFieldsSQL(int indent)
         {
-            return Table.GetColumnsSQL(Alias, visibleLevel);
+            return Table.GetColumnsSQL(Alias, VisibleColumns);
         }
         private static readonly Dictionary<JoinKind, string> JoinKindToSQL = new Dictionary<JoinKind, string>()
         {
@@ -189,6 +244,8 @@ namespace Db2Source
                 buf.Append("  ");
             }
             buf.Append(JoinKindToSQL[Kind]);
+            string a = string.IsNullOrEmpty(Alias) ? string.Empty : Alias + ".";
+            string aR = string.IsNullOrEmpty(Referrer.Alias) ? string.Empty : Referrer.Alias + ".";
             buf.Append(Table.EscapedIdentifier(null));
             if (!string.IsNullOrEmpty(Alias))
             {
@@ -196,26 +253,28 @@ namespace Db2Source
                 buf.Append(Alias);
             }
             buf.Append(" on (");
-            string a = string.IsNullOrEmpty(Alias) ? string.Empty : Alias + ".";
-            string aR = string.IsNullOrEmpty(Referrer.Alias) ? string.Empty : Referrer.Alias + ".";
             string prefix = string.Empty;
-            for (int i = 0; i < JoinBy.Columns.Length; i++)
+            for (int i = 0; i < JoinColumns.Length; i++)
             {
                 buf.Append(prefix);
                 buf.Append(aR);
-                buf.Append(JoinBy.RefColumns[i]);
+                buf.Append(ReferrerColumns[i]);
                 buf.Append(" = ");
                 buf.Append(a);
-                buf.Append(JoinBy.Columns[i]);
+                buf.Append(JoinColumns[i]);
                 prefix = " and ";
             }
             buf.Append(")");
             return buf.ToString();
         }
-        public JoinTable() { }
-        public JoinTable(JoinTable referrer, ForeignKeyConstraint constraint)
+        public JoinTable()
+        {
+            InitVisibleColumns();
+        }
+        public JoinTable(JoinTable referrer, ForeignKeyConstraint constraint, JoinDirection direction)
         {
             _joinBy = constraint;
+            _joinDirection = direction;
             Table tbl = constraint.Table;
             _referrer = referrer;
             if (referrer == null)
@@ -242,14 +301,29 @@ namespace Db2Source
                     }
                 }
             }
-            _table = constraint.ReferenceConstraint.Table;
+            switch (direction)
+            {
+                case JoinDirection.ReferFrom:
+                    _table = constraint.Table;
+                    ReferrerColumns = (string[])constraint.RefColumns.Clone();
+                    JoinColumns = (string[])constraint.Columns.Clone();
+                    break;
+                case JoinDirection.ReferTo:
+                    _table = constraint.ReferenceConstraint.Table;
+                    ReferrerColumns = (string[])constraint.Columns.Clone();
+                    JoinColumns = (string[])constraint.RefColumns.Clone();
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+            InitVisibleColumns();
         }
     }
     public class JoinTableCollection : IList<JoinTable>, IList, INotifyCollectionChanged
     {
         private List<JoinTable> _list = new List<JoinTable>();
 
-        public string GetSelectSQL(string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string where, string orderBy, int? limit, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             buf.AppendLine("select");
@@ -257,7 +331,7 @@ namespace Db2Source
             string prefix = string.Empty;
             foreach (JoinTable t in _list)
             {
-                string s = t.GetFieldsSQL(2, visibleLevel);
+                string s = t.GetFieldsSQL(2);
                 if (string.IsNullOrEmpty(s))
                 {
                     continue;
@@ -295,12 +369,12 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string where, string orderBy, int? limit)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             if (0 < where.Length)
@@ -312,14 +386,14 @@ namespace Db2Source
                     buf.AppendLine(where[i]);
                 }
             }
-            return GetSelectSQL(buf.ToString(), orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(buf.ToString(), orderBy, limit, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, out whereOffset);
         }
-        public string GetSelectSQL(string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string where, string[] orderBy, int? limit)
         {
             StringBuilder bufO = new StringBuilder();
             if (0 < orderBy.Length)
@@ -331,9 +405,9 @@ namespace Db2Source
                     bufO.Append(orderBy[i]);
                 }
             }
-            return GetSelectSQL(where, bufO.ToString(), limit, visibleLevel);
+            return GetSelectSQL(where, bufO.ToString(), limit);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
             if (0 < where.Length)
@@ -355,12 +429,12 @@ namespace Db2Source
                     bufO.Append(orderBy[i]);
                 }
             }
-            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, out whereOffset);
         }
 
         public event NotifyCollectionChangedEventHandler CollectionChanged;

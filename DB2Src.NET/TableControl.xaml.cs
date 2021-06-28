@@ -22,6 +22,55 @@ using System.Windows.Threading;
 
 namespace Db2Source
 {
+    public class RefTable
+    {
+        public static void AddRefTables(List<RefTable> list, IEnumerable<ForeignKeyConstraint> foreignKeys, JoinDirection direction)
+        {
+            foreach (ForeignKeyConstraint cons in foreignKeys)
+            {
+                list.Add(new RefTable(cons, direction));
+            }
+        }
+        public ForeignKeyConstraint Constraint { get; private set; }
+        public JoinDirection Direction { get; private set; }
+        public RefTable(ForeignKeyConstraint constraint, JoinDirection direction)
+        {
+            if (constraint == null)
+            {
+                throw new ArgumentNullException("constraint");
+            }
+            Constraint = constraint;
+            Direction = direction;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is RefTable))
+            {
+                return false;
+            }
+            RefTable o = (RefTable)obj;
+            return object.Equals(Constraint, o.Constraint) && Direction == o.Direction;
+        }
+        public override int GetHashCode()
+        {
+            return Constraint.GetHashCode() * 2 + (int)Direction;
+        }
+
+        public override string ToString()
+        {
+            switch (Direction)
+            {
+                case JoinDirection.ReferFrom:
+                    return string.Format("{0} → {1}{2}", StrUtil.ArrayToText(Constraint.RefColumns, ", ", "(", ")"), Constraint.Table.FullName,
+                        StrUtil.ArrayToText(Constraint.Columns, ", ", "(", ")"));
+                case JoinDirection.ReferTo:
+                    return string.Format("{0} → {1}", StrUtil.ArrayToText(Constraint.Columns, ", ", "(", ")"), Constraint.ReferenceConstraint.Table.FullName);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+    }
     /// <summary>
     /// TableControl.xaml の相互作用ロジック
     /// </summary>
@@ -460,7 +509,7 @@ namespace Db2Source
             }
             string alias = JoinTables[0].Alias;
             string where = Target.GetKeyConditionSQL(alias, string.Empty, 0);
-            textBoxSelectSql.Text = JoinTables.GetSelectSQL(where, string.Empty, null, VisibleLevel);
+            textBoxSelectSql.Text = JoinTables.GetSelectSQL(where, string.Empty, null);
         }
 
         private void UpdateListBoxJoinTable()
@@ -779,7 +828,6 @@ namespace Db2Source
             {
                 return;
             }
-            w.MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight / 2;
             w.Grid = dataGridResult;
             w.SelectedColumn = w.Grid.CurrentColumn;
             WindowLocator.LocateNearby(buttonFilterColumns, w, NearbyLocation.DownLeft);
@@ -949,7 +997,10 @@ namespace Db2Source
             JoinTable joinTable = obj.Content as JoinTable;
             menu.DataContext = joinTable;
             menu.ItemsSource = null;
-            menu.ItemsSource = (joinTable.Table as Table).ReferTo;
+            List<RefTable> l = new List<RefTable>();
+            RefTable.AddRefTables(l, joinTable.SelectableForeignKeys, JoinDirection.ReferTo);
+            RefTable.AddRefTables(l, (joinTable.Table as Table).ReferFrom, JoinDirection.ReferFrom);
+            menu.ItemsSource = l;
             menu.PlacementTarget = sender as UIElement;
             menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
             menu.IsOpen = true;
@@ -1082,8 +1133,8 @@ namespace Db2Source
             {
                 return;
             }
-            ForeignKeyConstraint cons = item.DataContext as ForeignKeyConstraint;
-            if (cons == null)
+            RefTable refTbl = item.DataContext as RefTable;
+            if (refTbl == null)
             {
                 return;
             }
@@ -1093,7 +1144,7 @@ namespace Db2Source
                 return;
             }
             JoinTable join = menu.DataContext as JoinTable;
-            JoinTables.Add(new JoinTable(join, cons));
+            JoinTables.Add(new JoinTable(join, refTbl.Constraint, refTbl.Direction));
         }
 
         private void TextBoxAlias_LostFocus(object sender, RoutedEventArgs e)
@@ -1142,6 +1193,28 @@ namespace Db2Source
             dataGridResult.CommitEdit();
             //row[col.Index] = null;
             row[col.Index] = DBNull.Value;
+        }
+
+        private void ButtonJoinTableColumns_Click(object sender, RoutedEventArgs e)
+        {
+            //ListBoxItem item = App.FindLogicalParent<ListBoxItem>(sender as DependencyObject);
+            ListBoxItem item = App.FindVisualParent<ListBoxItem>(sender as DependencyObject);
+            JoinTable tbl = item?.DataContext as JoinTable;
+            if (tbl == null)
+            {
+                return;
+            }
+            ColumnCheckListWindow win = new ColumnCheckListWindow();
+            win.Owner = Window.GetWindow(this);
+            win.Target = tbl;
+            WindowLocator.LocateNearby(sender as FrameworkElement, win, NearbyLocation.DownLeft);
+            win.Closed += ColumnCheckListWindow_Closed;
+            win.Show();
+        }
+
+        private void ColumnCheckListWindow_Closed(object sender, EventArgs e)
+        {
+            UpdateTextBoxSelectSql();
         }
     }
 

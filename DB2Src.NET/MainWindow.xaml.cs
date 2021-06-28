@@ -262,7 +262,7 @@ namespace Db2Source
         {
             _dataSetTemp = sender as Db2SourceContext;
             Dispatcher.Invoke(SetSchema, DispatcherPriority.Normal);
-            SaveConnectionInfoToRegistry(_dataSetTemp.ConnectionInfo);
+            App.SaveConnectionInfoToRegistry(_dataSetTemp.ConnectionInfo);
         }
 
         //#pragma warning disable 1998
@@ -279,6 +279,7 @@ namespace Db2Source
             }
             finally
             {
+                connection.Close();
                 connection.Dispose();
             }
             return;
@@ -310,7 +311,7 @@ namespace Db2Source
 
         //#pragma warning restore 1998
 
-        private void OpenViewer(SchemaObject target)
+        public void OpenViewer(SchemaObject target)
         {
             ISchemaObjectWpfControl curCtl = (tabControlMain.SelectedItem as TabItem)?.Content as ISchemaObjectWpfControl;
 
@@ -553,15 +554,6 @@ namespace Db2Source
             info.FillStoredPassword(false);
             info = App.Connections.Find(info) as NpgsqlConnectionInfo;
             return info;
-        }
-        private void SaveConnectionInfoToRegistry(ConnectionInfo info)
-        {
-            NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
-            App.Registry.SetValue(0, "Connection", "ServerName", obj.ServerName ?? string.Empty);
-            App.Registry.SetValue(0, "Connection", "ServerPort", obj.ServerPort);
-            App.Registry.SetValue(0, "Connection", "DatabaseName", obj.DatabaseName ?? string.Empty);
-            App.Registry.SetValue(0, "Connection", "UserName", obj.UserName ?? string.Empty);
-            App.Registry.SetValue(0, "Connection", "SearchPath", obj.SearchPath ?? string.Empty);
         }
         private void Connect(ConnectionInfo info)
         {

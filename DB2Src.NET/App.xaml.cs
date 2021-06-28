@@ -190,6 +190,17 @@ namespace Db2Source
             Port = Registry.GetInt32("Connection", "ServerPort", Port);
             Database = Registry.GetString("Connection", "DatabaseName", Database);
             Username = Registry.GetString("Connection", "UserName", Username);
+            SearchPath = Registry.GetString("Connection", "SearchPath", SearchPath);
+        }
+
+        public static void SaveConnectionInfoToRegistry(ConnectionInfo info)
+        {
+            NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
+            Registry.SetValue(0, "Connection", "ServerName", obj.ServerName ?? string.Empty);
+            Registry.SetValue(0, "Connection", "ServerPort", obj.ServerPort);
+            Registry.SetValue(0, "Connection", "DatabaseName", obj.DatabaseName ?? string.Empty);
+            Registry.SetValue(0, "Connection", "UserName", obj.UserName ?? string.Empty);
+            Registry.SetValue(0, "Connection", "SearchPath", obj.SearchPath ?? string.Empty);
         }
 
         private void Application_Startup(object sender, StartupEventArgs e)

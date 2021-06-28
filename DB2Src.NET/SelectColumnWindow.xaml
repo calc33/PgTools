@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged" Closing="window_Closing">
+        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged">
     <Window.Resources>
         <local:VisibilityToBooleanConverter x:Key="VisibilityToBooleanConverter"/>
         <DataTemplate x:Key="ColumnItemTemplate">

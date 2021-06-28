@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
+             d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized" Loaded="userControl_Loaded">
     <UserControl.Resources>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
@@ -101,25 +101,19 @@
                     <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
-                    <TextBlock DockPanel.Dock="Top" Padding="2">この表から参照</TextBlock>
-                    <DataGrid>
+                    <TextBlock DockPanel.Dock="Top" Padding="2">参照</TextBlock>
+                    <DataGrid x:Name="dataGridDependency" ItemsSource="{Binding Target.Dependencies, ElementName=userControl}" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="dataGridDependency_MouseDoubleClick">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="参照先"/>
-                            <DataGridTextColumn Header="制約名"/>
-                            <DataGridTextColumn Header="列"/>
+                            <DataGridTextColumn Header="対象" Binding="{Binding Value}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>
                 <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
                 <DockPanel Grid.Row="1">
-                    <TextBlock DockPanel.Dock="Top" Padding="2">この表を参照</TextBlock>
-                    <DataGrid>
+                    <TextBlock DockPanel.Dock="Top" Padding="2">被参照</TextBlock>
+                    <DataGrid x:Name="dataGridDependOn" ItemsSource="{Binding Target.DependOn, ElementName=userControl}" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="dataGridDependOn_MouseDoubleClick">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="No" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="参照元"/>
-                            <DataGridTextColumn Header="制約名"/>
-                            <DataGridTextColumn Header="列"/>
+                            <DataGridTextColumn Header="対象" Binding="{Binding Value}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </DockPanel>

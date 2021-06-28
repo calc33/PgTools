@@ -33,7 +33,7 @@
         <ContextMenu x:Key="ContextMenuJoinTableCandidates" ItemsSource="{Binding ReferTo, Mode=OneWay}" Placement="Bottom">
             <ContextMenu.ItemContainerStyle>
                 <Style TargetType="MenuItem">
-                    <Setter Property="Header" Value="{Binding Description}"/>
+                    <Setter Property="Header" Value="{Binding}"/>
                     <EventSetter Event="Click" Handler="MenuItemAddJoin_Click"/>
                 </Style>
             </ContextMenu.ItemContainerStyle>
@@ -61,17 +61,19 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <TextBlock Grid.RowSpan="2" Text="{Binding Content.Table.Name, RelativeSource={RelativeSource AncestorType=ContentPresenter}}" VerticalAlignment="Center" MinWidth="32" Margin="2,2,0,2"/>
-                        <TextBlock Grid.Column="1" Grid.RowSpan="2" Text=" as " VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="2" Grid.RowSpan="2" Text="{Binding Content.Alias, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=TwoWay}" VerticalAlignment="Center" MinWidth="16" Margin="0,2,2,2" LostFocus="TextBoxAlias_LostFocus" KeyDown="TextBoxAlias_KeyDown"/>
-                        <Button Grid.Column="3" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageJoinTableClose}" Click="buttonCloseJoin_Click"
+                        <Button Grid.Column="1" Grid.RowSpan="2" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageDropDown8}" VerticalAlignment="Bottom" Margin="2,0,0,0" Padding="2" Focusable="False" Click="ButtonJoinTableColumns_Click"/>
+                        <TextBlock Grid.Column="2" Grid.RowSpan="2" Text="as" VerticalAlignment="Center" Margin="4,0"/>
+                        <TextBox Grid.Column="3" Grid.RowSpan="2" Text="{Binding Content.Alias, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Mode=TwoWay}" VerticalAlignment="Center" MinWidth="16" Margin="0,2,2,2" LostFocus="TextBoxAlias_LostFocus" KeyDown="TextBoxAlias_KeyDown"/>
+                        <Button Grid.Column="4" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageJoinTableClose}" Click="buttonCloseJoin_Click"
                                 Visibility="{Binding Content.Kind, RelativeSource={RelativeSource AncestorType=ContentPresenter}, Converter={StaticResource JoinKindToVisibilityConverter}}" Focusable="False"/>
-                        <Button Grid.Column="3" Grid.Row="1" ContentTemplate="{StaticResource ImageJoinTableAdd}" Click="buttonAddJoin_Click"
+                        <Button Grid.Column="4" Grid.Row="1" ContentTemplate="{StaticResource ImageJoinTableAdd}" Click="buttonAddJoin_Click"
                                 DataContext="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}"
                                 VerticalAlignment="Bottom" Background="Transparent" BorderThickness="0" Width="10" Height="10" Margin="2" Focusable="False" IsEnabled="{Binding SelectableForeignKeys, Converter={StaticResource JoinTableCandidatesCountToEnabledConverter}}"/>
                     </Grid>

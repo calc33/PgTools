@@ -25,6 +25,7 @@ namespace Db2Source
         public SelectTabItemWindow()
         {
             InitializeComponent();
+            new CloseOnDeactiveWindowHelper(this, false);
         }
 
         public TabControl TabControl
@@ -206,21 +207,12 @@ namespace Db2Source
             CommitSelection();
         }
 
-        private bool _closing = false;
-
-        private void window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            _closing = true;
-        }
-
         private void window_Deactivated(object sender, EventArgs e)
         {
-            if (_closing)
+            if (IsVisible)
             {
-                return;
+                SelectedItem = null;
             }
-            SelectedItem = null;
-            Close();
         }
 
         private void textBoxFilter_TextChanged(object sender, TextChangedEventArgs e)

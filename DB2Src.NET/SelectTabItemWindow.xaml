@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged" Closing="window_Closing">
+        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged">
     <DockPanel>
         <TextBox x:Name="textBoxFilter" ToolTip="(項目名で絞り込み)" DockPanel.Dock="Top" TextChanged="textBoxFilter_TextChanged" BorderThickness="1,1,1,0" PreviewKeyDown="textBoxFilter_PreviewKeyDown"/>
         <ListBox x:Name="listBoxColumns" ItemsSource="{Binding TabControl.Items, ElementName=window}" DisplayMemberPath="Header.Text" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" />
