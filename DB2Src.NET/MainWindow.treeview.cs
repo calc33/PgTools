@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -262,6 +263,42 @@ namespace Db2Source
                 }
             }
         }
+
+        private DispatcherTimer _filterTreeViewTimer;
+        private DateTime _filterTreeViewExecTime = DateTime.MaxValue;
+        private void RequireFilterTreeViewTimer()
+        {
+            if (_filterTreeViewTimer != null)
+            {
+                return;
+            }
+            _filterTreeViewTimer = new DispatcherTimer();
+            _filterTreeViewTimer.Tick += FilterTreeViewTimer_Tick;
+            _filterTreeViewTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+        }
+
+        private void FilterTreeViewTimer_Tick(object sender, EventArgs e)
+        {
+            if (DateTime.Now < _filterTreeViewExecTime)
+            {
+                return;
+            }
+            _filterTreeViewTimer.Stop();
+            _filterTreeViewExecTime = DateTime.MaxValue;
+            FilterTreeView(true);
+
+        }
+
+        private void DelayedFilterTreeView()
+        {
+            RequireFilterTreeViewTimer();
+            _filterTreeViewExecTime = DateTime.Now.AddSeconds(0.3);
+            if (!_filterTreeViewTimer.IsEnabled)
+            {
+                _filterTreeViewTimer.Start();
+            }
+        }
+
         private void UpdateTreeViewDB()
         {
             TreeViewStatusStore store = new TreeViewStatusStore(treeViewDB, treeViewItemTop);

@@ -253,6 +253,9 @@
                                 <RowDefinition x:Name="RowDefinition1" Height="*"/>
                             </Grid.RowDefinitions>
                             <!--<DockPanel Background="{DynamicResource WindowBackground}">-->
+                            <Border x:Name="contentPanel" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="0" KeyboardNavigation.DirectionalNavigation="Contained" Grid.Row="1" KeyboardNavigation.TabIndex="2" KeyboardNavigation.TabNavigation="Local">
+                                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                            </Border>
                             <DockPanel>
                                 <Border DockPanel.Dock="Right" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
                                     <StackPanel Orientation="Horizontal">
@@ -265,9 +268,6 @@
                                     <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
                                 </ScrollViewer>
                             </DockPanel>
-                            <Border x:Name="contentPanel" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="0" KeyboardNavigation.DirectionalNavigation="Contained" Grid.Row="1" KeyboardNavigation.TabIndex="2" KeyboardNavigation.TabNavigation="Local">
-                                <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
-                            </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="TabStripPlacement" Value="Bottom">
@@ -510,7 +510,7 @@
                                         <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
-                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" />
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" />
                             </DockPanel>
                         </Border>
                     </StackPanel>
@@ -534,7 +534,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TabControl x:Name="tabControlMain" Background="Transparent" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
-                        <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}">
+                        <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}" Margin="-2,-2,-2,0">
                             <local:MovableTabItem.Header>
                                 <TextBlock Text="クエリ"/>
                             </local:MovableTabItem.Header>

@@ -491,7 +491,7 @@ namespace Db2Source
             {
                 obj = ((Trigger)obj).Table;
             }
-            MainWindow.Current.OpenViewer(obj);
+            Dispatcher.InvokeAsync(() => { MainWindow.Current.OpenViewer(obj); });
         }
 
         private void dataGridDependOn_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -505,7 +505,7 @@ namespace Db2Source
             {
                 obj = ((Trigger)obj).Table;
             }
-            MainWindow.Current.OpenViewer(obj);
+            Dispatcher.InvokeAsync(() => { MainWindow.Current.OpenViewer(obj); });
         }
     }
     public class ParamEditor: DependencyObject
