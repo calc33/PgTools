@@ -140,8 +140,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -202,6 +202,7 @@
     <None Include="Resources\PgClassOid_SQL.txt" />
     <None Include="Resources\PgProcOid_SQL.txt" />
     <None Include="Resources\PgStatActivity_SQL.txt" />
+    <None Include="Resources\PgClass_RELATEDSQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -145,11 +145,11 @@ namespace Db2Source
                 return null;
             }
             p0--;
-            TokenizedSQL tsql = new TokenizedSQL(sql.Substring(offset));
+            TokenizedPgsql tsql = new TokenizedPgsql(sql.Substring(offset));
             bool wasColon = false;
             int seq = 1;
             Dictionary<string, int> pdict = new Dictionary<string, int>();
-            foreach (Token token in tsql.Tokens)
+            foreach (PgsqlToken token in tsql.Tokens)
             {
                 if (wasColon && token.Kind == TokenKind.Identifier)
                 {
@@ -177,13 +177,13 @@ namespace Db2Source
         }
         public override Tuple<int, int> GetWordAt(string sql, int position)
         {
-            TokenizedSQL tsql = new TokenizedSQL(sql, position);
-            Token sel = tsql.Selected;
+            TokenizedPgsql tsql = new TokenizedPgsql(sql, position);
+            PgsqlToken sel = (PgsqlToken)tsql.Selected;
             if (sel == null)
             {
                 return null;
             }
-            return new Tuple<int, int>(sel.Start.Index, sel.End.Index - sel.Start.Index + 1);
+            return new Tuple<int, int>(sel.StartPos, sel.EndPos - sel.StartPos + 1);
         }
         private static string GetExceptionMessage(Npgsql.PostgresException t)
         {

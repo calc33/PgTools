@@ -1,4 +1,5 @@
-﻿namespace Db2Source
+﻿using System.Text;
+namespace Db2Source
 {
     public class Index: SchemaObject
     {
@@ -6,7 +7,19 @@
         private string _tableSchema;
         private string _tableName;
         //private string[] _columns;
-
+        private int _index;
+        public int Index_
+        {
+            get
+            {
+                UpdateIndex_();
+                return _index;
+            }
+            internal set
+            {
+                _index = value;
+            }
+        }
         public bool IsUnique { get; set; }
         public bool IsImplicit { get; set; }
         private void UpdateTable()
@@ -16,6 +29,11 @@
                 return;
             }
             _table = Context?.Tables[TableSchema, TableName];
+            _table?.InvalidateIndexes();
+        }
+        private void UpdateIndex_()
+        {
+            Table?.Indexes?.RequireItems();
         }
         public void InvalidateTable()
         {
@@ -97,6 +115,25 @@
         }
         public string IndexType { get; set; }
         public string[] Columns { get; set; }
+        public string ColumnText
+        {
+            get
+            {
+                StringBuilder buf = new StringBuilder();
+                buf.Append('(');
+                if (Columns != null && Columns.Length != 0)
+                {
+                    buf.Append(Columns[0]);
+                    for (int i = 1; i < Columns.Length; i++)
+                    {
+                        buf.Append(", ");
+                        buf.Append(Columns[i]);
+                    }
+                }
+                buf.Append(')');
+                return buf.ToString();
+            }
+        }
         //private string _definition;
         public override string GetSqlType()
         {

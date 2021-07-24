@@ -126,6 +126,24 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   -- index
+        ///select i.indrelid as oid
+        ///from pg_index i
+        ///where i.indexrelid = :oid
+        ///union all
+        ///-- sequence
+        ///select d.refobjid as oid
+        ///from pg_depend
+        ///where d.objid = :oid and d.deptype = &apos;a&apos;
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgClass_RELATEDSQL {
+            get {
+                return ResourceManager.GetString("PgClass_RELATEDSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select c.oid,
         ///  p.start_value, p.minimum_value, p.maximum_value, p.increment, p.cycle_option,
         ///  rn.nspname as owned_schema, rc.relname as owned_table, ra.attname as owned_field
@@ -312,7 +330,7 @@ namespace Db2Source.DataSet.Properties {
         /// <summary>
         ///   select
         ///  pid, datname, usename, application_name,
-        ///  client_hostname, client_addr, client_port,
+        ///  client_hostname, host(client_addr) as client_addr, client_port,
         ///  wait_event_type, wait_event, &quot;state&quot;
         ///from pg_catalog.pg_stat_activity
         /// に類似しているローカライズされた文字列を検索します。

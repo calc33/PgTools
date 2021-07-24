@@ -1,0 +1,9 @@
+-- index
+select i.indexrelid as oid
+from pg_index i
+where i.indrelid = :oid
+union all
+-- sequence
+select d.refobjid as oid
+from pg_depend d
+where d.objid = :oid and d.deptype = 'a'

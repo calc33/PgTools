@@ -75,6 +75,12 @@ namespace Db2Source
             }
         }
 
+        private void UpdateDataGridIndexes()
+        {
+            dataGridIndexes.ItemsSource = null;
+            dataGridIndexes.ItemsSource = Target.Indexes;
+        }
+
         private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
         private SearchDataGridWindow RequireSearchWindowDataGridColumns()
         {
@@ -114,6 +120,7 @@ namespace Db2Source
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateDataGridColumns();
+            UpdateDataGridIndexes();
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)

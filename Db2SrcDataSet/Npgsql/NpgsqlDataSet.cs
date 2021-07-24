@@ -149,17 +149,17 @@ namespace Db2Source
         {
             List<string> l = new List<string>();
             Dictionary<string, bool> dict = new Dictionary<string, bool>();
-            TokenizedSQL tsql = new TokenizedSQL(sql);
+            TokenizedPgsql tsql = new TokenizedPgsql(sql);
             int n = tsql.Tokens.Length;
             for (int i = 0; i < n; i++)
             {
-                Token t = tsql.Tokens[i];
+                PgsqlToken t = (PgsqlToken)tsql.Tokens[i];
                 if (t.ID == TokenID.Colon)
                 {
                     i++;
-                    t = tsql.Tokens[i];
-                    Token t0 = t;
-                    for (; i < n && tsql.Tokens[i].ID == TokenID.Identifier; t = tsql.Tokens[i++]) ;
+                    t = (PgsqlToken)tsql.Tokens[i];
+                    PgsqlToken t0 = t;
+                    for (; i < n && ((PgsqlToken)tsql.Tokens[i]).ID == TokenID.Identifier; t = (PgsqlToken)tsql.Tokens[i++]) ;
                     string p = DequoteIdentifier(tsql.Extract(t0, t));
                     if (!dict.ContainsKey(p))
                     {

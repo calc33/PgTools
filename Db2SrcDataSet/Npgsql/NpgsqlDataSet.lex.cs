@@ -31,7 +31,6 @@ namespace Db2Source
             Period = 0x2e,      // .
             Slash = 0x2f,       // /
             Colon = 0x3a,       // :
-            DoubleColon = 0x3a3a,   // ::
             Semicolon = 0x3b,   // ;
             Less = 0x3c,        // <
             Equal = 0x3d,       // =
@@ -88,176 +87,31 @@ namespace Db2Source
             JsonOp4 = 0x233e3e,     // #>>
             JsonOp5 = 0x3f26,       // ?&
             RangeOp1 = 0x2d7c2d,    // -|-
-        // Virtual Token
-            Expr    = 0x7f000001,   // EXPR
-            Number  = 0x7f000002,   // NUMBER
-            Field   = 0x7f000003,   // column or table
-            Fields  = 0x7f000004,   // columns or tables
-            As      = 0x7f000005,   // AS
+            // Virtual TokenID
+            Expr = 0x45585052,      // Expression(EXPR)
+            Stmt = 0x53544d54,      // Statement(STMT)
         }
-        public enum TokenKind
+        public class PgsqlToken: Token
         {
-            Space,
-            NewLine,
-            Identifier,
-            Numeric,
-            Literal,
-            Comment,
-            Operator,
-            Semicolon,
-            DefBody
-        }
-        public struct TokenPosition: IComparable
-        {
-            /// <summary>
-            /// 文字位置(0から始まる)
-            /// </summary>
-            public int Index { get; set; }
-            /// <summary>
-            /// 行番号(1から始まる)
-            /// </summary>
-            public int Line { get; set; }
-            /// <summary>
-            /// 列番号(1から始まる)
-            /// </summary>
-            public int Column { get; set; }
-            public TokenPosition(int index, int line, int column)
-            {
-                Index = index;
-                Line = line;
-                Column = column;
-            }
-            public TokenPosition(TokenizedSQL sql, int index)
-            {
-                // 前回の位置情報を使って高速化(可能なら)
-                TokenPosition previous = sql._lastPos;
-                if (index < previous.Index)
-                {
-                    previous = Empty;
-                }
-                string text = sql.Sql;
-                Line = previous.Line;
-                Column = previous.Column;
-                Index = previous.Index;
-                int i = Index;
-                int l = Line;
-                int c = Column;
-                int n = Math.Min(index, text.Length - 1);
-                bool wasCR = false;
-                bool wasLF = false;
-                while (i <= n)
-                {
-                    char ch = text[i];
-                    if (wasCR && ch != '\n' || wasLF)
-                    {
-                        l++;
-                        c = 1;
-                    }
-
-                    Index = i;
-                    Line = l;
-                    Column = c;
-
-                    i++;
-                    c++;
-                    if (char.IsSurrogate(ch))
-                    {
-                        i++;
-                        c++;
-                    }
-                    wasCR = (ch == '\r');
-                    wasLF = (ch == '\n');
-                }
-                sql._lastPos = this;
-            }
-            public static readonly TokenPosition Empty = new TokenPosition(0, 1, 1);
-
-            public int CompareTo(object obj)
-            {
-                if (!(obj is TokenPosition))
-                {
-                    return -1;
-                }
-                return Index.CompareTo(((TokenPosition)obj).Index);
-            }
-            public override bool Equals(object obj)
-            {
-                if (!(obj is TokenPosition))
-                {
-                    return false;
-                }
-                return Index == ((TokenPosition)obj).Index;
-            }
-            public override int GetHashCode()
-            {
-                return Index.GetHashCode();
-            }
-        }
-
-        public class Token
-        {
-            public TokenKind Kind { get; private set; }
-            public TokenID ID { get; set; }
-            private readonly TokenizedSQL _owner;
-            public TokenPosition Start { get; private set; }
-            public TokenPosition End { get; private set; }
-
-            private string _value = null;
-            private void UpdateValue()
-            {
-                if (_value != null)
-                {
-                    return;
-                }
-                if (_owner == null)
-                {
-                    _value = string.Empty;
-                    return;
-                }
-                if (End.Index < Start.Index)
-                {
-                    _value = string.Empty;
-                    return;
-                }
-                _value = _owner.Sql.Substring(Start.Index, End.Index - Start.Index + 1);
-                return;
-            }
-            public int HitTest(int pos)
-            {
-                if (pos < Start.Index)
-                {
-                    return -1;
-                }
-                if (End.Index < pos)
-                {
-                    return 1;
-                }
-                return 0;
-            }
-            private void InvalidateValue()
-            {
-                _value = null;
-            }
-            public string Value
+            public new TokenID ID
             {
                 get
                 {
-                    UpdateValue();
-                    return _value;
+                    return (TokenID)base.ID;
+                }
+                set
+                {
+                    base.ID = (int)value;
                 }
             }
-            internal Token(TokenizedSQL owner, TokenKind kind, TokenID identifier, int start, int current)
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, TokenID identifier, int start, int current) : base(owner, kind, (int)identifier, start, current)
             {
-                _owner = owner;
-                Kind = kind;
-                ID = identifier;
-                Start = new TokenPosition(owner, start);
-                End = new TokenPosition(owner, current - 1);
+                IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
-            internal Token(TokenizedSQL owner, TokenKind kind, char identifier, int start, int current)
+
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char identifier, int start, int current)
+                :base(owner, kind, start, current)
             {
-                _owner = owner;
-                Kind = kind;
                 byte[] bytes = Encoding.ASCII.GetBytes(new char[] { identifier }, 0, 1);
                 int v = 0;
                 foreach (byte b in bytes)
@@ -265,13 +119,12 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                Start = new TokenPosition(owner, start);
-                End = new TokenPosition(owner, current - 1);
+                IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
-            internal Token(TokenizedSQL owner, TokenKind kind, char[] ids, int start, int current)
+
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char[] ids, int start, int current)
+                : base(owner, kind, start, current)
             {
-                _owner = owner;
-                Kind = kind;
                 byte[] bytes = Encoding.ASCII.GetBytes(ids);
                 int v = 0;
                 foreach (byte b in bytes)
@@ -279,13 +132,12 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                Start = new TokenPosition(owner, start);
-                End = new TokenPosition(owner, current - 1);
+                IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
-            internal Token(TokenizedSQL owner, TokenKind kind, string ids, int start, int current)
+
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, string ids, int start, int current)
+                : base(owner, kind, start, current)
             {
-                _owner = owner;
-                Kind = kind;
                 byte[] bytes = Encoding.ASCII.GetBytes(ids);
                 int v = 0;
                 foreach (byte b in bytes)
@@ -293,14 +145,9 @@ namespace Db2Source
                     v = v << 8 | b;
                 }
                 ID = (TokenID)v;
-                Start = new TokenPosition(owner, start);
-                End = new TokenPosition(owner, current - 1);
+                IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
-            internal void Joint(Token token)
-            {
-                End = token.End;
-                InvalidateValue();
-            }
+
             private string TokenIdStr()
             {
                 int n = 4;
@@ -325,87 +172,11 @@ namespace Db2Source
             }
         }
 
-        public partial class TokenizedSQL
+        public class TokenizedPgsql: TokenizedSQL
         {
-            private readonly string _sql;
-            public string Sql { get { return _sql; } }
-            public Token[] Tokens { get; private set; }
-
-            public Token Selected { get; set; }
-            internal TokenPosition _lastPos = TokenPosition.Empty;
-
-            public string Extract(Token startToken, Token endToken)
+            public string Extract(PgsqlToken startToken, PgsqlToken endToken)
             {
-                return _sql.Substring(startToken.Start.Index, endToken.End.Index - startToken.Start.Index + 1);
-            }
-
-            private int FindTokenIndexRecursive(int pos, int start, int end)
-            {
-                if (end < start)
-                {
-                    return -1;
-                }
-                int i = (start + end) / 2;
-                int hit = Tokens[i].HitTest(pos);
-                if (hit == 0)
-                {
-                    return i;
-                }
-                if (hit < 0)
-                {
-                    return FindTokenIndexRecursive(pos, start, i - 1);
-                }
-                return FindTokenIndexRecursive(pos, i + 1, end);
-            }
-            private int _lastSearchIndex = -1;
-            public Token GetTokenAt(int pos)
-            {
-                int i;
-                int i0 = 0;
-                int i1 = Tokens.Length - 1;
-                //前回探索位置の次を探索するケースが多いという想定で直前直後をまず探索
-                if (_lastSearchIndex != -1)
-                {
-                    i = _lastSearchIndex;
-                    int hit = Tokens[i].HitTest(pos);
-                    if (hit == 0)
-                    {
-                        return Tokens[i];
-                    }
-                    if (hit < 0)
-                    {
-                        i--;
-                        if (i0 <= i)
-                        {
-                            hit = Tokens[i].HitTest(pos);
-                            if (hit == 0)
-                            {
-                                return Tokens[i];
-                            }
-                        }
-                        i1 = i - 1;
-                    }
-                    else
-                    {
-                        i++;
-                        if (i <= i1)
-                        {
-                            hit = Tokens[i].HitTest(pos);
-                            if (hit == 0)
-                            {
-                                return Tokens[i];
-                            }
-                        }
-                    }
-                }
-                //二分探索
-                i = FindTokenIndexRecursive(pos, i0, i1);
-                _lastSearchIndex = i;
-                if (i == -1)
-                {
-                    return null;
-                }
-                return Tokens[i];
+                return Sql.Substring(startToken.StartPos, endToken.EndPos - startToken.StartPos + 1);
             }
 
             private static Dictionary<char, bool> InitIdentifierEndChars()
@@ -419,19 +190,19 @@ namespace Db2Source
             }
             private static readonly Dictionary<char, bool> IdentifierEndChars = InitIdentifierEndChars();
             
-            private void AddToken(List<Token> tokens, int selectedPos, Token token)
+            private void AddToken(List<PgsqlToken> tokens, int selectedPos, PgsqlToken token)
             {
                 tokens.Add(token);
                 if (token.ID == TokenID.Space)
                 {
-                    if (token.Start.Index < selectedPos && selectedPos < token.End.Index)
+                    if (token.StartPos < selectedPos && selectedPos < token.EndPos)
                     {
                         Selected = token;
                     }
                 }
                 else
                 {
-                    if (token.Start.Index <= selectedPos && selectedPos <= token.End.Index)
+                    if (token.StartPos <= selectedPos && selectedPos <= token.EndPos)
                     {
                         Selected = token;
                     }
@@ -439,18 +210,18 @@ namespace Db2Source
             }
             private void Lex(int selectedPos)
             {
-                List<Token> tokens = new List<Token>();
+                List<PgsqlToken> tokens = new List<PgsqlToken>();
                 try
                 {
                     int p = 0;
-                    int n = _sql.Length;
+                    int n = Sql.Length;
                     while (p < n)
                     {
                         int p0 = p;
                         bool isNewLine = false;
-                        while (p < n && char.IsWhiteSpace(_sql, p))
+                        while (p < n && char.IsWhiteSpace(Sql, p))
                         {
-                            char sp = _sql[p];
+                            char sp = Sql[p];
                             if (sp == '\u0010' || sp == '\u0013')
                             {
                                 isNewLine = true;
@@ -459,21 +230,21 @@ namespace Db2Source
                         }
                         if (p0 < p)
                         {
-                            AddToken(tokens, selectedPos, new Token(this, isNewLine ? TokenKind.NewLine : TokenKind.Space, TokenID.Space, p0, p));
+                            AddToken(tokens, selectedPos, new PgsqlToken(this, isNewLine ? TokenKind.NewLine : TokenKind.Space, TokenID.Space, p0, p));
                         }
                         if (!(p < n))
                         {
                             return;
                         }
                         p0 = p;
-                        char c = _sql[p];
+                        char c = Sql[p];
                         char c2;
                         switch (c)
                         {
                             case '"':
-                                for (p++; p < n && _sql[p] != '"'; p++)
+                                for (p++; p < n && Sql[p] != '"'; p++)
                                 {
-                                    if (char.IsSurrogate(_sql[p]))
+                                    if (char.IsSurrogate(Sql[p]))
                                     {
                                         p++;
                                     }
@@ -482,12 +253,12 @@ namespace Db2Source
                                 {
                                     p++;
                                 }
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Identifier, TokenID.Identifier, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Identifier, TokenID.Identifier, p0, p));
                                 break;
                             case '\'':
-                                for (p++; p < n && _sql[p] != '\''; p++)
+                                for (p++; p < n && Sql[p] != '\''; p++)
                                 {
-                                    if (char.IsSurrogate(_sql[p]))
+                                    if (char.IsSurrogate(Sql[p]))
                                     {
                                         p++;
                                     }
@@ -496,7 +267,7 @@ namespace Db2Source
                                 {
                                     p++;
                                 }
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Literal, TokenID.Literal, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Literal, TokenID.Literal, p0, p));
                                 break;
                             case '(':
                             case ')':
@@ -511,170 +282,170 @@ namespace Db2Source
                             case '%':
                             case '&':
                                 p++;
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 break;
                             case ':':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 if(c2 == ':')
                                 {
                                     p += 2;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, TokenID.DoubleColon, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case ';':
                                 p++;
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Semicolon, c, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Semicolon, c, p0, p));
                                 break;
                             case '<':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 if (c2 == '=' || c2 == '<' || c2 == '>')
                                 {
                                     p += 2;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '>':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 if (c2 == '=' || c2 == '>')
                                 {
                                     p += 2;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '~':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 if (c2 == '*')
                                 {
                                     p += 2;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, new char[] { c, c2 }, p0, p));
                                 }
                                 else
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 break;
                             case '/':
-                                if (_sql[p + 1] != '*')
+                                if (Sql[p + 1] != '*')
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 else
                                 {
                                     p++;
                                     while (p < n)
                                     {
-                                        for (p++; p < n && _sql[p] != '*'; p++) ;
-                                        if (_sql[p + 1] == '/')
+                                        for (p++; p < n && Sql[p] != '*'; p++) ;
+                                        if (Sql[p + 1] == '/')
                                         {
                                             p += 2;
                                             break;
                                         }
                                     }
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Comment, TokenID.Comment, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p));
                                 }
                                 break;
                             case '-':
-                                if (_sql[p + 1] != '-')
+                                if (Sql[p + 1] != '-')
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Comment, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Comment, c, p0, p));
                                 }
                                 else
                                 {
-                                    for (p += 2; p < n && _sql[p] != '\r' && _sql[p] != '\n'; p++) ;
-                                    if (_sql[p] == '\r' && _sql[p + 1] == '\n')
+                                    for (p += 2; p < n && Sql[p] != '\r' && Sql[p] != '\n'; p++) ;
+                                    if (Sql[p] == '\r' && Sql[p + 1] == '\n')
                                     {
                                         p++;
                                     }
                                     p++;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, TokenID.Comment, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, TokenID.Comment, p0, p));
                                 }
                                 break;
                             case '$':
                                 p0 = p;
-                                for (p++; p < n && _sql[p] != '$'; p++) ;
-                                string mark = _sql.Substring(p0, p - p0 + 1);
+                                for (p++; p < n && Sql[p] != '$'; p++) ;
+                                string mark = Sql.Substring(p0, p - p0 + 1);
                                 while (p < n)
                                 {
-                                    for (p++; p < n && _sql[p] != '$'; p++) ;
-                                    if (p + mark.Length <= n && string.Compare(_sql.Substring(p, mark.Length), mark, true) == 0)
+                                    for (p++; p < n && Sql[p] != '$'; p++) ;
+                                    if (p + mark.Length <= n && string.Compare(Sql.Substring(p, mark.Length), mark, true) == 0)
                                     {
                                         p += mark.Length;
                                         break;
                                     }
                                 }
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.DefBody, TokenID.DefBody, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.DefBody, TokenID.DefBody, p0, p));
                                 break;
                             case '!':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 switch (c2)
                                 {
                                     case '=':
                                         p += 2;
-                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "<>", p0, p));
+                                        AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "<>", p0, p));
                                         break;
                                     case '~':
-                                        if (_sql[p + 2] == '*')
+                                        if (Sql[p + 2] == '*')
                                         {
                                             p += 3;
-                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!~*", p0, p));
+                                            AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "!~*", p0, p));
                                         }
                                         else
                                         {
                                             p += 2;
-                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!~", p0, p));
+                                            AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "!~", p0, p));
                                         }
                                         break;
                                     case '!':
                                         p += 2;
-                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "!!", p0, p));
+                                        AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "!!", p0, p));
                                         break;
                                     default:
                                         p++;
-                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                        AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                         break;
                                 }
                                 break;
                             case '|':
-                                c2 = _sql[p + 1];
+                                c2 = Sql[p + 1];
                                 switch (c2)
                                 {
                                     case '|':
-                                        if (_sql[p + 2] == '/')
+                                        if (Sql[p + 2] == '/')
                                         {
                                             p += 3;
-                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "||/", p0, p));
+                                            AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "||/", p0, p));
                                         }
                                         else
                                         {
                                             p += 2;
-                                            AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "||", p0, p));
+                                            AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "||", p0, p));
                                         }
                                         break;
                                     case '/':
                                         p += 2;
-                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, "|/", p0, p));
+                                        AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, "|/", p0, p));
                                         break;
                                     default:
                                         p++;
-                                        AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                        AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                         break;
                                 }
                                 break;
@@ -687,23 +458,23 @@ namespace Db2Source
                             case '{':
                             case '}':
                                 p++;
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Operator, c, p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 break;
                             default:
-                                if (char.IsDigit(_sql, p))
+                                if (char.IsDigit(Sql, p))
                                 {
-                                    for (p++; p < n && (char.IsNumber(_sql, p) || _sql[p] == '.'); p++) ;
-                                    AddToken(tokens, selectedPos, new Token(this, TokenKind.Numeric, '0', p0, p));
+                                    for (p++; p < n && (char.IsNumber(Sql, p) || Sql[p] == '.'); p++) ;
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Numeric, '0', p0, p));
                                     break;
                                 }
-                                for (p++; p < n && !char.IsWhiteSpace(_sql, p) && !IdentifierEndChars.ContainsKey(_sql[p]); p++)
+                                for (p++; p < n && !char.IsWhiteSpace(Sql, p) && !IdentifierEndChars.ContainsKey(Sql[p]); p++)
                                 {
-                                    if (char.IsSurrogate(_sql, p))
+                                    if (char.IsSurrogate(Sql, p))
                                     {
                                         p++;
                                     }
                                 }
-                                AddToken(tokens, selectedPos, new Token(this, TokenKind.Identifier, 'A', p0, p));
+                                AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Identifier, 'A', p0, p));
                                 break;
                         }
                     }
@@ -714,14 +485,12 @@ namespace Db2Source
                 }
             }
 
-            public TokenizedSQL(string sql)
+            public TokenizedPgsql(string sql) : base(sql)
             {
-                _sql = sql;
                 Lex(-1);
             }
-            public TokenizedSQL(string sql, int selectedPos)
+            public TokenizedPgsql(string sql, int selectedPos) : base(sql)
             {
-                _sql = sql;
                 Lex(selectedPos);
             }
         }
@@ -746,15 +515,16 @@ namespace Db2Source
             }
             return s;
         }
-        private string NormalizeDefBody(string sql, CaseRule reservedRule, CaseRule identifierRule)
+        private static readonly string[] EmptyStringArray = new string[0];
+        public override string[] ExtractDefBody(string sql, CaseRule reservedRule, CaseRule identifierRule)
         {
             if (string.IsNullOrEmpty(sql))
             {
-                return sql;
+                return EmptyStringArray;
             }
             if (sql[0] != '$' || sql[sql.Length - 1] != '$')
             {
-                return sql;
+                return new string[] { sql };
             }
             int p1 = sql.IndexOf('$', 1);
             string mark1 = sql.Substring(0, p1 + 1);
@@ -778,8 +548,21 @@ namespace Db2Source
             }
             string mark2 = sql.Substring(p2);
             string body = sql.Substring(p1 + 1, p2 - p1 - 1);
-            body = NormalizeSQL(body, reservedRule, identifierRule);
-            return mark1 + body + mark2;
+            return new string[] { mark1, body, mark2 };
+        }
+        private string NormalizeDefBody(string sql, CaseRule reservedRule, CaseRule identifierRule)
+        {
+            string[] defs = ExtractDefBody(sql, reservedRule, identifierRule);
+            if (defs.Length != 3)
+            {
+                return sql;
+            }
+            return defs[0] + NormalizeSQL(defs[1]) + defs[2];
+        }
+
+        public override TokenizedSQL Tokenize(string sql)
+        {
+            return new TokenizedPgsql(sql);
         }
 
         public override string NormalizeSQL(string sql, CaseRule reservedRule, CaseRule identifierRule)
@@ -789,10 +572,10 @@ namespace Db2Source
                 return sql;
             }
             StringBuilder buf = new StringBuilder();
-            TokenizedSQL tsql = new TokenizedSQL(sql);
+            TokenizedSQL tsql = Tokenize(sql);
             bool wasLanguage = false;
             bool isSqlDef = false;
-            foreach (Token t in tsql.Tokens)
+            foreach (PgsqlToken t in tsql.Tokens)
             {
                 if (t.Kind == TokenKind.Space || t.Kind == TokenKind.NewLine || t.Kind == TokenKind.Comment)
                 {
@@ -810,8 +593,8 @@ namespace Db2Source
                 wasLanguage = (t.Kind == TokenKind.Identifier && t.Value.ToLower() == "language");
             }
             bool noQuote = false;
-            Token holdedSpc = null;
-            foreach (Token t in tsql.Tokens)
+            PgsqlToken holdedSpc = null;
+            foreach (PgsqlToken t in tsql.Tokens)
             {
                 // 行末の空白を除去
                 if (holdedSpc != null && t.Kind != TokenKind.NewLine)
@@ -861,7 +644,7 @@ namespace Db2Source
         public override SQLParts SplitSQL(string sql)
         {
             List<SQLPart> l = new List<SQLPart>();
-            TokenizedSQL tsql = new TokenizedSQL(sql);
+            TokenizedSQL tsql = Tokenize(sql);
             int i = 0;
             int n = tsql.Tokens.Length;
             while (i < n)
@@ -886,7 +669,7 @@ namespace Db2Source
                 string s = tsql.Extract(t0, tsql.Tokens[i - 1]);
                 SQLPart sp = new SQLPart()
                 {
-                    Offset = t0.Start.Index,
+                    Offset = t0.StartPos,
                     SQL = s,
                     ParameterNames = GetParameterNames(s).ToArray(),
                 };

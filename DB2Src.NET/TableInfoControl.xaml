@@ -96,6 +96,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto" MinHeight="40"/>
+            <RowDefinition Height="10*" MinHeight="34"/>
             <RowDefinition Height="1*" MinHeight="34"/>
         </Grid.RowDefinitions>
         <StackPanel>
@@ -216,5 +217,48 @@
                 </DataGrid.Columns>
             </DataGrid>
         </DockPanel>
+        <DataGrid x:Name="dataGridIndexes" Grid.Row="3" AutoGenerateColumns="False" SelectionUnit="Cell" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" ItemsSource="{Binding Target.Indexes, ElementName=userControl}" Margin="0,4,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index_}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="TextAlignment" Value="Right"/>
+                            <Setter Property="Margin" Value="2,1"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="インデックス名" Binding="{Binding Name}" IsReadOnly="True">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin" Value="2,1"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="メソッド" Binding="{Binding IndexType}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin" Value="2,1"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="項目" Binding="{Binding ColumnText}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin" Value="2,1"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+                <DataGridTextColumn Header="コメント" Binding="{Binding CommentText}">
+                    <DataGridTextColumn.ElementStyle>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="TextWrapping" Value="Wrap"/>
+                            <Setter Property="Margin" Value="2,1"/>
+                            <Setter Property="MaxHeight" Value="{Binding DataGridColumnsMaxHeight, ElementName=userControl}"/>
+                        </Style>
+                    </DataGridTextColumn.ElementStyle>
+                </DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+        <GridSplitter Grid.Row="3" Cursor="SizeNS" Height="4" VerticalAlignment="Top" HorizontalAlignment="Stretch"/>
     </Grid>
 </UserControl>

@@ -136,6 +136,9 @@
   <data name="PgClass_INDEXSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgClass_INDEXSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgClass_RELATEDSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\pgclass_relatedsql.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
   <data name="PgClass_SEQUENCESQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgClass_SEQUENCESQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>

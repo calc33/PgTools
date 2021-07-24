@@ -18,40 +18,65 @@ namespace Db2Source
             _owner = owner;
         }
 
+        private object _updatingLock = new object();
+        private bool _updating;
         public void Invalidate()
         {
+            if (_updating)
+            {
+                return;
+            }
             _list = null;
             _nameToIndex = null;
         }
 
-        private void RequireItems()
+        internal void RequireItems()
         {
             if (_list != null)
             {
                 return;
             }
-            _list = new List<Index>();
-            if (_owner == null || _owner.Schema == null)
+            lock (_updatingLock)
             {
-                return;
+                _updating = true;
+                try
+                {
+                    if (_list != null)
+                    {
+                        return;
+                    }
+                    _list = new List<Index>();
+                    if (_owner == null || _owner.Schema == null)
+                    {
+                        return;
+                    }
+                    foreach (Index c in _owner.Schema.Indexes)
+                    {
+                        if (c == null)
+                        {
+                            continue;
+                        }
+                        if (c.Table == null)
+                        {
+                            continue;
+                        }
+                        if (!c.Table.Equals(_owner))
+                        {
+                            continue;
+                        }
+                        _list.Add(c);
+                    }
+                    _list.Sort();
+                    for (int i = 0, n = _list.Count; i < n; i++)
+                    {
+                        _list[i].Index_ = i + 1;
+                    }
+                }
+                finally
+                {
+                    _updating = false;
+                }
             }
-            foreach (Index c in _owner.Schema.Indexes)
-            {
-                if (c == null)
-                {
-                    continue;
-                }
-                if (c.Table == null)
-                {
-                    continue;
-                }
-                if (!c.Table.Equals(_owner))
-                {
-                    continue;
-                }
-                _list.Add(c);
-            }
-            _list.Sort();
         }
         private void RequireNameToIndex()
         {

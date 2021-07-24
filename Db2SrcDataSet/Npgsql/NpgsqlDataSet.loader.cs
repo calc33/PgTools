@@ -1106,6 +1106,28 @@ namespace Db2Source
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgClass_SQL, string.Format("oid = {0}::oid", oid));
                 store.Fill(sql, connection, dict, false);
+                sql = AddCondition(DataSet.Properties.Resources.PgClass_VIEWDEFSQL, string.Format("oid = {0}::oid", oid));
+                store.Join(sql, connection);
+                sql = AddCondition(DataSet.Properties.Resources.PgClass_INDEXSQL, string.Format("i.indexrelid = {0}::oid", oid));
+                store.Join(sql, connection);
+                sql = AddCondition(DataSet.Properties.Resources.PgClass_SEQUENCESQL, string.Format("c.oid = {0}::oid", oid));
+                store.Join(sql, connection);
+            }
+            public static uint[] GetRelatedOid(NpgsqlConnection connection, uint oid)
+            {
+                List<uint> oids = new List<uint>();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.PgClass_RELATEDSQL, connection))
+                {
+                    cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            oids.Add((uint)reader.GetValue(0));
+                        }
+                    }
+                }
+                return oids.ToArray();
             }
             public static uint? GetOid(NpgsqlConnection connection, string schema, string name, char relkind)
             {
@@ -2241,10 +2263,10 @@ namespace Db2Source
                 }
                 t.Orientation = ((tgtype & 1) != 0) ? TriggerOrientation.Row : TriggerOrientation.Statement;
                 t.OrientationText = ((tgtype & 1) != 0) ? "row" : "statement";
-                TokenizedSQL sql = new TokenizedSQL(triggerdef);
+                TokenizedPgsql sql = new TokenizedPgsql(triggerdef);
                 StringBuilder buf = new StringBuilder();
                 bool inWhen = false;
-                foreach (Token tk in sql.Tokens)
+                foreach (PgsqlToken tk in sql.Tokens)
                 {
                     if (tk.ID == TokenID.Identifier) {
                         if (string.Equals(tk.Value, "when", StringComparison.CurrentCultureIgnoreCase))
@@ -3007,6 +3029,10 @@ namespace Db2Source
             public void FillTableByOid(uint oid, NpgsqlConnection connection)
             {
                 PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
+                foreach (uint reloid in PgClass.GetRelatedOid(connection, oid))
+                {
+                    PgClass.FillByOid(PgClasses, connection, reloid, OidToObject);
+                }
                 PgAttribute.FillByOid(PgAttributes, connection, oid);
                 PgConstraint.FillByOid(PgConstraints, connection, oid, OidToObject);
                 PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
