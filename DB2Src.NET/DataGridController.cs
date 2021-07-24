@@ -1018,11 +1018,21 @@ namespace Db2Source
             {
                 object o1 = item1[i];
                 object o2 = item2[i];
+                int ret;
+                if ((o1 == null) || (o2 == null))
+                {
+                    ret = ((o1 == null) ? 1 : 0) - ((o2 == null) ? 1 : 0);
+                    if (ret != 0)
+                    {
+                        return ret;
+                    }
+                    continue;
+                }
                 if (!(o1 is IComparable))
                 {
                     return -1;
                 }
-                int ret = ((IComparable)o1).CompareTo(o2);
+                ret = ((IComparable)o1).CompareTo(o2);
                 if (ret != 0)
                 {
                     return ret;

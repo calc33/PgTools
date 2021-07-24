@@ -84,8 +84,8 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="1*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="1*"/>
                 </Grid.RowDefinitions>
                 <StackPanel>
                     <ToolBarTray Orientation="Horizontal">
@@ -103,8 +103,8 @@
                         <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
                     </StackPanel>
                 </StackPanel>
-                <TextBox Grid.Row="2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
-                <DataGrid x:Name="dataGridColumns" Margin="0,0,0,4" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" Grid.Row="1" SelectionUnit="Cell">
+                <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
+                <DataGrid x:Name="dataGridColumns" Margin="0,0,0,4" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" Grid.Row="2" SelectionUnit="Cell">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="No" IsReadOnly="True" Binding="{Binding Index}">
                             <DataGridTextColumn.ElementStyle>
