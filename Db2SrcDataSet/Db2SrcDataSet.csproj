@@ -85,6 +85,7 @@
     <Compile Include="Constraint.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Db2SrcDataSet.cs" />
+    <Compile Include="Db2SrcDataSet.lex.cs" />
     <Compile Include="Db2srcDataSet.UI.cs" />
     <Compile Include="Dependency.cs" />
     <Compile Include="GlobalSuppressions.cs" />
