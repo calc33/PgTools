@@ -21,14 +21,325 @@ namespace Db2Source
     /// </summary>
     public partial class SearchDataGridWindow: Window
     {
+        internal class Evaluator : FrameworkElement
+        {
+            public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(Evaluator));
+            protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+            {
+                   
+                base.OnPropertyChanged(e);
+            }
+            public string Text
+            {
+                get
+                {
+                    return (string)GetValue(TextProperty);
+                }
+                set
+                {
+                    SetValue(TextProperty, value);
+                }
+            }
+
+            public static string Eval(BindingBase binding, object target)
+            {
+                Evaluator obj = new Evaluator();
+                obj.DataContext = target;
+                BindingOperations.SetBinding(obj, TextProperty, binding);
+                return obj.Text;
+            }
+        }
+        public class CellInfo
+        {
+            public struct CellPoint
+            {
+                public int ItemIndex;
+                public int DisplayColumnIndex;
+                public void Apply(CellInfo info)
+                {
+                    info.ItemIndex = ItemIndex;
+                    info.DisplayColumnIndex = DisplayColumnIndex;
+                }
+                internal CellPoint(CellInfo info)
+                {
+                    ItemIndex = info.ItemIndex;
+                    DisplayColumnIndex = info.DisplayColumnIndex;
+                }
+                internal CellPoint(int itemIndex, int displayColumnIndex)
+                {
+                    ItemIndex = itemIndex;
+                    DisplayColumnIndex = displayColumnIndex;
+                }
+                internal CellPoint(CellPoint point)
+                {
+                    ItemIndex = point.ItemIndex;
+                    DisplayColumnIndex = point.DisplayColumnIndex;
+                }
+                public override bool Equals(object obj)
+                {
+                    if (obj is CellPoint)
+                    {
+                        return ItemIndex == ((CellPoint)obj).ItemIndex && DisplayColumnIndex == ((CellPoint)obj).DisplayColumnIndex;
+                    }
+                    if (obj is CellInfo)
+                    {
+                        return ItemIndex == ((CellInfo)obj).ItemIndex && DisplayColumnIndex == ((CellInfo)obj).DisplayColumnIndex;
+                    }
+                    return base.Equals(obj);
+                }
+                public override int GetHashCode()
+                {
+                    return ItemIndex * 17 + DisplayColumnIndex;
+                }
+                public override string ToString()
+                {
+                    return string.Format("({0}, {1})", ItemIndex, DisplayColumnIndex);
+                }
+            }
+            public CellPoint _terminal;
+            public SearchDataGridWindow Owner { get; private set; }
+            private List<DataGridColumn> DisplayColumns
+            {
+                get
+                {
+                    return Owner._displayColumns;
+                }
+            }
+            public DataGrid Grid
+            {
+                get
+                {
+                    return Owner.Target;
+                }
+            }
+            public object Item
+            {
+                get
+                {
+                    return Grid.Items[ItemIndex];
+                }
+                private set
+                {
+                    ItemIndex = Grid.Items.IndexOf(value);
+                }
+            }
+            private int _itemIndex;
+            public int ItemIndex
+            {
+                get { return _itemIndex; }
+                set { _itemIndex = value; }
+            }
+            public DataGridColumn Column
+            {
+                get
+                {
+                    return DisplayColumnIndex != -1 ? DisplayColumns[DisplayColumnIndex] : null;
+                }
+                set
+                {
+                    DisplayColumnIndex = DisplayColumns.IndexOf(value);
+                }
+            }
+            private int _displayColumnIndex;
+            public int DisplayColumnIndex
+            {
+                get { return _displayColumnIndex; }
+                set { _displayColumnIndex = value; }
+            }
+            public string GetText()
+            {
+                DataGridTextColumn column = Column as DataGridTextColumn;
+                if (column == null)
+                {
+                    return null;
+                }
+                object item = Item;
+                if (item == null || item == CollectionView.NewItemPlaceholder)
+                {
+                    return null;
+                }
+                DataGridCell cell = new DataGridCell();
+                cell.DataContext = item;
+                BindingBase b = column.Binding;
+                return Evaluator.Eval(column.Binding, item);
+            }
+
+            public bool IsValid()
+            {
+                return 0 <= ItemIndex && ItemIndex < Grid.Items.Count && Grid.Items[ItemIndex] != CollectionView.NewItemPlaceholder
+                    && 0 <= DisplayColumnIndex && DisplayColumnIndex < DisplayColumns.Count;
+            }
+
+            public bool IsValid(CellPoint point)
+            {
+                return 0 <= point.ItemIndex && point.ItemIndex < Grid.Items.Count && Grid.Items[point.ItemIndex] != CollectionView.NewItemPlaceholder
+                    && 0 <= point.DisplayColumnIndex && point.DisplayColumnIndex < DisplayColumns.Count;
+            }
+
+            private CellPoint GetNextPoint(CellPoint point)
+            {
+                if (!IsValid(point))
+                {
+                    return new CellPoint(0, 0);
+                }
+                CellPoint p = new CellPoint(point);
+                p.DisplayColumnIndex++;
+                if (0 <= p.DisplayColumnIndex && p.DisplayColumnIndex < DisplayColumns.Count)
+                {
+                    return p;
+                }
+                p.DisplayColumnIndex = 0;
+                p.ItemIndex++;
+                if (0 <= p.ItemIndex && p.ItemIndex < Grid.Items.Count && Grid.Items[p.ItemIndex] != CollectionView.NewItemPlaceholder)
+                {
+                    return p;
+                }
+                p.ItemIndex = 0;
+                return p;
+            }
+            private CellPoint GetNextPoint()
+            {
+                return GetNextPoint(new CellPoint(this));
+            }
+            private CellPoint GetPreviousPoint(CellPoint point)
+            {
+                if (!IsValid(point))
+                {
+                    int row;
+                    for (row = Grid.Items.Count - 1;  0 < row && Grid.Items[row] == CollectionView.NewItemPlaceholder; row--) ;
+                    return new CellPoint(row, DisplayColumns.Count - 1);
+                }
+                CellPoint p = point;
+                p.DisplayColumnIndex--;
+                if (0 <= p.DisplayColumnIndex)
+                {
+                    return p;
+                }
+                p.DisplayColumnIndex = DisplayColumns.Count - 1;
+                p.ItemIndex--;
+                if (0 <= p.ItemIndex && p.ItemIndex < Grid.Items.Count && Grid.Items[p.ItemIndex] != CollectionView.NewItemPlaceholder)
+                {
+                    return p;
+                }
+                for (p.ItemIndex = Grid.Items.Count - 1; 0 < p.ItemIndex && Grid.Items[p.ItemIndex] == CollectionView.NewItemPlaceholder; p.ItemIndex--) ;
+                return p;
+            }
+            private CellPoint GetPreviousPoint()
+            {
+                return GetPreviousPoint(new CellPoint(this));
+            }
+            public bool MoveNext()
+            {
+                CellPoint p = GetNextPoint();
+                p.Apply(this);
+                return !_terminal.Equals(this);
+            }
+            public bool MovePrevious()
+            {
+                CellPoint p = GetPreviousPoint();
+                p.Apply(this);
+                return !_terminal.Equals(this);
+            }
+            public void SetTerminal(CellPoint point)
+            {
+                _terminal = new CellPoint(point);
+                if (!IsValid(_terminal))
+                {
+                    _terminal = GetNextPoint(_terminal);
+                }
+            }
+            public void SetTerminal()
+            {
+                _terminal = new CellPoint(this);
+                if (!IsValid(_terminal))
+                {
+                    _terminal = GetNextPoint(_terminal);
+                }
+            }
+            public CellInfo(SearchDataGridWindow owner)
+            {
+                if (owner == null)
+                {
+                    throw new ArgumentNullException("owner");
+                }
+                Owner = owner;
+                DataGrid grid = owner.Target;
+                DataGridCellInfo info = grid.CurrentCell;
+                if (info.Item == CollectionView.NewItemPlaceholder)
+                {
+                    ItemIndex = -1;
+                }
+                else
+                {
+                    ItemIndex = grid.Items.IndexOf(info.Item);
+                }
+                Column = info.Column;
+                if (!IsValid())
+                {
+                    MoveNext();
+                }
+                SetTerminal();
+            }
+            public CellInfo(SearchDataGridWindow owner, CellInfo previous)
+            {
+                if (owner == null)
+                {
+                    throw new ArgumentNullException("owner");
+                }
+                Owner = owner;
+                DataGrid grid = owner.Target;
+                DataGridCellInfo info = grid.CurrentCell;
+                if (info.Item == CollectionView.NewItemPlaceholder)
+                {
+                    ItemIndex = -1;
+                }
+                else
+                {
+                    ItemIndex = grid.Items.IndexOf(info.Item);
+                }
+                Column = info.Column;
+                if (!IsValid())
+                {
+                    MoveNext();
+                }
+                if (previous != null)
+                {
+                    SetTerminal(previous._terminal);
+                }
+                else
+                {
+                    SetTerminal();
+                }
+                if (!IsValid(_terminal))
+                {
+                    _terminal = GetNextPoint(_terminal);
+                }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is CellInfo)
+                {
+                    return ItemIndex == ((CellInfo)obj).ItemIndex && DisplayColumnIndex == ((CellInfo)obj).DisplayColumnIndex;
+                }
+                if (obj is CellPoint)
+                {
+                    return ItemIndex == ((CellPoint)obj).ItemIndex && DisplayColumnIndex == ((CellPoint)obj).DisplayColumnIndex;
+                }
+                return base.Equals(obj);
+            }
+            public override int GetHashCode()
+            {
+                return ItemIndex * 17 + DisplayColumnIndex;
+            }
+        }
+
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(DataGrid), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty SearchTextProperty = DependencyProperty.Register("SearchText", typeof(string), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty IgnoreCaseProperty = DependencyProperty.Register("IgnoreCase", typeof(bool), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty WordwrapProperty = DependencyProperty.Register("Wordwrap", typeof(bool), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty UseRegexProperty = DependencyProperty.Register("UseRegex", typeof(bool), typeof(SearchDataGridWindow));
         private List<DataGridColumn> _displayColumns;
-        private DataGridCellInfo _lastSelected = new DataGridCellInfo();
-        private DataGridCellInfo _endCell = new DataGridCellInfo();
         public SearchDataGridWindow()
         {
             InitializeComponent();
@@ -46,6 +357,7 @@ namespace Db2Source
             }
         }
 
+        private string _lastSearchText;
         public string SearchText
         {
             get
@@ -147,39 +459,6 @@ namespace Db2Source
             }
             return new DataGridCellInfo(grid.Items[grid.Items.Count - 1], _displayColumns[_displayColumns.Count - 1]);
         }
-        private DataGridCellInfo NextCell(DataGridCellInfo cell)
-        {
-            int c = _displayColumns.IndexOf(cell.Column);
-            int r = Target.Items.IndexOf(cell.Item);
-            c++;
-            if (_displayColumns.Count <= c)
-            {
-                c = 0;
-                r++;
-            }
-            if (Target.Items.Count <= r || Target.Items[r] == CollectionView.NewItemPlaceholder)
-            {
-                r = 0;
-            }
-            return new DataGridCellInfo(Target.Items[r], _displayColumns[c]);
-        }
-        private DataGridCellInfo PreviousCell(DataGridCellInfo cell)
-        {
-            int c = _displayColumns.IndexOf(cell.Column);
-            int r = Target.Items.IndexOf(cell.Item);
-            c--;
-            if (c < 0)
-            {
-                c = _displayColumns.Count - 1;
-                r--;
-            }
-            if (r <= 0)
-            {
-                r = Target.Items.Count - 1;
-            }
-            for (; 0 < r && Target.Items[r] == CollectionView.NewItemPlaceholder; r--) ;
-            return new DataGridCellInfo(Target.Items[r], _displayColumns[c]);
-        }
         private delegate MatchResult MatchTextProc(string text, bool ignoreCase);
         private bool _isMatchTextProcValid = false;
         private MatchTextProc _matchTextProc = null;
@@ -245,30 +524,23 @@ namespace Db2Source
         /// <summary>
         /// UpdateMatchTextProc()を事前に呼んでいることが前提
         /// </summary>
-        /// <param name="text"></param>
-        /// <param name="item"></param>
-        /// <param name="column"></param>
-        /// <param name="tag"></param>
+        /// <param name="cell"></param>
         /// <returns></returns>
-        private MatchResult MatchesText(DataGridCellInfo cell)
+        private MatchResult MatchesText(CellInfo cell)
         {
-            if (!cell.IsValid)
+            if (!cell.IsValid())
             {
                 return MatchResult.Unmatched;
             }
-            FrameworkElement elem = cell.Column.GetCellContent(cell.Item);
-            if (elem == null)
-            {
-                return MatchResult.Unmatched;
-            }
-            PropertyInfo prop = elem.GetType().GetProperty("Text");
-            string text = prop?.GetValue(elem) as string;
+            string text = cell.GetText();
             if (string.IsNullOrEmpty(text))
             {
                 return MatchResult.Unmatched;
             }
             return _matchTextProc.Invoke(text, IgnoreCase);
         }
+
+        private CellInfo _current;
 
         private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
@@ -281,46 +553,41 @@ namespace Db2Source
             {
                 return;
             }
+            if (grid.Items.Count == 1 && grid.Items[0] == CollectionView.NewItemPlaceholder)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(comboBoxKeyword.Text))
             {
                 return;
             }
 
             UpdateMatchTextProc();
+            if (_lastSearchText != SearchText)
+            {
+                _lastSearchText = SearchText;
+                _current = null;
+            }
             MatchResult found = MatchResult.Unmatched;
             try
             {
-                DataGridCellInfo cur = grid.CurrentCell;
-                if (!_lastSelected.IsValid || !_lastSelected.Equals(cur))
+                CellInfo cur = new CellInfo(this, _current);
+
+                if (_current == null)
                 {
-                    if (!cur.IsValid)
-                    {
-                        cur = FirstCell();
-                    }
-                    if (!cur.IsValid)
-                    {
-                        found = MatchResult.Unmatched;
-                        return;
-                    }
-                    _endCell = cur;
                     found = MatchesText(cur);
                 }
-                if (!found.Success)
+                while (!found.Success && cur.MoveNext())
                 {
-                    for (cur = NextCell(cur); !found.Success && cur != _endCell; cur = NextCell(cur))
-                    {
-                        found = MatchesText(cur);
-                        if (found.Success)
-                        {
-                            break;
-                        }
-                    }
+                    found = MatchesText(cur);
                 }
                 if (found.Success)
                 {
-                    grid.CurrentCell = cur;
+                    Target.ScrollIntoView(cur.Item, cur.Column);
+                    DataGridCellInfo cell = new DataGridCellInfo(cur.Item, cur.Column);
+                    grid.CurrentCell = cell;
                     grid.SelectedCells.Clear();
-                    grid.SelectedCells.Add(cur);
+                    grid.SelectedCells.Add(cell);
                     if (grid.BeginEdit())
                     {
                         TextBox tb = cur.Column.GetCellContent(cur.Item) as TextBox;
@@ -329,7 +596,11 @@ namespace Db2Source
                             tb.Select(found.Index, found.Length);
                         }
                     }
-                    _lastSelected = cur;
+                    _current = cur;
+                }
+                else
+                {
+                    _current = null;
                 }
             }
             finally
@@ -345,46 +616,45 @@ namespace Db2Source
             {
                 return;
             }
+            if (grid.Items.Count == 0 || _displayColumns.Count == 0)
+            {
+                return;
+            }
+            if (grid.Items.Count == 1 && grid.Items[0] == CollectionView.NewItemPlaceholder)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(comboBoxKeyword.Text))
             {
                 return;
             }
 
             UpdateMatchTextProc();
+            if (_lastSearchText != SearchText)
+            {
+                _lastSearchText = SearchText;
+                _current = null;
+            }
             MatchResult found = MatchResult.Unmatched;
             try
             {
-                DataGridCellInfo cur = grid.CurrentCell;
-                if (!_lastSelected.IsValid || !_lastSelected.Equals(cur))
+                CellInfo cur = new CellInfo(this, _current);
+
+                if (_current == null)
                 {
-                    if (!cur.IsValid)
-                    {
-                        cur = FirstCell();
-                    }
-                    if (!cur.IsValid)
-                    {
-                        found = MatchResult.Unmatched;
-                        return;
-                    }
-                    _endCell = cur;
                     found = MatchesText(cur);
                 }
-                if (!found.Success)
+                while (!found.Success && cur.MovePrevious())
                 {
-                    for (cur = PreviousCell(cur); !found.Success && cur != _endCell; cur = PreviousCell(cur))
-                    {
-                        found = MatchesText(cur);
-                        if (found.Success)
-                        {
-                            break;
-                        }
-                    }
+                    found = MatchesText(cur);
                 }
                 if (found.Success)
                 {
-                    grid.CurrentCell = cur;
+                    Target.ScrollIntoView(cur.Item, cur.Column);
+                    DataGridCellInfo cell = new DataGridCellInfo(cur.Item, cur.Column);
+                    grid.CurrentCell = cell;
                     grid.SelectedCells.Clear();
-                    grid.SelectedCells.Add(cur);
+                    grid.SelectedCells.Add(cell);
                     if (grid.BeginEdit())
                     {
                         TextBox tb = cur.Column.GetCellContent(cur.Item) as TextBox;
@@ -393,7 +663,11 @@ namespace Db2Source
                             tb.Select(found.Index, found.Length);
                         }
                     }
-                    _lastSelected = cur;
+                    _current = cur;
+                }
+                else
+                {
+                    _current = null;
                 }
             }
             finally
