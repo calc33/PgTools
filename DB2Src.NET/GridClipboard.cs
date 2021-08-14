@@ -479,9 +479,13 @@ namespace Db2Source
             DataGrid grid = Controller.Grid;
             ColumnInfo[] infos = GetDisplayColumns(grid);
             int i0 = (infos.Length == MaxColumnCount) ? 0 : (grid.CurrentColumn != null ? grid.CurrentColumn.DisplayIndex : 0);
-            if (infos.Length - i0 <= MaxColumnCount)
+            if (MaxColumnCount <= infos.Length - i0)
             {
                 MaxColumnCount = infos.Length - i0;
+                _implicitFields = null;
+            }
+            if (_implicitFields == null)
+            {
                 _implicitFields = new ColumnInfo[MaxColumnCount];
             }
             for (int i = 0; i < MaxColumnCount; i++)
