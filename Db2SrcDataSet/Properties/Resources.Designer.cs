@@ -127,15 +127,14 @@ namespace Db2Source.DataSet.Properties {
         
         /// <summary>
         ///   -- index
-        ///select i.indrelid as oid
+        ///select i.indexrelid as oid
         ///from pg_index i
-        ///where i.indexrelid = :oid
+        ///where i.indrelid = :oid
         ///union all
         ///-- sequence
         ///select d.refobjid as oid
-        ///from pg_depend
-        ///where d.objid = :oid and d.deptype = &apos;a&apos;
-        /// に類似しているローカライズされた文字列を検索します。
+        ///from pg_depend d
+        ///where d.objid = :oid and d.deptype = &apos;a&apos; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgClass_RELATEDSQL {
             get {
@@ -211,6 +210,18 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgConstraint_CHECKSQL {
             get {
                 return ResourceManager.GetString("PgConstraint_CHECKSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   -- ref constraint
+        ///select c.confrelid as oid
+        ///from pg_constraint c
+        ///where c.conrelid = :oid and c.contype = &apos;f&apos; に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgConstraint_REFTABLESQL {
+            get {
+                return ResourceManager.GetString("PgConstraint_REFTABLESQL", resourceCulture);
             }
         }
         

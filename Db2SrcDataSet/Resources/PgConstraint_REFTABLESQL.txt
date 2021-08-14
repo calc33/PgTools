@@ -1,0 +1,4 @@
+-- ref constraint
+select c.confrelid as oid
+from pg_constraint c
+where c.conrelid = :oid and c.contype = 'f'

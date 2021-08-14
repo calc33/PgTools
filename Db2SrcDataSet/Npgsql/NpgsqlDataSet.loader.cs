@@ -1652,6 +1652,23 @@ namespace Db2Source
                 string sql = AddCondition(DataSet.Properties.Resources.PgConstraint_SQL, string.Format("conrelid = {0}::oid", oid));
                 store.Fill(sql, connection, dict, false);
             }
+            public static uint[] GetRefTableOid(NpgsqlConnection connection, uint oid)
+            {
+                List<uint> oids = new List<uint>();
+                using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.PgConstraint_REFTABLESQL, connection))
+                {
+                    cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            oids.Add((uint)reader.GetValue(0));
+                        }
+                    }
+                }
+                return oids.ToArray();
+
+            }
             public override void FillReference(WorkingData working)
             {
                 Schema = working.PgNamespaces.FindByOid(connamespace);
@@ -3026,8 +3043,13 @@ namespace Db2Source
                     }
                 }
             }
-            public void FillTableByOid(uint oid, NpgsqlConnection connection)
+
+            private void FillTableByOidInternal(uint oid, NpgsqlConnection connection, Dictionary<uint, bool> loadedOids)
             {
+                if (loadedOids.ContainsKey(oid))
+                {
+                    return;
+                }
                 PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
                 foreach (uint reloid in PgClass.GetRelatedOid(connection, oid))
                 {
@@ -3037,6 +3059,16 @@ namespace Db2Source
                 PgConstraint.FillByOid(PgConstraints, connection, oid, OidToObject);
                 PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
                 PgTrigger.FillByOid(PgTriggers, connection, oid, OidToObject);
+                loadedOids[oid] = true;
+                foreach (uint reloid in PgConstraint.GetRefTableOid(connection, oid))
+                {
+                    FillTableByOidInternal(reloid, connection, loadedOids);
+                }
+            }
+            public void FillTableByOid(uint oid, NpgsqlConnection connection)
+            {
+                Dictionary<uint, bool> loadedOids = new Dictionary<uint, bool>();
+                FillTableByOidInternal(oid, connection, loadedOids);
 
                 PgClasses.BeginFillReference(this);
                 PgAttributes.BeginFillReference(this);
