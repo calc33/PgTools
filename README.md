@@ -1,4 +1,4 @@
-[[English](About-PgTools)]
+[[English](https://github.com/calc33/PgTools/wiki/About-PgTools)]
 
 # PgTools
 PgTool is management tools for PostgreSQL on Windows, requires .NET Framework 4.6.1 or later.<br>
@@ -11,7 +11,7 @@ PgToolsはWindows上でPostgreSQLデータベースを管理するためのツ�
 
 **DB2Src.NET** は PostgreSQL用のデータベースブラウザです。
 
-![アプリケーション イメージ](https://github.com/calc33/PgTools/blob/master/DB2Src.NET/doc/image/appmain01.png)
+![アプリケーション イメージ](DB2Src.NET/doc/image/appmain01.png)
 
 ## ExpSch / ExpTbl
 ExpSch および ExpTbl はデータベースの構成をテキストファイル化して git / subversion 等のバージョン管理システムで管理することを目的としたコマンドラインユーティリティです。pgpass.conf にパスワードが登録されている場合、パスワードの入力を省略できます。
