@@ -1763,7 +1763,6 @@ namespace Db2Source
                             Columns = GetNameArray(Keys),
                             RefColumns = GetNameArray(RefKeys)
                         };
-                        NamedObject.SetDependency(rc.Table, rc.ReferenceConstraint.Table);
                         Generated = new WeakReference<NamedObject>(rc);
                         return rc;
                     case 'p': // プライマリキー制約
@@ -2241,7 +2240,6 @@ namespace Db2Source
                     ProcedureName = Procedure.GetInternalName(),
                     Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
                 };
-                NamedObject.SetDependency(t, Procedure.ToStoredFunction(context));
 
                 t.TimingText = TimingToText[(int)t.Timing];
                 t.Event = 0;

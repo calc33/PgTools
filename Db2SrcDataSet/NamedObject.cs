@@ -75,34 +75,6 @@ namespace Db2Source
             return true;
         }
 
-        /// <summary>
-        /// 依存オブジェクト
-        /// </summary>
-        public SortedList<string, NamedObject> Dependencies { get; protected set; }
-        /// <summary>
-        /// 依存されているオブジェクト
-        /// </summary>
-        public SortedList<string, NamedObject> DependOn { get; protected set; }
-
-        public static void SetDependency(NamedObject from, NamedObject to)
-        {
-            if (from == null || to == null)
-            {
-                return;
-            }
-            if (from.Dependencies == null)
-            {
-                from.Dependencies = new SortedList<string, NamedObject>();
-            }
-            if (to.DependOn == null)
-            {
-                to.DependOn = new SortedList<string, NamedObject>();
-            }
-            from.Dependencies[to.GetIdentifier()] = to;
-            to.DependOn[from.GetIdentifier()] = from;
-        }
-
-
         public virtual bool ContentEquals(NamedObject obj)
         {
             if (obj == null)
