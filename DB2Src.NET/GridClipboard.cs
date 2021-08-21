@@ -262,7 +262,7 @@ namespace Db2Source
         }
 
         private bool _mergeByKey;
-        private bool MergeByKey
+        public bool MergeByKey
         {
             get
             {

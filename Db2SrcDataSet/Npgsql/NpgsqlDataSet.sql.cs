@@ -347,19 +347,22 @@ namespace Db2Source
             {
                 return NoSQL;
             }
+            List<string> l = new List<string>();
             if (constraint is KeyConstraint)
             {
-                return GetSQL((KeyConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline);
+                l.AddRange(GetSQL((KeyConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline));
+                return l.ToArray();
             }
             if (constraint is ForeignKeyConstraint)
             {
-                return GetSQL((ForeignKeyConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline);
+                l.AddRange(GetSQL((ForeignKeyConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline));
             }
             if (constraint is CheckConstraint)
             {
-                return GetSQL((CheckConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline);
+                l.AddRange(GetSQL((CheckConstraint)constraint, prefix, postfix, indent, addAlterTable, addNewline));
             }
-            return NoSQL;
+            l.AddRange(GetSQL(constraint.Comment, prefix, postfix, indent, addNewline));
+            return l.ToArray();
         }
 
         private delegate char ConvertChar(char ch);
@@ -454,7 +457,10 @@ namespace Db2Source
             {
                 buf.AppendLine();
             }
-            return new string[] { buf.ToString() };
+            List<string> ret = new List<string>();
+            ret.Add(buf.ToString());
+            ret.AddRange(GetSQL(trigger.Comment, prefix, postfix, indent, addNewline));
+            return ret.ToArray();
         }
         public override string[] GetSQL(Index index, string prefix, string postfix, int indent, bool addNewline)
         {
@@ -512,13 +518,41 @@ namespace Db2Source
             return new string[] { buf.ToString() };
         }
 
-        private string[] GetCommentSQL(string commentType, string identifier, string text, string prefix, string postfix, int indent, bool addNewline)
+        private static Dictionary<string, bool> CommentTypeToNeedOwner = new Dictionary<string, bool>()
+        {
+            {"CONSTRAINT", true },
+            {"TRIGGER", true },
+        };
+        private static bool NeedObjectOwner(string commentType)
+        {
+            bool ret;
+            if (!CommentTypeToNeedOwner.TryGetValue(commentType.ToUpper(), out ret))
+            {
+                ret = false;
+            }
+            return ret;
+        }
+
+        private string GetCommentTargetSQL(Comment comment)
+        {
+            string cmtType = comment.GetCommentType();
+            string identifier = comment.EscapedTargetName(CurrentSchema);
+            if (!NeedObjectOwner(cmtType))
+            {
+                return identifier;
+            }
+            string owner = comment.EscapedOwnerName(CurrentSchema);
+            return string.Format("{0} on {1}", identifier, owner);
+        }
+
+        private string[] GetCommentSQL(Comment comment, string commentText, string prefix, string postfix, int indent, bool addNewline)
         {
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("comment on {0} {1} is {2}", commentType.ToLower(), identifier, ToLiteralStr(text));
+            string cmtType = comment.GetCommentType();
+            buf.AppendFormat("comment on {0} {1} is {2}", cmtType.ToLower(), GetCommentTargetSQL(comment), ToLiteralStr(commentText));
             buf.Append(postfix);
             if (addNewline)
             {
@@ -526,13 +560,14 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
+
         public override string[] GetSQL(Comment comment, string prefix, string postfix, int indent, bool addNewline)
         {
             if (comment == null)
             {
                 return NoSQL;
             }
-            return GetCommentSQL(comment.GetCommentType(), comment.EscapedIdentifier(CurrentSchema), comment.Text, prefix, postfix, indent, addNewline);
+            return GetCommentSQL(comment, comment.Text, prefix, postfix, indent, addNewline);
         }
 
         public override string[] GetSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline, bool skipOwned, bool ignoreOwned)
@@ -755,7 +790,7 @@ namespace Db2Source
                 {
                     return new string[0];
                 }
-                return GetCommentSQL(before.GetCommentType(), before.EscapedIdentifier(CurrentSchema), null, string.Empty, string.Empty, 0, false);
+                return GetCommentSQL(before, null, string.Empty, string.Empty, 0, false);
             }
             return GetSQL(after, string.Empty, string.Empty, 0, false);
         }
@@ -1247,17 +1282,7 @@ namespace Db2Source
             {
                 return NoSQL;
             }
-            StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
-            buf.Append(spc);
-            buf.Append(prefix);
-            buf.AppendFormat("comment on {0} {1} is null", comment.GetCommentType().ToLower(), comment.EscapedIdentifier(CurrentSchema));
-            buf.Append(postfix);
-            if (addNewline)
-            {
-                buf.AppendLine();
-            }
-            return new string[] { buf.ToString() };
+            return GetCommentSQL(comment, null, prefix, postfix, indent, addNewline);
         }
 
         public override string[] GetDropSQL(Constraint constraint, string prefix, string postfix, int indent, bool cascade, bool addNewline)

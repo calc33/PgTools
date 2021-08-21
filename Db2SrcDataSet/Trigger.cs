@@ -780,6 +780,12 @@ namespace Db2Source
                 && (Definition == t.Definition);
         }
 
+        protected override Comment NewComment(string commentText)
+        {
+            return new TriggerComment(Context, SchemaName, TableName, Name, commentText, false);
+        }
+
+
         public override Schema.CollectionIndex GetCollectionIndex()
         {
             return Schema.CollectionIndex.Triggers;

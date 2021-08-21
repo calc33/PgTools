@@ -385,6 +385,7 @@ namespace Db2Source
         }
 
         private string _internalName;
+        private string _nameExtension;
         private string _definition;
         private string _oldDefinition;
         public string BaseType { get; set; }
@@ -527,6 +528,24 @@ namespace Db2Source
         }
         public string[] ExtraInfo { get; set; }
 
+        private string[] GetInputParamTypes()
+        {
+            List<string> l = new List<string>();
+            foreach (Parameter p in Parameters)
+            {
+                if (p.Direction == ParameterDirection.InputOutput || p.Direction == ParameterDirection.Input)
+                {
+                    l.Add(p.DataType);
+                }
+            }
+            return l.ToArray();
+        }
+
+        protected override Comment NewComment(string commentText)
+        {
+            return new StoredFunctionComment(Context, SchemaName, Name, GetInputParamTypes(), commentText, false);
+        }
+
         private IDbCommand _dbCommand;
         internal void RequireDbCommand()
         {
@@ -554,10 +573,11 @@ namespace Db2Source
             }
         }
         //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string internalName, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
+        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string extension, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
         {
             Parameters = new ParameterCollection(this);
-            _internalName = internalName;
+            _internalName = objectName + extension;
+            _nameExtension = extension;
             _definition = definition;
             if (isLoaded)
             {

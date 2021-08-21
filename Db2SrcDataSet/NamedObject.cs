@@ -193,7 +193,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                for(int i = _list.Count - 1; 0 <= i; i--)
+                for (int i = _list.Count - 1; 0 <= i; i--)
                 {
                     if (_list[i]._released)
                     {
@@ -202,7 +202,8 @@ namespace Db2Source
                 }
                 Dictionary<string, NamedObject> dict = new Dictionary<string, NamedObject>();
                 Dictionary<int, bool> delIds = new Dictionary<int, bool>();
-                foreach (NamedObject item in _list)
+                List<NamedObject> source = new List<NamedObject>(_list);
+                foreach (NamedObject item in source)
                 {
                     if (string.IsNullOrEmpty(item.Identifier))
                     {

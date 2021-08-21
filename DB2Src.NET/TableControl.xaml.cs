@@ -217,19 +217,22 @@ namespace Db2Source
         
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            JoinTables.Clear();
-            JoinTable jt = new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root };
-            jt.PropertyChanged += JoinTable_PropertyChanged;
-            JoinTables.Add(jt);
-            //dataGridColumns.ItemsSource = Target.Columns;
-            DataGridControllerResult.Table = Target;
-            sortFields.Target = Target;
-            //dataGridReferTo.ItemsSource = Target.ReferTo;
-            //dataGridReferedBy.ItemsSource = Target.ReferFrom;
-            UpdateTextBoxSource();
-            UpdateTextBoxTemplateSql();
-            UpdateHiddenLevelDisplayItems();
-            Dispatcher.Invoke(Fetch, DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(() =>
+            {
+                JoinTables.Clear();
+                JoinTable jt = new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root };
+                jt.PropertyChanged += JoinTable_PropertyChanged;
+                JoinTables.Add(jt);
+                //dataGridColumns.ItemsSource = Target.Columns;
+                DataGridControllerResult.Table = Target;
+                sortFields.Target = Target;
+                //dataGridReferTo.ItemsSource = Target.ReferTo;
+                //dataGridReferedBy.ItemsSource = Target.ReferFrom;
+                UpdateTextBoxSource();
+                UpdateTextBoxTemplateSql();
+                UpdateHiddenLevelDisplayItems();
+                Fetch();
+            });
         }
 
         private void JoinTable_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)

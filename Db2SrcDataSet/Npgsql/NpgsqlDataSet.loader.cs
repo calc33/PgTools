@@ -1987,6 +1987,7 @@ namespace Db2Source
             public PgProc TargetProc;
             public PgTrigger TargetTrigger;
             public PgAttribute TargetAttribute;
+            public PgType TargetType;
             public static PgObjectCollection<PgDescription> Descriptions;
             public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, PgObjectCollection<PgDescription> store, Dictionary<uint, PgObject> dict)
             {
@@ -2017,6 +2018,7 @@ namespace Db2Source
                 TargetConstraint = working.PgConstraints.FindByOid(objoid);
                 TargetProc = working.PgProcs.FindByOid(objoid);
                 TargetTrigger = working.PgTriggers.FindByOid(objoid);
+                TargetType = working.PgTypes.FindByOid(objoid);
                 TargetAttribute = null;
                 if (objsubid != 0)
                 {
@@ -2041,6 +2043,10 @@ namespace Db2Source
                 {
                     return new string[] { TargetTrigger.Target?.Schema.nspname, TargetTrigger.tgname };
                 }
+                if (TargetType != null)
+                {
+                    return new string[] { TargetType.Schema?.nspname, TargetType.typname };
+                }
                 return new string[2];
             }
 
@@ -2051,13 +2057,29 @@ namespace Db2Source
                 {
                     c = new ColumnComment(context, TargetClass?.Schema?.nspname, TargetClass?.relname, TargetAttribute.attname, description, true);
                 }
-                //else if (TargetTrigger != null)
-                //{
-                //    c = new TriggerComment
-                //}
+                else if (TargetConstraint != null)
+                {
+                    c = new ConstraintComment(context, TargetConstraint.Schema?.nspname, TargetConstraint.Object.relname, TargetConstraint.conname, description, true);
+                }
+                else if (TargetProc != null)
+                {
+                    c = new StoredFunctionComment(context, TargetProc.Schema?.nspname, TargetProc.proname, TargetProc.GetArgIds(), description, true);
+                }
+                else if (TargetTrigger != null)
+                {
+                    c = new TriggerComment(context, TargetTrigger.Target?.Schema?.nspname, TargetTrigger.Target?.relname, TargetTrigger.tgname, description, true);
+                }
+                else if (TargetClass != null)
+                {
+                    c = new Comment(context, TargetClass.Schema?.nspname, TargetClass.relname, null, description, true);
+                }
+                else if (TargetType != null)
+                {
+                    c = new Comment(context, TargetType.Schema?.nspname, TargetType.typname, null, description, true);
+                }
                 else
                 {
-                    c = new Comment(context, TargetClass?.Schema?.nspname, TargetClass?.relname, description, true);
+                    return null;
                 }
                 c.Link();
                 //Generated = c;
@@ -2396,6 +2418,7 @@ namespace Db2Source
             //public float prorows;
             //public uint provariadic;
             public string protransform;
+            public char prokind;
             //public bool proisagg;
             //public bool proiswindow;
             //public bool prosecdef;
@@ -2425,28 +2448,41 @@ namespace Db2Source
             public PgType[] AllArgTypes;
             public Dictionary<int, string> ArgDefaults = new Dictionary<int, string>();
 
-            internal string GetInternalName()
+            internal string[] GetArgIds()
+            {
+                PgType[] args = ArgTypes;
+                if (args == null)
+                {
+                    return NoSQL;
+                }
+                List<string> l = new List<string>();
+                foreach (PgType t in args)
+                {
+                    l.Add(t.formatname);
+                }
+                return l.ToArray();
+            }
+            internal string GetArgId()
             {
                 StringBuilder buf = new StringBuilder();
-                buf.Append(proname);
                 buf.Append('(');
-                //PgType[] args = AllArgTypes ?? ArgTypes;
-                PgType[] args = ArgTypes;
-                if (args != null)
+                string[] args = GetArgIds();
+                if (args.Length != 0)
                 {
-                    bool needComma = false;
-                    foreach (PgType t in args)
+                    buf.Append(args[0]);
+                    for (int i = 1; i < args.Length; i++)
                     {
-                        if (needComma)
-                        {
-                            buf.Append(',');
-                        }
-                        buf.Append(t.formatname);
-                        needComma = true;
+                        buf.Append(',');
+                        buf.Append(args[i]);
                     }
                 }
                 buf.Append(')');
                 return buf.ToString();
+            }
+
+            internal string GetInternalName()
+            {
+                return proname + GetArgId();
             }
             public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
@@ -2495,14 +2531,15 @@ namespace Db2Source
             }
             public static PgObjectCollection<PgProc> Load(NpgsqlConnection connection, PgObjectCollection<PgProc> store, Dictionary<uint, PgObject> dict)
             {
-                PgObjectCollection<PgProc> l = store;
+                string sql = (11 <= connection.PostgreSqlVersion.Major) ? DataSet.Properties.Resources.PgProc_SQL : DataSet.Properties.Resources.PgProc10_SQL;
+                PgObjectCollection <PgProc> l = store;
                 if (l == null)
                 {
-                    l = new PgObjectCollection<PgProc>(DataSet.Properties.Resources.PgProc_SQL, connection, dict);
+                    l = new PgObjectCollection<PgProc>(sql, connection, dict);
                 }
                 else
                 {
-                    l.Fill(DataSet.Properties.Resources.PgProc_SQL, connection, dict, false);
+                    l.Fill(sql, connection, dict, false);
                 }
                 l.JoinToDict<string>(DataSet.Properties.Resources.PgProc_ARGDEFAULTSQL, typeof(PgProc).GetField("ArgDefaults"), "parameter_default", connection);
                 return l;
@@ -2567,7 +2604,7 @@ namespace Db2Source
                 {
                     return (StoredFunction)o;
                 }
-                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetInternalName(), prosrc, true)
+                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetArgId(), prosrc, true)
                 {
                     DataType = ReturnType?.formatname,
                     BaseType = ReturnType?.BaseType?.formatname
@@ -3063,7 +3100,7 @@ namespace Db2Source
                     FillTableByOidInternal(reloid, connection, loadedOids);
                 }
             }
-            public void FillTableByOid(uint oid, NpgsqlConnection connection)
+            public void FillSelectableByOid(uint oid, NpgsqlConnection connection)
             {
                 Dictionary<uint, bool> loadedOids = new Dictionary<uint, bool>();
                 FillTableByOidInternal(oid, connection, loadedOids);
@@ -3091,6 +3128,34 @@ namespace Db2Source
                 LoadFromPgTrigger();
                 LoadFromPgDescription();
             }
+            //public void FillViewByOid(uint oid, NpgsqlConnection connection)
+            //{
+            //    Dictionary<uint, bool> loadedOids = new Dictionary<uint, bool>();
+            //    FillTableByOidInternal(oid, connection, loadedOids);
+
+            //    PgClasses.BeginFillReference(this);
+            //    PgAttributes.BeginFillReference(this);
+            //    PgConstraints.BeginFillReference(this);
+            //    PgTriggers.BeginFillReference(this);
+            //    PgDescriptions.BeginFillReference(this);
+
+            //    PgClasses.FillReference(this);
+            //    PgAttributes.FillReference(this);
+            //    PgConstraints.FillReference(this);
+            //    PgTriggers.FillReference(this);
+            //    PgDescriptions.FillReference(this);
+
+            //    PgClasses.EndFillReference(this);
+            //    PgAttributes.EndFillReference(this);
+            //    PgConstraints.EndFillReference(this);
+            //    PgTriggers.EndFillReference(this);
+            //    PgDescriptions.EndFillReference(this);
+
+            //    LoadFromPgClass();
+            //    LoadFromPgConstraint();
+            //    LoadFromPgTrigger();
+            //    LoadFromPgDescription();
+            //}
             public void FillTypeByOid(uint oid, NpgsqlConnection connection)
             {
                 PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
@@ -3135,10 +3200,6 @@ namespace Db2Source
                 LoadFromPgDescription();
             }
 
-            public void LoadProc(NpgsqlConnection connection, uint oid)
-            {
-
-            }
             public WorkingData(NpgsqlDataSet context)
             {
                 Context = context;
@@ -3316,32 +3377,44 @@ namespace Db2Source
             _backend.FillAll(conn);
             OnSchemaLoaded();
         }
-        internal Table RefreshTable(Table table, NpgsqlConnection connection)
+        internal Selectable RefreshSelectable(Selectable selectable, char relkind, NpgsqlConnection connection)
         {
-            Table ret = null;
-            string sch = table.SchemaName;
-            string name = table.Name;
+            Selectable ret = null;
+            string sch = selectable.SchemaName;
+            string name = selectable.Name;
             if (_backend == null)
             {
                 LoadSchema(connection, false);
             }
             else
             {
-                uint? oid = PgClass.GetOid(connection, table.SchemaName, table.Name, 'r');
+                uint? oid = PgClass.GetOid(connection, selectable.SchemaName, selectable.Name, relkind);
                 if (!oid.HasValue)
                 {
-                    table.Release();
+                    selectable.Release();
                     return null;
                 }
-                _backend.FillTableByOid(oid.Value, connection);
+                _backend.FillSelectableByOid(oid.Value, connection);
             }
             ret = Tables[sch, name];
-            if (ret != table)
+            if (ret != selectable)
             {
-                table.ReplaceTo(ret);
-                table.Release();
+                selectable.ReplaceTo(ret);
+                selectable.Release();
             }
             return ret;
+        }
+        internal Table RefreshTable(Table table, NpgsqlConnection connection)
+        {
+            return RefreshSelectable(table, 'r', connection) as Table;
+        }
+        internal View RefreshView(View view, NpgsqlConnection connection)
+        {
+            return RefreshSelectable(view, 'r', connection) as View;
+        }
+        internal ComplexType RefreshComplexType(ComplexType type, NpgsqlConnection connection)
+        {
+            return RefreshSelectable(type, 'c', connection) as ComplexType;
         }
         internal StoredFunction RefreshStoredFunction(StoredFunction function,  NpgsqlConnection connection)
         {
@@ -3383,21 +3456,24 @@ namespace Db2Source
         public override SchemaObject Refresh(SchemaObject obj, IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
-            SchemaObject ret = obj;
             if (obj is Table)
             {
-                ret = RefreshTable((Table)obj, conn);
+                return RefreshTable((Table)obj, conn);
             }
-            else if (obj is StoredFunction)
+            if (obj is View)
             {
-                StoredFunction fn = (StoredFunction)obj;
-                RefreshStoredFunction(fn, conn);
+                return RefreshView((View)obj, conn);
             }
-            if (obj != ret)
+            if (obj is ComplexType)
             {
-                obj.ReplaceTo(ret);
+                return RefreshComplexType ((ComplexType)obj, conn);
             }
-            return ret;
+            if (obj is StoredFunction)
+            {
+                return RefreshStoredFunction((StoredFunction)obj, conn);
+            }
+            throw new NotImplementedException();
+            //return obj;
         }
     }
 }

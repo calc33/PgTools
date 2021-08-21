@@ -249,6 +249,12 @@ namespace Db2Source
         {
             return (_backup != null) && !ContentEquals(_backup);
         }
+
+        protected override Comment NewComment(string commentText)
+        {
+            return new ConstraintComment(Context, SchemaName, TableName, Name, commentText, false);
+        }
+
         public override int CompareTo(object obj)
         {
             if (!(obj is Constraint))

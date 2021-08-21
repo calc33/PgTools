@@ -204,6 +204,7 @@
     <None Include="Resources\PgStatActivity_SQL.txt" />
     <None Include="Resources\PgClass_RELATEDSQL.txt" />
     <None Include="Resources\PgConstraint_REFTABLESQL.txt" />
+    <None Include="Resources\PgProc_SQL10.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

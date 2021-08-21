@@ -166,6 +166,9 @@
   <data name="PgNamespace_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgNamespace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgProc10_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgProc_SQL10.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
   <data name="PgProcOid_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgProcOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
@@ -173,7 +176,7 @@
     <value>..\Resources\PgProc_ARGDEFAULTSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
   <data name="PgProc_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgProc_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgProc_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;iso-2022-jp</value>
   </data>
   <data name="PgRoles_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgRoles_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>

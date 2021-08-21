@@ -289,7 +289,7 @@ namespace Db2Source.DataSet.Properties {
         
         /// <summary>
         ///   select p.oid,
-        ///  p.proname, p.pronamespace, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proname, p.pronamespace, p.prokind, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername
         ///from pg_catalog.pg_proc p
@@ -300,6 +300,22 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgProc_SQL {
             get {
                 return ResourceManager.GetString("PgProc_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select p.oid,
+        ///  p.proname, p.pronamespace, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proargnames, p.prosrc,
+        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername
+        ///from pg_catalog.pg_proc p
+        ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))
+        ///order by p.proname, p.pronargs, p.oid に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgProc10_SQL {
+            get {
+                return ResourceManager.GetString("PgProc10_SQL", resourceCulture);
             }
         }
         

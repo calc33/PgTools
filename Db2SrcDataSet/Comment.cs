@@ -41,6 +41,7 @@ namespace Db2Source
         {
             return Context.GetEscapedIdentifier(SchemaName, Target, null, true);
         }
+
         /// <summary>
         /// コメントが編集されていたらtrueを返す
         /// 変更を重ねて元と同じになった場合はfalseを返す
@@ -90,6 +91,23 @@ namespace Db2Source
                 InvalidateIdentifier();
             }
         }
+
+        private string _owner;
+        public string Owner
+        {
+            get
+            {
+                return _owner;
+            }
+            set
+            {
+                if (_owner == value)
+                {
+                    return;
+                }
+                _owner = value;
+            }
+        }
         private string _text;
         private string _oldText;
         public string Text
@@ -125,9 +143,14 @@ namespace Db2Source
         {
             GetTarget()?.OnCommentChanged(new CommentChangedEventArgs(this));
         }
-        public virtual string EscapedIdentifier(string baseSchemaName)
+        public virtual string EscapedTargetName(string baseSchemaName)
         {
             return Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName, true);
+        }
+
+        public virtual string EscapedOwnerName(string baseSchemaName)
+        {
+            return Context.GetEscapedIdentifier(SchemaName, Owner, baseSchemaName, true);
         }
 
         internal Comment(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Comments)
@@ -136,11 +159,12 @@ namespace Db2Source
             Schema = context.RequireSchema(schema);
         }
 
-        internal Comment(Db2SourceContext context, string schema, string target, string comment, bool isLoaded) : base(context.RequireSchema(schema)?.Comments)
+        internal Comment(Db2SourceContext context, string schema, string target, string owner, string comment, bool isLoaded) : base(context.RequireSchema(schema)?.Comments)
         {
             Context = context;
             Schema = context.RequireSchema(schema);
             Target = target;
+            Owner = owner;
             Text = comment;
             if (isLoaded)
             {
@@ -206,14 +230,123 @@ namespace Db2Source
             Column c = o.Columns[Column];
             return c;
         }
-        public override string EscapedIdentifier(string baseSchemaName)
+        public override string EscapedTargetName(string baseSchemaName)
         {
             return Context.GetEscapedIdentifier(SchemaName, new string[] { Target, Column }, baseSchemaName, true);
         }
         internal ColumnComment(Db2SourceContext context, string schema) : base(context, schema) { }
-        internal ColumnComment(Db2SourceContext context, string schema, string table, string column, string comment, bool isLoaded) : base(context, schema, table, comment, isLoaded)
+        internal ColumnComment(Db2SourceContext context, string schema, string table, string column, string comment, bool isLoaded) : base(context, schema, table, null, comment, isLoaded)
         {
             Column = column;
         }
+    }
+
+    public class StoredFunctionComment : Comment
+    {
+        private string[] _arguments;
+        protected override string GetIdentifier()
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.Append(Target);
+            buf.Append('(');
+            if (_arguments != null && _arguments.Length != 0)
+            {
+                buf.Append(_arguments[0]);
+                for (int i = 1; i < _arguments.Length; i++)
+                {
+                    buf.Append(',');
+                    buf.Append(_arguments[i]);
+                }
+            }
+            buf.Append(')');
+            return buf.ToString();
+        }
+
+        public override string EscapedTargetName(string baseSchemaName)
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.Append(Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName, true));
+            buf.Append('(');
+            if (_arguments != null && _arguments.Length != 0)
+            {
+                buf.Append(_arguments[0]);
+                for (int i = 1; i < _arguments.Length; i++)
+                {
+                    buf.Append(',');
+                    buf.Append(_arguments[i]);
+                }
+            }
+            buf.Append(')');
+            return buf.ToString();
+        }
+
+        public override ICommentable GetTarget()
+        {
+            SchemaObject o = Schema?.Objects[Identifier];
+            return o;
+        }
+
+        internal StoredFunctionComment(Db2SourceContext context, string schema) : base(context, schema) { }
+        internal StoredFunctionComment(Db2SourceContext context, string schema, string func, string[] arguments, string comment, bool isLoaded) : base(context, schema, func, null, comment, isLoaded)
+        {
+            _arguments = arguments;
+        }
+    }
+
+    public abstract class SubObjectComment : Comment
+    {
+        internal SubObjectComment(Db2SourceContext context, string schema) : base(context, schema) { }
+        internal SubObjectComment(Db2SourceContext context, string schema, string table, string subObject, string comment, bool isLoaded) : base(context, schema, subObject, table, comment, isLoaded)
+        {
+        }
+        protected override string GetIdentifier()
+        {
+            return Target + "@" + Context.GetEscapedIdentifier(SchemaName, Owner, null, true);
+        }
+        public override string EscapedTargetName(string baseSchemaName)
+        {
+            return Context.GetEscapedIdentifier(null, Target, null, true);
+        }
+    }
+    public class TriggerComment : SubObjectComment
+    {
+        public override string GetCommentType()
+        {
+            return "TRIGGER";
+        }
+        public override ICommentable GetTarget()
+        {
+            Selectable o = Schema?.Objects[Owner] as Selectable;
+            if (o == null)
+            {
+                return null;
+            }
+            Trigger trigger = o.Triggers[Target];
+            return trigger;
+        }
+        internal TriggerComment(Db2SourceContext context, string schema) : base(context, schema) { }
+        internal TriggerComment(Db2SourceContext context, string schema, string table, string trigger, string comment, bool isLoaded)
+            : base(context, schema, table, trigger, comment, isLoaded) { }
+    }
+
+    public class ConstraintComment : SubObjectComment
+    {
+        public override string GetCommentType()
+        {
+            return "CONSTRAINT";
+        }
+        public override ICommentable GetTarget()
+        {
+            Table o = Schema?.Objects[Owner] as Table;
+            if (o == null)
+            {
+                return null;
+            }
+            Constraint constraint = o.Constraints[Target];
+            return constraint;
+        }
+        internal ConstraintComment(Db2SourceContext context, string schema) : base(context, schema) { }
+        internal ConstraintComment(Db2SourceContext context, string schema, string table, string constraint, string comment, bool isLoaded)
+            : base(context, schema, table, constraint, comment, isLoaded) { }
     }
 }

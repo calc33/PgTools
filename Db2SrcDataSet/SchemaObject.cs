@@ -163,6 +163,10 @@ namespace Db2Source
         //}
 
         private Comment _comment;
+        protected virtual Comment NewComment(string commentText)
+        {
+            return new Comment(Context, SchemaName, Name, null, commentText, false);
+        }
         public Comment Comment
         {
             get
@@ -191,7 +195,7 @@ namespace Db2Source
             {
                 if (Comment == null)
                 {
-                    Comment = new Comment(Context, SchemaName, Name, value, false);
+                    Comment = NewComment(value);
                     Comment.Link();
                 }
                 Comment.Text = value;

@@ -156,11 +156,14 @@ namespace Db2Source
 
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            UpdateDataGridParameters();
-            UpdateTabItemExecuteVisibility();
-            UpdateTextBoxSource();
-            UpdateStringResources();
-            AdjustSelectedTabItem();
+            Dispatcher.InvokeAsync(() =>
+            {
+                UpdateDataGridParameters();
+                UpdateTabItemExecuteVisibility();
+                UpdateTextBoxSource();
+                UpdateStringResources();
+                AdjustSelectedTabItem();
+            }, DispatcherPriority.Normal);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -402,7 +405,24 @@ namespace Db2Source
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
         {
-
+            Db2SourceContext ctx = Target.Context;
+            List<string> sqls = new List<string>();
+            if ((Target.Comment != null) && Target.Comment.IsModified())
+            {
+                sqls.AddRange(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
+            }
+            try
+            {
+                if (sqls.Count != 0)
+                {
+                    ctx.ExecSqlsWithLog(sqls);
+                }
+            }
+            finally
+            {
+                ctx.Revert(Target);
+            }
+            IsEditing = false;
         }
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)

@@ -517,6 +517,10 @@ namespace Db2Source
         /// 必要に応じて識別子にクオートを付加
         /// </summary>
         /// <param name="objectName"></param>
+        /// <param name="strict">
+        /// false: 文字列はユーザーが入力した文字列なので大文字小文字の区別が曖昧である
+        /// true: 文字列はDBの定義情報を渡しているので大文字小文字の区別が厳格(大文字が渡された場合も引用符でエスケープする)
+        /// </param>
         /// <returns></returns>
         public string GetEscapedIdentifier(string objectName, bool strict)
         {
@@ -1084,7 +1088,8 @@ namespace Db2Source
             Schema.CollectionIndex idx = view.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
-                LoadSchema(conn, false);
+                Refresh(view, conn);
+                //LoadSchema(conn, false);
                 //LoadView(schnm, objid, conn);
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);
@@ -1115,6 +1120,25 @@ namespace Db2Source
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, type));
             return newObj;
         }
+
+        public StoredFunction Revert(StoredFunction function)
+        {
+            if (function == null)
+            {
+                throw new ArgumentNullException("function");
+            }
+            Schema sch = function.Schema;
+            string objid = function.Identifier;
+            Schema.CollectionIndex idx = function.GetCollectionIndex();
+            using (IDbConnection conn = NewConnection(true))
+            {
+                Refresh(function, conn);
+            }
+            StoredFunction newObj = sch.GetCollection(idx)[objid] as StoredFunction;
+            OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, function));
+            return newObj;
+        }
+
         public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection);
         public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
         public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
