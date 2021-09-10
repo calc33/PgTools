@@ -656,7 +656,7 @@ namespace Db2Source
             }
             catch
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
         }
         private static string GetCreateTableSql(Type databaseType)

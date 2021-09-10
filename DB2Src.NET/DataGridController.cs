@@ -1800,7 +1800,7 @@ namespace Db2Source
                 //}
             }
         }
-        private string[] _keyFieldNames = new string[0];
+        private string[] _keyFieldNames = StrUtil.EmptyStringArray;
         private ColumnInfo[] _keyFields = null;
         private void UpdateKeyFields()
         {
@@ -1936,7 +1936,7 @@ namespace Db2Source
         {
             if (keys == null)
             {
-                _keyFieldNames = new string[0];
+                _keyFieldNames = StrUtil.EmptyStringArray;
                 _keyFields = null;
                 return;
             }
@@ -2769,13 +2769,14 @@ namespace Db2Source
             return false;
         }
 
+        private static readonly string[][] NoData = StrUtil.EmptyString2DArray;
         private string[][] GetCellData(bool includesHeader)
         {
             List<string[]> data = new List<string[]>();
             ColumnIndexInfo[] cols = GetDisplayColumns();
             if (cols.Length == 0)
             {
-                return new string[0][];
+                return NoData;
             }
             if (includesHeader)
             {
@@ -2824,26 +2825,19 @@ namespace Db2Source
             //htmlText.AppendLine("<body>");
             //htmlText.AppendLine("<!--StartFragment--><table>");
 
-            int nR = data.Length;
-            for (int r = 0; r < nR; r++)
+            foreach (string[] row in data)
             {
-                string[] row = data[r];
-                int nC = row.Length;
-                if (nC == 0)
+                bool needSeparator = false;
+                foreach (string v in row)
                 {
-                    continue;
-                }
-                tabText.Append(EscapedText(row[0], TabTextEscapedChars));
-                csvText.Append(EscapedText(row[0], CsvEscapedChars));
-                //htmlText.Append("<tr>");
-                //htmlText.Append(ToHtml(row[0], r == 0));
-                for (int c = 1; c < nC; c++)
-                {
-                    tabText.Append('\t');
-                    tabText.Append(EscapedText(row[c], TabTextEscapedChars));
-                    csvText.Append(',');
-                    csvText.Append(EscapedText(row[c], CsvEscapedChars));
-                    //htmlText.Append(ToHtml(row[c], r == 0));
+                    if (needSeparator)
+                    {
+                        tabText.Append('\t');
+                        csvText.Append(',');
+                    }
+                    tabText.Append(EscapedText(v, TabTextEscapedChars));
+                    csvText.Append(EscapedText(v, CsvEscapedChars));
+                    needSeparator = true;
                 }
                 tabText.AppendLine();
                 csvText.AppendLine();

@@ -618,11 +618,15 @@ namespace Db2Source
                     buf.Append('.');
                     break;
             }
-            buf.Append(GetEscapedIdentifier(objectNames[0], strict));
-            for (int i = 1; i < objectNames.Length; i++)
+            bool needDot = false;
+            foreach (string s in objectNames)
             {
-                buf.Append('.');
-                buf.Append(GetEscapedIdentifier(objectNames[i], strict));
+                if (needDot)
+                {
+                    buf.Append('.');
+                }
+                buf.Append(GetEscapedIdentifier(s, strict));
+                needDot = true;
             }
             return buf.ToString();
         }

@@ -377,14 +377,15 @@ namespace Db2Source
         public string GetSelectSQL(string[] where, string orderBy, int? limit, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
-            if (0 < where.Length)
+            bool needIndent = false;
+            foreach (string s in where)
             {
-                buf.AppendLine(where[0]);
-                for (int i = 1; i < where.Length; i++)
+                if (needIndent)
                 {
                     buf.Append("  ");
-                    buf.AppendLine(where[i]);
                 }
+                buf.AppendLine(s);
+                needIndent = true;
             }
             return GetSelectSQL(buf.ToString(), orderBy, limit, out whereOffset);
         }
@@ -396,38 +397,41 @@ namespace Db2Source
         public string GetSelectSQL(string where, string[] orderBy, int? limit)
         {
             StringBuilder bufO = new StringBuilder();
-            if (0 < orderBy.Length)
+            bool needComma = false;
+            foreach (string s in orderBy)
             {
-                bufO.Append(orderBy[0]);
-                for (int i = 1; i < orderBy.Length; i++)
+                if (needComma)
                 {
                     bufO.Append(", ");
-                    bufO.Append(orderBy[i]);
                 }
+                bufO.Append(s);
+                needComma = true;
             }
             return GetSelectSQL(where, bufO.ToString(), limit);
         }
         public string GetSelectSQL(string[] where, string[] orderBy, int? limit, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
-            if (0 < where.Length)
+            bool needIndent = false;
+            foreach (string s in where)
             {
-                bufW.AppendLine(where[0]);
-                for (int i = 1; i < where.Length; i++)
+                if (needIndent)
                 {
                     bufW.Append("  ");
-                    bufW.AppendLine(where[i]);
                 }
+                bufW.AppendLine(s);
+                needIndent = true;
             }
             StringBuilder bufO = new StringBuilder();
-            if (0 < orderBy.Length)
+            bool needComma = false;
+            foreach (string s in orderBy)
             {
-                bufO.Append(orderBy[0]);
-                for (int i = 1; i < orderBy.Length; i++)
+                if (needComma)
                 {
                     bufO.Append(", ");
-                    bufO.Append(orderBy[i]);
                 }
+                bufO.Append(s);
+                needComma = true;
             }
             return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, out whereOffset);
         }

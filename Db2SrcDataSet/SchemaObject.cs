@@ -250,22 +250,20 @@ namespace Db2Source
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    if (Schema != null)
-                    {
-                        Schema.GetCollection(GetCollectionIndex())?.Remove(this);
-                    }
-                    foreach (Trigger t in Triggers)
-                    {
-                        t.Dispose();
-                    }
-                    Comment?.Dispose();
-                }
-                base.Dispose(disposing);
+                return;
             }
+            if (disposing)
+            {
+                if (Schema != null)
+                {
+                    Schema.GetCollection(GetCollectionIndex())?.Remove(this);
+                }
+                Triggers.Dispose();
+                Comment?.Dispose();
+            }
+            base.Dispose(disposing);
         }
         public override void Release()
         {
@@ -274,10 +272,7 @@ namespace Db2Source
             {
                 Schema.GetCollection(GetCollectionIndex())?.Invalidate();
             }
-            foreach (Trigger t in Triggers)
-            {
-                t.Release();
-            }
+            Triggers.Release();
             Comment?.Release();
         }
 

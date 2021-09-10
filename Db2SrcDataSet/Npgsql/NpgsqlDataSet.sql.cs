@@ -8,19 +8,16 @@ namespace Db2Source
 {
     partial class NpgsqlDataSet
     {
-        private static string[] NoSQL = new string[0];
-        private static string _Expand(string[] strs, string delimiter = "")
+        private static string _Expand(string[] strs)
         {
             if (strs == null || strs.Length == 0)
             {
                 return string.Empty;
             }
             StringBuilder buf = new StringBuilder();
-            buf.Append(strs[0]);
-            for (int i = 1; i < strs.Length; i++)
+            foreach (string s in strs)
             {
-                buf.Append(delimiter);
-                buf.Append(strs[i]);
+                buf.Append(s);
             }
             return buf.ToString();
         }
@@ -28,11 +25,11 @@ namespace Db2Source
         {
             if (table == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (table.Columns.Count == 0)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             List<string> l = new List<string>();
             foreach (Sequence seq in table.Sequences)
@@ -80,11 +77,11 @@ namespace Db2Source
         {
             if (table == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (table.Columns.Count == 0)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -143,7 +140,7 @@ namespace Db2Source
         {
             if (column == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -217,11 +214,11 @@ namespace Db2Source
         {
             if (constraint == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (constraint.Columns == null || constraint.Columns.Length == 0)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
@@ -264,16 +261,16 @@ namespace Db2Source
         {
             if (constraint == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (constraint.Columns == null || constraint.Columns.Length == 0)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             KeyConstraint rcons = constraint.ReferenceConstraint;
             if (rcons == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
@@ -328,7 +325,7 @@ namespace Db2Source
         {
             if (constraint == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
@@ -345,7 +342,7 @@ namespace Db2Source
         {
             if (constraint == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             List<string> l = new List<string>();
             if (constraint is KeyConstraint)
@@ -406,7 +403,7 @@ namespace Db2Source
         {
             if (trigger == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -466,11 +463,11 @@ namespace Db2Source
         {
             if (index == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (index.IsImplicit)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -497,18 +494,7 @@ namespace Db2Source
                     buf.Append(index.IndexType);
                     buf.Append(' ');
                 }
-                buf.Append('(');
-                bool needComma = false;
-                foreach (string c in index.Columns)
-                {
-                    if (needComma)
-                    {
-                        buf.Append(", ");
-                    }
-                    buf.Append(c);
-                    needComma = true;
-                }
-                buf.Append(')');
+                buf.Append(StrUtil.DelimitedText(index.Columns, ", ", "(", ")"));
             }
             buf.Append(postfix);
             if (addNewline)
@@ -565,7 +551,7 @@ namespace Db2Source
         {
             if (comment == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             return GetCommentSQL(comment, comment.Text, prefix, postfix, indent, addNewline);
         }
@@ -574,11 +560,11 @@ namespace Db2Source
         {
             if (sequence == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (skipOwned && !string.IsNullOrEmpty(sequence.OwnedColumn))
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -721,7 +707,7 @@ namespace Db2Source
             {
                 if (before == null)
                 {
-                    return new string[0];
+                    return StrUtil.EmptyStringArray;
                 }
                 return new string[] { string.Format("drop view {0}", before.EscapedIdentifier(CurrentSchema)) };
             }
@@ -735,7 +721,7 @@ namespace Db2Source
             {
                 if (before == null)
                 {
-                    return new string[0];
+                    return StrUtil.EmptyStringArray;
                 }
                 //ctx = before.Context;
                 return new string[] { string.Format("alter table {0} drop column {1}", before.EscapedIdentifier(CurrentSchema), before.EscapedName) };
@@ -788,7 +774,7 @@ namespace Db2Source
             {
                 if (before == null)
                 {
-                    return new string[0];
+                    return StrUtil.EmptyStringArray;
                 }
                 return GetCommentSQL(before, null, string.Empty, string.Empty, 0, false);
             }
@@ -799,11 +785,11 @@ namespace Db2Source
         {
             if (type == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             if (type.Columns.Count == 0)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -828,17 +814,17 @@ namespace Db2Source
         }
         public override string[] GetSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool addNewline)
         {
-            return new string[0];
+            return StrUtil.EmptyStringArray;
         }
         public override string[] GetSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool addNewline)
         {
-            return new string[0];
+            return StrUtil.EmptyStringArray;
         }
         public override string[] GetSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool addNewline)
         {
             if (type == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -1156,7 +1142,7 @@ namespace Db2Source
                 l.Add(string.Format("{0}{1}alter tablespace {2} on {3} rename to {4}{5}{6}", spc, prefix,
                     before.Name, before.Table.EscapedIdentifier(CurrentSchema), after.Name, postfix, nl));
             }
-            return new string[0];
+            return StrUtil.EmptyStringArray;
         }
         private static void AddAlterOption(StringBuilder buf, bool after, bool before, string trueValue, string falseValue)
         {
@@ -1221,7 +1207,7 @@ namespace Db2Source
         {
             if (target == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
@@ -1256,7 +1242,7 @@ namespace Db2Source
         {
             if (column == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
@@ -1280,7 +1266,7 @@ namespace Db2Source
         {
             if (comment == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             return GetCommentSQL(comment, null, prefix, postfix, indent, addNewline);
         }
@@ -1289,7 +1275,7 @@ namespace Db2Source
         {
             if (constraint == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -1307,7 +1293,7 @@ namespace Db2Source
         {
             if (trigger == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -1362,7 +1348,7 @@ namespace Db2Source
         {
             if (function == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             string spc = new string(' ', indent);
@@ -1402,7 +1388,7 @@ namespace Db2Source
         {
             if (tablespace == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
@@ -1419,7 +1405,7 @@ namespace Db2Source
         {
             if (user == null)
             {
-                return NoSQL;
+                return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);

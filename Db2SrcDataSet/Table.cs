@@ -466,11 +466,12 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+
         public string[] GetKeyConditionSQL(string alias)
         {
             if (FirstCandidateKey == null)
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             List<string> l = new List<string>();
             string a = string.IsNullOrEmpty(alias) ? string.Empty : alias + ".";
@@ -538,25 +539,20 @@ namespace Db2Source
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    foreach (Constraint c in Constraints)
-                    {
-                        c.Dispose();
-                    }
-                }
-                base.Dispose(disposing);
+                return;
             }
+            if (disposing)
+            {
+                Constraints.Dispose();
+            }
+            base.Dispose(disposing);
         }
         public override void Release()
         {
             base.Release();
-            foreach (Constraint c in Constraints)
-            {
-                c.Release();
-            }
+            Constraints.Release();
         }
     }
 

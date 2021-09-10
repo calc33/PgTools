@@ -20,7 +20,7 @@ namespace Db2Source
         }
         protected internal int _serial;
         protected internal bool _released;
-        protected bool disposedValue;
+        protected bool IsDisposed;
 
         internal event EventHandler IdentifierInvalidated;
 
@@ -145,17 +145,18 @@ namespace Db2Source
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    // TODO: マネージド状態を破棄します (マネージド オブジェクト)
-                }
-
-                // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
-                // TODO: 大きなフィールドを null に設定します
-                disposedValue = true;
+                return;
             }
+            if (disposing)
+            {
+                // TODO: マネージド状態を破棄します (マネージド オブジェクト)
+            }
+
+            // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+            // TODO: 大きなフィールドを null に設定します
+            IsDisposed = true;
         }
 
         // // TODO: 'Dispose(bool disposing)' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします
@@ -297,7 +298,8 @@ namespace Db2Source
 
         public void ReleaseAll()
         {
-            foreach (NamedObject o in _list)
+            NamedObject[] l = _list.ToArray();
+            foreach (NamedObject o in l)
             {
                 o.Release();
             }

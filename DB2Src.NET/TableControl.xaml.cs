@@ -1257,11 +1257,15 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append('(');
-            buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[0], true));
-            for (int i = 1; i < strs.Length; i++)
+            bool needComma = false;
+            foreach (string s in strs)
             {
-                buf.Append(", ");
-                buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(strs[i], true));
+                if (needComma)
+                {
+                    buf.Append(", ");
+                }
+                buf.Append(NpgsqlDataSet.GetEscapedPgsqlIdentifier(s, true));
+                needComma = true;
             }
             buf.Append(')');
             return buf.ToString();

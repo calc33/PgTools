@@ -14,7 +14,7 @@ namespace Db2Source
         {
             if (string.IsNullOrEmpty(csv))
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             string[] v = csv.Split(',');
             return v;
@@ -116,8 +116,8 @@ namespace Db2Source
             {
                 string sc;
                 string tbl;
-                string[] order = new string[0];
-                string[] ignore = new string[0];
+                string[] order = StrUtil.EmptyStringArray;
+                string[] ignore = StrUtil.EmptyStringArray;
                 string where = string.Empty;
                 {
                     int p = sect.IndexOf('.');

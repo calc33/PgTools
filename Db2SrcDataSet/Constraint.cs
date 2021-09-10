@@ -407,7 +407,7 @@ namespace Db2Source
             {
                 if (_refTableName == null)
                 {
-                    return ReferenceConstraint.TableName;
+                    return ReferenceConstraint?.TableName;
                 }
                 return _refTableName;
             }
@@ -624,6 +624,31 @@ namespace Db2Source
             _nameToConstraint = null;
         }
 
+        public void Dispose()
+        {
+            if (_list == null)
+            {
+                return;
+            }
+            Constraint[] l = _list.ToArray();
+            foreach (Constraint c in l)
+            {
+                c.Dispose();
+            }
+        }
+
+        public void Release()
+        {
+            if (_list == null)
+            {
+                return;
+            }
+            Constraint[] l = _list.ToArray();
+            foreach (Constraint c in l)
+            {
+                c.Release();
+            }
+        }
         private void RequireItems()
         {
             if (_list != null)

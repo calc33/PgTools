@@ -31,43 +31,42 @@ namespace Db2Source
             }
             return (string)m.Invoke(obj, new object[] { format });
         }
-        public static string ArrayToText(Array value, string separator, string prefix = null, string postfix = null)
+
+        public static readonly string[] EmptyStringArray = new string[0];
+        public static readonly string[][] EmptyString2DArray = new string[0][];
+        public static string ArrayToText(Array value, string separator, string prefix = "", string postfix = "")
         {
             if (value == null)
             {
                 return null;
             }
+            if (value.Length == 0)
+            {
+                return prefix + postfix;
+            }
             StringBuilder buf = new StringBuilder();
-            if (!string.IsNullOrEmpty(prefix))
+            buf.Append(prefix);
+            buf.Append(ToString(value.GetValue(0)));
+            for (int i = 1; i < value.Length; i++)
             {
-                buf.Append(prefix);
+                buf.Append(separator);
+                buf.Append(ToString(value.GetValue(i)));
             }
-            if (0 < value.Length)
-            {
-                buf.Append(ToString(value.GetValue(0)));
-                for (int i = 1; i < value.Length; i++)
-                {
-                    buf.Append(separator);
-                    buf.Append(ToString(value.GetValue(i)));
-                }
-            }
-            if (!string.IsNullOrEmpty(postfix))
-            {
-                buf.Append(postfix);
-            }
+            buf.Append(postfix);
             return buf.ToString();
         }
-        public static string ArrayToText(Array value, string format, string separator, string prefix = null, string postfix = null)
+        public static string ArrayToText(Array value, string format, string separator, string prefix = "", string postfix = "")
         {
             if (value == null)
             {
                 return null;
             }
-            StringBuilder buf = new StringBuilder();
-            if (!string.IsNullOrEmpty(prefix))
+            if (value.Length == 0)
             {
-                buf.Append(prefix);
+                return prefix + postfix;
             }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(prefix);
             if (0 < value.Length)
             {
                 buf.Append(ToString(value.GetValue(0), format));
@@ -77,11 +76,31 @@ namespace Db2Source
                     buf.Append(ToString(value.GetValue(i), format));
                 }
             }
-            if (!string.IsNullOrEmpty(postfix))
-            {
-                buf.Append(postfix);
-            }
+            buf.Append(postfix);
             return buf.ToString();
+        }
+
+        public static string DelimitedText(IEnumerable<string> value, string separator, string prefix = "", string postfix = "")
+        {
+            if (value == null)
+            {
+                return prefix + postfix;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(prefix);
+            bool needSeparator = false;
+            foreach (string s in value)
+            {
+                if (needSeparator)
+                {
+                    buf.Append(separator);
+                }
+                buf.Append(s);
+                needSeparator = true;
+            }
+            buf.Append(postfix);
+            return buf.ToString();
+
         }
     }
 }

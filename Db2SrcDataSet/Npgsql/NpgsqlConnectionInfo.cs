@@ -25,7 +25,7 @@ namespace Db2Source
         {
             if (string.IsNullOrEmpty(entry))
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             List<string> l = new List<string>();
             StringBuilder buf = new StringBuilder(entry.Length);

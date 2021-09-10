@@ -900,14 +900,16 @@ namespace Db2Source
             return l.ToArray();
         }
 
+        private static readonly SchemaObject[] NoSchemas = new SchemaObject[0];
+
         public override SchemaObject[] GetStrongReferred(SchemaObject target)
         {
             Table tbl = target as Table;
-            if (tbl != null)
+            if (tbl == null)
             {
-                return GetStrongReferred(tbl);
+                return NoSchemas;
             }
-            return new SchemaObject[0];
+            return GetStrongReferred(tbl);
         }
     }
 }

@@ -515,12 +515,11 @@ namespace Db2Source
             }
             return s;
         }
-        private static readonly string[] EmptyStringArray = new string[0];
         public override string[] ExtractDefBody(string sql, CaseRule reservedRule, CaseRule identifierRule)
         {
             if (string.IsNullOrEmpty(sql))
             {
-                return EmptyStringArray;
+                return StrUtil.EmptyStringArray;
             }
             if (sql[0] != '$' || sql[sql.Length - 1] != '$')
             {

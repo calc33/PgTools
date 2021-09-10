@@ -258,20 +258,7 @@ namespace Db2Source
             }
             public override string ToString()
             {
-                if (Count == 0)
-                {
-                    return "[]";
-                }
-                StringBuilder buf = new StringBuilder();
-                buf.Append('[');
-                buf.Append(_items[0]);
-                for (int i = 1; i < _items.Count; i++)
-                {
-                    buf.Append(", ");
-                    buf.Append(_items[i]);
-                }
-                buf.Append(']');
-                return buf.ToString();
+                return StrUtil.DelimitedText(_items, ", ", "[", "]");
             }
         }
         public override string GetSqlType()
@@ -387,18 +374,7 @@ namespace Db2Source
         {
             get
             {
-                StringBuilder buf = new StringBuilder();
-                bool needComma = false;
-                foreach (string s in UpdateEventColumns)
-                {
-                    if (needComma)
-                    {
-                        buf.Append(", ");
-                    }
-                    buf.Append(s);
-                    needComma = true;
-                }
-                return buf.ToString();
+                return StrUtil.DelimitedText(UpdateEventColumns, ", ");
             }
             set
             {
@@ -816,7 +792,7 @@ namespace Db2Source
         {
             if (_backup == null)
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             return Context.GetAlterSQL(this, _backup, prefix, postfix, indent, addNewline);
         }
@@ -833,7 +809,7 @@ namespace Db2Source
         {
             if (_backup == null)
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             return Context.GetSQL(_backup, string.Empty, string.Empty, 0, false);
         }
@@ -858,10 +834,36 @@ namespace Db2Source
             }
         }
 
+        public void Dispose()
+        {
+            if (_list == null)
+            {
+                return;
+            }
+            Trigger[] l = _list.ToArray();
+            foreach (Trigger t in l)
+            {
+                t.Dispose();
+            }
+        }
+
         public void Invalidate()
         {
             _list = null;
             _nameToTrigger = null;
+        }
+
+        public void Release()
+        {
+            if (_list == null)
+            {
+                return;
+            }
+            Trigger[] l = _list.ToArray();
+            foreach (Trigger t in l)
+            {
+                t.Release();
+            }
         }
 
         private void RequireItems()

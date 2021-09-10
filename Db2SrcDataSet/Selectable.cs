@@ -470,18 +470,19 @@ namespace Db2Source
         }
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    if (Schema != null)
-                    {
-                        Schema.Columns.Remove(this);
-                    }
-                    Comment?.Dispose();
-                }
-                base.Dispose(disposing);
+                return;
             }
+            if (disposing)
+            {
+                if (Schema != null)
+                {
+                    Schema.Columns.Remove(this);
+                }
+                Comment?.Dispose();
+            }
+            base.Dispose(disposing);
         }
         public override void Release()
         {
@@ -985,18 +986,19 @@ namespace Db2Source
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    foreach (Column c in Columns)
-                    {
-                        c.Dispose();
-                    }
-                    Comment?.Dispose();
-                }
-                base.Dispose(disposing);
+                return;
             }
+            if (disposing)
+            {
+                foreach (Column c in Columns)
+                {
+                    c.Dispose();
+                }
+                Comment?.Dispose();
+            }
+            base.Dispose(disposing);
         }
         public override void Release()
         {
@@ -1130,17 +1132,18 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
-            StringBuilder buf = new StringBuilder();
-            if (0 < where.Length)
+            StringBuilder bufW = new StringBuilder();
+            bool needIndent = false;
+            foreach (string s in where)
             {
-                buf.AppendLine(where[0]);
-                for (int i = 1; i < where.Length; i++)
+                if (needIndent)
                 {
-                    buf.Append("  ");
-                    buf.AppendLine(where[i]);
+                    bufW.Append("  ");
                 }
+                bufW.AppendLine(s);
+                needIndent = true;
             }
-            return GetSelectSQL(alias, buf.ToString(), orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, bufW.ToString(), orderBy, limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
@@ -1149,41 +1152,22 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            StringBuilder bufO = new StringBuilder();
-            if (0 < orderBy.Length)
-            {
-                bufO.Append(orderBy[0]);
-                for (int i = 1; i < orderBy.Length; i++)
-                {
-                    bufO.Append(", ");
-                    bufO.Append(orderBy[i]);
-                }
-            }
-            return GetSelectSQL(alias, where, bufO.ToString(), limit, visibleLevel);
+            return GetSelectSQL(alias, where, StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel);
         }
         public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
-            if (0 < where.Length)
+            bool needIndent = false;
+            foreach (string s in where)
             {
-                bufW.AppendLine(where[0]);
-                for (int i = 1; i < where.Length; i++)
+                if (needIndent)
                 {
                     bufW.Append("  ");
-                    bufW.AppendLine(where[i]);
                 }
+                bufW.AppendLine(s);
+                needIndent = true;
             }
-            StringBuilder bufO = new StringBuilder();
-            if (0 < orderBy.Length)
-            {
-                bufO.Append(orderBy[0]);
-                for (int i = 1; i < orderBy.Length; i++)
-                {
-                    bufO.Append(", ");
-                    bufO.Append(orderBy[i]);
-                }
-            }
-            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), bufO.ToString(), limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, out whereOffset);
         }
         public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {

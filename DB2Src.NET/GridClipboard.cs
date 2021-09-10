@@ -608,7 +608,7 @@ namespace Db2Source
             string[] lines = SplitLines(text, '\'');
             if (lines.Length == 0)
             {
-                return new string[0][];
+                return StrUtil.EmptyString2DArray;
             }
             List<List<string>> lRet = new List<List<string>>();
             StringBuilder buf = new StringBuilder();
@@ -682,7 +682,7 @@ namespace Db2Source
             string[] lines = SplitLines(text, '"');
             if (lines.Length == 0)
             {
-                return new string[0][];
+                return StrUtil.EmptyString2DArray;
             }
             List<List<string>> lRet = new List<List<string>>();
             StringBuilder buf = new StringBuilder();

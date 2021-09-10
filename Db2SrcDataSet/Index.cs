@@ -119,19 +119,7 @@ namespace Db2Source
         {
             get
             {
-                StringBuilder buf = new StringBuilder();
-                buf.Append('(');
-                if (Columns != null && Columns.Length != 0)
-                {
-                    buf.Append(Columns[0]);
-                    for (int i = 1; i < Columns.Length; i++)
-                    {
-                        buf.Append(", ");
-                        buf.Append(Columns[i]);
-                    }
-                }
-                buf.Append(')');
-                return buf.ToString();
+                return StrUtil.DelimitedText(Columns, ", ", "(", ")");
             }
         }
         //private string _definition;

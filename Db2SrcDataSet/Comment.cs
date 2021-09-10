@@ -174,17 +174,18 @@ namespace Db2Source
 
         protected override void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (IsDisposed)
             {
-                if (disposing)
-                {
-                    if (Schema != null)
-                    {
-                        Schema.Comments.Remove(this);
-                    }
-                }
-                base.Dispose(disposing);
+                return;
             }
+            if (disposing)
+            {
+                if (Schema != null)
+                {
+                    Schema.Comments.Remove(this);
+                }
+            }
+            base.Dispose(disposing);
         }
         public override void Release()
         {
@@ -243,41 +244,16 @@ namespace Db2Source
 
     public class StoredFunctionComment : Comment
     {
-        private string[] _arguments;
+        private string[] _arguments = StrUtil.EmptyStringArray;
         protected override string GetIdentifier()
         {
-            StringBuilder buf = new StringBuilder();
-            buf.Append(Target);
-            buf.Append('(');
-            if (_arguments != null && _arguments.Length != 0)
-            {
-                buf.Append(_arguments[0]);
-                for (int i = 1; i < _arguments.Length; i++)
-                {
-                    buf.Append(',');
-                    buf.Append(_arguments[i]);
-                }
-            }
-            buf.Append(')');
-            return buf.ToString();
+            return Target + StrUtil.DelimitedText(_arguments, ",", "(", ")");
         }
 
         public override string EscapedTargetName(string baseSchemaName)
         {
-            StringBuilder buf = new StringBuilder();
-            buf.Append(Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName, true));
-            buf.Append('(');
-            if (_arguments != null && _arguments.Length != 0)
-            {
-                buf.Append(_arguments[0]);
-                for (int i = 1; i < _arguments.Length; i++)
-                {
-                    buf.Append(',');
-                    buf.Append(_arguments[i]);
-                }
-            }
-            buf.Append(')');
-            return buf.ToString();
+            return Context.GetEscapedIdentifier(SchemaName, Target, baseSchemaName, true)
+                + StrUtil.DelimitedText(_arguments, ",", "(", ")");
         }
 
         public override ICommentable GetTarget()
