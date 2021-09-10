@@ -385,11 +385,19 @@ namespace Db2Source
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == CurrentDataSetProperty)
+            try
             {
-                CurrentDataSetChanged(e);
+                if (e.Property == CurrentDataSetProperty)
+                {
+                    CurrentDataSetChanged(e);
+                }
+                base.OnPropertyChanged(e);
             }
-            base.OnPropertyChanged(e);
+            catch (Exception t)
+            {
+                App.Log(string.Format("OnPropertyChanged(\"{0}\"): {1}", e.Property.Name, t.ToString()));
+                throw;
+            }
         }
 
         private SchemaObject GetTarget(TabItem item)

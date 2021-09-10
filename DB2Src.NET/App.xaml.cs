@@ -105,7 +105,11 @@ namespace Db2Source
                 writer.Execute();
             }
         }
-        private static void LogException(Exception t)
+        public static void Log(string message)
+        {
+            LogWriter.Log(message);
+        }
+        public static void LogException(Exception t)
         {
             LogWriter.Log(t.ToString());
         }
