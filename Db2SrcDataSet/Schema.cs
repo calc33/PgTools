@@ -134,6 +134,60 @@ namespace Db2Source
         //    }
         //}
 
+        private Dictionary<string, string[]> _storedProcToTrigger = null;
+
+        internal void InvalidateStoredProcToTrigger()
+        {
+            _storedProcToTrigger = null;
+        }
+        internal void UpdateStoredProcToTrigger()
+        {
+            if (_storedProcToTrigger != null)
+            {
+                return;
+            }
+            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
+            foreach (Trigger t in Triggers)
+            {
+                string key = t.ProcedureSchema + "." + t.ProcedureName;
+                List<string> l;
+                if (!dict.TryGetValue(key, out l))
+                {
+                    l = new List<string>();
+                    dict.Add(key, l);
+                }
+                string v = t.Name + "@" + t.Owner;
+                l.Add(v);
+            }
+            _storedProcToTrigger = new Dictionary<string, string[]>();
+            foreach (var kv in dict)
+            {
+                kv.Value.Sort();
+                _storedProcToTrigger.Add(kv.Key, kv.Value.ToArray());
+            }
+        }
+
+        private static readonly Trigger[] NoTrigger = new Trigger[0];
+        public Trigger[] GetCallingTriggers(StoredFunction triggerFunction)
+        {
+            UpdateStoredProcToTrigger();
+            string[] triggerNames;
+            if (!_storedProcToTrigger.TryGetValue(triggerFunction.Identifier, out triggerNames))
+            {
+                return NoTrigger;
+            }
+            List<Trigger> l = new List<Trigger>();
+            foreach (string s in triggerNames)
+            {
+                Trigger tr = Triggers[s];
+                if (tr != null)
+                {
+                    l.Add(tr);
+                }
+            }
+            return l.ToArray();
+        }
+
         public override void Backup()
         {
             throw new NotImplementedException();

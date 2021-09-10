@@ -11,8 +11,34 @@ namespace Db2Source
     {
         public StoredFunction Owner { get; private set; }
         public int Index { get; internal set; }
-        public string Name { get; internal set; }
-        public ParameterDirection Direction { get; set; }
+        private string _name;
+        public string Name
+        {
+            get { return _name; }
+            internal set
+            {
+                if (_name == value)
+                {
+                    return;
+                }
+                _name = value;
+                Invalidate();
+            }
+        }
+        private ParameterDirection _direction;
+        public ParameterDirection Direction
+        {
+            get { return _direction; }
+            set
+            {
+                if (_direction == value)
+                {
+                    return;
+                }
+                _direction = value;
+                Invalidate();
+            }
+        }
         private static readonly string[] ParameterDirectionStr = { null, null, "out", "inout", null, null, "result" };
         public static string GetParameterDirectionStr(ParameterDirection direction)
         {
@@ -55,6 +81,7 @@ namespace Db2Source
                 }
                 //PropertyChangedEventArgs e = new PropertyChangedEventArgs("DataType", value, _dataType);
                 _dataType = value;
+                Invalidate();
                 //OnPropertyChanged(e);
             }
         }
@@ -96,6 +123,12 @@ namespace Db2Source
                 _dbParameter = value;
             }
         }
+
+        private void Invalidate()
+        {
+            Owner?.InvalidateName();
+        }
+
         public Parameter(StoredFunction owner) : base()
         {
             Owner = owner;
@@ -208,6 +241,87 @@ namespace Db2Source
                     return p;
                 }
             }
+
+            public string GetInputDataTypeText(string prefix, string separator, string postfix)
+            {
+                bool needSeparator = false;
+                StringBuilder buf = new StringBuilder();
+                buf.Append(prefix);
+                foreach (Parameter p in _items)
+                {
+                    if (p.Direction == ParameterDirection.Output)
+                    {
+                        continue;
+                    }
+                    if (needSeparator)
+                    {
+                        buf.Append(separator);
+                    }
+                    buf.Append(p.DataType);
+                    needSeparator = true;
+                }
+                buf.Append(postfix);
+                return buf.ToString();
+            }
+
+            public string GetDataTypeText(string prefix, string separator, string postfix)
+            {
+                if (Count == 0)
+                {
+                    return prefix + postfix;
+                }
+                StringBuilder buf = new StringBuilder();
+                buf.Append(prefix);
+                bool needSeparator = false;
+                foreach (Parameter p in _items)
+                {
+                    if (needSeparator)
+                    {
+                        buf.Append(separator);
+                    }
+                    string s = p.DirectionStr;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        buf.Append(s);
+                        buf.Append(' ');
+                    }
+                    buf.Append(p.DataType);
+                    needSeparator = true;
+                }
+                buf.Append(postfix);
+                return buf.ToString();
+            }
+
+            public string GetParamDefText(string prefix, string separator, string postfix)
+            {
+                if (Count == 0)
+                {
+                    return prefix + postfix;
+                }
+                StringBuilder buf = new StringBuilder();
+                buf.Append(prefix);
+                bool needSeparator = false;
+                foreach (Parameter p in _items)
+                {
+                    if (needSeparator)
+                    {
+                        buf.Append(separator);
+                    }
+                    string s = p.DirectionStr;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        buf.Append(s);
+                        buf.Append(' ');
+                    }
+                    buf.Append(p.Name);
+                    buf.Append(' ');
+                    buf.Append(p.DataType);
+                    needSeparator = true;
+                }
+                buf.Append(postfix);
+                return buf.ToString();
+            }
+
             #region Interfaceの実装
 
             public Parameter this[int index]
@@ -384,8 +498,8 @@ namespace Db2Source
             #endregion
         }
 
-        private string _internalName;
-        private string _nameExtension;
+        private string _identifier;
+        //private string _nameExtension;
         private string _definition;
         private string _oldDefinition;
         public string BaseType { get; set; }
@@ -433,6 +547,7 @@ namespace Db2Source
         public event EventHandler<CollectionOperationEventArgs<Parameter>> ParameterChantged;
         protected void OnParameterChantged(CollectionOperationEventArgs<Parameter> e)
         {
+            InvalidateName();
             ParameterChantged?.Invoke(this, e);
         }
         public string Language { get; set; }
@@ -452,66 +567,63 @@ namespace Db2Source
                 OnPropertyChanged("Definition");
             }
         }
+        private string _headerDef = null;
+        private string _displayName = null;
+
+        internal void InvalidateName()
+        {
+            _identifier = null;
+            _displayName = null;
+            _headerDef = null;
+        }
+
+        private void UpdateIdentifier()
+        {
+            if (_identifier != null)
+            {
+                return;
+            }
+            _identifier = Name + Parameters.GetInputDataTypeText("(", ",", ")");
+        }
+
+        private void UpdateHeaderDef()
+        {
+            if (_headerDef != null)
+            {
+                return;
+            }
+            _headerDef = Name + Parameters.GetParamDefText("(", ", ", ") return ") + DataType;
+        }
+
         public virtual string HeaderDef
         {
             get
             {
-                StringBuilder buf = new StringBuilder();
-                buf.Append(Name);
-                buf.Append('(');
-                bool needComma = false;
-                foreach (Parameter p in Parameters)
-                {
-                    if (needComma)
-                    {
-                        buf.Append(", ");
-                    }
-                    string s = p.DirectionStr;
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        buf.Append(s);
-                        buf.Append(' ');
-                    }
-                    buf.Append(p.Name);
-                    buf.Append(' ');
-                    buf.Append(p.DataType);
-                    needComma = true;
-                }
-                buf.Append(") return ");
-                buf.Append(DataType);
-                return buf.ToString();
+                UpdateHeaderDef();
+                return _headerDef;
             }
+        }
+
+        private void UpdateDisplayName()
+        {
+            if (_displayName != null)
+            {
+                return;
+            }
+            _displayName = Name + Parameters.GetDataTypeText("(", ",", ")");
         }
         public override string DisplayName
         {
             get
             {
-                StringBuilder buf = new StringBuilder();
-                buf.Append(Name);
-                buf.Append('(');
-                bool needComma = false;
-                foreach (Parameter p in Parameters)
-                {
-                    if (needComma)
-                    {
-                        buf.Append(',');
-                    }
-                    string s = p.DirectionStr;
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        buf.Append(s);
-                        buf.Append(' ');
-                    }
-                    buf.Append(p.DataType);
-                    needComma = true;
-                }
-                buf.Append(')');
-                return buf.ToString();
+                UpdateDisplayName();
+                return _displayName;
             }
         }
         protected override string GetIdentifier()
         {
-            return _internalName;
+            UpdateIdentifier();
+            return _identifier;
         }
         public override bool IsModified()
         {
@@ -573,11 +685,9 @@ namespace Db2Source
             }
         }
         //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string extension, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
+        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
         {
             Parameters = new ParameterCollection(this);
-            _internalName = objectName + extension;
-            _nameExtension = extension;
             _definition = definition;
             if (isLoaded)
             {

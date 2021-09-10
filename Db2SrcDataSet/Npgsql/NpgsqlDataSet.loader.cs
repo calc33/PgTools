@@ -2037,7 +2037,7 @@ namespace Db2Source
                 }
                 if (TargetProc != null)
                 {
-                    return new string[] { TargetProc.Schema?.nspname, TargetProc.GetInternalName() };
+                    return new string[] { TargetProc.Schema?.nspname, TargetProc.GetIdentifier() };
                 }
                 if (TargetTrigger != null)
                 {
@@ -2063,7 +2063,7 @@ namespace Db2Source
                 }
                 else if (TargetProc != null)
                 {
-                    c = new StoredFunctionComment(context, TargetProc.Schema?.nspname, TargetProc.proname, TargetProc.GetArgIds(), description, true);
+                    c = new StoredFunctionComment(context, TargetProc.Schema?.nspname, TargetProc.proname, TargetProc.GetArgTypeStrs(), description, true);
                 }
                 else if (TargetTrigger != null)
                 {
@@ -2259,7 +2259,7 @@ namespace Db2Source
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
                 {
                     ProcedureSchema = Procedure.Schema?.nspname,
-                    ProcedureName = Procedure.GetInternalName(),
+                    ProcedureName = Procedure.GetIdentifier(),
                     Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
                 };
 
@@ -2448,12 +2448,12 @@ namespace Db2Source
             public PgType[] AllArgTypes;
             public Dictionary<int, string> ArgDefaults = new Dictionary<int, string>();
 
-            internal string[] GetArgIds()
+            internal string[] GetArgTypeStrs()
             {
                 PgType[] args = ArgTypes;
                 if (args == null)
                 {
-                    return NoSQL;
+                    return StrUtil.EmptyStringArray;
                 }
                 List<string> l = new List<string>();
                 foreach (PgType t in args)
@@ -2462,27 +2462,14 @@ namespace Db2Source
                 }
                 return l.ToArray();
             }
-            internal string GetArgId()
+            internal string GetArgumentStr()
             {
-                StringBuilder buf = new StringBuilder();
-                buf.Append('(');
-                string[] args = GetArgIds();
-                if (args.Length != 0)
-                {
-                    buf.Append(args[0]);
-                    for (int i = 1; i < args.Length; i++)
-                    {
-                        buf.Append(',');
-                        buf.Append(args[i]);
-                    }
-                }
-                buf.Append(')');
-                return buf.ToString();
+                return StrUtil.DelimitedText(GetArgTypeStrs(), ",", "(", ")");
             }
 
-            internal string GetInternalName()
+            internal string GetIdentifier()
             {
-                return proname + GetArgId();
+                return proname + GetArgumentStr();
             }
             public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
             {
@@ -2604,7 +2591,7 @@ namespace Db2Source
                 {
                     return (StoredFunction)o;
                 }
-                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, GetArgId(), prosrc, true)
+                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
                 {
                     DataType = ReturnType?.formatname,
                     BaseType = ReturnType?.BaseType?.formatname

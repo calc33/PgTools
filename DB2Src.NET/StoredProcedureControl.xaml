@@ -30,6 +30,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="10*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
                     <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="40" MaxHeight="50" DockPanel.Dock="Right" Margin="2,0"/>
@@ -43,7 +44,7 @@
                     </DataGrid>
                 </DockPanel>
                 <GridSplitter HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Height="4" Grid.ColumnSpan="2"/>
-                <DockPanel Grid.Row="1" Grid.ColumnSpan="2">
+                <DockPanel Grid.Row="1">
                     <TabControl x:Name="tabControlResult" Grid.Row="1" TabIndex="2">
                         <TabItem x:Name="tabItemLog" Header="状況" TabIndex="3">
                             <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch">
@@ -64,6 +65,7 @@
                         </TabItem>
                     </TabControl>
                 </DockPanel>
+                <TextBox Grid.Row="2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="True"/>
             </Grid>
         </TabItem>
         <TabItem Header="情報">
@@ -71,6 +73,7 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="1*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <StackPanel>
                     <ToolBarTray Orientation="Horizontal">
@@ -91,10 +94,12 @@
                     </StackPanel>
                     <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
                 </StackPanel>
-                <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
+                <TextBox Grid.Row="1" TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.Definition, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" IsReadOnly="True" />
+                <GridSplitter Grid.Row="2" VerticalAlignment="Top" Height="4" HorizontalAlignment="Stretch"/>
+                <TextBox Grid.Row="2" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,4,0,0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
             </Grid>
         </TabItem>
-        <TabItem Header="依存関係">
+        <TabItem Header="依存関係" Visibility="Collapsed">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
@@ -102,20 +107,24 @@
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
                     <TextBlock DockPanel.Dock="Top" Padding="2">参照</TextBlock>
+                    <!--
                     <DataGrid x:Name="dataGridDependency" ItemsSource="{Binding Target.Dependencies, ElementName=userControl}" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="dataGridDependency_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="対象" Binding="{Binding Value}"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                    -->
                 </DockPanel>
                 <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom"/>
                 <DockPanel Grid.Row="1">
                     <TextBlock DockPanel.Dock="Top" Padding="2">被参照</TextBlock>
+                    <!--
                     <DataGrid x:Name="dataGridDependOn" ItemsSource="{Binding Target.DependOn, ElementName=userControl}" AutoGenerateColumns="False" IsReadOnly="True" MouseDoubleClick="dataGridDependOn_MouseDoubleClick">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="対象" Binding="{Binding Value}"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                    -->
                 </DockPanel>
             </Grid>
         </TabItem>

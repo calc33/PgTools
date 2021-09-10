@@ -427,7 +427,9 @@ namespace Db2Source
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
         {
-
+            Db2SourceContext ctx = Target.Context;
+            ctx.Revert(Target);
+            IsEditing = false;
         }
 
         public void OnTabClosing(object sender, ref bool cancel) { }
