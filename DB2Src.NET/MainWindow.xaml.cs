@@ -123,16 +123,49 @@ namespace Db2Source
             }
         }
 
+        private Dictionary<string, MenuItem> _categoryPathToMenuItem;
+
+        private MenuItem GetCategoryMenuItem(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                return MenuItemOpenDb;
+            }
+            MenuItem ret;
+            if (_categoryPathToMenuItem.TryGetValue(path, out ret))
+            {
+                return ret;
+            }
+            int p = path.LastIndexOf(ConnectionInfo.CategoryPathSeparatorChar);
+            MenuItem parent = MenuItemOpenDb;
+            if (p != -1)
+            {
+                string dir = path.Substring(0, p);
+                parent = GetCategoryMenuItem(dir);
+            }
+            string node = path.Substring(p + 1);
+            ret = new MenuItem() { Header = node };
+            parent.Items.Add(ret);
+            _categoryPathToMenuItem.Add(path, ret);
+            return ret;
+        }
+
         private void UpdateMenuItemOpenDb()
         {
             MenuItemOpenDb.Items.Clear();
+            _categoryPathToMenuItem = new Dictionary<string, MenuItem>();
+            Dictionary<string, MenuItem> servers = new Dictionary<string, MenuItem>();
             MenuItem mi;
-            foreach (ConnectionInfo info in App.Connections)
+            List<ConnectionInfo> l = new List<ConnectionInfo>(App.Connections);
+            l.Sort(ConnectionInfo.CompareByCategory);
+            foreach (ConnectionInfo info in l)
             {
                 mi = new MenuItem() { Header = info.Name, Tag = info };
                 mi.Click += MenuItemOpenDb_Click;
-                MenuItemOpenDb.Items.Add(mi);
+                MenuItem parent = GetCategoryMenuItem(info.CategoryPath);
+                parent.Items.Add(mi);
             }
+            MenuItemOpenDb.Items.Add(new Separator());
             mi = new MenuItem() { Header = "新しい接続..." };
             mi.Click += MenuItemOpenDb_Click;
             MenuItemOpenDb.Items.Add(mi);

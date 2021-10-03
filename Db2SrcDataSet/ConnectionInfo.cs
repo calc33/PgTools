@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.IO;
@@ -196,8 +197,9 @@ namespace Db2Source
             return _list.GetEnumerator();
         }
     }
-    public abstract partial class ConnectionInfo: IComparable
+    public abstract partial class ConnectionInfo: IComparable, INotifyPropertyChanged
     {
+        public static readonly char CategoryPathSeparatorChar = Path.DirectorySeparatorChar;
         private static readonly Dictionary<string, Type> _databaseTypeToType = new Dictionary<string, Type>();
         public static void RegisterDatabaseType(string databaseType, Type type)
         {
@@ -411,6 +413,77 @@ namespace Db2Source
             }
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnDefaultCategoryPathChanged()
+        {
+            if (!_isDefaultCategory)
+            {
+                return;
+            }
+            string v = GetDefaultCategoryPath();
+            if (_categoryPath == v)
+            {
+                return;
+            }
+            _categoryPath = v;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CategoryPath"));
+        }
+
+        private void OnCategoryPathChanged()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CategoryPath"));
+        }
+
+        private bool _isDefaultCategory = true;
+        private string _categoryPath;
+
+        [InputField("グループ", 100)]
+        public string CategoryPath
+        {
+            get
+            {
+                if (_isDefaultCategory)
+                {
+                    return GetDefaultCategoryPath();
+                }
+                return _categoryPath;
+            }
+            set
+            {
+                string v = CategoryPath;
+                if (v == value)
+                {
+                    return;
+                }
+                if (value == null)
+                {
+                    _isDefaultCategory = true;
+                    return;
+                }
+                if (GetDefaultCategoryPath() == value)
+                {
+                    _isDefaultCategory = true;
+                    return;
+                }
+                _categoryPath = value;
+                _isDefaultCategory = false;
+                OnCategoryPathChanged();
+            }
+        }
+
+        public string[] GetSeparetedCategoryPath()
+        {
+            string v = CategoryPath;
+            if (string.IsNullOrEmpty(v))
+            {
+                return StrUtil.EmptyStringArray;
+            }
+            return v.Split(CategoryPathSeparatorChar);
+        }
+
+        public abstract string GetDefaultCategoryPath();
+
         public virtual void Merge(ConnectionInfo item)
         {
             Password = item.Password;
@@ -505,6 +578,17 @@ namespace Db2Source
                 return (item1 == null ? 1 : 0) - (item2 == null ? 1 : 0);
             }
             return string.Compare(item1.Name, item2.Name, true, CultureInfo.CurrentCulture);
+        }
+
+        public static int CompareByCategory(ConnectionInfo x, ConnectionInfo y)
+        {
+            int ret = string.Compare(x.CategoryPath, y.CategoryPath);
+            if (ret != 0)
+            {
+                return ret;
+            }
+            ret = CompareByName(x, y);
+            return ret;
         }
 
         public int CompareTo(object obj)
@@ -1006,6 +1090,11 @@ namespace Db2Source
         public override string ToConnectionString(bool includePassord)
         {
             return null;
+        }
+
+        public override string GetDefaultCategoryPath()
+        {
+            return string.Empty;
         }
     }
 }

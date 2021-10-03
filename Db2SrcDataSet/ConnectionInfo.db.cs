@@ -52,6 +52,7 @@ namespace Db2Source
                 return;
             }
             Id = null;
+            OnDefaultCategoryPathChanged();
         }
 
         internal string GetTableName()

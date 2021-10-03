@@ -390,6 +390,13 @@ namespace Db2Source
             get { return DATABASE_DESC; }
         }
 
+        public override string GetDefaultCategoryPath()
+        {
+            string s = ServerName;
+            string p = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
+            return s + p;
+        }
+
         public override string GetDefaultName()
         {
             string sPort = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
