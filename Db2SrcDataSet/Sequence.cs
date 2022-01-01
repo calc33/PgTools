@@ -1,4 +1,6 @@
-﻿namespace Db2Source
+﻿using System;
+
+namespace Db2Source
 {
     public partial class Sequence: SchemaObject
     {
@@ -19,15 +21,40 @@
         public int Cache { get; set; } = 1;
         public string OwnedSchemaName { get; set; }
         public string OwnedTableName { get; set; }
-        public string OwnedColumn { get; set; }
+        public string OwnedColumnName { get; set; }
 
-        public Table OwnedTable { get; set; }
+        private WeakReference<Column> _ownedColumn;
+        private Column GetOwnedColumn()
+        {
+            Column col;
+            if (_ownedColumn != null && _ownedColumn.TryGetTarget(out col))
+            {
+                return col;
+            }
+            col = Context.Selectables[OwnedSchemaName, OwnedTableName]?.Columns[OwnedColumnName];
+            if (col == null)
+            {
+                return null;
+            }
+            _ownedColumn = new WeakReference<Column>(col);
+            return col;
+        }
+        public Column OwnedColumn
+        {
+            get
+            {
+                return GetOwnedColumn();
+            }
+        }
 
         internal Sequence _backup;
-        protected internal Sequence Backup(Table owner)
+        protected internal Sequence Backup(Column owner)
         {
             _backup = new Sequence(this);
-            _backup.OwnedTable = owner;
+            if (owner != null)
+            {
+                _backup._ownedColumn = new WeakReference<Column>(owner);
+            }
             return _backup;
         }
         public override void Backup()
@@ -45,7 +72,7 @@
             Cache = backup.Cache;
             OwnedSchemaName = backup.OwnedSchemaName;
             OwnedTableName = backup.OwnedTableName;
-            OwnedColumn = backup.OwnedColumn;
+            OwnedColumnName = backup.OwnedColumnName;
         }
         public override void Restore()
         {
@@ -59,7 +86,12 @@
         public override void Release()
         {
             base.Release();
-            OwnedTable?.Sequences.Remove(this);
+            Column col;
+            if (_ownedColumn != null && _ownedColumn.TryGetTarget(out col) && col != null)
+            {
+                col.Sequence = null;
+            }
+            _ownedColumn = null;
         }
 
         public override bool ContentEquals(NamedObject obj)
@@ -77,10 +109,11 @@
                 && Cache == seq.Cache
                 && OwnedSchemaName == seq.OwnedSchemaName
                 && OwnedTableName == seq.OwnedTableName
-                && OwnedColumn == seq.OwnedColumn;
+                && OwnedColumnName == seq.OwnedColumnName;
         }
 
         internal Sequence(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects) { }
+
         internal Sequence(Sequence basedOn) : base(basedOn)
         {
             StartValue = basedOn.StartValue;
@@ -91,7 +124,7 @@
             Cache = basedOn.Cache;
             OwnedSchemaName = basedOn.OwnedSchemaName;
             OwnedTableName = basedOn.OwnedTableName;
-            OwnedColumn = basedOn.OwnedColumn;
+            OwnedColumnName = basedOn.OwnedColumnName;
         }
     }
 }

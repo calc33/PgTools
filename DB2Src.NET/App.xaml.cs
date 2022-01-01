@@ -18,6 +18,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Unicorn.Utility;
 using Microsoft.Windows.Themes;
 
 namespace Db2Source
@@ -97,7 +98,7 @@ namespace Db2Source
 
             private void Execute()
             {
-                Task t = Task.Run(DoExecute);
+                Task t = Task.Run(new Action(DoExecute));
             }
             public static void Log(string message)
             {
@@ -116,7 +117,7 @@ namespace Db2Source
 
         private static object _threadExceptionsLock = new object();
         private static List<Exception> _threadExceptions = new List<Exception>();
-        public static RegistryManager Registry { get; private set; } = new RegistryManager(@"HKCU\Software\DB2Source", @"HKLM\Software\DB2Source");
+        public static RegistryFinder RegistryFinder { get; private set; } = new RegistryFinder();
         private static void ShowThreadException()
         {
             Exception t;
@@ -250,26 +251,31 @@ namespace Db2Source
             }
             if (!HasConnectionInfo)
             {
-                LoadConnectionInfoFromRegistry();
+                RegistryBinding.Load(RegistryFinder);
             }
         }
-        public static void LoadConnectionInfoFromRegistry()
+        private static RegistryBinding InitRegistryBinding()
         {
-            Hostname = Registry.GetString("Connection", "ServerName", Hostname);
-            Port = Registry.GetInt32("Connection", "ServerPort", Port);
-            Database = Registry.GetString("Connection", "DatabaseName", Database);
-            Username = Registry.GetString("Connection", "UserName", Username);
-            SearchPath = Registry.GetString("Connection", "SearchPath", SearchPath);
+            RegistryBinding binding = new RegistryBinding();
+            binding.Register("Connection", "ServerName", typeof(App), "Hostname", new StringOperator());
+            binding.Register("Connection", "ServerPort", typeof(App), "Port", new Int32Operator());
+            binding.Register("Connection", "DatabaseName", typeof(App), "Database", new StringOperator());
+            binding.Register("Connection", "UserName", typeof(App), "Username", new StringOperator());
+            binding.Register("Connection", "SearchPath", typeof(App), "SearchPath", new StringOperator());
+            return binding;
         }
+        private static readonly RegistryBinding RegistryBinding = InitRegistryBinding();
 
-        public static void SaveConnectionInfoToRegistry(ConnectionInfo info)
+        public static RegistryBinding NewRegistryBinding(ConnectionInfo info)
         {
+            RegistryBinding binding = new RegistryBinding();
             NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
-            Registry.SetValue(0, "Connection", "ServerName", obj.ServerName ?? string.Empty);
-            Registry.SetValue(0, "Connection", "ServerPort", obj.ServerPort);
-            Registry.SetValue(0, "Connection", "DatabaseName", obj.DatabaseName ?? string.Empty);
-            Registry.SetValue(0, "Connection", "UserName", obj.UserName ?? string.Empty);
-            Registry.SetValue(0, "Connection", "SearchPath", obj.SearchPath ?? string.Empty);
+            binding.Register("Connection", "ServerName", obj, "ServerName", new StringOperator());
+            binding.Register("Connection", "ServerPort", obj, "ServerPort", new Int32Operator());
+            binding.Register("Connection", "DatabaseName", obj, "DatabaseName", new StringOperator());
+            binding.Register("Connection", "UserName", obj, "UserName", new StringOperator());
+            binding.Register("Connection", "SearchPath", obj, "SearchPath", new StringOperator());
+            return binding;
         }
 
         private void Application_Startup(object sender, StartupEventArgs e)
@@ -695,5 +701,10 @@ namespace Db2Source
         {
             throw new NotImplementedException();
         }
+    }
+    public interface IRegistryStore
+    {
+        void LoadFromRegistry();
+        void SaveToRegistry();
     }
 }

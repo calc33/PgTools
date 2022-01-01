@@ -22,13 +22,13 @@ namespace Db2Source
     /// </summary>
     public partial class NewConnectionWindow: Window
     {
-        public static DependencyProperty ConnectionListProperty = DependencyProperty.Register("ConnectionList", typeof(ConnectionList), typeof(NewConnectionWindow));
+        public static DependencyProperty ConnectionListProperty = DependencyProperty.Register("ConnectionList", typeof(List<ConnectionInfo>), typeof(NewConnectionWindow));
         public static DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ConnectionInfo), typeof(NewConnectionWindow));
-        public ConnectionList ConnectionList
+        public List<ConnectionInfo> ConnectionList
         {
             get
             {
-                return (ConnectionList)GetValue(ConnectionListProperty);
+                return (List<ConnectionInfo>)GetValue(ConnectionListProperty);
             }
             set
             {
@@ -46,6 +46,8 @@ namespace Db2Source
                 SetValue(TargetProperty, value);
             }
         }
+
+        //public ConnectionInfo NewConnectionInfo { get; set; }
 
         public IDbConnection Result { get; private set; }
 
@@ -305,7 +307,7 @@ namespace Db2Source
                 MessageBox.Show(t.Message, "接続エラー", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            ConnectionList.Save(Target);
+            App.Connections.Save(Target);
             DialogResult = true;
         }
 
@@ -331,29 +333,42 @@ namespace Db2Source
             MessageBox.Show("接続成功", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void comboBoxConnections_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void InitButtonSelectTarget()
         {
-            //
+            ContextMenu menu = buttonSelectTarget.ContextMenu;
+            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            menu.PlacementTarget = buttonSelectTarget;
+            menu.Items.Clear();
+            ConnectionInfoMenu.AddMenuItem(menu.Items, ConnectionList, buttonSelectTargetMenuItem_Click);
+        }
+
+        private void buttonSelectTargetMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectionInfo info = (sender as MenuItem)?.Tag as ConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            Target = info;
         }
 
         private void window_Initialized(object sender, EventArgs e)
         {
-            ConnectionList l = App.Connections;
-            ConnectionInfo info0 = new NewNpgsqlConnectionInfo(true);
-            info0.FillStoredPassword(false);
-            l.Insert(0, info0);
-            for (int i = 1; i < l.Count; i++)
+            List<ConnectionInfo> l = new List<ConnectionInfo>(App.Connections);
+            l.Sort(ConnectionInfo.CompareByCategory);
+            ConnectionInfo info0 = null;
+            for (int i = 0; i < l.Count; i++)
             {
                 if (l[i].ContentEquals(info0))
                 {
                     info0 = l[i];
-                    l[0] = new NewNpgsqlConnectionInfo(false);
                     break;
                 }
             }
             ConnectionList = l;
             Target = info0;
             UpdateTitleColor();
+            InitButtonSelectTarget();
         }
 
         private void UpdateTitleColor()
@@ -382,6 +397,19 @@ namespace Db2Source
         private void checkBoxTitleColor_Click(object sender, RoutedEventArgs e)
         {
             UpdateTitleColor();
+        }
+
+        private bool _wasContextMenuOpened = false;
+
+        private void buttonSelectTarget_Click(object sender, RoutedEventArgs e)
+        {
+            _wasContextMenuOpened = !_wasContextMenuOpened;
+            buttonSelectTarget.ContextMenu.IsOpen = _wasContextMenuOpened;
+        }
+
+        private void buttonSelectTarget_ContextMenuClosing(object sender, ContextMenuEventArgs e)
+        {
+            _wasContextMenuOpened = false;
         }
     }
 }

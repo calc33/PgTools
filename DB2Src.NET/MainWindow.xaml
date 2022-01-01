@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" FontSize="14" FontFamily="Source Han Code JP Light" Loaded="window_Loaded" Closing="window_Closing">
+        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" FontSize="14" FontFamily="Source Han Code JP Light" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="TreeViewItemFocusVisual">
@@ -252,7 +252,6 @@
                                 <RowDefinition x:Name="RowDefinition0" Height="Auto"/>
                                 <RowDefinition x:Name="RowDefinition1" Height="*"/>
                             </Grid.RowDefinitions>
-                            <!--<DockPanel Background="{DynamicResource WindowBackground}">-->
                             <Border x:Name="contentPanel" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="0" KeyboardNavigation.DirectionalNavigation="Contained" Grid.Row="1" KeyboardNavigation.TabIndex="2" KeyboardNavigation.TabNavigation="Local">
                                 <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
@@ -487,14 +486,13 @@
                     <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click"/>
                 </MenuItem>
             </Menu>
-            <Grid>
+            <Grid x:Name="gridBase">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="300" MinWidth="40"/>
                     <ColumnDefinition Width="1*" MinWidth="34"/>
                 </Grid.ColumnDefinitions>
                 <DockPanel Margin="0,0,4,0">
                     <StackPanel DockPanel.Dock="Top" Margin="0,0,0,2">
-                        <!--<ComboBox x:Name="comboBoxConnection" HorizontalAlignment="Stretch" Margin="2,2,4,2" DisplayMemberPath="Name" SelectionChanged="comboBoxConnection_SelectionChanged" DropDownClosed="comboBoxConnection_DropDownClosed"/>-->
                         <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Background="Transparent">
                             <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
                                 <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
@@ -534,7 +532,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TabControl x:Name="tabControlMain" Background="Transparent" Style="{DynamicResource TabControlStyleSingleLine}" SelectionChanged="tabControlMain_SelectionChanged" LayoutUpdated="tabControlMain_LayoutUpdated">
-                        <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}" Margin="-2,-2,-2,0">
+                        <local:MovableTabItem Style="{DynamicResource MovableTabItemStyle}">
                             <local:MovableTabItem.Header>
                                 <TextBlock Text="クエリ"/>
                             </local:MovableTabItem.Header>
@@ -554,7 +552,8 @@
             </Grid>
         </DockPanel>
         <Grid x:Name="gridLoading" Background="#7FFFFFFF" Visibility="Collapsed">
-            <TextBlock Text="データベースの情報を読み込んでいます..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+            <TextBlock x:Name="textBlockConnecting" Text="データベースに接続中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+            <TextBlock x:Name="textBlockLoading" Text="データベースの情報を読み込んでいます..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20" Visibility="Collapsed"/>
         </Grid>
     </Grid>
 </Window>

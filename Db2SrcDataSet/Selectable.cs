@@ -86,6 +86,10 @@ namespace Db2Source
         internal Column Backup(Selectable owner)
         {
             _backup = new Column(Table, this);
+            if (Sequence != null)
+            {
+                _backup.Sequence = Sequence.Backup(this);
+            }
             return _backup;
         }
         public override void Backup()
@@ -434,6 +438,19 @@ namespace Db2Source
             }
         }
 
+        private Sequence _sequence;
+
+        public Sequence Sequence
+        {
+            get
+            {
+                return _sequence;
+            }
+            set
+            {
+                _sequence = value;
+            }
+        }
         public ForeignKeyConstraint[] ForeignKeys
         {
             get
@@ -972,15 +989,123 @@ namespace Db2Source
 
     public abstract class Selectable : SchemaObject
     {
+        public class ColumnSequences : IEnumerable<Sequence>
+        {
+            internal class ColumnSequenceEnumerator : IEnumerator<Sequence>
+            {
+                private bool disposedValue;
+                private Selectable _owner;
+                private int _columnIndex = -1;
+                public Sequence Current
+                {
+                    get
+                    {
+                        return _owner.Columns[_columnIndex].Sequence;
+                    }
+                }
+
+                object IEnumerator.Current
+                {
+                    get
+                    {
+                        return _owner.Columns[_columnIndex].Sequence;
+                    }
+                }
+
+                public bool MoveNext()
+                {
+                    _columnIndex++;
+                    for (int n = _owner.Columns.Count; _columnIndex < n; _columnIndex++)
+                    {
+                        if (_owner.Columns[_columnIndex].Sequence != null)
+                        {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+
+                public void Reset()
+                {
+                    _columnIndex = -1;
+                }
+
+                protected virtual void Dispose(bool disposing)
+                {
+                    if (!disposedValue)
+                    {
+                        if (disposing)
+                        {
+                            // TODO: マネージド状態を破棄します (マネージド オブジェクト)
+                            _columnIndex = -1;
+                        }
+
+                        // TODO: アンマネージド リソース (アンマネージド オブジェクト) を解放し、ファイナライザーをオーバーライドします
+                        // TODO: 大きなフィールドを null に設定します
+                        disposedValue = true;
+                    }
+                }
+
+                // // TODO: 'Dispose(bool disposing)' にアンマネージド リソースを解放するコードが含まれる場合にのみ、ファイナライザーをオーバーライドします
+                // ~ColumnSequenceEnumerator()
+                // {
+                //     // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+                //     Dispose(disposing: false);
+                // }
+
+                public void Dispose()
+                {
+                    // このコードを変更しないでください。クリーンアップ コードを 'Dispose(bool disposing)' メソッドに記述します
+                    Dispose(disposing: true);
+                    GC.SuppressFinalize(this);
+                }
+
+                internal ColumnSequenceEnumerator(Selectable owner)
+                {
+                    _owner = owner;
+                }
+            }
+
+            private Selectable _owner;
+
+            public IEnumerator<Sequence> GetEnumerator()
+            {
+                return new ColumnSequenceEnumerator(_owner);
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return new ColumnSequenceEnumerator(_owner);
+            }
+            internal ColumnSequences(Selectable owner)
+            {
+                _owner = owner;
+            }
+        }
+
         public ColumnCollection Columns { get; private set; }
+        public IndexCollection Indexes { get; private set; }
+        private ColumnSequences _columnSequences;
+        public IEnumerable<Sequence> Sequences
+        {
+            get
+            {
+                return _columnSequences;
+            }
+        }
+
         internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, Schema.CollectionIndex.Objects)
         {
             Columns = new ColumnCollection(this);
+            Indexes = new IndexCollection(this);
+            _columnSequences = new ColumnSequences(this);
         }
 
         internal Selectable(Selectable basedOn) : base(basedOn)
         {
             Columns = new ColumnCollection(this);
+            Indexes = new IndexCollection(this);
+            _columnSequences = new ColumnSequences(this);
             basedOn.BackupColumns(this);
         }
 
@@ -998,6 +1123,7 @@ namespace Db2Source
                 }
                 Comment?.Dispose();
             }
+            _columnSequences = null;
             base.Dispose(disposing);
         }
         public override void Release()
@@ -1013,6 +1139,11 @@ namespace Db2Source
         public override void InvalidateColumns()
         {
             Columns.Invalidate();
+        }
+
+        public void InvalidateIndexes()
+        {
+            Indexes.Invalidate();
         }
 
         internal Selectable _backup;

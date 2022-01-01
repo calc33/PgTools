@@ -1,0 +1,7 @@
+select ft.ftrelid as oid, ft.ftoptions,
+  fs.srvname, fs.srvoptions,
+  fdw.fdwname
+from pg_foreign_table ft
+  join pg_foreign_server fs on (ft.ftserver = fs.oid)
+  join pg_foreign_data_wrapper fdw on (fs.srvfdw = fdw.oid)
+order by ft.ftrelid

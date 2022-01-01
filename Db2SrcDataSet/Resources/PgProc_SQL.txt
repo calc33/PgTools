@@ -1,7 +1,7 @@
 select p.oid,
   p.proname, p.pronamespace, p.prokind, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
   p.proargnames, p.prosrc,
-  l.lanname, pg_get_userbyid(p.proowner) as ownername
+  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
 from pg_catalog.pg_proc p
   left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
 where (pg_has_role(p.proowner, 'USAGE') or has_function_privilege(p.oid, 'EXECUTE'))

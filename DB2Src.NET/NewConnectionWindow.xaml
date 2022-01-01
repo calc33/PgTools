@@ -9,7 +9,53 @@
         WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight" Background="White"
         HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
         Initialized="window_Initialized">
-    <Window.Resources/>
+    <Window.Resources>
+        <Style x:Key="ButtonStyle1" TargetType="{x:Type Button}">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Background" Value="{StaticResource ComboBox.Static.Background}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ComboBox.Static.Border}"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="border" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="true" Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter x:Name="contentPresenter" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="0"/>
+                                <Path x:Name="arrow" Grid.Column="1" Data="F1 M 0,0 L 2.667,2.66665 L 5.3334,0 L 5.3334,-1.78168 L 2.6667,0.88501 L0,-1.78168 L0,0 Z" Fill="{StaticResource ComboBox.Static.Glyph}" HorizontalAlignment="Center" Margin="1,0" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsDefaulted" Value="true">
+                                <Setter Property="BorderBrush" TargetName="border" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.MouseOver.Border}"/>
+                                <Setter Property="Fill" TargetName="arrow" Value="{StaticResource ComboBox.MouseOver.Glyph}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Pressed.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Pressed.Border}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="border" Value="{StaticResource Button.Disabled.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="border" Value="{StaticResource Button.Disabled.Border}"/>
+                                <Setter Property="TextElement.Foreground" TargetName="contentPresenter" Value="{StaticResource Button.Disabled.Foreground}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
     <StackPanel x:Name="StackPanelMain" Orientation="Vertical" HorizontalAlignment="Left" VerticalAlignment="Top">
         <Grid x:Name="GridProperties">
             <Grid.RowDefinitions>
@@ -21,19 +67,23 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <ComboBox x:Name="comboBoxConnections" Grid.Row="0" Grid.ColumnSpan="2" DisplayMemberPath="Name" SelectedItem="{Binding Path=Target, ElementName=window}" ItemsSource="{Binding Path=ConnectionList, ElementName=window}"/>
+            <Button x:Name="buttonSelectTarget" Grid.Row="0" Grid.ColumnSpan="2" Content="{Binding Target, ElementName=window}" HorizontalContentAlignment="Left" Click="buttonSelectTarget_Click" ContextMenuClosing="buttonSelectTarget_ContextMenuClosing" Style="{DynamicResource ButtonStyle1}">
+                <Button.ContextMenu>
+                    <ContextMenu Placement="Bottom"/>
+                </Button.ContextMenu>
+            </Button>
             <TextBlock Grid.Column="0" Grid.Row="1" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Right" Text="種別"/>
             <TextBox Grid.Column="1" Grid.Row="1" Margin="2" IsReadOnly="True" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Text="{Binding Target.DatabaseType, ElementName=window, Mode=OneWay}" MinWidth="300"/>
             <TextBlock x:Name="textBlockTitleColor" Grid.Column="0" Grid.Row="2" Margin="2" VerticalAlignment="Center" HorizontalAlignment="Right" Text="タイトル色"/>
             <StackPanel x:Name="stackPanelTitleColor" Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
-                <Button x:Name="buttonTitleColor" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1" Width="40" VerticalAlignment="Stretch" Margin="2" Background="{Binding Target.BackgroundColor, ElementName=window, Converter={StaticResource RGBToBrushConverter}}" Click="buttonTitleColor_Click"/>
+                <Button x:Name="buttonTitleColor" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1" Width="40" VerticalAlignment="Stretch" Margin="2" Background="{Binding Target.BackgroundColor, Converter={StaticResource RGBToBrushConverter}, ElementName=window}" Click="buttonTitleColor_Click"/>
                 <CheckBox x:Name="checkBoxTitleColor" Content="既定値を使用" VerticalAlignment="Center" IsChecked="{Binding Target.UseDefaultBackgroundColor, ElementName=window}" Click="checkBoxTitleColor_Click"/>
             </StackPanel>
         </Grid>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button x:Name="buttonTest" Width="80" Margin="8" Padding="2" Click="buttonTest_Click">接続テスト</Button>
-            <Button x:Name="buttonOK" Width="64" Margin="8" Padding="2" IsDefault="True" Click="buttonOK_Click">OK</Button>
-            <Button x:Name="buttonCancel" Width="64" Margin="8" Padding="2" IsCancel="True" Click="buttonCancel_Click">キャンセル</Button>
+            <Button x:Name="buttonTest" Width="80" Margin="8" Padding="2" Click="buttonTest_Click" Content="接続テスト"/>
+            <Button x:Name="buttonOK" Width="64" Margin="8" Padding="2" IsDefault="True" Click="buttonOK_Click" Content="OK"/>
+            <Button x:Name="buttonCancel" Width="64" Margin="8" Padding="2" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
         </StackPanel>
     </StackPanel>
 </Window>

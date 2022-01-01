@@ -7,320 +7,26 @@ using System.Text.RegularExpressions;
 namespace Db2Source
 {
 
-    public sealed class IndexCollection : IList<Index>, IList
-    {
-        private Selectable _owner;
-        private List<Index> _list = null;
-        private Dictionary<string, Index> _nameToIndex = null;
-
-        public IndexCollection(Selectable owner)
-        {
-            _owner = owner;
-        }
-
-        private object _updatingLock = new object();
-        private bool _updating;
-        public void Invalidate()
-        {
-            if (_updating)
-            {
-                return;
-            }
-            _list = null;
-            _nameToIndex = null;
-        }
-
-        internal void RequireItems()
-        {
-            if (_list != null)
-            {
-                return;
-            }
-            lock (_updatingLock)
-            {
-                _updating = true;
-                try
-                {
-                    if (_list != null)
-                    {
-                        return;
-                    }
-                    _list = new List<Index>();
-                    if (_owner == null || _owner.Schema == null)
-                    {
-                        return;
-                    }
-                    foreach (Index c in _owner.Schema.Indexes)
-                    {
-                        if (c == null)
-                        {
-                            continue;
-                        }
-                        if (c.Table == null)
-                        {
-                            continue;
-                        }
-                        if (!c.Table.Equals(_owner))
-                        {
-                            continue;
-                        }
-                        _list.Add(c);
-                    }
-                    _list.Sort();
-                    for (int i = 0, n = _list.Count; i < n; i++)
-                    {
-                        _list[i].Index_ = i + 1;
-                    }
-                }
-                finally
-                {
-                    _updating = false;
-                }
-            }
-        }
-        private void RequireNameToIndex()
-        {
-            if (_nameToIndex != null)
-            {
-                return;
-            }
-            _nameToIndex = new Dictionary<string, Index>();
-            RequireItems();
-            foreach (Index c in _list)
-            {
-                _nameToIndex.Add(c.Name, c);
-            }
-        }
-        public Index this[int index]
-        {
-            get
-            {
-                RequireItems();
-                return _list[index];
-            }
-        }
-        public Index this[string name]
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(name))
-                {
-                    return null;
-                }
-                RequireNameToIndex();
-                Index ret;
-                if (!_nameToIndex.TryGetValue(name, out ret))
-                {
-                    return null;
-                }
-                return ret;
-            }
-        }
-        internal bool IndexNameChanging(Index Index, string newName)
-        {
-            if (string.IsNullOrEmpty(newName))
-            {
-                return true;
-            }
-            if (Index != null && Index.Name == newName)
-            {
-                return true;
-            }
-            return (this[newName] == null);
-        }
-        internal void IndexNameChanged(Index Index)
-        {
-            _nameToIndex = null;
-        }
-        #region ICollection<Index>の実装
-        public int Count
-        {
-            get
-            {
-                RequireItems();
-                return _list.Count;
-            }
-        }
-
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        bool IList.IsFixedSize
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        object ICollection.SyncRoot
-        {
-            get
-            {
-                return ((IList)_list).SyncRoot;
-            }
-        }
-
-        bool ICollection.IsSynchronized
-        {
-            get
-            {
-                return ((IList)_list).IsSynchronized;
-            }
-        }
-
-        object IList.this[int index]
-        {
-            get
-            {
-                RequireItems();
-                return ((IList)_list)[index];
-            }
-
-            set
-            {
-                RequireItems();
-                ((IList)_list)[index] = value;
-            }
-        }
-
-        Index IList<Index>.this[int index]
-        {
-            get
-            {
-                RequireItems();
-                return _list[index];
-            }
-
-            set
-            {
-                RequireItems();
-                _list[index] = value;
-            }
-        }
-
-        public void Add(Index item)
-        {
-            RequireItems();
-            _list.Add(item);
-            _nameToIndex = null;
-        }
-        int IList.Add(object value)
-        {
-            Index item = value as Index;
-            RequireItems();
-            int ret = ((IList)_list).Add(item);
-            _nameToIndex = null;
-            return ret;
-        }
-
-        public void Clear()
-        {
-            _list?.Clear();
-            _nameToIndex = null;
-        }
-
-        public bool Contains(Index item)
-        {
-            RequireItems();
-            return _list.Contains(item);
-        }
-
-        bool IList.Contains(object value)
-        {
-            RequireItems();
-            return ((IList)_list).Contains(value);
-        }
-
-        public void CopyTo(Index[] array, int arrayIndex)
-        {
-            RequireItems();
-            _list.CopyTo(array, arrayIndex);
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            RequireItems();
-            ((IList)_list).CopyTo(array, index);
-        }
-
-        public IEnumerator<Index> GetEnumerator()
-        {
-            RequireItems();
-            return _list.GetEnumerator();
-        }
-
-        public bool Remove(Index item)
-        {
-            RequireItems();
-            bool ret = _list.Remove(item);
-            if (ret)
-            {
-                _nameToIndex = null;
-            }
-            return ret;
-        }
-
-        void IList.Remove(object value)
-        {
-            RequireItems();
-            bool ret = _list.Remove(value as Index);
-            if (ret)
-            {
-                _nameToIndex = null;
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            RequireItems();
-            return _list.GetEnumerator();
-        }
-
-        public int IndexOf(Index item)
-        {
-            return _list.IndexOf(item);
-        }
-
-        int IList.IndexOf(object value)
-        {
-            return ((IList)_list).IndexOf(value);
-        }
-
-        public void Insert(int index, Index item)
-        {
-            _list.Insert(index, item);
-        }
-        void IList.Insert(int index, object value)
-        {
-            ((IList)_list).Insert(index, value);
-        }
-
-
-        public void RemoveAt(int index)
-        {
-            _list.RemoveAt(index);
-        }
-        #endregion
-    }
-
     public partial class Table: Selectable
     {
+        public enum Kind
+        {
+            Table,
+            ForeignTable
+        }
+        private static readonly string[] KindToSqlType = new string[] { "TABLE", "FOREIGN TABLE" };
+        private Kind _tableKind = Kind.Table;
         public override string GetSqlType()
         {
-            return "TABLE";
+            int k = (int)_tableKind;
+            return KindToSqlType[(0 <= k && k < KindToSqlType.Length) ? k : 0];
         }
         public override string GetExportFolderName()
         {
             return "Table";
         }
         public ConstraintCollection Constraints { get; private set; }
-        public IndexCollection Indexes { get; private set; }
+        //public IndexCollection Indexes { get; private set; }
         public string TablespaceName { get; set; }
         public string[] ExtraInfo { get; set; }
         //public static Regex TemporaryNamePattern { get; set; }
@@ -362,10 +68,6 @@ namespace Db2Source
             Constraints.Invalidate();
             _primaryKey = null;
             _firstCandidateKey = null;
-        }
-        public void InvalidateIndexes()
-        {
-            Indexes.Invalidate();
         }
 
         private KeyConstraint _primaryKey;
@@ -418,7 +120,12 @@ namespace Db2Source
             }
         }
 
-        public List<Sequence> Sequences { get; } = new List<Sequence>();
+        public bool IsForeignTable { get { return _tableKind == Kind.ForeignTable; } }
+        public string ForeignServer { get; set; }
+        public string ForeignTableOptions { get; set; }
+        public bool IsPartitioned { get; set; }
+
+        public string PartitionBound { get; set; }
 
         public override void Backup()
         {
@@ -511,24 +218,19 @@ namespace Db2Source
             }
         }
 
-        internal Table(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName)
+        internal Table(Db2SourceContext context, Kind kind, string owner, string schema, string tableName) : base(context, owner, schema, tableName)
         {
+            _tableKind = kind;
             Constraints = new ConstraintCollection(this);
-            Indexes = new IndexCollection(this);
             ReferFrom = new ReferedForeignKeyCollection(this);
         }
         internal Table(Table basedOn): base(basedOn)
         {
             Constraints = new ConstraintCollection(this);
-            Indexes = new IndexCollection(this);
             ReferFrom = new ReferedForeignKeyCollection(this);
             foreach (Constraint c in basedOn.Constraints)
             {
                 Constraints.Add(c.Backup(this));
-            }
-            foreach (Sequence seq in basedOn.Sequences)
-            {
-                Sequences.Add(seq.Backup(this));
             }
             //Constraints
             //Indexes

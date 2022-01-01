@@ -180,7 +180,7 @@ namespace Db2Source
             }
             public void Notice(object sender, NpgsqlNoticeEventArgs e)
             {
-                OnLog(sender, e.Notice.Detail);
+                OnLog(sender, e.Notice.MessageText);
             }
             public void Command_Disposed(object sender, EventArgs e)
             {

@@ -23,24 +23,43 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Peers;
-
+using Unicorn.Utility;
 using Microsoft.Win32;
 
 namespace Db2Source
 {
+    public enum SchemaConnectionStatus
+    {
+        Done,
+        Connecting,
+        Loading
+    }
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>
-    public partial class MainWindow: Window
+    public partial class MainWindow : Window
     {
         private string TitleBase;
         public static readonly Type[] ConnectionInfoTypes = new Type[] { typeof(NpgsqlConnectionInfo) };
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow));
+        public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow));
+
         public static MainWindow Current { get; private set; } = null;
         public Db2SourceContext CurrentDataSet
         {
             get { return (Db2SourceContext)GetValue(CurrentDataSetProperty); }
             set { SetValue(CurrentDataSetProperty, value); }
+        }
+
+        public SchemaConnectionStatus ConnectionStatus
+        {
+            get { return (SchemaConnectionStatus)GetValue(ConnectionStatusProperty); }
+            set { SetValue(ConnectionStatusProperty, value); }
+        }
+
+        private void SetConnectionStatus(SchemaConnectionStatus value)
+        {
+            Dispatcher.InvokeAsync(() => { ConnectionStatus = value; });
         }
 
         private int _queryControlIndex = 1;
@@ -93,6 +112,7 @@ namespace Db2Source
             Connect(info);
             App.Connections.Merge(info);
             App.Connections.Save();
+            Dispatcher.InvokeAsync(UpdateMenuItemOpenDb);
         }
         private void UpdateTabControlsTarget()
         {
@@ -153,22 +173,13 @@ namespace Db2Source
         private void UpdateMenuItemOpenDb()
         {
             MenuItemOpenDb.Items.Clear();
+            ConnectionInfoMenu.AddMenuItem(MenuItemOpenDb.Items, App.Connections, MenuItemOpenDb_Click);
+
             _categoryPathToMenuItem = new Dictionary<string, MenuItem>();
-            Dictionary<string, MenuItem> servers = new Dictionary<string, MenuItem>();
-            MenuItem mi;
-            List<ConnectionInfo> l = new List<ConnectionInfo>(App.Connections);
-            l.Sort(ConnectionInfo.CompareByCategory);
-            foreach (ConnectionInfo info in l)
-            {
-                mi = new MenuItem() { Header = info.Name, Tag = info };
-                mi.Click += MenuItemOpenDb_Click;
-                MenuItem parent = GetCategoryMenuItem(info.CategoryPath);
-                parent.Items.Add(mi);
-            }
-            MenuItemOpenDb.Items.Add(new Separator());
-            mi = new MenuItem() { Header = "新しい接続..." };
+            MenuItemOpenDb.Items.Insert(0, new Separator());
+            MenuItem mi = new MenuItem() { Header = "新しい接続..." };
             mi.Click += MenuItemOpenDb_Click;
-            MenuItemOpenDb.Items.Add(mi);
+            MenuItemOpenDb.Items.Insert(0, mi);
         }
 
         private DataGrid FindDataGridRecursive(DependencyObject obj)
@@ -260,6 +271,7 @@ namespace Db2Source
 
         private void UpdateSchema()
         {
+            ConnectionStatus = SchemaConnectionStatus.Done;
             if (CurrentDataSet == null)
             {
                 Title = TitleBase;
@@ -270,7 +282,6 @@ namespace Db2Source
             Title = TitleBase + " - " + CurrentDataSet?.ConnectionInfo?.GetDefaultName();
             UpdateTreeViewDB();
             UpdateTabControlsTarget();
-            gridLoading.Visibility = Visibility.Collapsed;
         }
 
         public static Color ToColor(RGB rgb)
@@ -286,19 +297,65 @@ namespace Db2Source
             return new SolidColorBrush(ToColor(CurrentDataSet.ConnectionInfo.BackgroundColor));
         }
 
+        private void LoadLocationFromConnectionInfo(ConnectionInfo info)
+        {
+            if (info == null)
+            {
+                return;
+            }
+            if (info.WindowLeft.HasValue)
+            {
+                Left = info.WindowLeft.Value;
+            }
+            if (info.WindowTop.HasValue)
+            {
+                Top = info.WindowTop.Value;
+            }
+            if (info.WindowWidth.HasValue)
+            {
+                Width = info.WindowWidth.Value;
+            }
+            if (info.WindowHeight.HasValue)
+            {
+                Height = info.WindowHeight.Value;
+            }
+            if (info.IsWindowMaximized.HasValue)
+            {
+                WindowState = info.IsWindowMaximized.Value ? WindowState.Maximized : WindowState.Normal;
+            }
+        }
+
+        private void SaveLocationToConnectionInfo()
+        {
+            ConnectionInfo info = CurrentDataSet?.ConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            info.WindowLeft = Left;
+            info.WindowTop = Top;
+            info.WindowWidth = Width;
+            info.WindowHeight = Height;
+            info.IsWindowMaximized = (WindowState == WindowState.Maximized);
+            App.Connections.Merge(info);
+            App.Connections.Save();
+        }
+
+
         private Db2SourceContext _dataSetTemp;
         private void SetSchema()
         {
             CurrentDataSet = null;
             CurrentDataSet = _dataSetTemp;
             Resources["WindowBackground"] = GetBackgroundColor();
+            RegistryBinding binding = App.NewRegistryBinding(_dataSetTemp.ConnectionInfo);
+            binding.Save(App.RegistryFinder);
         }
 
         private void CurrentDataSet_SchemaLoaded(object sender, EventArgs e)
         {
             _dataSetTemp = sender as Db2SourceContext;
-            Dispatcher.Invoke(SetSchema, DispatcherPriority.Normal);
-            App.SaveConnectionInfoToRegistry(_dataSetTemp.ConnectionInfo);
+            Dispatcher.InvokeAsync(SetSchema, DispatcherPriority.Normal);
         }
 
         //#pragma warning disable 1998
@@ -336,12 +393,35 @@ namespace Db2Source
 
         public void LoadSchema(Db2SourceContext dataSet, IDbConnection connection)
         {
-            gridLoading.Visibility = Visibility.Visible;
-            Task t = LoadSchemaAsync(dataSet, connection);
+            LoadLocationFromConnectionInfo(dataSet.ConnectionInfo);
+            SetConnectionStatus(SchemaConnectionStatus.Loading);
+            try
+            {
+                Task t = LoadSchemaAsync(dataSet, connection);
+            }
+            finally
+            {
+                SetConnectionStatus(SchemaConnectionStatus.Done);
+            }
+        }
+        public async Task ConnectAndLoadSchemaAsync(Db2SourceContext dataSet, ConnectionInfo info)
+        {
+            try
+            {
+                SetConnectionStatus(SchemaConnectionStatus.Connecting);
+                IDbConnection conn = await info.NewConnectionAsync(true);
+                await Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info); }, DispatcherPriority.ApplicationIdle);
+                SetConnectionStatus(SchemaConnectionStatus.Loading);
+                await LoadSchemaAsync(dataSet, conn);
+            }
+            finally
+            {
+                SetConnectionStatus(SchemaConnectionStatus.Done);
+            }
         }
         public void LoadSchema(Db2SourceContext dataSet)
         {
-            gridLoading.Visibility = Visibility.Visible;
+            SetConnectionStatus(SchemaConnectionStatus.Loading);
             Task t = LoadSchemaAsync(dataSet);
         }
 
@@ -391,7 +471,7 @@ namespace Db2Source
             OpenViewer(obj);
         }
 
-        protected void CurrentDataSetChanged(DependencyPropertyChangedEventArgs e)
+        protected void CurrentDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (CurrentDataSet == null)
             {
@@ -401,6 +481,13 @@ namespace Db2Source
             CurrentDataSet.SchemaObjectReplaced += CurrentDataSet_SchemaObjectReplaced;
             CurrentDataSet.Log += CurrentDataSet_Log;
             //CurrentDataSet.SchemaLoaded += CurrentDataSet_SchemaLoaded;
+        }
+
+        protected void ConnectionStatusPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            gridLoading.Visibility = (ConnectionStatus != SchemaConnectionStatus.Done) ? Visibility.Visible : Visibility.Collapsed;
+            textBlockConnecting.Visibility = (ConnectionStatus == SchemaConnectionStatus.Connecting) ? Visibility.Visible : Visibility.Collapsed;
+            textBlockLoading.Visibility = (ConnectionStatus == SchemaConnectionStatus.Loading) ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void CurrentDataSet_Log(object sender, LogEventArgs e)
@@ -422,13 +509,18 @@ namespace Db2Source
             {
                 if (e.Property == CurrentDataSetProperty)
                 {
-                    CurrentDataSetChanged(e);
+                    CurrentDataSetPropertyChanged(e);
+                }
+                if (e.Property == ConnectionStatusProperty)
+                {
+                    ConnectionStatusPropertyChanged(e);
                 }
                 base.OnPropertyChanged(e);
             }
             catch (Exception t)
             {
-                App.Log(string.Format("OnPropertyChanged(\"{0}\"): {1}", e.Property.Name, t.ToString()));
+                App.Log(string.Format("OnPropertyChanged(Property: \"{0}\", NewValue: {1}, OldValue: {2}): {3}",
+                    e.Property.Name, e.NewValue != null ? e.NewValue.ToString() : "null", e.OldValue != null ? e.OldValue.ToString() : "null", t.ToString()));
                 throw;
             }
         }
@@ -535,7 +627,7 @@ namespace Db2Source
                 parent.IsExpanded = true;
             }
             BecomeExpanded(treeView, parent);
-            
+
         }
         private static TreeViewItem GetNextVisibleItem(TreeViewItem parent, int index)
         {
@@ -694,6 +786,7 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(SessionList), typeof(PgsqlSessionListControl));
             TitleBase = Title;
+            LoadFromRegistry();
         }
 
         private void menuItemRefreshSchema_Click(object sender, RoutedEventArgs e)
@@ -740,50 +833,108 @@ namespace Db2Source
             win.ShowDialog();
         }
 
+        private RegistryBinding _registryBinding;
+        private void RequireRegistryBindings()
+        {
+            if (_registryBinding != null)
+            {
+                return;
+            }
+            _registryBinding = new RegistryBinding();
+            _registryBinding.Register(window);
+            _registryBinding.Register(window, gridBase);
+        }
+        public RegistryBinding RegistryBinding
+        {
+            get
+            {
+                RequireRegistryBindings();
+                return _registryBinding;
+            }
+        }
+
         private void LoadFromRegistry()
         {
-            App.Registry.LoadStatus(this);
-
+            RegistryBinding.Load(App.RegistryFinder);
+            foreach (MovableTabItem tabItem in tabControlMain.Items)
+            {
+                IRegistryStore store = tabItem.Content as IRegistryStore;
+                store?.LoadFromRegistry();
+            }
         }
         private void SaveToRegistry()
         {
-            App.Registry.SaveStatus(this);
+            foreach (MovableTabItem tabItem in tabControlMain.Items)
+            {
+                IRegistryStore store = tabItem.Content as IRegistryStore;
+                store?.SaveToRegistry();
+            }
+            RegistryBinding.Save(App.RegistryFinder);
         }
+
         private ConnectionInfo NewConnectionInfoFromRegistry()
         {
             NpgsqlConnectionInfo info = new NpgsqlConnectionInfo()
             {
-                ServerName = App.Registry.GetString("Connection", "ServerName", App.Hostname),
-                ServerPort = App.Registry.GetInt32("Connection", "ServerPort", App.Port),
-                DatabaseName = App.Registry.GetString("Connection", "DatabaseName", App.Database),
-                UserName = App.Registry.GetString("Connection", "UserName", App.Username),
-                SearchPath = App.Registry.GetString("Connection", "SearchPath", App.SearchPath),
+                ServerName = App.RegistryFinder.GetString("Connection", "ServerName", App.Hostname),
+                ServerPort = App.RegistryFinder.GetInt32("Connection", "ServerPort", App.Port),
+                DatabaseName = App.RegistryFinder.GetString("Connection", "DatabaseName", App.Database),
+                UserName = App.RegistryFinder.GetString("Connection", "UserName", App.Username),
+                SearchPath = App.RegistryFinder.GetString("Connection", "SearchPath", App.SearchPath),
             };
             info.FillStoredPassword(false);
             info = App.Connections.Find(info) as NpgsqlConnectionInfo;
             return info;
         }
+
+        private void SaveConnectionInfo(ConnectionInfo info)
+        {
+            App.Connections.Merge(info);
+            App.Connections.Save();
+        }
+
         private void Connect(ConnectionInfo info)
         {
+            LoadLocationFromConnectionInfo(info);
             Db2SourceContext ds = info.NewDataSet();
-            IDbConnection conn = info.NewConnection(true);
             ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
-            LoadSchema(ds, conn);
-        }
-        private bool TryConnect(ConnectionInfo info)
-        {
-            Db2SourceContext ds = info.NewDataSet();
-            IDbConnection conn = null;
+            ConnectionStatus = SchemaConnectionStatus.Connecting;
             try
             {
-                conn = info.NewConnection(true);
+                Task t = ConnectAndLoadSchemaAsync(ds, info);
             }
             catch
             {
-                return false;
+                ConnectionStatus = SchemaConnectionStatus.Done;
+                throw;
             }
-            ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
-            LoadSchema(ds, conn);
+        }
+        private bool TryConnect(ConnectionInfo info)
+        {
+            ConnectionStatus = SchemaConnectionStatus.Connecting;
+            try
+            {
+                IDbConnection conn = null;
+                try
+                {
+                    conn = info.NewConnection(true);
+                }
+                catch
+                {
+                    ConnectionStatus = SchemaConnectionStatus.Done;
+                    return false;
+                }
+                LoadLocationFromConnectionInfo(info);
+                Db2SourceContext ds = info.NewDataSet();
+                ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
+                Task t = LoadSchemaAsync(ds, conn);
+                Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info); }, DispatcherPriority.ApplicationIdle);
+            }
+            catch
+            {
+                ConnectionStatus = SchemaConnectionStatus.Done;
+                throw;
+            }
             return true;
         }
         private string GetExecutableFromPath(string filename)
@@ -803,9 +954,36 @@ namespace Db2Source
             }
             return null;
         }
-        private void window_Loaded(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// MenuItemのTagに格納されているファイル名をフルパスに変換する
+        /// </summary>
+        /// <param name="menuItem"></param>
+        private void InitExecutableMenuItem(MenuItem menuItem)
         {
-            gridLoading.Visibility = Visibility.Collapsed;
+            string s = GetExecutableFromPath(menuItem.Tag.ToString());
+            menuItem.Tag = s;
+            menuItem.IsEnabled = !string.IsNullOrEmpty(s);
+        }
+        private void InitMenu()
+        {
+            InitExecutableMenuItem(menuItemPsql);
+            InitExecutableMenuItem(menuItemPgdump);
+        }
+        private void InitCommandBindings()
+        {
+            CommandBinding cb;
+            cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
+            CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
+            CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
+            CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
+            CommandBindings.Add(cb);
+        }
+        private void StartConnection()
+        {
+            ConnectionStatus = SchemaConnectionStatus.Done;
             ConnectionInfo info = new NpgsqlConnectionInfo()
             {
                 ServerName = App.Hostname,
@@ -816,7 +994,7 @@ namespace Db2Source
 
             if (App.HasConnectionInfo)
             {
-                if (!info.FillStoredPassword(true))
+                if (info.FillStoredPassword(true))
                 {
                     if (TryConnect(info))
                     {
@@ -838,22 +1016,12 @@ namespace Db2Source
             }
             info = win.Target;
             Connect(info);
-            App.Connections.Merge(info);
-            App.Connections.Save();
-            menuItemPsql.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPsql.Tag.ToString()));
-            menuItemPgdump.IsEnabled = !string.IsNullOrEmpty(GetExecutableFromPath(menuItemPgdump.Tag.ToString()));
-            {
-                CommandBinding cb;
-                cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
-                CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
-                CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
-                CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
-                CommandBindings.Add(cb);
-            }
-
+        }
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            InitMenu();
+            InitCommandBindings();
+            Dispatcher.InvokeAsync(StartConnection, DispatcherPriority.ApplicationIdle);
         }
 
         private void CopyTableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -975,6 +1143,12 @@ namespace Db2Source
                     return;
                 }
             }
+        }
+
+        private void window_Closed(object sender, EventArgs e)
+        {
+            SaveToRegistry();
+            SaveLocationToConnectionInfo();
         }
 
         private void menuItemOption_Click(object sender, RoutedEventArgs e)

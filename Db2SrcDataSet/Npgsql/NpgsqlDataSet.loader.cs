@@ -19,6 +19,7 @@ namespace Db2Source
 {
     partial class NpgsqlDataSet
     {
+        private const string ERROR_CODE_PERMISSION_DENIED = "42501";  // 42501:エラー:テーブルのアクセス許可が拒否されました
         private static void LogDbCommand(string prefix, NpgsqlCommand command)
         {
             if (!IsSQLLoggingEnabled)
@@ -403,165 +404,183 @@ namespace Db2Source
             return buf.ToString();
         }
 
+        internal static string ToIdentifier(params string[] names)
+        {
+            if (names == null || names.Length == 0)
+            {
+                return null;
+            }
+            StringBuilder buf = new StringBuilder(names[0]);
+            for (int i = 1, n = names.Length; i < n; i++)
+            {
+                buf.Append('.');
+                buf.Append(names[i]);
+            }
+            return buf.ToString();
+        }
+
         private class PgObjectCollection<T>: IReadOnlyList<T> where T : PgObject, new()
         {
             private readonly List<T> _items = new List<T>();
-            private Dictionary<uint, T> _oidToItem = null;
-            private readonly object _dictionaryLock = new object();
+            private Dictionary<uint, T> _oidToItem = new Dictionary<uint, T>();
+            private Dictionary<string, T> _nameToItem = null;
 
-            private void InvalidateDictionary()
-            {
-                _oidToItem = null;
-            }
-            private void RequireDictionary()
-            {
-                if (_oidToItem != null)
-                {
-                    return;
-                }
-                lock (_dictionaryLock)
-                {
-                    if (_oidToItem != null)
-                    {
-                        return;
-                    }
-                    Dictionary<uint, T> dictOid = new Dictionary<uint, T>();
-                    foreach (T obj in _items)
-                    {
-                        dictOid[obj.oid] = obj;
-                    }
-                    _oidToItem = dictOid;
-                }
-            }
-            public void Fill(string sql, NpgsqlConnection connection, Dictionary<uint, PgObject> dict, bool clearBeforeFill)
+            public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
             {
                 if (clearBeforeFill)
                 {
                     _items.Clear();
                 }
-                InvalidateDictionary();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
                 {
                     LogDbCommand("PgObjectCollection<T>.Fill", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        FieldInfo[] mapper = CreateMapper(reader, typeof(T));
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            T obj = new T();
-                            ReadObject(obj, reader, mapper);
-                            if (obj.oid != 0)
+                            FieldInfo[] mapper = CreateMapper(reader, typeof(T));
+                            while (reader.Read())
                             {
-                                PgObject old;
-                                if (dict.TryGetValue(obj.oid, out old))
+                                T obj = new T();
+                                ReadObject(obj, reader, mapper);
+                                if (obj.oid != 0)
                                 {
-                                    _items.Remove((T)old);
+                                    T old;
+                                    if (_oidToItem.TryGetValue(obj.oid, out old))
+                                    {
+                                        _items.Remove(old);
+                                    }
+                                    _oidToItem[obj.oid] = obj;
                                 }
-                                dict[obj.oid] = obj;
+                                _items.Add(obj);
                             }
-                            _items.Add(obj);
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
             //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void Join(string sql, NpgsqlConnection connection)
             {
-                InvalidateDictionary();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
                 {
                     LogDbCommand("PgObjectCollection<T>.Join", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        FieldInfo[] mapper = CreateMapper(reader, typeof(T));
-                        int oidPos = -1;
-                        for (int p = 0; p < mapper.Length; p++)
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            FieldInfo fi = mapper[p];
-                            if (fi.Name == "oid")
+                            FieldInfo[] mapper = CreateMapper(reader, typeof(T));
+                            int oidPos = -1;
+                            for (int p = 0; p < mapper.Length; p++)
                             {
-                                oidPos = p;
-                                break;
+                                FieldInfo fi = mapper[p];
+                                if (fi.Name == "oid")
+                                {
+                                    oidPos = p;
+                                    break;
+                                }
                             }
-                        }
-                        if (oidPos == -1)
-                        {
-                            throw new ApplicationException("oid not found");
-                        }
-                        while (reader.Read())
-                        {
-                            UInt32 oid = reader.GetFieldValue<UInt32>(oidPos);
-                            T obj = FindByOid(oid);
-                            if (obj != null)
+                            if (oidPos == -1)
                             {
-                                ReadObject(obj, reader, mapper);
+                                throw new ApplicationException("oid not found");
+                            }
+                            while (reader.Read())
+                            {
+                                UInt32 oid = reader.GetFieldValue<UInt32>(oidPos);
+                                T obj = FindByOid(oid);
+                                if (obj != null)
+                                {
+                                    ReadObject(obj, reader, mapper);
+                                }
                             }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
             //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void JoinToDict<T2>(string sql, FieldInfo dictField, string fieldname, NpgsqlConnection connection)
             {
-                InvalidateDictionary();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
                 {
                     LogDbCommand("PgObjectCollection<T>.JoinToDict", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        int oidPos = -1;
-                        int indexPos = -1;
-                        int fieldPos = -1;
-                        for (int p = 0; p < reader.FieldCount; p++)
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            string nm = reader.GetName(p);
-                            if (nm == "oid")
+                            int oidPos = -1;
+                            int indexPos = -1;
+                            int fieldPos = -1;
+                            for (int p = 0; p < reader.FieldCount; p++)
                             {
-                                oidPos = p;
+                                string nm = reader.GetName(p);
+                                if (nm == "oid")
+                                {
+                                    oidPos = p;
+                                }
+                                else if (nm == "n")
+                                {
+                                    indexPos = p;
+                                }
+                                else if (nm == fieldname)
+                                {
+                                    fieldPos = p;
+                                }
                             }
-                            else if (nm == "n")
+                            if (oidPos == -1)
                             {
-                                indexPos = p;
+                                throw new ApplicationException("field \"oid\" not found");
                             }
-                            else if (nm == fieldname)
+                            if (indexPos == -1)
                             {
-                                fieldPos = p;
+                                throw new ApplicationException("field \"n\" not found");
                             }
-                        }
-                        if (oidPos == -1)
-                        {
-                            throw new ApplicationException("field \"oid\" not found");
-                        }
-                        if (indexPos == -1)
-                        {
-                            throw new ApplicationException("field \"n\" not found");
-                        }
-                        if (fieldPos == -1)
-                        {
-                            throw new ApplicationException(string.Format("field \"{0}\" not found", fieldname));
-                        }
-                        while (reader.Read())
-                        {
-                            UInt32 oid = reader.GetFieldValue<UInt32>(oidPos);
-                            T obj = FindByOid(oid);
-                            if (obj == null)
+                            if (fieldPos == -1)
                             {
-                                continue;
+                                throw new ApplicationException(string.Format("field \"{0}\" not found", fieldname));
                             }
-                            int i = reader.GetInt32(indexPos);
-                            Dictionary<int, T2> dict = (Dictionary<int,T2>)dictField.GetValue(obj);
-                            dict[i] = reader.GetFieldValue<T2>(fieldPos);
+                            while (reader.Read())
+                            {
+                                UInt32 oid = reader.GetFieldValue<UInt32>(oidPos);
+                                T obj = FindByOid(oid);
+                                if (obj == null)
+                                {
+                                    continue;
+                                }
+                                int i = reader.GetInt32(indexPos);
+                                Dictionary<int, T2> dict = (Dictionary<int, T2>)dictField.GetValue(obj);
+                                dict[i] = reader.GetFieldValue<T2>(fieldPos);
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
+
             public void BeginFillReference(WorkingData working)
             {
+                _nameToItem = null;
                 foreach (T obj in _items)
                 {
                     obj.BeginFillReference(working);
                 }
             }
+
+            public void UpdateNameToItem()
+            {
+                Dictionary<string, T> dict = new Dictionary<string, T>();
+                foreach (T obj in _items)
+                {
+                    string id = obj.GetIdentifier();
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+                    dict[id] = obj;
+                }
+                _nameToItem = dict;
+            }
+
             public void EndFillReference(WorkingData working)
             {
                 foreach (T obj in _items)
@@ -579,7 +598,6 @@ namespace Db2Source
 
             public T FindByOid(uint oid)
             {
-                RequireDictionary();
                 T ret;
                 if (!_oidToItem.TryGetValue(oid, out ret))
                 {
@@ -588,9 +606,28 @@ namespace Db2Source
                 return ret;
             }
 
-            public PgObjectCollection(string sql, NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public T FindByName(string identifier)
             {
-                Fill(sql, connection, dict, false);
+                if (string.IsNullOrEmpty(identifier))
+                {
+                    return null;
+                }
+                if (_nameToItem == null)
+                {
+                    throw new ApplicationException("FindByName() can not call before EndFillReference()");
+                }
+                T obj;
+                if (!_nameToItem.TryGetValue(identifier, out obj))
+                {
+                    return null;
+                }
+                return obj;
+            }
+
+
+            public PgObjectCollection(string sql, NpgsqlConnection connection)
+            {
+                Fill(sql, connection, false);
             }
             public PgObjectCollection() { }
 
@@ -619,34 +656,39 @@ namespace Db2Source
         private class PgOidSubidCollection<T> : IReadOnlyList<T> where T: PgOidSubid, new()
         {
             private readonly List<T> _items = new List<T>();
-            private Dictionary<ulong, T> _oidNumToItem = null;
+            private Dictionary<ulong, T> _oidNumToItem = new Dictionary<ulong, T>();
+            private Dictionary<string, T> _nameToItem = null;
             private readonly object _dictionaryLock = new object();
 
-            private void InvalidateDictionary()
+            private static ulong ToKey(uint oid, int subid)
             {
-                _oidNumToItem = null;
+                return (((ulong)oid) << 32) | (uint)subid;
             }
-            private void RequireDictionary()
-            {
-                if (_oidNumToItem != null)
-                {
-                    return;
-                }
-                lock (_dictionaryLock)
-                {
-                    if (_oidNumToItem != null)
-                    {
-                        return;
-                    }
-                    Dictionary<ulong, T> dictOid = new Dictionary<ulong, T>();
-                    foreach (T obj in _items)
-                    {
-                        ulong v = (((ulong)obj.Oid) << 32) | (uint)obj.Subid;
-                        dictOid[v] = obj;
-                    }
-                    _oidNumToItem = dictOid;
-                }
-            }
+            //private void InvalidateDictionary()
+            //{
+            //    _oidNumToItem = null;
+            //}
+            //private void RequireDictionary()
+            //{
+            //    if (_oidNumToItem != null)
+            //    {
+            //        return;
+            //    }
+            //    lock (_dictionaryLock)
+            //    {
+            //        if (_oidNumToItem != null)
+            //        {
+            //            return;
+            //        }
+            //        Dictionary<ulong, T> dictOid = new Dictionary<ulong, T>();
+            //        foreach (T obj in _items)
+            //        {
+            //            ulong v = (((ulong)obj.Oid) << 32) | (uint)obj.Subid;
+            //            dictOid[v] = obj;
+            //        }
+            //        _oidNumToItem = dictOid;
+            //    }
+            //}
             //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
             {
@@ -654,35 +696,67 @@ namespace Db2Source
                 {
                     _items.Clear();
                 }
-                InvalidateDictionary();
+                //InvalidateDictionary();
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
                 {
                     LogDbCommand("PgOidSubidCollection<T>.Fill", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        FieldInfo[] mapper = CreateMapper(reader, typeof(T));
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            T obj = new T();
-                            ReadObject(obj, reader, mapper);
-                            _items.Add(obj);
+                            FieldInfo[] mapper = CreateMapper(reader, typeof(T));
+                            while (reader.Read())
+                            {
+                                T obj = new T();
+                                ReadObject(obj, reader, mapper);
+                                if (obj.Oid != 0)
+                                {
+                                    ulong id = ToKey(obj.Oid, obj.Subid);
+                                    T old;
+                                    if (_oidNumToItem.TryGetValue(id, out old))
+                                    {
+                                        _items.Remove(old);
+                                    }
+                                    _oidNumToItem[id] = obj;
+                                }
+                                _items.Add(obj);
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
             public void BeginFillReference(WorkingData working)
             {
+                _nameToItem = null;
                 foreach (T obj in _items)
                 {
                     obj.BeginFillReference(working);
                 }
             }
+
+            public void UpdateNameToItem()
+            {
+                Dictionary<string, T> dict = new Dictionary<string, T>();
+                foreach (T obj in _items)
+                {
+                    string id = obj.GetIdentifier();
+                    if (string.IsNullOrEmpty(id))
+                    {
+                        continue;
+                    }
+                    dict[id] = obj;
+                }
+                _nameToItem = dict;
+            }
+
             public void EndFillReference(WorkingData working)
             {
                 foreach (T obj in _items)
                 {
                     obj.EndFillReference(working);
                 }
+                UpdateNameToItem();
             }
             public void FillReference(WorkingData working)
             {
@@ -694,14 +768,32 @@ namespace Db2Source
 
             public T FindByOidNum(uint oid, int num)
             {
-                RequireDictionary();
+                //RequireDictionary();
                 T ret;
-                ulong v = ((ulong)oid) << 32 | (uint)num;
+                ulong v = ToKey(oid, num);
                 if (!_oidNumToItem.TryGetValue(v, out ret))
                 {
                     return null;
                 }
                 return ret;
+            }
+
+            public T FindByName(string identifier)
+            {
+                if (string.IsNullOrEmpty(identifier))
+                {
+                    return null;
+                }
+                if (_nameToItem == null)
+                {
+                    throw new ApplicationException("FindByName() can not call before EndFillReference()");
+                }
+                T obj;
+                if (!_nameToItem.TryGetValue(identifier, out obj))
+                {
+                    return null;
+                }
+                return obj;
             }
 
             public void RemoveByOid(uint oid)
@@ -712,9 +804,9 @@ namespace Db2Source
                     if (obj.Oid == oid)
                     {
                         _items.RemoveAt(i);
+                        _oidNumToItem.Remove(ToKey(obj.Oid, obj.Subid));
                     }
                 }
-                InvalidateDictionary();
             }
             public PgOidSubidCollection(string sql, NpgsqlConnection connection)
             {
@@ -744,184 +836,6 @@ namespace Db2Source
             public T this[int index] { get { return _items[index]; } }
             #endregion
         }
-
-        //private class PgDependCollection : IReadOnlyList<PgDepend>
-        //{
-        //    private List<PgDepend> _items = new List<PgDepend>();
-        //    private Dictionary<uint, List<PgDepend>> _oidToItem = null;
-        //    private Dictionary<uint, List<PgDepend>> _refOidToItem = null;
-        //    private object _dictionaryLock = new object();
-
-        //    private void InvalidateDictionary()
-        //    {
-        //        _oidToItem = null;
-        //        _refOidToItem = null;
-        //    }
-        //    private void RequireDictionary()
-        //    {
-        //        if (_oidToItem != null)
-        //        {
-        //            return;
-        //        }
-        //        lock (_dictionaryLock)
-        //        {
-        //            if (_oidToItem != null)
-        //            {
-        //                return;
-        //            }
-        //            Dictionary<uint, List<PgDepend>> dictOid = new Dictionary<uint, List<PgDepend>>();
-        //            Dictionary<uint, List<PgDepend>> dictRefOid = new Dictionary<uint, List<PgDepend>>();
-        //            foreach (PgDepend obj in _items)
-        //            {
-        //                List<PgDepend> l;
-        //                if (!dictOid.TryGetValue(obj.objid, out l))
-        //                {
-        //                    l = new List<PgDepend>();
-        //                    dictOid.Add(obj.objid, l);
-        //                }
-        //                l.Add(obj);
-        //                if (!dictRefOid.TryGetValue(obj.refobjid, out l))
-        //                {
-        //                    l = new List<PgDepend>();
-        //                    dictRefOid.Add(obj.refobjid, l);
-        //                }
-        //                l.Add(obj);
-        //            }
-        //            _oidToItem = dictOid;
-        //            _refOidToItem = dictRefOid;
-        //        }
-        //    }
-        //    public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
-        //    {
-        //        if (clearBeforeFill)
-        //        {
-        //            _items.Clear();
-        //        }
-        //        InvalidateDictionary();
-        //        using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
-        //        {
-        //            using (NpgsqlDataReader reader = cmd.ExecuteReader())
-        //            {
-        //                FieldInfo[] mapper = CreateMapper(reader, typeof(PgDepend));
-        //                while (reader.Read())
-        //                {
-        //                    PgDepend obj = new PgDepend();
-        //                    ReadObject(obj, reader, mapper);
-        //                    _items.Add(obj);
-        //                }
-        //            }
-        //        }
-        //    }
-        //    public void BeginFillReference(WorkingData working)
-        //    {
-        //        foreach (PgDepend obj in _items)
-        //        {
-        //            obj.BeginFillReference(working);
-        //        }
-        //    }
-        //    public void EndFillReference(WorkingData working)
-        //    {
-        //        foreach (PgDepend obj in _items)
-        //        {
-        //            obj.EndFillReference(working);
-        //        }
-        //    }
-        //    public void FillReference(WorkingData working)
-        //    {
-        //        foreach (PgDepend obj in _items)
-        //        {
-        //            obj.FillReference(working);
-        //        }
-        //    }
-
-        //    public List<PgDepend> FindByOid(uint oid)
-        //    {
-        //        RequireDictionary();
-        //        List<PgDepend> ret;
-        //        if (!_oidToItem.TryGetValue(oid, out ret))
-        //        {
-        //            ret = new List<PgDepend>();
-        //            _oidToItem.Add(oid, ret);
-        //        }
-        //        return ret;
-        //    }
-        //    public List<PgDepend> FindByOidNum(uint oid, int num)
-        //    {
-        //        RequireDictionary();
-        //        List<PgDepend> ret = new List<PgDepend>();
-        //        List<PgDepend> l;
-        //        if (!_oidToItem.TryGetValue(oid, out l))
-        //        {
-        //            return ret;
-        //        }
-        //        foreach (PgDepend obj in l)
-        //        {
-        //            if (obj.objsubid == num)
-        //            {
-        //                ret.Add(obj);
-        //            }
-        //        }
-        //        return ret;
-        //    }
-
-        //    public List<PgDepend> FindByRefOid(uint oid)
-        //    {
-        //        RequireDictionary();
-        //        List<PgDepend> ret;
-        //        if (!_refOidToItem.TryGetValue(oid, out ret))
-        //        {
-        //            ret = new List<PgDepend>();
-        //            _refOidToItem.Add(oid, ret);
-        //        }
-        //        return ret;
-        //    }
-        //    public List<PgDepend> FindByRefOidNum(uint oid, int num)
-        //    {
-        //        RequireDictionary();
-        //        List<PgDepend> ret = new List<PgDepend>();
-        //        List<PgDepend> l;
-        //        if (!_refOidToItem.TryGetValue(oid, out l))
-        //        {
-        //            return ret;
-        //        }
-        //        foreach (PgDepend obj in l)
-        //        {
-        //            if (obj.refobjsubid == num)
-        //            {
-        //                ret.Add(obj);
-        //            }
-        //        }
-        //        return ret;
-        //    }
-
-        //    public PgDependCollection(string sql, NpgsqlConnection connection)
-        //    {
-        //        Fill(sql, connection, false);
-        //    }
-        //    public PgDependCollection() { }
-
-        //    #region IReadOnlyList の実装
-        //    public int Count
-        //    {
-        //        get
-        //        {
-        //            return _items.Count;
-        //        }
-        //    }
-
-        //    public IEnumerator<PgDepend> GetEnumerator()
-        //    {
-        //        return _items.GetEnumerator();
-        //    }
-
-        //    IEnumerator IEnumerable.GetEnumerator()
-        //    {
-        //        return ((IEnumerable)_items).GetEnumerator();
-        //    }
-
-        //    public PgDepend this[int index] { get { return _items[index]; } }
-        //    #endregion
-        //}
 
         /// <summary>
         /// SQLのwhere句に条件式を追加する
@@ -960,6 +874,7 @@ namespace Db2Source
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
             public abstract void FillReference(WorkingData working);
+            public abstract string GetIdentifier();
             public PgObject() { }
         }
         private class PgNamespace: PgObject
@@ -971,31 +886,35 @@ namespace Db2Source
             //public override string Name { get { return nspname; } }
             public PgNamespace() : base() { }
             public static PgObjectCollection<PgNamespace> Namespaces = null;
-            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, PgObjectCollection<PgNamespace> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, PgObjectCollection<PgNamespace> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict);
+                    return new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgNamespace_SQL, connection, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection)
             {
-                Namespaces = new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection, dict);
+                Namespaces = new PgObjectCollection<PgNamespace>(DataSet.Properties.Resources.PgNamespace_SQL, connection);
                 return Namespaces;
             }
-            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgNamespace> Load(NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgNamespace_SQL, string.Format("oid = {0}::oid", oid));
-                Namespaces = new PgObjectCollection<PgNamespace>(sql, connection, dict);
+                Namespaces = new PgObjectCollection<PgNamespace>(sql, connection);
                 return Namespaces;
             }
             public override void FillReference(WorkingData working)
             {
+            }
+            public override string GetIdentifier()
+            {
+                return nspname;
             }
             public override string ToString()
             {
@@ -1036,6 +955,8 @@ namespace Db2Source
             //public uint relminmxid;
             //public string relacl;
             //public string reloptions;
+            public bool relispartition;
+            public string partitionbound;
             public string ownername;
 
             public string viewdef;
@@ -1066,11 +987,16 @@ namespace Db2Source
             public string owned_schema;
             public string owned_table;
             public string owned_field;
+            public string ftoptions;
+            public string srvname;
+            public string srvoptions;
+            public string fdwname;
 #pragma warning restore 0649
             public PgNamespace Schema;
             public PgClass IndexTable;
             public PgTablespace TableSpace;
-            public PgClass OwnedTable;
+            //public PgClass OwnedTable;
+            public PgAttribute OwnedColumn;
             public bool IsImplicit;
             public string[] IndexColumns;
             public List<PgAttribute> Columns = new List<PgAttribute>();
@@ -1080,32 +1006,34 @@ namespace Db2Source
             //public override string Name { get { return string.Format("{0}_{1}:{2}", relnamespace, relname, relkind); } }
             public PgClass() : base() { }
             public static PgObjectCollection<PgClass> Classes = null;
-            public static PgObjectCollection<PgClass> Load(NpgsqlConnection connection, PgObjectCollection<PgClass> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgClass> Load(NpgsqlConnection connection, PgObjectCollection<PgClass> store)
             {
+                string sql = (10 <= connection.PostgreSqlVersion.Major) ? DataSet.Properties.Resources.PgClass_SQL : DataSet.Properties.Resources.PgClass9_SQL;
                 PgObjectCollection<PgClass> l;
                 if (store == null)
                 {
-                    l = new PgObjectCollection<PgClass>(DataSet.Properties.Resources.PgClass_SQL, connection, dict);
+                    l = new PgObjectCollection<PgClass>(sql, connection);
                 }
                 else
                 {
                     l = store;
-                    l.Fill(DataSet.Properties.Resources.PgClass_SQL, connection, dict, false);
+                    l.Fill(sql, connection, false);
                 }
                 l.Join(DataSet.Properties.Resources.PgClass_VIEWDEFSQL, connection);
                 l.Join(DataSet.Properties.Resources.PgClass_INDEXSQL, connection);
                 l.Join(DataSet.Properties.Resources.PgClass_SEQUENCESQL, connection);
+                l.Join(DataSet.Properties.Resources.PgForeignTable_SQL, connection);
                 return l;
             }
-            public static PgObjectCollection<PgClass> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgClass> Load(NpgsqlConnection connection)
             {
-                Classes = new PgObjectCollection<PgClass>(DataSet.Properties.Resources.PgClass_SQL, connection, dict);
+                Classes = new PgObjectCollection<PgClass>(DataSet.Properties.Resources.PgClass_SQL, connection);
                 return Classes;
             }
-            public static void FillByOid(PgObjectCollection<PgClass> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgClass> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgClass_SQL, string.Format("oid = {0}::oid", oid));
-                store.Fill(sql, connection, dict, false);
+                store.Fill(sql, connection, false);
                 sql = AddCondition(DataSet.Properties.Resources.PgClass_VIEWDEFSQL, string.Format("oid = {0}::oid", oid));
                 store.Join(sql, connection);
                 sql = AddCondition(DataSet.Properties.Resources.PgClass_INDEXSQL, string.Format("i.indexrelid = {0}::oid", oid));
@@ -1119,13 +1047,17 @@ namespace Db2Source
                 using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.PgClass_RELATEDSQL, connection))
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            oids.Add((uint)reader.GetValue(0));
+                            while (reader.Read())
+                            {
+                                oids.Add((uint)reader.GetValue(0));
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
                 return oids.ToArray();
             }
@@ -1136,17 +1068,24 @@ namespace Db2Source
                     cmd.Parameters.Add(new NpgsqlParameter("schema", schema));
                     cmd.Parameters.Add(new NpgsqlParameter("name", name));
                     cmd.Parameters.Add(new NpgsqlParameter("kind", relkind));
-                    object ret = cmd.ExecuteScalar();
-                    if (ret == null || ret is DBNull)
+                    try
+                    {
+                        object ret = cmd.ExecuteScalar();
+                        if (ret == null || ret is DBNull)
+                        {
+                            return null;
+                        }
+                        return (uint)ret;
+                    }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED)
                     {
                         return null;
                     }
-                    return (uint)ret;
                 }
             }
-            internal string GetIdentifier()
+            public override string GetIdentifier()
             {
-                return Schema?.nspname + "." + relname;
+                return ToIdentifier(Schema?.nspname, relname);
             }
             public override void BeginFillReference(WorkingData working)
             {
@@ -1166,6 +1105,7 @@ namespace Db2Source
             }
             public override void EndFillReference(WorkingData working)
             {
+                PgAttribute a;
                 switch (relkind)
                 {
                     case 'i':
@@ -1179,16 +1119,17 @@ namespace Db2Source
                         {
                             foreach (int i in indkey)
                             {
-                                PgAttribute a = working.PgAttributes.FindByOidNum(indrelid, i);
+                                a = working.PgAttributes.FindByOidNum(indrelid, i);
                                 Columns.Add(a);
                             }
                         }
                         break;
                     case 'S':
-                        OwnedTable = null;
-                        if (!string.IsNullOrEmpty(owned_table))
+                        //OwnedTable = working.PgClasses.FindByName(ToIdentifier(owned_schema, owned_table));
+                        OwnedColumn = working.PgAttributes.FindByName(ToIdentifier(owned_schema, owned_table, owned_field));
+                        if (OwnedColumn != null)
                         {
-                            OwnedTable = working.FindPgClassByName(owned_schema, owned_table);
+                            OwnedColumn.Sequence = this;
                         }
                         break;
                 }
@@ -1216,11 +1157,13 @@ namespace Db2Source
                 {
                     return (View)o;
                 }
-                if (relkind != 'v')
+                if (relkind != 'v' && relkind != 'm')
                 {
                     return null;
                 }
-                View v = new View(context, ownername, Schema?.nspname, relname, viewdef, true);
+                string prefix = string.Empty;
+                View.Kind k = (relkind == 'm') ? View.Kind.MarerializedView : View.Kind.View;
+                View v = new View(context, k, ownername, Schema?.nspname, relname, viewdef, true);
                 int i = 1;
                 foreach (PgAttribute a in Columns)
                 {
@@ -1233,6 +1176,7 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(v);
                 return v;
             }
+
             public Table ToTable(NpgsqlDataSet context)
             {
                 NamedObject o;
@@ -1240,13 +1184,18 @@ namespace Db2Source
                 {
                     return (Table)o;
                 }
-                if (relkind != 'r')
+                if ("fprt".IndexOf(relkind) == -1)
                 {
                     return null;
                 }
-                Table t = new Table(context, ownername, Schema?.nspname, relname)
+                Table.Kind k = (relkind == 'f') ? Table.Kind.ForeignTable : Table.Kind.Table;
+                Table t = new Table(context, k, ownername, Schema?.nspname, relname)
                 {
-                    TablespaceName = TableSpace?.spcname
+                    TablespaceName = TableSpace?.spcname,
+                    IsPartitioned = relispartition,
+                    PartitionBound = partitionbound,
+                    ForeignServer = srvname,
+                    ForeignTableOptions = ftoptions
                 };
                 int i = 1;
                 foreach (PgAttribute a in Columns)
@@ -1260,6 +1209,7 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
+
             public ComplexType ToComplexType(NpgsqlDataSet context)
             {
                 NamedObject o;
@@ -1292,7 +1242,7 @@ namespace Db2Source
                 {
                     return (Index)o;
                 }
-                if (relkind != 'i')
+                if (relkind != 'i' && relkind != 'I')
                 {
                     return null;
                 }
@@ -1308,11 +1258,18 @@ namespace Db2Source
             }
             public Sequence ToSequence(NpgsqlDataSet context)
             {
+                NamedObject o;
+                Sequence seq;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    seq = (Sequence)o;
+                    return seq;
+                }
                 if (relkind != 'S')
                 {
                     return null;
                 }
-                Sequence seq = new Sequence(context, ownername, Schema?.nspname, relname)
+                seq = new Sequence(context, ownername, Schema?.nspname, relname)
                 {
                     StartValue = start_value.ToString()
                 };
@@ -1330,12 +1287,12 @@ namespace Db2Source
                 seq.IsCycled = cycle_option;
                 seq.OwnedSchemaName = owned_schema;
                 seq.OwnedTableName = owned_table;
-                seq.OwnedColumn = owned_field;
-                Table owned = OwnedTable?.ToTable(context);
-                if (owned != null)
+                seq.OwnedColumnName = owned_field;
+                if (seq.OwnedColumn != null)
                 {
-                    owned.Sequences.Add(seq);
+                    seq.OwnedColumn.Sequence = seq;
                 }
+                Generated = new WeakReference<NamedObject>(seq);
                 return seq;
             }
 
@@ -1343,19 +1300,21 @@ namespace Db2Source
             {
                 switch (relkind)
                 {
-                    case 'r':
+                    case 'r':   //table
+                    case 'f':   //foreign table
+                    case 'p':   //partitioned table
+                    case 't':   //toast table
                         return ToTable(context);
-                    case 'v':
+                    case 'v':   //view
+                    case 'm':   //materialized view
                         return ToView(context);
-                    case 'i':
+                    case 'i':   //index
+                    case 'I':   //partitioned index
                         return ToIndex(context);
-                    case 'S': // なぜかsequenceだけ大文字
+                    case 'S':   //sequence
                         return ToSequence(context);
-                    case 'c': //複合型
+                    case 'c':   //complex type
                         return ToComplexType(context);
-                    case 't': //TOASTテーブル
-                    case 'f': //外部テーブル
-                        return null;
                 }
                 return null;
             }
@@ -1415,26 +1374,26 @@ namespace Db2Source
             public PgType ElementType;
             public PgType() : base() { }
             public static PgObjectCollection<PgType> Types = null;
-            public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, PgObjectCollection<PgType> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, PgObjectCollection<PgType> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgType>(DataSet.Properties.Resources.PgType_SQL, connection, dict);
+                    return new PgObjectCollection<PgType>(DataSet.Properties.Resources.PgType_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgType_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgType_SQL, connection, false);
                     return store;
                 }
             }
-            public static void FillByOid(PgObjectCollection<PgType> store, NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgType> store, NpgsqlConnection connection)
             {
-                store.Fill(DataSet.Properties.Resources.PgType_SQL, connection, dict, false);
+                store.Fill(DataSet.Properties.Resources.PgType_SQL, connection, false);
             }
-            public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgType> Load(NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgType_SQL, string.Format("oid = {0}::oid", oid));
-                Types = new PgObjectCollection<PgType>(sql, connection, dict);
+                Types = new PgObjectCollection<PgType>(sql, connection);
                 return Types;
             }
             public override void BeginFillReference(WorkingData working)
@@ -1573,6 +1532,10 @@ namespace Db2Source
                 }
             }
 
+            public override string GetIdentifier()
+            {
+                return ToIdentifier(Schema?.nspname, typname);
+            }
             public override string ToString()
             {
                 return typname;
@@ -1628,29 +1591,29 @@ namespace Db2Source
                 { 'r', ForeignKeyRule.Restrict },
                 { 'a', ForeignKeyRule.NoAction },
             };
-        public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection, PgObjectCollection<PgConstraint> store, Dictionary<uint, PgObject> dict)
+        public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection, PgObjectCollection<PgConstraint> store)
             {
                 PgObjectCollection<PgConstraint> l = store;
                 if (l == null)
                 {
-                    l = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection, dict);
+                    l = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection);
                 }
                 else
                 {
-                    l.Fill(DataSet.Properties.Resources.PgConstraint_SQL, connection, dict, false);
+                    l.Fill(DataSet.Properties.Resources.PgConstraint_SQL, connection, false);
                 }
                 l.Join(DataSet.Properties.Resources.PgConstraint_CHECKSQL, connection);
                 return l;
             }
-            public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgConstraint> Load(NpgsqlConnection connection)
             {
-                PgObjectCollection<PgConstraint> l = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection, dict);
+                PgObjectCollection<PgConstraint> l = new PgObjectCollection<PgConstraint>(DataSet.Properties.Resources.PgConstraint_SQL, connection);
                 return l;
             }
-            public static void FillByOid(PgObjectCollection<PgConstraint> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgConstraint> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgConstraint_SQL, string.Format("conrelid = {0}::oid", oid));
-                store.Fill(sql, connection, dict, false);
+                store.Fill(sql, connection, false);
             }
             public static uint[] GetRefTableOid(NpgsqlConnection connection, uint oid)
             {
@@ -1658,14 +1621,18 @@ namespace Db2Source
                 using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.PgConstraint_REFTABLESQL, connection))
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("oid", NpgsqlDbType.Oid) { Value = oid });
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            oids.Add((uint)reader.GetValue(0));
+                            while (reader.Read())
+                            {
+                                oids.Add((uint)reader.GetValue(0));
+                            }
                         }
                     }
-                }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
+            }
                 return oids.ToArray();
 
             }
@@ -1787,6 +1754,10 @@ namespace Db2Source
                 }
                 return null;
             }
+            public override string GetIdentifier()
+            {
+                return ToIdentifier(Schema?.nspname, Object?.relname, conname);
+            }
 
             public override string ToString()
             {
@@ -1801,6 +1772,8 @@ namespace Db2Source
             public virtual void FillReference(WorkingData working) { }
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
+
+            public abstract string GetIdentifier();
 
             public int CompareTo(object obj)
             {
@@ -1857,6 +1830,7 @@ namespace Db2Source
             public bool IsArray;
             public string ElemTypeName;
             public string BaseTypeName;
+            public PgClass Sequence;
             //public override string Name { get { return string.Format("{0}_{1}", attrelid, attname); } }
             public static PgOidSubidCollection<PgAttribute> Attributes;
 
@@ -1965,8 +1939,17 @@ namespace Db2Source
                     c.HiddenLevel = (attname == "oid") ? HiddenLevel.Hidden : HiddenLevel.SystemInternal;
                     c.Index = attnum;
                 }
+                if (Sequence != null)
+                {
+                    c.Sequence = Sequence.ToSchemaObject(context) as Sequence;
+                }
                 Generated = new WeakReference<NamedObject>(c);
                 return c;
+            }
+
+            public override string GetIdentifier()
+            {
+                return ToIdentifier(Owner?.Schema?.nspname, Owner?.relname, attname);
             }
             public override string ToString()
             {
@@ -1989,27 +1972,27 @@ namespace Db2Source
             public PgAttribute TargetAttribute;
             public PgType TargetType;
             public static PgObjectCollection<PgDescription> Descriptions;
-            public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, PgObjectCollection<PgDescription> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, PgObjectCollection<PgDescription> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection, dict);
+                    return new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgDescription_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgDescription_SQL, connection, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgDescription> Load(NpgsqlConnection connection)
             {
-                Descriptions = new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection, dict);
+                Descriptions = new PgObjectCollection<PgDescription>(DataSet.Properties.Resources.PgDescription_SQL, connection);
                 return Descriptions;
             }
-            public static void FillByOid(PgObjectCollection<PgDescription> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgDescription> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgDescription_SQL, string.Format("objoid = {0}::oid", oid));
-                store.Fill(sql, connection, dict, false);
+                store.Fill(sql, connection, false);
             }
 
             public override void FillReference(WorkingData working)
@@ -2027,6 +2010,10 @@ namespace Db2Source
             }
             private string[] GetTargetName()
             {
+                if (TargetAttribute != null)
+                {
+                    return new string[] { TargetAttribute.Owner?.Schema?.nspname, TargetAttribute.Owner?.relname, TargetAttribute.attname };
+                }
                 if (TargetClass != null)
                 {
                     return new string[] { TargetClass.Schema?.nspname, TargetClass.relname };
@@ -2047,7 +2034,7 @@ namespace Db2Source
                 {
                     return new string[] { TargetType.Schema?.nspname, TargetType.typname };
                 }
-                return new string[2];
+                return new string[0];
             }
 
             public Comment ToComment(NpgsqlDataSet context)
@@ -2086,6 +2073,10 @@ namespace Db2Source
                 return c;
             }
 
+            public override string GetIdentifier()
+            {
+                return ToIdentifier(GetTargetName());
+            }
             public override string ToString()
             {
                 return description;
@@ -2192,27 +2183,27 @@ namespace Db2Source
             public PgAttribute[] UpdateColumns;
             //public Schema Schema;
             //public static PgObjectCollection<PgTrigger> Triggers;
-            public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, PgObjectCollection<PgTrigger> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, PgObjectCollection<PgTrigger> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgTrigger_SQL, connection, dict);
+                    return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgTrigger_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgTrigger_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgTrigger_SQL, connection, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgTrigger> Load(NpgsqlConnection connection)
             {
-                return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgTrigger_SQL, connection, dict);
+                return new PgObjectCollection<PgTrigger>(DataSet.Properties.Resources.PgTrigger_SQL, connection);
             }
 
-            public static void FillByOid(PgObjectCollection<PgTrigger> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgTrigger> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgTrigger_SQL, string.Format("tgrelid = {0}::oid", oid));
-                store.Fill(sql, connection, dict, false);
+                store.Fill(sql, connection, false);
             }
             public override void FillReference(WorkingData working)
             {
@@ -2346,6 +2337,10 @@ namespace Db2Source
                 return t;
             }
 
+            public override string GetIdentifier()
+            {
+                return ToIdentifier(Target?.Schema?.nspname, Target?.relname, tgname);
+            }
             public override string ToString()
             {
                 return tgname;
@@ -2360,21 +2355,21 @@ namespace Db2Source
             public string location;
 #pragma warning restore 0649
             public static PgObjectCollection<PgTablespace> Tablespaces;
-            public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, PgObjectCollection<PgTablespace> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, PgObjectCollection<PgTablespace> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict);
+                    return new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgTablespace_SQL, connection, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection)
             {
-                Tablespaces = new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection, dict);
+                Tablespaces = new PgObjectCollection<PgTablespace>(DataSet.Properties.Resources.PgTablespace_SQL, connection);
                 return Tablespaces;
             }
 
@@ -2401,6 +2396,10 @@ namespace Db2Source
 
             }
 
+            public override string GetIdentifier()
+            {
+                return spcname;
+            }
             public override string ToString()
             {
                 return spcname;
@@ -2441,6 +2440,7 @@ namespace Db2Source
             ////public aclitem[] proacl;
             public string ownername;
             public string lanname;
+            //public string grant_check;  // pg_get_functiondef()のアクセス権がない場合は失敗するようにわざと入れている
 #pragma warning restore 0649
             public PgNamespace Schema;
             public PgType ReturnType;
@@ -2467,14 +2467,14 @@ namespace Db2Source
                 return StrUtil.DelimitedText(GetArgTypeStrs(), ",", "(", ")");
             }
 
-            internal string GetIdentifier()
+            public override string GetIdentifier()
             {
-                return proname + GetArgumentStr();
+                return ToIdentifier(Schema?.nspname, proname + GetArgumentStr());
             }
-            public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid, Dictionary<uint, PgObject> dict)
+            public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid)
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgProc_SQL, string.Format("p.oid = {0}::oid", oid));
-                store.Fill(sql, connection, dict, false);
+                store.Fill(sql, connection, false);
             }
             public static uint? GetOid(WorkingData backend, NpgsqlConnection connection, string schema, string name, string[] argtypes)
             {
@@ -2482,51 +2482,55 @@ namespace Db2Source
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("schema", schema));
                     cmd.Parameters.Add(new NpgsqlParameter("name", name));
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            uint oid = reader.GetFieldValue<uint>(0);
-                            string proname = reader.GetString(1);
-                            uint[] proargtypes = reader.GetFieldValue<uint[]>(2);
-                            if (proargtypes == null || proargtypes.Length == 0 && argtypes.Length == 0)
+                            while (reader.Read())
                             {
-                                return oid;
-                            }
-                            if (proargtypes.Length != argtypes.Length)
-                            {
-                                continue;
-                            }
-                            bool matched = true;
-                            for (int i = 0; i < proargtypes.Length; i++)
-                            {
-                                PgType t = backend.PgTypes.FindByOid(proargtypes[i]);
-                                if (t.formatname != argtypes[i])
+                                uint oid = reader.GetFieldValue<uint>(0);
+                                string proname = reader.GetString(1);
+                                uint[] proargtypes = reader.GetFieldValue<uint[]>(2);
+                                if (proargtypes == null || proargtypes.Length == 0 && argtypes.Length == 0)
                                 {
-                                    matched = false;
-                                    break;
+                                    return oid;
                                 }
-                            }
-                            if (matched)
-                            {
-                                return oid;
+                                if (proargtypes.Length != argtypes.Length)
+                                {
+                                    continue;
+                                }
+                                bool matched = true;
+                                for (int i = 0; i < proargtypes.Length; i++)
+                                {
+                                    PgType t = backend.PgTypes.FindByOid(proargtypes[i]);
+                                    if (t.formatname != argtypes[i])
+                                    {
+                                        matched = false;
+                                        break;
+                                    }
+                                }
+                                if (matched)
+                                {
+                                    return oid;
+                                }
                             }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                     return null;
                 }
             }
-            public static PgObjectCollection<PgProc> Load(NpgsqlConnection connection, PgObjectCollection<PgProc> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgProc> Load(NpgsqlConnection connection, PgObjectCollection<PgProc> store)
             {
                 string sql = (11 <= connection.PostgreSqlVersion.Major) ? DataSet.Properties.Resources.PgProc_SQL : DataSet.Properties.Resources.PgProc10_SQL;
                 PgObjectCollection <PgProc> l = store;
                 if (l == null)
                 {
-                    l = new PgObjectCollection<PgProc>(sql, connection, dict);
+                    l = new PgObjectCollection<PgProc>(sql, connection);
                 }
                 else
                 {
-                    l.Fill(sql, connection, dict, false);
+                    l.Fill(sql, connection, false);
                 }
                 l.JoinToDict<string>(DataSet.Properties.Resources.PgProc_ARGDEFAULTSQL, typeof(PgProc).GetField("ArgDefaults"), "parameter_default", connection);
                 return l;
@@ -2667,25 +2671,29 @@ namespace Db2Source
 #pragma warning restore 0649
             public bool IsCurrent;
             public static string current_database;
-            public static PgObjectCollection<PgDatabase> Load(NpgsqlConnection connection, PgObjectCollection<PgDatabase> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgDatabase> Load(NpgsqlConnection connection, PgObjectCollection<PgDatabase> store)
             {
                 using (NpgsqlCommand cmd = new NpgsqlCommand("select current_database()", connection))
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        if (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            current_database = reader.GetString(0);
+                            if (reader.Read())
+                            {
+                                current_database = reader.GetString(0);
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgDatabase>(DataSet.Properties.Resources.PgDatabase_SQL, connection, dict);
+                    return new PgObjectCollection<PgDatabase>(DataSet.Properties.Resources.PgDatabase_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgDatabase_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgDatabase_SQL, connection, false);
                     return store;
                 }
             }
@@ -2710,6 +2718,10 @@ namespace Db2Source
                 return ret;
             }
 
+            public override string GetIdentifier()
+            {
+                return datname;
+            }
             public override string ToString()
             {
                 return datname;
@@ -2730,16 +2742,20 @@ namespace Db2Source
                 using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
                 {
                     LogDbCommand("PgSettingCollection.Fill", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        FieldInfo[] mapper = CreateMapper(reader, typeof(PgSetting));
-                        while (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            PgSetting obj = new PgSetting();
-                            ReadObject(obj, reader, mapper);
-                            _items.Add(obj);
+                            FieldInfo[] mapper = CreateMapper(reader, typeof(PgSetting));
+                            while (reader.Read())
+                            {
+                                PgSetting obj = new PgSetting();
+                                ReadObject(obj, reader, mapper);
+                                _items.Add(obj);
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
             public void BeginFillReference(WorkingData working)
@@ -2883,13 +2899,17 @@ namespace Db2Source
                 using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.NpgsqlDataSet_USERINFOSQL, conn))
                 {
                     LogDbCommand("NpgsqlDataSet.LoadUserInfo", cmd);
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    try
                     {
-                        if (reader.Read())
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
                         {
-                            CurrentSchema = reader.GetValue(0).ToString();
+                            if (reader.Read())
+                            {
+                                CurrentSchema = reader.GetValue(0).ToString();
+                            }
                         }
                     }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
                 }
             }
             finally
@@ -2916,21 +2936,21 @@ namespace Db2Source
 #pragma warning restore 0649
 
             public static PgObjectCollection<PgRole> Roles;
-            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection, PgObjectCollection<PgRole> store, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection, PgObjectCollection<PgRole> store)
             {
                 if (store == null)
                 {
-                    return new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection, dict);
+                    return new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection);
                 }
                 else
                 {
-                    store.Fill(DataSet.Properties.Resources.PgRoles_SQL, connection, dict, false);
+                    store.Fill(DataSet.Properties.Resources.PgRoles_SQL, connection, false);
                     return store;
                 }
             }
-            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection, Dictionary<uint, PgObject> dict)
+            public static PgObjectCollection<PgRole> Load(NpgsqlConnection connection)
             {
-                Roles = new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection, dict);
+                Roles = new PgObjectCollection<PgRole>(DataSet.Properties.Resources.PgRoles_SQL, connection);
                 return Roles;
             }
 
@@ -2964,14 +2984,23 @@ namespace Db2Source
                 Generated = new WeakReference<NamedObject>(u);
                 return u;
             }
-        };
 
+            public override string GetIdentifier()
+            {
+                return rolname;
+            }
+            public override string ToString()
+            {
+                return rolname;
+            }
+        }
         private class WorkingData
         {
             public NpgsqlDataSet Context;
-            public Dictionary<uint, PgObject> OidToObject = new Dictionary<uint, PgObject>();
+
             public PgObjectCollection<PgClass> PgClasses;
-            private Dictionary<string, PgClass> _nameToPgClass = null;
+            //private Dictionary<string, PgClass> _nameToPgClass = null;
+            //private Dictionary<string, PgAttribute> _nameToPgAttribute = null;
             public PgObjectCollection<PgConstraint> PgConstraints;
             public PgObjectCollection<PgNamespace> PgNamespaces;
             public PgOidSubidCollection<PgAttribute> PgAttributes;
@@ -2987,19 +3016,20 @@ namespace Db2Source
             public void FillAll(NpgsqlConnection connection)
             {
                 Context.LoadEncodings(connection);
-                PgNamespaces = PgNamespace.Load(connection, null, OidToObject);
-                PgTablespaces = PgTablespace.Load(connection, null, OidToObject);
-                PgDatabases = PgDatabase.Load(connection, null, OidToObject);
-                PgClasses = PgClass.Load(connection, null, OidToObject);
-                _nameToPgClass = null;
-                PgTypes = PgType.Load(connection, null, OidToObject);
+                PgNamespaces = PgNamespace.Load(connection, null);
+                PgTablespaces = PgTablespace.Load(connection, null);
+                PgDatabases = PgDatabase.Load(connection, null);
+                PgClasses = PgClass.Load(connection, null);
+                //_nameToPgClass = null;
+                //_nameToPgAttribute = null;
+                PgTypes = PgType.Load(connection, null);
                 PgAttributes = PgAttribute.Load(connection, null);
-                PgProcs = PgProc.Load(connection, null, OidToObject);
-                PgConstraints = PgConstraint.Load(connection, null, OidToObject);
-                PgTriggers = PgTrigger.Load(connection, null, OidToObject);
-                PgDescriptions = PgDescription.Load(connection, null, OidToObject);
+                PgProcs = PgProc.Load(connection, null);
+                PgConstraints = PgConstraint.Load(connection, null);
+                PgTriggers = PgTrigger.Load(connection, null);
+                PgDescriptions = PgDescription.Load(connection, null);
                 //PgDepends = PgDepend.Load(connection, null);
-                PgRoles = PgRole.Load(connection, null, OidToObject);
+                PgRoles = PgRole.Load(connection, null);
                 PgSettings = PgSetting.Load(connection, null);
 
                 PgNamespaces.BeginFillReference(this);
@@ -3020,7 +3050,8 @@ namespace Db2Source
                 PgTablespaces.FillReference(this);
                 PgDatabases.FillReference(this);
                 PgClasses.FillReference(this);
-                _nameToPgClass = null;
+                //_nameToPgClass = null;
+                //_nameToPgAttribute = null;
                 PgTypes.FillReference(this);
                 PgAttributes.FillReference(this);
                 PgProcs.FillReference(this);
@@ -3030,6 +3061,20 @@ namespace Db2Source
                 //PgDepends.FillReference(this);
                 PgRoles.FillReference(this);
                 PgSettings.FillReference(this);
+
+                PgNamespaces.UpdateNameToItem();
+                PgTablespaces.UpdateNameToItem();
+                PgDatabases.UpdateNameToItem();
+                PgClasses.UpdateNameToItem();
+                PgTypes.UpdateNameToItem();
+                PgAttributes.UpdateNameToItem();
+                PgProcs.UpdateNameToItem();
+                PgConstraints.UpdateNameToItem();
+                PgTriggers.UpdateNameToItem();
+                PgDescriptions.UpdateNameToItem();
+                //PgDepends.UpdateNameToItem();
+                PgRoles.UpdateNameToItem();
+                //PgSettings.UpdateNameToItem();
 
                 PgNamespaces.EndFillReference(this);
                 PgTablespaces.EndFillReference(this);
@@ -3072,15 +3117,15 @@ namespace Db2Source
                 {
                     return;
                 }
-                PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
+                PgClass.FillByOid(PgClasses, connection, oid);
                 foreach (uint reloid in PgClass.GetRelatedOid(connection, oid))
                 {
-                    PgClass.FillByOid(PgClasses, connection, reloid, OidToObject);
+                    PgClass.FillByOid(PgClasses, connection, reloid);
                 }
                 PgAttribute.FillByOid(PgAttributes, connection, oid);
-                PgConstraint.FillByOid(PgConstraints, connection, oid, OidToObject);
-                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
-                PgTrigger.FillByOid(PgTriggers, connection, oid, OidToObject);
+                PgConstraint.FillByOid(PgConstraints, connection, oid);
+                PgDescription.FillByOid(PgDescriptions, connection, oid);
+                PgTrigger.FillByOid(PgTriggers, connection, oid);
                 loadedOids[oid] = true;
                 foreach (uint reloid in PgConstraint.GetRefTableOid(connection, oid))
                 {
@@ -3103,6 +3148,12 @@ namespace Db2Source
                 PgConstraints.FillReference(this);
                 PgTriggers.FillReference(this);
                 PgDescriptions.FillReference(this);
+
+                PgClasses.UpdateNameToItem();
+                PgAttributes.UpdateNameToItem();
+                PgConstraints.UpdateNameToItem();
+                PgTriggers.UpdateNameToItem();
+                PgDescriptions.UpdateNameToItem();
 
                 PgClasses.EndFillReference(this);
                 PgAttributes.EndFillReference(this);
@@ -3132,6 +3183,12 @@ namespace Db2Source
             //    PgTriggers.FillReference(this);
             //    PgDescriptions.FillReference(this);
 
+            //    PgClasses.UpdateNameToItem();
+            //    PgAttributes.UpdateNameToItem();
+            //    PgConstraints.UpdateNameToItem();
+            //    PgTriggers.UpdateNameToItem();
+            //    PgDescriptions.UpdateNameToItem();
+
             //    PgClasses.EndFillReference(this);
             //    PgAttributes.EndFillReference(this);
             //    PgConstraints.EndFillReference(this);
@@ -3145,10 +3202,10 @@ namespace Db2Source
             //}
             public void FillTypeByOid(uint oid, NpgsqlConnection connection)
             {
-                PgClass.FillByOid(PgClasses, connection, oid, OidToObject);
-                PgType.FillByOid(PgTypes, connection, OidToObject);
+                PgClass.FillByOid(PgClasses, connection, oid);
+                PgType.FillByOid(PgTypes, connection);
                 PgAttribute.FillByOid(PgAttributes, connection, oid);
-                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
+                PgDescription.FillByOid(PgDescriptions, connection, oid);
 
                 PgClasses.BeginFillReference(this);
                 PgTypes.BeginFillReference(this);
@@ -3159,6 +3216,11 @@ namespace Db2Source
                 PgTypes.FillReference(this);
                 PgAttributes.FillReference(this);
                 PgDescriptions.FillReference(this);
+
+                PgClasses.UpdateNameToItem();
+                PgTypes.UpdateNameToItem();
+                PgAttributes.UpdateNameToItem();
+                PgDescriptions.UpdateNameToItem();
 
                 PgClasses.EndFillReference(this);
                 PgTypes.EndFillReference(this);
@@ -3171,14 +3233,17 @@ namespace Db2Source
             }
             public void FillProcByOid(uint oid, NpgsqlConnection connection)
             {
-                PgProc.FillByOid(PgProcs, connection, oid, OidToObject);
-                PgDescription.FillByOid(PgDescriptions, connection, oid, OidToObject);
+                PgProc.FillByOid(PgProcs, connection, oid);
+                PgDescription.FillByOid(PgDescriptions, connection, oid);
 
                 PgProcs.BeginFillReference(this);
                 PgDescriptions.BeginFillReference(this);
 
                 PgProcs.FillReference(this);
                 PgDescriptions.FillReference(this);
+
+                PgProcs.UpdateNameToItem();
+                PgDescriptions.UpdateNameToItem();
 
                 PgProcs.EndFillReference(this);
                 PgDescriptions.EndFillReference(this);
@@ -3316,38 +3381,64 @@ namespace Db2Source
                 }
             }
 
-            private object _nameToPgClassLock = new object();
-            private void UpdateNameToPgClass()
-            {
-                if (_nameToPgClass != null)
-                {
-                    return;
-                }
-                lock (_nameToPgClassLock)
-                {
-                    if (_nameToPgClass != null)
-                    {
-                        return;
-                    }
-                    Dictionary<string, PgClass> dict = new Dictionary<string, PgClass>();
-                    foreach (PgClass c in PgClasses)
-                    {
-                        dict[c.GetIdentifier()] = c;
-                    }
-                    _nameToPgClass = dict;
-                }
-            }
-            internal PgClass FindPgClassByName(string schema, string name)
-            {
-                UpdateNameToPgClass();
-                string id = schema + "." + name;
-                PgClass c;
-                if (_nameToPgClass.TryGetValue(id, out c))
-                {
-                    return c;
-                }
-                return null;
-            }
+            //private object _nameToPgClassLock = new object();
+            //private void UpdateNameToPgClass()
+            //{
+            //    if (_nameToPgClass != null)
+            //    {
+            //        return;
+            //    }
+            //    lock (_nameToPgClassLock)
+            //    {
+            //        if (_nameToPgClass != null)
+            //        {
+            //            return;
+            //        }
+            //        Dictionary<string, PgClass> dictC = new Dictionary<string, PgClass>();
+            //        Dictionary<string, PgAttribute> dictA = new Dictionary<string, PgAttribute>();
+            //        foreach (PgClass c in PgClasses)
+            //        {
+            //            string id = c.GetIdentifier();
+            //            dictC[id] = c;
+            //            foreach (PgAttribute a in c.Columns)
+            //            {
+            //                dictA[id + "." + a.attname] = a;
+            //            }
+            //        }
+            //        _nameToPgClass = dictC;
+            //        _nameToPgAttribute = dictA;
+            //    }
+            //}
+            //internal PgClass FindPgClassByName(string schema, string name)
+            //{
+            //    if (string.IsNullOrEmpty(schema) || string.IsNullOrEmpty(name))
+            //    {
+            //        return null;
+            //    }
+            //    UpdateNameToPgClass();
+            //    string id = schema + "." + name;
+            //    PgClass c;
+            //    if (!_nameToPgClass.TryGetValue(id, out c))
+            //    {
+            //        return null;
+            //    }
+            //    return c;
+            //}
+            //internal PgAttribute FindPgAttributeByName(string schema, string table, string column)
+            //{
+            //    if (string.IsNullOrEmpty(schema) || string.IsNullOrEmpty(table) || string.IsNullOrEmpty(column))
+            //    {
+            //        return null;
+            //    }
+            //    UpdateNameToPgClass();
+            //    string id = schema + "." + table + "." + column;
+            //    PgAttribute a;
+            //    if (!_nameToPgAttribute.TryGetValue(id, out a))
+            //    {
+            //        return null;
+            //    }
+            //    return a;
+            //}
 
         }
         private WorkingData _backend;

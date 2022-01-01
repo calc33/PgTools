@@ -21,6 +21,54 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+        private static string GetForeignTableOptionSQL(string foreignTableOption)
+        {
+            string opts = foreignTableOption.Trim();
+            if (string.IsNullOrEmpty(opts))
+            {
+                return string.Empty;
+            }
+            if (opts.StartsWith("("))
+            {
+                opts = opts.Remove(0, 1);
+            }
+            if (opts.EndsWith(")"))
+            {
+                opts = opts.Remove(opts.Length - 1);
+            }
+            if (string.IsNullOrEmpty(opts))
+            {
+                return string.Empty;
+            }
+            string[] opt = opts.Split(',');
+            List<string> l = new List<string>();
+            foreach (string s in opt)
+            {
+                int p = s.IndexOf('=');
+                if (p == -1)
+                {
+                    continue;
+                }
+                string k = s.Substring(0, p - 1).Trim();
+                string v = s.Substring(p + 1).Trim();
+                l.Add(string.Format("{0} '{1}'", k, v));
+            }
+            if (l.Count == 0)
+            {
+                return string.Empty;
+            }
+            
+            StringBuilder buf = new StringBuilder();
+            buf.Append('(');
+            buf.Append(l[0]);
+            for (int i = 1; i < l.Count; i++)
+            {
+                buf.Append(", ");
+                buf.Append(l[i]);
+            }
+            buf.Append(')');
+            return buf.ToString();
+        }
         public override string[] GetSQL(Table table, string prefix, string postfix, int indent, bool addNewline, bool includePrimaryKey)
         {
             if (table == null)
@@ -40,7 +88,7 @@ namespace Db2Source
             string spc = new string(' ', indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("create table {0} (", table.EscapedIdentifier(CurrentSchema));
+            buf.AppendFormat("create {0} {1} (", table.GetSqlType().ToLower(), table.EscapedIdentifier(CurrentSchema));
             buf.AppendLine();
             int n = table.Columns.Count - 1;
             for (int i = 0; i < n; i++)
@@ -59,6 +107,24 @@ namespace Db2Source
             {
                 buf.Append(" tablepslace ");
                 buf.Append(table.TablespaceName);
+            }
+            if (table.IsForeignTable)
+            {
+                if (!string.IsNullOrEmpty(table.ForeignServer))
+                {
+                    buf.AppendLine();
+                    buf.Append(indent);
+                    buf.Append("server ");
+                    buf.Append(table.ForeignServer);
+                }
+                string opt = GetForeignTableOptionSQL(table.ForeignTableOptions);
+                if (!string.IsNullOrEmpty(opt))
+                {
+                    buf.AppendLine();
+                    buf.Append(indent);
+                    buf.Append("options ");
+                    buf.Append(opt);
+                }
             }
             buf.Append(postfix);
             if (addNewline)
@@ -87,7 +153,7 @@ namespace Db2Source
             string spc = new string(' ', indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("create or replace view {0} (", table.EscapedIdentifier(CurrentSchema));
+            buf.AppendFormat("create or replace {0} {1} (", table.GetSqlType().ToLower(), table.EscapedIdentifier(CurrentSchema));
             int colIndent = indent + 2;
             string colSpc = new string(' ', indent + 2);
             int l = colIndent;
@@ -562,7 +628,7 @@ namespace Db2Source
             {
                 return StrUtil.EmptyStringArray;
             }
-            if (skipOwned && !string.IsNullOrEmpty(sequence.OwnedColumn))
+            if (skipOwned && !string.IsNullOrEmpty(sequence.OwnedColumnName))
             {
                 return StrUtil.EmptyStringArray;
             }
@@ -598,12 +664,12 @@ namespace Db2Source
                 buf.Append(" cache ");
                 buf.Append(sequence.Cache);
             }
-            if (!ignoreOwned && !string.IsNullOrEmpty(sequence.OwnedColumn))
+            if (!ignoreOwned && !string.IsNullOrEmpty(sequence.OwnedColumnName))
             {
                 buf.Append(" owned by ");
                 buf.Append(GetEscapedIdentifier(sequence.OwnedSchemaName, sequence.OwnedTableName, CurrentSchema, true));
                 buf.Append('.');
-                buf.Append(GetEscapedIdentifier(sequence.OwnedColumn, true));
+                buf.Append(GetEscapedIdentifier(sequence.OwnedColumnName, true));
             }
             buf.Append(postfix);
             if (addNewline)

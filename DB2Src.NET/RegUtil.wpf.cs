@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -11,21 +12,28 @@ namespace Unicorn.Utility
 {
     partial class RegistryBinding
     {
-        private void Register(FrameworkElement root, FrameworkElement control, RegistryValueKind kind, string propertyName, ValueNameStyle style, IRegistryOperator op)
+        private static string GetElementName(FrameworkElement element)
         {
-            if (string.IsNullOrEmpty(control.Name))
+            return (element is Window || element is UserControl) ? element.GetType().Name : element.Name;
+        }
+
+        private void Register(FrameworkElement root, FrameworkElement control, string propertyName, ValueNameStyle style, IRegistryOperator op)
+        {
+            string cName = GetElementName(control);
+            if (string.IsNullOrEmpty(cName))
             {
                 throw new ArgumentException("名前のないコントロールはレジストリに保存できません");
             }
             string rPath = string.Empty;
-            string cPath = control.Name;
+            string cPath = cName;
             List<string> paths = new List<string>();
             FrameworkElement obj = control.Parent as FrameworkElement;
             while (obj != null && obj != root)
             {
-                if (!string.IsNullOrEmpty(obj.Name) && (NameScope.GetNameScope(obj) != null))
+                string name = GetElementName(obj);
+                if (!string.IsNullOrEmpty(name) && (NameScope.GetNameScope(obj) != null))
                 {
-                    paths.Insert(0, obj.Name);
+                    paths.Insert(0, name);
                 }
                 obj = obj.Parent as FrameworkElement;
             }
@@ -38,7 +46,7 @@ namespace Unicorn.Utility
                     rPath += "\\" + paths[i];
                     cPath += "." + paths[i];
                 }
-                cPath += "." + control.Name;
+                cPath += "." + cName;
             }
             string vName;
             switch (style)
@@ -59,35 +67,171 @@ namespace Unicorn.Utility
                 default:
                     throw new ArgumentOutOfRangeException("style");
             }
-            ValueBinding b = new ValueBinding()
-            {
-                RegistryPath = rPath,
-                ValueName = vName,
-                ValueKind = kind,
-                Control = control,
-                ControlProperty = control.GetType().GetProperty(propertyName),
-                Operator = op
-            };
-            Items.Add(b);
+            Register(rPath, vName, control, propertyName, op);
         }
         public void Register(Window window)
         {
-            Register(window, window, RegistryValueKind.DWord, "Left", ValueNameStyle.Property, new Int32Operator());
-            Register(window, window, RegistryValueKind.DWord, "Top", ValueNameStyle.Property, new Int32Operator());
-            Register(window, window, RegistryValueKind.DWord, "Width", ValueNameStyle.Property, new Int32Operator());
-            Register(window, window, RegistryValueKind.DWord, "Height", ValueNameStyle.Property, new Int32Operator());
+            //Register(window, window, "Left", ValueNameStyle.Property, new Int32Operator());
+            //Register(window, window, "Top", ValueNameStyle.Property, new Int32Operator());
+            Register(window, window, "Width", ValueNameStyle.Property, new DoubleOperator());
+            Register(window, window, "Height", ValueNameStyle.Property, new DoubleOperator());
+            Register(string.Empty, "Maximized", window, "WindowState", new WindowStateOperator());
         }
         public void Register(FrameworkElement root, TabControl control)
         {
-            Register(root, control, RegistryValueKind.DWord, "SelectedIndex", ValueNameStyle.Control, new Int32Operator());
+            Register(root, control, "SelectedIndex", ValueNameStyle.Control, new Int32Operator());
         }
         public void Register(FrameworkElement root, ComboBox control)
         {
-            Register(root, control, RegistryValueKind.DWord, "SelectedIndex", ValueNameStyle.Control, new Int32Operator());
+            Register(root, control, "SelectedIndex", ValueNameStyle.Control, new Int32Operator());
         }
         public void Register(FrameworkElement root, CheckBox control)
         {
-            Register(root, control, RegistryValueKind.DWord, "IsChecked", ValueNameStyle.Control, new NullableBoolOperator());
+            Register(root, control, "IsChecked", ValueNameStyle.Control, new NullableBoolOperator());
+        }
+        public void Register(FrameworkElement root, TextBox control)
+        {
+            Register(root, control, "Text", ValueNameStyle.Control, new StringOperator());
+        }
+        public void Register(FrameworkElement root, Grid control)
+        {
+            Register(root, control, "RowDefinitions", ValueNameStyle.Property, new RowDefinitionCollectionOperator());
+            Register(root, control, "ColumnDefinitions", ValueNameStyle.Property, new ColumnDefinitionCollectionOperator());
+        }
+    }
+
+    public class RowDefinitionCollectionOperator : IRegistryOperator
+    {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.String;
+        }
+        public void Read(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Grid grid = control as Grid;
+            if (grid == null)
+            {
+                return;
+            }
+            if (grid.RowDefinitions.Count == 0)
+            {
+                return;
+            }
+            string v = RegistryBinding.ReadString(key, name, null);
+            if (string.IsNullOrEmpty(v))
+            {
+                return;
+            }
+            string[] l = StringList.FromCsv(v).ToArray();
+            int n = Math.Min(l.Length, grid.RowDefinitions.Count);
+            GridLengthConverter converter = new GridLengthConverter();
+            for (int i = 0; i < n; i++)
+            {
+                RowDefinition def = grid.RowDefinitions[i];
+                def.Height = (GridLength)converter.ConvertFrom(l[i]);
+            }
+        }
+
+        public void Write(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Grid grid = control as Grid;
+            if (grid == null)
+            {
+                return;
+            }
+            if (grid.RowDefinitions.Count == 0)
+            {
+                return;
+            }
+            List<string> l = new List<string>(grid.RowDefinitions.Count);
+            foreach (RowDefinition def in grid.RowDefinitions)
+            {
+                l.Add(def.Height.ToString());
+            }
+            string csv = new StringList(l.ToArray()).ToCsv(false);
+            key.SetValue(name, csv, RegistryValueKind.String);
+        }
+    }
+
+    public class ColumnDefinitionCollectionOperator : IRegistryOperator
+    {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.String;
+        }
+        public void Read(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Grid grid = control as Grid;
+            if (grid == null)
+            {
+                return;
+            }
+            if (grid.ColumnDefinitions.Count == 0)
+            {
+                return;
+            }
+            string v = RegistryBinding.ReadString(key, name, null);
+            if (string.IsNullOrEmpty(v))
+            {
+                return;
+            }
+            string[] l = StringList.FromCsv(v).ToArray();
+            int n = Math.Min(l.Length, grid.ColumnDefinitions.Count);
+            GridLengthConverter converter = new GridLengthConverter();
+            for (int i = 0; i < n; i++)
+            {
+                ColumnDefinition def = grid.ColumnDefinitions[i];
+                def.Width = (GridLength)converter.ConvertFrom(l[i]);
+            }
+        }
+
+        public void Write(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Grid grid = control as Grid;
+            if (grid == null)
+            {
+                return;
+            }
+            if (grid.ColumnDefinitions.Count == 0)
+            {
+                return;
+            }
+            List<string> l = new List<string>(grid.ColumnDefinitions.Count);
+            foreach (ColumnDefinition def in grid.ColumnDefinitions)
+            {
+                l.Add(def.Width.ToString());
+            }
+            string csv = new StringList(l.ToArray()).ToCsv(false);
+            key.SetValue(name, csv, RegistryValueKind.String);
+        }
+    }
+    public class WindowStateOperator : IRegistryOperator
+    {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.DWord;
+        }
+
+        public void Read(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Window window = control as Window;
+            if (window == null)
+            {
+                return;
+            }
+            int v = window.WindowState == WindowState.Maximized ? 1 : 0;
+            v = RegistryBinding.ReadInt(key, name, v);
+            window.WindowState = (v == 1) ? WindowState.Maximized : WindowState.Normal;
+        }
+
+        public void Write(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            Window window = control as Window;
+            if (window == null)
+            {
+                return;
+            }
+            key.SetValue(name, window.WindowState == WindowState.Maximized ? 1 : 0, GetValueKind());
         }
     }
 }

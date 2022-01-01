@@ -162,13 +162,15 @@ namespace Db2Source.DataSet.Properties {
         /// <summary>
         ///   select oid,
         ///  relname, relnamespace, reltablespace, relkind,
-        ///  pg_get_userbyid(relowner) as ownername
+        ///  pg_get_userbyid(relowner) as ownername,
+        ///  relispartition, pg_get_expr(relpartbound, oid, true) as partitionbound
         ///from pg_catalog.pg_class
         ///where not pg_is_other_temp_schema(relnamespace)
-        ///  and (not relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;)
-        ///    or pg_has_role(relowner, &apos;USAGE&apos;::text)
+        ///  --and relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;, &apos;m&apos;)
+        ///  and relkind &lt;&gt; &apos;t&apos;
+        ///  and (pg_has_role(relowner, &apos;USAGE&apos;::text)
         ///    or has_table_privilege(oid, &apos;SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER&apos;)
-        ///    or has_any_column_privilege(oid, &apos;SELECT, INSERT, UPDATE, REFERENCES&apos;)) に類似しているローカライズされた文字列を検索します。
+        ///    or has_any_column_privilege(oid, &apos;SELECT,  [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgClass_SQL {
             get {
@@ -186,16 +188,34 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select oid,
+        ///  relname, relnamespace, reltablespace, relkind,
+        ///  pg_get_userbyid(relowner) as ownername
+        ///from pg_catalog.pg_class
+        ///where not pg_is_other_temp_schema(relnamespace)
+        ///  --and relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;, &apos;m&apos;)
+        ///  and relkind &lt;&gt; &apos;t&apos;
+        ///  and (pg_has_role(relowner, &apos;USAGE&apos;::text)
+        ///    or has_table_privilege(oid, &apos;SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER&apos;)
+        ///    or has_any_column_privilege(oid, &apos;SELECT, INSERT, UPDATE, REFERENCES&apos;)) に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgClass9_SQL {
+            get {
+                return ResourceManager.GetString("PgClass9_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select r.oid
         ///from pg_catalog.pg_class r
         ///  inner join pg_catalog.pg_namespace ns
         ///    on (r.relnamespace = ns.oid and not pg_is_other_temp_schema(r.relnamespace) and ns.nspname = :schema)
         ///where r.relname = :name and r.relkind = :kind
-        ///  and (not r.relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;)
-        ///    or pg_has_role(r.relowner, &apos;USAGE&apos;::text)
+        ///  --and relkind in (&apos;c&apos;, &apos;r&apos;, &apos;v&apos;, &apos;f&apos;, &apos;m&apos;)
+        ///  and relkind &lt;&gt; &apos;t&apos;
+        ///  and (pg_has_role(r.relowner, &apos;USAGE&apos;::text)
         ///    or has_table_privilege(r.oid, &apos;SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER&apos;)
-        ///    or has_any_column_privilege(r.oid, &apos;SELECT, INSERT, UPDATE, REFERENCES&apos;))
-        /// に類似しているローカライズされた文字列を検索します。
+        ///    or has_any_column_privilege(r.oid, &apos;SELECT, INSERT, UPDA [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgClassOid_SQL {
             get {
@@ -267,6 +287,15 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///    に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgForeignTable_SQL {
+            get {
+                return ResourceManager.GetString("PgForeignTable_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select ns.oid, ns.nspname, ns.nspowner from pg_namespace ns order by ns.nspname に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgNamespace_SQL {
@@ -291,7 +320,7 @@ namespace Db2Source.DataSet.Properties {
         ///   select p.oid,
         ///  p.proname, p.pronamespace, p.prokind, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.prosrc,
-        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername
+        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
         ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))
@@ -307,7 +336,7 @@ namespace Db2Source.DataSet.Properties {
         ///   select p.oid,
         ///  p.proname, p.pronamespace, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.prosrc,
-        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername
+        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
         ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))

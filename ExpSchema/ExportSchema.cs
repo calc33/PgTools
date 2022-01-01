@@ -107,6 +107,15 @@ namespace Db2Source
                 }
             }
             buffer.AppendLine();
+            long lastLength = buffer.Length;
+            foreach (Index i in view.Indexes)
+            {
+                AppendToBuffer(buffer, DataSet.GetSQL(i, string.Empty, ";", 0, true));
+            }
+            if (lastLength < buffer.Length)
+            {
+                buffer.AppendLine();
+            }
         }
         private void ExportStoredFunction(StringBuilder buffer, StoredFunction function)
         {

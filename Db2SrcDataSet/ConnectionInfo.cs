@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Db2Source
@@ -413,6 +414,12 @@ namespace Db2Source
             }
         }
 
+        public double? WindowLeft { get; set; }
+        public double? WindowTop { get; set; }
+        public double? WindowWidth { get; set; }
+        public double? WindowHeight { get; set; }
+        public bool? IsWindowMaximized { get; set; }
+
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnDefaultCategoryPathChanged()
@@ -487,6 +494,11 @@ namespace Db2Source
         public virtual void Merge(ConnectionInfo item)
         {
             Password = item.Password;
+            WindowLeft = item.WindowLeft;
+            WindowTop = item.WindowTop;
+            WindowWidth = item.WindowWidth;
+            WindowHeight = item.WindowHeight;
+            IsWindowMaximized = item.IsWindowMaximized;
         }
 
         internal protected virtual void Load(Dictionary<string, string> data)
@@ -571,6 +583,10 @@ namespace Db2Source
         }
         public abstract string ToConnectionString(bool includePassord);
         public abstract IDbConnection NewConnection(bool withOpening);
+        public async Task<IDbConnection> NewConnectionAsync(bool withOpening)
+        {
+            return await Task.Run(() => { return NewConnection(withOpening); });
+        }
         public static int CompareByName(ConnectionInfo item1, ConnectionInfo item2)
         {
             if (item1 == null || item2 == null)

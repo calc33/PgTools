@@ -80,7 +80,7 @@ namespace Unicorn.Utility
             }
             if ((dir[0] == '\\'))
             {
-                dir.Remove(0, 1);
+                dir = dir.Remove(0, 1);
             }
             RegistryKey ret = Key.OpenSubKey(dir, writable);
             if (ret == null && writable && createNew)
@@ -98,42 +98,114 @@ namespace Unicorn.Utility
 
     public interface IRegistryOperator
     {
+        RegistryValueKind GetValueKind();
         void Read(RegistryKey key, string name, object control, PropertyInfo property);
         void Write(RegistryKey key, string name, object control, PropertyInfo property);
     }
     public class StringOperator: IRegistryOperator
     {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.String;
+        }
         public void Read(RegistryKey key, string name, object control, PropertyInfo property)
         {
-            int v = RegistryBinding.ReadInt(key, name);
+            string v = (string)property.GetValue(control);
+            v = RegistryBinding.ReadString(key, name, v);
             property.SetValue(control, v);
         }
 
         public void Write(RegistryKey key, string name, object control, PropertyInfo property)
         {
-            int v = (int)property.GetValue(control);
-            key.SetValue(name, v, RegistryValueKind.DWord);
+            string v = property.GetValue(control)?.ToString() ?? string.Empty;
+            key.SetValue(name, v, RegistryValueKind.String);
+        }
+    }
+    public class DoubleOperator : IRegistryOperator
+    {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.String;
+        }
+        public void Read(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            string v = property.GetValue(control)?.ToString();
+            v = RegistryBinding.ReadString(key, name, v);
+            try
+            {
+                double d = double.Parse(v);
+                property.SetValue(control, d);
+            }
+            catch (FormatException) { }
+        }
+
+        public void Write(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            string v = property.GetValue(control)?.ToString() ?? string.Empty;
+            key.SetValue(name, v, RegistryValueKind.String);
         }
     }
     public class Int32Operator: IRegistryOperator
     {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.DWord;
+        }
         public void Read(RegistryKey key, string name, object control, PropertyInfo property)
         {
-            int v = RegistryBinding.ReadInt(key, name);
+            int v = (int)property.GetValue(control);
+            v = RegistryBinding.ReadInt(key, name, v);
             property.SetValue(control, v);
         }
 
         public void Write(RegistryKey key, string name, object control, PropertyInfo property)
         {
-            int v = (int)property.GetValue(control);
+            object v = property.GetValue(control);
+            v = Convert.ToInt32(v);
             key.SetValue(name, v, RegistryValueKind.DWord);
         }
     }
-    public class NullableBoolOperator: IRegistryOperator
+    public class BoolOperator : IRegistryOperator
     {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.DWord;
+        }
         public void Read(RegistryKey key, string name, object control, PropertyInfo property)
         {
-            int v = RegistryBinding.ReadInt(key, name);
+            bool b = (bool)property.GetValue(control);
+            int v = b ? 1 : 0;
+            v = RegistryBinding.ReadInt(key, name, v);
+            switch (v)
+            {
+                case 0:
+                    property.SetValue(control, false);
+                    break;
+                default:
+                    property.SetValue(control, true);
+                    break;
+            }
+        }
+
+        public void Write(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            bool v = (bool)property.GetValue(control);
+            int val = v ? 1 : 0;
+            key.SetValue(name, val, RegistryValueKind.DWord);
+        }
+    }
+
+    public class NullableBoolOperator: IRegistryOperator
+    {
+        public RegistryValueKind GetValueKind()
+        {
+            return RegistryValueKind.DWord;
+        }
+        public void Read(RegistryKey key, string name, object control, PropertyInfo property)
+        {
+            bool? b = (bool?)property.GetValue(control);
+            int v = b.HasValue ? (b.Value ? 1 : 0) : -1;
+            v = RegistryBinding.ReadInt(key, name, v);
             switch (v)
             {
                 case -1:
@@ -155,6 +227,7 @@ namespace Unicorn.Utility
             key.SetValue(name, val, RegistryValueKind.DWord);
         }
     }
+
     public struct ValueBinding
     {
         public string RegistryPath { get; set; }
@@ -274,12 +347,12 @@ namespace Unicorn.Utility
     }
     public partial class RegistryBinding
     {
-        internal static string ReadString(RegistryKey key, string name)
+        internal static string ReadString(RegistryKey key, string name, string defaultValue)
         {
             object ret = key.GetValue(name);
-            return ret?.ToString();
+            return (ret != null) ? ret.ToString() : defaultValue;
         }
-        internal static int ReadInt(RegistryKey key, string name)
+        internal static int ReadInt(RegistryKey key, string name, int defaultValue)
         {
             object ret = key.GetValue(name);
             if (ret is int)
@@ -288,12 +361,49 @@ namespace Unicorn.Utility
             }
             if (ret == null)
             {
-                return 0;
+                return defaultValue;
             }
             return int.Parse(ret.ToString());
         }
         public string Path { get; set; }
         public ValueBindingCollection Items { get; } = new ValueBindingCollection();
+
+        public void Register(string path, string name, object control, string propertyName, IRegistryOperator op)
+        {
+            PropertyInfo prop = control.GetType().GetProperty(propertyName);
+            if (prop == null)
+            {
+                throw new ArgumentException(string.Format("propertyName={0} は存在しません", propertyName));
+            }
+            ValueBinding b = new ValueBinding()
+            {
+                RegistryPath = path,
+                ValueName = name,
+                ValueKind = op.GetValueKind(),
+                Control = control,
+                ControlProperty = prop,
+                Operator = op
+            };
+            Items.Add(b);
+        }
+        public void Register(string path, string name, Type type, string propertyName, IRegistryOperator op)
+        {
+            PropertyInfo prop = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Static);
+            if (prop == null)
+            {
+                throw new ArgumentException(string.Format("propertyName={0} は存在しません", propertyName));
+            }
+            ValueBinding b = new ValueBinding()
+            {
+                RegistryPath = path,
+                ValueName = name,
+                ValueKind = op.GetValueKind(),
+                Control = null,
+                ControlProperty = prop,
+                Operator = op
+            };
+            Items.Add(b);
+        }
 
         public void Load(RegistryFinder finder)
         {
@@ -435,6 +545,86 @@ namespace Unicorn.Utility
             }
             RegistryKey ret = SearchPaths[index].OpenKey(path, true, createNew);
             return ret;
+        }
+
+        public object GetValue(string path, string name)
+        {
+            
+            foreach (RegistryPath obj in SearchPaths)
+            {
+                RegistryKey reg = obj.OpenKey(path, false, false);
+                if (reg == null)
+                {
+                    continue;
+                }
+                object v = reg.GetValue(name);
+                if (v != null)
+                {
+                    return v;
+                }
+            }
+            return null;
+        }
+        public int GetInt32(string path, string name, int defaultValue)
+        {
+            object v = GetValue(path, name);
+            if (v == null)
+            {
+                return defaultValue;
+            }
+            return Convert.ToInt32(v);
+        }
+        public long GetInt64(string path, string name, long defaultValue)
+        {
+            object v = GetValue(path, name);
+            if (v == null)
+            {
+                return defaultValue;
+            }
+            return Convert.ToInt64(v);
+        }
+        public bool GetBool(string path, string name, bool defaultValue)
+        {
+            object v = GetValue(path, name);
+            if (v == null)
+            {
+                return defaultValue;
+            }
+            return Convert.ToInt32(v) != 0;
+        }
+        public string GetString(string path, string name, string defaultValue)
+        {
+            object v = GetValue(path, name);
+            if (v == null)
+            {
+                return defaultValue;
+            }
+            return v.ToString();
+        }
+        public RegistryKey OpenWritableAt(int index, string path)
+        {
+            RegistryPath obj = SearchPaths[index];
+            return obj.OpenKey(path, true, true);
+        }
+        public void SetValue(int index, string path, string name, int value)
+        {
+            RegistryKey key = OpenWritableAt(index, path);
+            key.SetValue(name, value, RegistryValueKind.DWord);
+        }
+        public void SetValue(int index, string path, string name, long value)
+        {
+            RegistryKey key = OpenWritableAt(index, path);
+            key.SetValue(name, value, RegistryValueKind.QWord);
+        }
+        public void SetValue(int index, string path, string name, bool value)
+        {
+            RegistryKey key = OpenWritableAt(index, path);
+            key.SetValue(name, value ? 1 : 0, RegistryValueKind.DWord);
+        }
+        public void SetValue(int index, string path, string name, string value)
+        {
+            RegistryKey key = OpenWritableAt(index, path);
+            key.SetValue(name, value, RegistryValueKind.String);
         }
     }
 }

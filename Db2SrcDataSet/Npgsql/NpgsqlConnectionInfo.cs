@@ -390,24 +390,33 @@ namespace Db2Source
             get { return DATABASE_DESC; }
         }
 
-        public override string GetDefaultCategoryPath()
+        private string GetServerIdentifier()
         {
             string s = ServerName;
             string p = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
             return s + p;
         }
 
+        private string GetDatabaseIdentifier()
+        {
+            string s = GetServerIdentifier();
+            string d = (DatabaseName == DEFAULT_PGSQL_DBNAME) ? string.Empty : "/" + DatabaseName;
+            return s + d;
+        }
+
+        public override string GetDefaultCategoryPath()
+        {
+            return GetServerIdentifier();
+        }
+
         public override string GetDefaultName()
         {
-            string sPort = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
-            string sDb = (DatabaseName == DEFAULT_PGSQL_DBNAME) ? string.Empty : "/" + DatabaseName;
-            return string.Format("{0}@{1}{2}{3}", UserName, ServerName, sPort, sDb);
+            return string.Format("{0}@{1}", UserName, GetDatabaseIdentifier());
         }
 
         public override string GetTreeNodeHeader()
         {
-            string sPort = (ServerPort == DEFAULT_PGSQL_PORT) ? string.Empty : ":" + ServerPort.ToString();
-            return string.Format("{0}@{1}{2}", UserName, ServerName, sPort);
+            return string.Format("{0}@{1}", UserName, GetServerIdentifier());
         }
 
         protected override string GetCryptedPassword()

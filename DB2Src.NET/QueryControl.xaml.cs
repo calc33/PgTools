@@ -17,13 +17,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Unicorn.Utility;
 
 namespace Db2Source
 {
     /// <summary>
     /// QueryControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class QueryControl: UserControl
+    public partial class QueryControl: UserControl, IRegistryStore
     {
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(QueryControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(QueryControl));
@@ -86,6 +87,36 @@ namespace Db2Source
             }
         }
 
+        private RegistryBinding _registryBinding = null;
+        private void RequireRegistryBinding()
+        {
+            if (_registryBinding != null)
+            {
+                return;
+            }
+            _registryBinding = new RegistryBinding();
+            Window window = App.FindVisualParent<Window>(this);
+            _registryBinding.Register(window, gridVertical);
+            _registryBinding.Register(window, gridSql);
+        }
+        public RegistryBinding RegistryBinding
+        {
+            get
+            {
+                RequireRegistryBinding();
+                return _registryBinding;
+            }
+        }
+
+        public void LoadFromRegistry()
+        {
+            RegistryBinding.Load(App.RegistryFinder);
+        }
+
+        public void SaveToRegistry()
+        {
+            RegistryBinding.Save(App.RegistryFinder);
+        }
         public QueryControl()
         {
             InitializeComponent();
@@ -316,6 +347,7 @@ namespace Db2Source
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, listBoxLogCommandCopy_Executed));
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.SelectAll, listBoxLogCommandSelAll_Executed));
             textBoxSql.CommandBindings.Add(new CommandBinding(QueryCommands.NormalizeSQL, textBoxSqlCommandNormalizeSql_Executed));
+            LoadFromRegistry();
         }
 
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)

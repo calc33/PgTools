@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Unicorn.Utility;
 
 namespace Db2Source
 {
@@ -235,6 +236,7 @@ namespace Db2Source
             if (IsVisible)
             {
                 UpdateMargin();
+                Dispatcher.InvokeAsync(textBoxSearch.Focus, System.Windows.Threading.DispatcherPriority.Input);
             }
         }
 
@@ -761,21 +763,23 @@ namespace Db2Source
             }
         }
 
+        private RegistryBinding _registryBinding = new RegistryBinding();
+        private void InitRegistryBinding()
+        {
+            _registryBinding.Register("SearchText", "Keyword", textBoxSearch, "Text", new StringOperator());
+            _registryBinding.Register("SearchText", "ShowOption", checkBoxFoldOption, "IsChecked", new NullableBoolOperator());
+            _registryBinding.Register("SearchText", "Caseful", checkBoxCaseful, "IsChecked", new NullableBoolOperator());
+            _registryBinding.Register("SearchText", "Wordwrap", checkBoxWardwrap, "IsChecked", new NullableBoolOperator());
+            _registryBinding.Register("SearchText", "Regex", checkBoxRegex, "IsChecked", new NullableBoolOperator());
+        }
+
         public void LoadFromRegistry()
         {
-            textBoxSearch.Text = App.Registry.GetString("SearchText", "Keyword", textBoxSearch.Text);
-            checkBoxFoldOption.IsChecked = App.Registry.GetBool("SearchText", "ShowOption", false);
-            checkBoxCaseful.IsChecked = App.Registry.GetBool("SearchText", "Caseful", false);
-            checkBoxWardwrap.IsChecked = App.Registry.GetBool("SearchText", "Wordwrap", false);
-            checkBoxRegex.IsChecked = App.Registry.GetBool("SearchText", "Regex", false);
+            _registryBinding.Load(App.RegistryFinder);
         }
         public void SaveToRegistry()
         {
-            App.Registry.SetValue(0, "SearchText", "Keyword", textBoxSearch.Text);
-            App.Registry.SetValue(0, "SearchText", "ShowOption", IsChecked(checkBoxFoldOption));
-            App.Registry.SetValue(0, "SearchText", "Caseful", IsChecked(checkBoxCaseful));
-            App.Registry.SetValue(0, "SearchText", "Wordwrap", IsChecked(checkBoxWardwrap));
-            App.Registry.SetValue(0, "SearchText", "Regex", IsChecked(checkBoxRegex));
+            _registryBinding.Save(App.RegistryFinder);
         }
 
         private void buttonReverse_Click(object sender, RoutedEventArgs e)

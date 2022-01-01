@@ -1129,6 +1129,22 @@ namespace Db2Source
             }
         }
 
+        private void dataGridResult_RowEditEnding(object sender, DataGridRowEditEndingEventArgs e)
+        {
+            if (e.EditAction == DataGridEditAction.Cancel && !e.Cancel)
+            {
+                Row row = e.Row.Item as Row;
+                if (row == null)
+                {
+                    return;
+                }
+                if (e.Row.IsNewItem)
+                {
+                    DataGridControllerResult.Rows.Remove(row);
+                }
+            }
+        }
+
         private void MenuItemAddJoin_Click(object sender, RoutedEventArgs e)
         {
             MenuItem item = (sender as MenuItem);

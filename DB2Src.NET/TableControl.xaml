@@ -146,15 +146,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="OptionMarkFocusVisual">
-            <Setter Property="Control.Template">
-                <Setter.Value>
-                    <ControlTemplate>
-                        <Rectangle Margin="14,0,0,0" SnapsToDevicePixels="true" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1" StrokeDashArray="1 2"/>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
         <Style TargetType="{x:Type CheckBox}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource OptionMark.Static.Background}"/>
@@ -284,7 +275,7 @@
                         <TextBlock x:Name="textBlockGridResult"/>
                     </StackPanel>
                     <DataGrid x:Name="dataGridResult" Grid.Row="1" Grid.ColumnSpan="2" AutoGenerateColumns="False" AddingNewItem="dataGridResult_AddingNewItem" InitializingNewItem="dataGridResult_InitializingNewItem" TabIndex="10" SelectionUnit="Cell" Style="{DynamicResource DataGridStyleResult}" VerticalScrollBarVisibility="Visible"
-                              PreviewKeyDown="dataGridResult_PreviewKeyDown" BeginningEdit="dataGridResult_BeginningEdit">
+                              PreviewKeyDown="dataGridResult_PreviewKeyDown" BeginningEdit="dataGridResult_BeginningEdit" RowEditEnding="dataGridResult_RowEditEnding">
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="{x:Type DataGridColumnHeader}">
                                 <Setter Property="ToolTip" Value="{Binding Comment}"/>
