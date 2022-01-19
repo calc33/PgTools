@@ -2354,6 +2354,7 @@ namespace Db2Source
             public string[] spcoptions;
             public string location;
 #pragma warning restore 0649
+            public PgRole OwnerRole;
             public static PgObjectCollection<PgTablespace> Tablespaces;
             public static PgObjectCollection<PgTablespace> Load(NpgsqlConnection connection, PgObjectCollection<PgTablespace> store)
             {
@@ -2375,6 +2376,7 @@ namespace Db2Source
 
             public override void FillReference(WorkingData working)
             {
+                OwnerRole = working.PgRoles.FindByOid(spcowner);
             }
 
             public PgsqlTablespace ToTablespace(NpgsqlDataSet context)
@@ -2389,7 +2391,8 @@ namespace Db2Source
                     Oid = oid,
                     Name = spcname,
                     Options = spcoptions,
-                    Path = location
+                    Path = location,
+                    Owner = OwnerRole?.rolname
                 };
                 Generated = new WeakReference<NamedObject>(ts);
                 return ts;
