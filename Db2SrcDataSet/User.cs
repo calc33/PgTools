@@ -8,23 +8,90 @@ namespace Db2Source
 {
     public class User : NamedObject
     {
+        private string _id;
+        private string _name;
+        private string _password;
+        private bool _isPasswordShadowed;
+        private DateTime _passwordExpiration = DateTime.MaxValue;
         /// <summary>
         /// ユーザーのID(文字列)
         /// </summary>
-        public string Id { get; set; }
+        public string Id
+        {
+            get { return _id; }
+            set
+            {
+                if (_id == value)
+                {
+                    return;
+                }
+                _id = value;
+                OnPropertyChanged("Id");
+            }
+        }
         /// <summary>
         /// ユーザーの名前(フルネーム)
         /// </summary>
-        public string Name { get; set; }
-        public string Password { get; set; }
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (_name == value)
+                {
+                    return;
+                }
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+        public string Password
+        {
+            get { return _password; }
+            set
+            {
+                if (_password == value)
+                {
+                    return;
+                }
+                _password = value;
+                OnPropertyChanged("Password");
+            }
+        }
+
         /// <summary>
         /// trueの場合 Passwordには有効な値が入っていない
         /// </summary>
-        public bool IsPasswordShadowed { get; set; }
+        public bool IsPasswordShadowed
+        {
+            get { return _isPasswordShadowed; }
+            set
+            {
+                if (_isPasswordShadowed == value)
+                {
+                    return;
+                }
+                _isPasswordShadowed = value;
+                OnPropertyChanged("IsPasswordShadowed");
+            }
+        }
+
         /// <summary>
         /// パスワード有効期限
         /// </summary>
-        public DateTime PasswordExpiration { get; set; } = DateTime.MaxValue;
+        public DateTime PasswordExpiration
+        {
+            get { return _passwordExpiration; }
+            set
+            {
+                if (_passwordExpiration == value)
+                {
+                    return;
+                }
+                _passwordExpiration = value;
+                OnPropertyChanged("PasswordExpiration");
+            }
+        }
         protected User _backup;
 
         public override void Backup()

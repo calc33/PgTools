@@ -245,8 +245,24 @@ namespace Db2Source
         }
         public virtual void SavePassword() { }
 
+        private string _name;
         [JsonIgnore]
-        public string Name { get; set; }
+        public string Name
+        {
+            get
+            {
+                return _name;
+            }
+            set
+            {
+                if (_name == value)
+                {
+                    return;
+                }
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
 
         [JsonIgnore]
         public virtual string Description
@@ -279,6 +295,7 @@ namespace Db2Source
 
         private string _serverName;
         private string _userName;
+        private bool _isPasswordHidden;
         [InputField("サーバー", 10)]
         public string ServerName
         {
@@ -293,6 +310,7 @@ namespace Db2Source
                     return;
                 }
                 _serverName = value;
+                OnPropertyChanged("ServerName");
                 KeyPropertyChanged();
             }
         }
@@ -310,6 +328,7 @@ namespace Db2Source
                     return;
                 }
                 _userName = value;
+                OnPropertyChanged("UserName");
                 KeyPropertyChanged();
             }
         }
@@ -331,7 +350,23 @@ namespace Db2Source
         }
 
         [JsonIgnore]
-        public bool IsPasswordHidden { get; set; }
+        public bool IsPasswordHidden
+        {
+            get
+            {
+                return _isPasswordHidden;
+            }
+            set
+            {
+                if (_isPasswordHidden == value)
+                {
+                    return;
+                }
+                _isPasswordHidden = value;
+                OnPropertyChanged("IsPasswordHidden");
+            }
+        }
+
         [JsonIgnore]
         public ExtraCommandCollecion ExtraCommands { get; } = new ExtraCommandCollecion();
 
@@ -373,6 +408,9 @@ namespace Db2Source
                     return;
                 }
                 _backgroundColor = value;
+                OnPropertyChanged("BackgroundColor");
+                OnPropertyChanged("BkColor");
+                OnPropertyChanged("UseDefaultBackgroundColor");
             }
         }
 
@@ -422,6 +460,10 @@ namespace Db2Source
 
         public event PropertyChangedEventHandler PropertyChanged;
 
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         protected virtual void OnDefaultCategoryPathChanged()
         {
             if (!_isDefaultCategory)
@@ -434,12 +476,7 @@ namespace Db2Source
                 return;
             }
             _categoryPath = v;
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CategoryPath"));
-        }
-
-        private void OnCategoryPathChanged()
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("CategoryPath"));
+            OnPropertyChanged("CategoryPath");
         }
 
         private bool _isDefaultCategory = true;
@@ -475,7 +512,7 @@ namespace Db2Source
                 }
                 _categoryPath = value;
                 _isDefaultCategory = false;
-                OnCategoryPathChanged();
+                OnPropertyChanged("CategoryPath");
             }
         }
 

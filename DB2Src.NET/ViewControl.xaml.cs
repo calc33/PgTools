@@ -322,14 +322,14 @@ namespace Db2Source
         {
             Db2SourceContext ctx = Target.Context;
             List<string> sqls = new List<string>();
-            if ((Target.Comment != null) && Target.Comment.IsModified())
+            if ((Target.Comment != null) && Target.Comment.IsModified)
             {
                 sqls.AddRange(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
             }
             for (int i = 0; i < Target.Columns.Count; i++)
             {
                 Column newC = Target.Columns[i, false];
-                if ((newC.Comment != null) && newC.Comment.IsModified())
+                if ((newC.Comment != null) && newC.Comment.IsModified)
                 {
                     sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }

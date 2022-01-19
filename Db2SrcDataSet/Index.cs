@@ -178,9 +178,12 @@ namespace Db2Source
                 && IndexType == idx.IndexType
                 && ArrayEquals<string>(Columns, idx.Columns);
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && ContentEquals(_backup);
+            }
         }
 
         public Index(Db2SourceContext context, string owner, string schema, string indexName, string tableSchema, string tableName, string[] columns, string definition) : base(context, owner, schema, indexName, Schema.CollectionIndex.Indexes)

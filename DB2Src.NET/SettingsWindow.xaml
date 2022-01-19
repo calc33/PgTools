@@ -7,29 +7,19 @@
         xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="SettingsWindow" Height="300" Width="364.412">
+        Title="SettingsWindow" Height="300" Width="300">
     <DockPanel>
-        <TreeView DockPanel.Dock="Left" Padding="0,0,10,0">
-            <TreeViewItem Header="フォント"/>
-            <TreeViewItem Header="書式"/>
+        <TreeView DockPanel.Dock="Left">
+            <TreeViewItem Header="表示" IsExpanded="True">
+                <TreeViewItem Header="フォント"/>
+            </TreeViewItem>
         </TreeView>
         <TabControl>
             <TabItem>
                 <DataGrid>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="" Width="70"/>
+                        <DataGridTextColumn Header=""/>
                         <DataGridTextColumn Header="フォント"/>
-                        <DataGridTextColumn Header="B I U"/>
-                        <DataGridTextColumn Header="背景色"/>
-                        <DataGridTextColumn Header="文字色"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </TabItem>
-            <TabItem>
-                <DataGrid>
-                    <DataGrid.Columns>
-                        <DataGridTextColumn Header="項目"/>
-                        <DataGridTextColumn Header="設定値"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

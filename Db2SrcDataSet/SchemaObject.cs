@@ -43,7 +43,7 @@ namespace Db2Source
         }
     }
 
-    public abstract partial class SchemaObject : NamedObject, ICommentable, IComparable, INotifyPropertyChanged
+    public abstract partial class SchemaObject : NamedObject, ICommentable, IComparable
     {
         private Schema _schema;
         private string _name;
@@ -84,6 +84,7 @@ namespace Db2Source
         protected virtual void NameChanged(string oldValue)
         {
             InvalidateIdentifier();
+            OnPropertyChanged("Name");
         }
 
         public virtual string DisplayName
@@ -138,10 +139,10 @@ namespace Db2Source
         {
             SchemaObject o = (SchemaObject)obj;
             if (!base.ContentEquals(o))
-            if (Triggers.Count != o.Triggers.Count)
-            {
-                return false;
-            }
+                if (Triggers.Count != o.Triggers.Count)
+                {
+                    return false;
+                }
             foreach (Trigger t in Triggers)
             {
                 int i = o.Triggers.IndexOf(t);
@@ -157,9 +158,12 @@ namespace Db2Source
             return true;
         }
 
-        //public override bool IsModified()
+        //public override bool IsModified
         //{
-        //    return (_backup != null) && !ContentEquals(_backup);
+        //    get
+        //    {
+        //        return (_backup != null) && !ContentEquals(_backup);
+        //    }
         //}
 
         private Comment _comment;
@@ -205,11 +209,6 @@ namespace Db2Source
         public string SqlDef { get; set; } = null;
         public TriggerCollection Triggers { get; private set; }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected internal void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
         void ICommentable.OnCommentChanged(CommentChangedEventArgs e)
         {
             OnPropertyChanged("CommentText");

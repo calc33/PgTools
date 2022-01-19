@@ -2713,7 +2713,8 @@ namespace Db2Source
                     //DbaUserName = datdba,
                     DbaUserName = dbaname,
                     IsCurrent = IsCurrent,
-                    Version = version
+                    Version = version,
+                    IsTemplate = datistemplate
                 };
                 return ret;
             }
@@ -2979,7 +2980,7 @@ namespace Db2Source
                     BypassRowLevelSecurity = rolbypassrls,
                     PasswordExpiration = rolvaliduntil ?? DateTime.MaxValue,
                     Config = rolconfig,
-                    ConnectionLimit = rolconnlimit
+                    ConnectionLimit = (rolconnlimit != -1) ? rolconnlimit : (int?)null
                 };
                 Generated = new WeakReference<NamedObject>(u);
                 return u;
@@ -3307,21 +3308,25 @@ namespace Db2Source
 
             private void LoadFromPgDatabases()
             {
-                List<Database> l = new List<Database>();
+                List<PgsqlDatabase> lTmpl = new List<PgsqlDatabase>();
+                List<PgsqlDatabase> lOther = new List<PgsqlDatabase>();
                 foreach (PgDatabase db in PgDatabases)
                 {
-                    Database obj = db.ToDatabase(Context);
+                    PgsqlDatabase obj = db.ToDatabase(Context);
+                    lTmpl.Add(obj);
                     if (db.IsCurrent)
                     {
                         Context.Database = obj;
                     }
-                    else
+                    else if (!obj.IsTemplate)
                     {
-                        l.Add(obj);
+                        lOther.Add(obj);
                     }
                 }
-                l.Sort();
-                Context.OtherDatabases = l.ToArray();
+                lTmpl.Sort(PgsqlDatabase.CompareTemplate);
+                lOther.Sort();
+                Context.OtherDatabases = lOther.ToArray();
+                Context.DatabaseTemplates = lTmpl.ToArray();
             }
 
             private void LoadFromPgClass()

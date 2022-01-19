@@ -657,6 +657,10 @@ namespace Db2Source
                         break;
                     }
                 }
+                if (n <= i)
+                {
+                    break;
+                }
                 int i0 = i;
                 Token t0 = tsql.Tokens[i0];
                 bool endByNewLine = false;

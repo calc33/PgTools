@@ -357,6 +357,7 @@ namespace Db2Source
                     return;
                 }
                 _serverPort = value;
+                OnPropertyChanged("ServerPort");
                 KeyPropertyChanged();
             }
         }
@@ -374,12 +375,29 @@ namespace Db2Source
                     return;
                 }
                 _databaseName = value;
+                OnPropertyChanged("DatabaseName");
                 KeyPropertyChanged();
             }
         }
 
+        private string _searchPath;
         [InputField("Search Path", 60)]
-        public string SearchPath { get; set; }
+        public string SearchPath
+        {
+            get
+            {
+                return _searchPath;
+            }
+            set
+            {
+                if (_searchPath == value)
+                {
+                    return;
+                }
+                _searchPath = value;
+                OnPropertyChanged("SearchPath");
+            }
+        }
 
         public override string DatabaseType
         {

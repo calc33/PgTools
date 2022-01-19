@@ -88,9 +88,12 @@ namespace Db2Source
                 && Delimiter == t.Delimiter
                 && Collatable == t.Collatable;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
 
         public override NameValue[] Infos
@@ -174,9 +177,12 @@ namespace Db2Source
             PgsqlEnumType t = (PgsqlEnumType)obj;
             return ArrayEquals(Labels, t.Labels);
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
         public override NameValue[] Infos
         {
@@ -240,9 +246,12 @@ namespace Db2Source
                 && CanonicalFunction == t.CanonicalFunction
                 && SubtypeDiff == t.SubtypeDiff;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
         
         public override NameValue[] Infos

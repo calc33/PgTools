@@ -407,7 +407,7 @@ namespace Db2Source
         {
             Db2SourceContext ctx = Target.Context;
             List<string> sqls = new List<string>();
-            if ((Target.Comment != null) && Target.Comment.IsModified())
+            if ((Target.Comment != null) && Target.Comment.IsModified)
             {
                 sqls.AddRange(ctx.GetSQL(Target.Comment, string.Empty, string.Empty, 0, false));
             }
@@ -427,9 +427,7 @@ namespace Db2Source
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
         {
-            Db2SourceContext ctx = Target.Context;
-            ctx.Revert(Target);
-            IsEditing = false;
+
         }
 
         public void OnTabClosing(object sender, ref bool cancel) { }

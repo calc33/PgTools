@@ -8,16 +8,148 @@ namespace Db2Source
 {
     public class PgsqlUser: User
     {
-        public uint Oid { get; set; }
-        public bool CanLogin { get; set; } = true;
-        public bool IsInherit { get; set; } = true;
-        public bool CanCreateDb { get; set; }
-        public bool CanCreateRole { get; set; }
-        public bool IsSuperUser { get; set; }
-        public bool Replication { get; set; }
-        public bool BypassRowLevelSecurity { get; set; }
-        public string[] Config { get; set; }
-        public int ConnectionLimit { get; set; } = -1;
+        private uint _oid;
+        private bool _canLogin = true;
+        private bool _isInherit = true;
+        private bool _canCreateDb;
+        private bool _canCreateRole;
+        private bool _isSuperUser;
+        private bool _replication;
+        private bool _bypassRowLevelSecurity;
+        private string[] _config;
+        private int? _connectionLimit;
+
+        public uint Oid
+        {
+            get { return _oid; }
+            set
+            {
+                if (_oid == value)
+                {
+                    return;
+                }
+                _oid = value;
+                OnPropertyChanged("Oid");
+            }
+        }
+        public bool CanLogin
+        {
+            get { return _canLogin; }
+            set
+            {
+                if (_canLogin == value)
+                {
+                    return;
+                }
+                _canLogin = value;
+                OnPropertyChanged("CanLogin");
+            }
+        }
+        public bool IsInherit
+        {
+            get { return _isInherit; }
+            set
+            {
+                if (_isInherit == value)
+                {
+                    return;
+                }
+                _isInherit = value;
+                OnPropertyChanged("IsInherit");
+            }
+        }
+        public bool CanCreateDb
+        {
+            get { return _canCreateDb; }
+            set
+            {
+                if (_canCreateDb == value)
+                {
+                    return;
+                }
+                _canCreateDb = value;
+                OnPropertyChanged("CanCreateDb");
+            }
+        }
+
+        public bool CanCreateRole
+        {
+            get { return _canCreateRole; }
+            set
+            {
+                if (_canCreateRole == value)
+                {
+                    return;
+                }
+                _canCreateRole = value;
+                OnPropertyChanged("CanCreateRole");
+            }
+        }
+        public bool IsSuperUser
+        {
+            get { return _isSuperUser; }
+            set
+            {
+                if (_isSuperUser == value)
+                {
+                    return;
+                }
+                _isSuperUser = value;
+                OnPropertyChanged("IsSuperUser");
+            }
+        }
+        public bool Replication
+        {
+            get { return _replication; }
+            set
+            {
+                if (_replication == value)
+                {
+                    return;
+                }
+                _replication = value;
+                OnPropertyChanged("Replication");
+            }
+        }
+        public bool BypassRowLevelSecurity
+        {
+            get { return _bypassRowLevelSecurity; }
+            set
+            {
+                if (_bypassRowLevelSecurity == value)
+                {
+                    return;
+                }
+                _bypassRowLevelSecurity = value;
+                OnPropertyChanged("BypassRowLevelSecurity");
+            }
+        }
+        public string[] Config
+        {
+            get { return _config; }
+            set
+            {
+                if (object.Equals(_config, value))
+                {
+                    return;
+                }
+                _config = value;
+                OnPropertyChanged("Config");
+            }
+        }
+        public int? ConnectionLimit
+        {
+            get { return _connectionLimit; }
+            set
+            {
+                if (_connectionLimit == value)
+                {
+                    return;
+                }
+                _connectionLimit = value;
+                OnPropertyChanged("ConnectionLimit");
+            }
+        }
 
         public override void Backup()
         {

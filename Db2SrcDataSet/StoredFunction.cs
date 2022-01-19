@@ -625,9 +625,12 @@ namespace Db2Source
             UpdateIdentifier();
             return _identifier;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return _definition != _oldDefinition;
+            get
+            {
+                return _definition != _oldDefinition;
+            }
         }
 
         public override void Backup()

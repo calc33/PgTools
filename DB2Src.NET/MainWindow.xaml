@@ -447,7 +447,10 @@
                     <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
                         <MenuItem Header="Postgres(NpgSql)"/>
                     </MenuItem>
-                    <MenuItem x:Name="menuItemEditConnections" Header="接続リストの整理(_M)" Click="menuItemEditConnections_Click"/>
+                    <MenuItem x:Name="menuItemEditConnections" Header="接続リストの管理(_M)" Click="menuItemEditConnections_Click"/>
+                    <MenuItem Header="更新(_U)" Click="menuItemRefreshSchema_Click" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}"/>
+                    <MenuItem Header="新規データベース(_N)" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}" Click="menuItemNewDatabase_Click"/>
+                    <Separator/>
                     <MenuItem x:Name="buttonQuit" Header="終了(_X)" Click="buttonQuit_Click"/>
                 </MenuItem>
                 <MenuItem Header="編集(_E)">
@@ -483,7 +486,7 @@
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
                     <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
                     <Separator/>
-                    <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click"/>
+                    <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click" IsEnabled="False"/>
                 </MenuItem>
             </Menu>
             <Grid x:Name="gridBase">
@@ -514,8 +517,13 @@
                     </StackPanel>
                     <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True">
                         <TreeView.ContextMenu>
-                            <ContextMenu>
+                            <ContextMenu IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
+                                <MenuItem Header="新規作成">
+                                    <MenuItem x:Name="menuItemNewDatabase" Header="データベース" Click="menuItemNewDatabase_Click"/>
+                                    <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>
+                                    <MenuItem x:Name="menuItemNewUser" Header="ユーザー" IsEnabled="False"/>
+                                </MenuItem>
                             </ContextMenu>
                         </TreeView.ContextMenu>
                         <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">

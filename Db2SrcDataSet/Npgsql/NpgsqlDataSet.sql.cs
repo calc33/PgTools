@@ -428,6 +428,60 @@ namespace Db2Source
             return l.ToArray();
         }
 
+        private static void _AddPgsqlDatabaseParam(StringBuilder buffer, string prefix, string paramName, string paramValue)
+        {
+            if (string.IsNullOrEmpty(paramValue))
+            {
+                return;
+            }
+            buffer.AppendLine();
+            buffer.Append(prefix);
+            buffer.Append(paramName);
+            buffer.Append(" = ");
+            buffer.Append(paramValue);
+        }
+        public string[] GetSQL(PgsqlDatabase database, string prefix, string postfix, int indent, bool addNewLine)
+        {
+            if (database == null)
+            {
+                return StrUtil.EmptyStringArray;
+            }
+            if (string.IsNullOrEmpty(database.Name))
+            {
+                return StrUtil.EmptyStringArray;
+            }
+            StringBuilder buf = new StringBuilder();
+            string spc2 = new string(' ', indent + 2);
+            if (database.DbaUserName != ConnectionInfo.UserName)
+            {
+                _AddPgsqlDatabaseParam(buf, spc2, "owner", database.DbaUserName);
+            }
+            _AddPgsqlDatabaseParam(buf, spc2, "encoding", database.Encoding);
+            if (database.LcCollate == database.LcCtype)
+            {
+                _AddPgsqlDatabaseParam(buf, spc2, "locale", database.LcCollate);
+            }
+            else
+            {
+                _AddPgsqlDatabaseParam(buf, spc2, "lc_collate", database.LcCollate);
+                _AddPgsqlDatabaseParam(buf, spc2, "lc_ctype", database.LcCtype);
+            }
+            _AddPgsqlDatabaseParam(buf, spc2, "tablespace", database.DefaultTablespace);
+            _AddPgsqlDatabaseParam(buf, spc2, "connection limit", database.ConnectionLimit?.ToString());
+            StringBuilder buf2 = new StringBuilder();
+            buf2.AppendFormat("{0}create database {1}", prefix, database.Name);
+            if (0 < buf.Length)
+            {
+                buf2.Append(" with");
+                buf2.Append(buf.ToString());
+            }
+            buf2.Append(postfix);
+            if (addNewLine)
+            {
+                buf2.AppendLine();
+            }
+            return new string[] { buf2.ToString() };
+        }
         private delegate char ConvertChar(char ch);
         private static ConvertChar NormalizeIdentifierChar = char.ToLower;
         private static char NoConvert(char ch) { return ch; }
@@ -1045,8 +1099,11 @@ namespace Db2Source
                 {
                     bufOpt.Append(" bypassrls");
                 }
-                bufOpt.Append(" connection limit ");
-                bufOpt.Append(u.ConnectionLimit);
+                if (u.ConnectionLimit.HasValue)
+                {
+                    bufOpt.Append(" connection limit ");
+                    bufOpt.Append(u.ConnectionLimit.Value);
+                }
                 if (!u.IsPasswordShadowed)
                 {
                     bufOpt.Append(" password ");
@@ -1059,11 +1116,9 @@ namespace Db2Source
                         bufOpt.Append(ToLiteralStr(u.Password));
                     }
                 }
-                bufOpt.Append(" password ");
-                //buf.Append(ToLiteralStr(u.Password));
                 if (u.PasswordExpiration != DateTime.MaxValue)
                 {
-                    bufOpt.AppendFormat(" valid until {0:'YYYY-MM-DD'}", u.PasswordExpiration);
+                    bufOpt.AppendFormat(" valid until '{0:YYYY-MM-DD}'", u.PasswordExpiration);
                 }
                 // [ENCRYPTED] PASSWORD 'password' | PASSWORD NULL
                 // IN ROLE role_name[, ...]

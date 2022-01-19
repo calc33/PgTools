@@ -28,6 +28,13 @@ namespace Db2Source
     /// </summary>
     public partial class App: Application
     {
+        public static Db2SourceContext CurrentDataSet
+        {
+            get
+            {
+                return (Current?.MainWindow as MainWindow)?.CurrentDataSet;
+            }
+        }
         private void TabItemCloseButton_Click(object sender, RoutedEventArgs e)
         {
             TabItem item = (sender as Control).TemplatedParent as TabItem;
@@ -151,6 +158,26 @@ namespace Db2Source
         {
             MessageBox.Show(Db2Source.Properties.Resources.Usage, "情報", MessageBoxButton.OK, MessageBoxImage.Information);
             App.Current.Shutdown();
+        }
+
+        public static void OpenDatabase(Database database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException("database");
+            }
+            if (CurrentDataSet == null)
+            {
+                return;
+            }
+            NpgsqlConnectionInfo obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (obj == null)
+            {
+                return;
+            }
+            string path = Assembly.GetExecutingAssembly().Location;
+            string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, database.Name, obj.UserName);
+            Process.Start(path, args);
         }
 
         private static ConnectionList InitConnections()
@@ -702,6 +729,61 @@ namespace Db2Source
             throw new NotImplementedException();
         }
     }
+
+    public class NullableIntConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value?.ToString();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+            {
+                return null;
+            }
+            try
+            {
+                if (value is string)
+                {
+                    string v = (string)value;
+                    if (string.IsNullOrEmpty(v))
+                    {
+                        return null;
+                    }
+                    return int.Parse(v);
+                }
+                return System.Convert.ToInt32(value);
+            }
+            catch (FormatException)
+            {
+                return new ValidationResult(false, value);
+            }
+            catch (InvalidCastException)
+            {
+                return new ValidationResult(false, value);
+            }
+            catch (OverflowException)
+            {
+                return new ValidationResult(false, value);
+            }
+        }
+    }
+
+    public class NotNullToBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value != null);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public interface IRegistryStore
     {
         void LoadFromRegistry();

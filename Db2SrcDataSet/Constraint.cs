@@ -245,9 +245,12 @@ namespace Db2Source
                 && Deferrable == c.Deferrable
                 && Deferred == c.Deferred;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
 
         protected override Comment NewComment(string commentText)

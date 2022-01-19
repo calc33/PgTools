@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Reflection;
 
 namespace Db2Source
 {
-    public abstract partial class NamedObject : IComparable, IDisposable
+    public abstract partial class NamedObject : IComparable, IDisposable, INotifyPropertyChanged
     {
         public string Identifier
         {
@@ -31,6 +33,13 @@ namespace Db2Source
                 return _released;
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected internal void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         public abstract void Backup();
 
         public abstract void Restore();
@@ -100,7 +109,8 @@ namespace Db2Source
                 owner.Add(this);
             }
         }
-        public virtual bool IsModified() { return false; }
+        public virtual bool IsModified { get { return false; } }
+        public virtual bool IsEnabled { get { return true; } }
         public virtual void Release()
         {
             _released = true;

@@ -196,10 +196,7 @@ namespace Db2Source
         {
             throw new NotImplementedException();
         }
-        public override bool IsModified()
-        {
-            return false;
-        }
+        public override bool IsModified { get { return false; } }
         public override bool Equals(object obj)
         {
             if (!(obj is Schema))

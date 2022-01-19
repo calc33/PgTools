@@ -8,9 +8,50 @@ namespace Db2Source
 {
     public class PgsqlTablespace: Tablespace
     {
-        public uint Oid { get; set; }
-        public string Owner { get; set; }
-        public string[] Options { get; set; }
+        public static readonly string[] OptionKeys = new string[] { "seq_page_cost", "random_page_cost", "effective_io_concurrency", "maintenance_io_concurrency" };
+        private uint _oid;
+        private string _owner;
+        private string[] _options;
+
+        public uint Oid
+        {
+            get { return _oid; }
+            set
+            {
+                if (_oid == value)
+                {
+                    return;
+                }
+                _oid = value;
+                OnPropertyChanged("Oid");
+            }
+        }
+        public string Owner
+        {
+            get { return _owner; }
+            set
+            {
+                if (_owner == value)
+                {
+                    return;
+                }
+                _owner = value;
+                OnPropertyChanged("Owner");
+            }
+        }
+        public string[] Options
+        {
+            get { return _options; }
+            set
+            {
+                if (object.Equals(_options, value))
+                {
+                    return;
+                }
+                _options = value;
+                OnPropertyChanged("Options");
+            }
+        }
 
         public override void Backup()
         {

@@ -1527,6 +1527,18 @@ namespace Db2Source
         {
             OpenViewer(CurrentDataSet.SessionList);
         }
+
+        private void menuItemNewDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow();
+            win.DataSet = CurrentDataSet as NpgsqlDataSet;
+            win.Owner = this;
+            bool? ret = win.ShowDialog();
+            if (ret.HasValue && ret.Value)
+            {
+                LoadSchema(CurrentDataSet);
+            }
+        }
     }
     public class RGBToColorBrushConverter : IValueConverter
     {

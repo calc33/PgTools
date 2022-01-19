@@ -48,9 +48,12 @@ namespace Db2Source
         {
             _definition = _oldDefinition;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return _definition != _oldDefinition;
+            get
+            {
+                return _definition != _oldDefinition;
+            }
         }
         public string[] ExtraInfo { get; set; }
         internal View(Db2SourceContext context, Kind kind, string owner, string schema, string viewName, string defintion, bool isLoaded) : base(context, owner, schema, viewName)

@@ -117,9 +117,16 @@
     </Compile>
     <Compile Include="ConnectionInfoMenu.cs" />
     <Compile Include="CsvUtil.cs" />
+    <Compile Include="DisplayItem.cs" />
     <Compile Include="MovableTabItem.cs" />
+    <Compile Include="NewPgsqlDatabaseWindow.xaml.cs">
+      <DependentUpon>NewPgsqlDatabaseWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="PgsqlSessionListControl.xaml.cs">
       <DependentUpon>PgsqlSessionListControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PgsqlTablespaceControl.xaml.cs">
+      <DependentUpon>PgsqlTablespaceControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="PgsqlTypeControl.xaml.cs">
       <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
@@ -153,6 +160,9 @@
     <Compile Include="ParameterStore.cs" />
     <Compile Include="PgDumpOptionWindow.xaml.cs">
       <DependentUpon>PgDumpOptionWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PgsqlUserControl.xaml.cs">
+      <DependentUpon>PgsqlUserControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="QueryControl.xaml.cs">
       <DependentUpon>QueryControl.xaml</DependentUpon>
@@ -233,7 +243,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="NewPgsqlDatabaseWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="PgsqlSessionListControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PgsqlTablespaceControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -278,6 +296,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="PgDumpOptionWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PgsqlUserControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

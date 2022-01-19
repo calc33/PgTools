@@ -47,9 +47,12 @@ namespace Db2Source
         /// 変更を重ねて元と同じになった場合はfalseを返す
         /// </summary>
         /// <returns></returns>
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return _text != _oldText;
+            get
+            {
+                return _text != _oldText;
+            }
         }
         public override void Backup()
         {

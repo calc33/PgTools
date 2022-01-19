@@ -9,4 +9,3 @@ select
 from pg_database as d
   left outer join pg_user u on (d.datdba = u.usesysid)
   left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
-where not d.datistemplate

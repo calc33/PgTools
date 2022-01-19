@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Db2Source
 {
-    public partial class Column : NamedObject, ICommentable, IComparable, IDbTypeDef, INotifyPropertyChanged
+    public partial class Column : NamedObject, ICommentable, IComparable, IDbTypeDef
     {
         public string GetSqlType()
         {
@@ -138,18 +138,13 @@ namespace Db2Source
                 && NotNull == c.NotNull
                 && CommentText == c.CommentText;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
 
         void ICommentable.OnCommentChanged(CommentChangedEventArgs e)
         {
@@ -1184,11 +1179,13 @@ namespace Db2Source
             return true;
         }
 
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
-
         public string GetColumnsSQL(string alias, IEnumerable<Column> columns)
         {
             StringBuilder buf = new StringBuilder();

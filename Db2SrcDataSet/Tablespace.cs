@@ -8,8 +8,34 @@ namespace Db2Source
 {
     public class Tablespace : NamedObject
     {
-        public string Name { get; set; }
-        public string Path { get; set; }
+        private string _name;
+        private string _path;
+        public string Name
+        {
+            get { return _name; }
+            set
+            {
+                if (_name == value)
+                {
+                    return;
+                }
+                _name = value;
+                OnPropertyChanged("Name");
+            }
+        }
+        public string Path
+        {
+            get { return _path; }
+            set
+            {
+                if (_path == value)
+                {
+                    return;
+                }
+                _path = value;
+                OnPropertyChanged("Path");
+            }
+        }
         internal Tablespace _backup;
         protected override string GetIdentifier()
         {
@@ -39,9 +65,12 @@ namespace Db2Source
             return Name == ts.Name
                 && Path == ts.Path;
         }
-        public override bool IsModified()
+        public override bool IsModified
         {
-            return (_backup != null) && !ContentEquals(_backup);
+            get
+            {
+                return (_backup != null) && !ContentEquals(_backup);
+            }
         }
         public Tablespace(NamedCollection owner) : base(owner) { }
         internal Tablespace(Tablespace basedOn) : base(null)

@@ -343,7 +343,5 @@ healthchecksdb
 /PostgresUtils.sln
 /DB2Src.NET/没
 /Db2SrcDataSet/Npgsql/保留
-/DB2Src.NET/TextContainer.cs
-/DB2Src.NET/TextBox.cs
-/DB2Src.NET/ITextContainer.cs
-/DB2Src.NET/ITextBoxViewHost.cs
+/DB2Src.NET/~BROMIUM
+/DB2Src.NET/PostgreSQL_logo.svg

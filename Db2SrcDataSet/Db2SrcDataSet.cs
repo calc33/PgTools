@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -22,7 +23,7 @@ namespace Db2Source
         public string[] ParameterNames { get; set; }
     }
 
-    public class SQLParts
+    public class SQLParts: IEnumerable<SQLPart>
     {
         public SQLPart[] Items { get; set; }
         public string[] ParameterNames { get; set; }
@@ -40,6 +41,18 @@ namespace Db2Source
                 return Items?[index];
             }
         }
+
+        #region IEnumerableの実装
+        public IEnumerator<SQLPart> GetEnumerator()
+        {
+            return ((IEnumerable<SQLPart>)Items).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return Items.GetEnumerator();
+        }
+        #endregion
     }
     public class LogEventArgs : EventArgs
     {
@@ -710,6 +723,11 @@ namespace Db2Source
             return NormalizeSQL(sql, ReservedWordCaseRule, IdentifierCaseRule);
         }
 
+        /// <summary>
+        /// 複数SQLが列挙された文字列を個々のSQLに分割する
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <returns></returns>
         public abstract SQLParts SplitSQL(string sql);
         //public abstract IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters);
 

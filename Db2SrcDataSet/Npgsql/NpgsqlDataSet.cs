@@ -11,8 +11,9 @@ namespace Db2Source
 {
     public partial class NpgsqlDataSet: Db2SourceContext
     {
-        public Database Database { get; set; }
-        public Database[] OtherDatabases { get; set; }
+        public PgsqlDatabase Database { get; set; }
+        public PgsqlDatabase[] OtherDatabases { get; set; }
+        public PgsqlDatabase[] DatabaseTemplates { get; set; }
         public NpgsqlDataSet(NpgsqlConnectionInfo info) : base(info) { }
 
         public override IDbConnection NewConnection(bool withOpening)

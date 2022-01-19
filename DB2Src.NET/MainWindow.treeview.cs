@@ -137,22 +137,7 @@ namespace Db2Source
 
         private void OpenDatabase(Database database)
         {
-            if (database == null)
-            {
-                throw new ArgumentNullException("database");
-            }
-            if (CurrentDataSet == null)
-            {
-                return;
-            }
-            NpgsqlConnectionInfo obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
-            if (obj == null)
-            {
-                return;
-            }
-            string path = Assembly.GetExecutingAssembly().Location;
-            string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, database.Name, obj.UserName);
-            Process.Start(path, args);
+            App.OpenDatabase(database);
         }
 
         private void MenuItemOtherDatabase_Click(object sender, RoutedEventArgs e)
