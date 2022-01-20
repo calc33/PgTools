@@ -44,7 +44,7 @@ namespace Db2Source
             DisplayItem[] users = DisplayItem.ToDisplayItemArray(DataSet.Users, null, new PgsqlUser(null) { }, "新規ユーザー");
             comboBoxTablespace.ItemsSource = tablespaces;
             tablespaceControl.UserItems = users;
-            //comboBoxTablespaceOwner.ItemsSource = comboBoxOwner.ItemsSource;
+            comboBoxOwner.ItemsSource = users;
             PgsqlDatabase tmpl = DataSet.DatabaseTemplates[0];
             Target = (tmpl != null) ? new PgsqlDatabase(tmpl) { Name = null } : new PgsqlDatabase(null, null);
             Target.PropertyChanged += Target_PropertyChanged;

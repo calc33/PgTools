@@ -1,5 +1,3 @@
-﻿select pg_encoding_to_char(c.contoencoding) as encoding
-from pg_database db
-  join pg_conversion c on (db.encoding = c.conforencoding)
-where db.datname = current_database()
-order by pg_encoding_to_char(c.contoencoding)
+﻿select distinct pg_encoding_to_char(contoencoding) as encoding
+from pg_conversion
+order by encoding

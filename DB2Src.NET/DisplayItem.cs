@@ -63,5 +63,26 @@ namespace Db2Source
             }
             return l.ToArray();
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is DisplayItem))
+            {
+                return false;
+            }
+            return object.Equals(Item, ((DisplayItem)obj).Item);
+        }
+        public override int GetHashCode()
+        {
+            if (Item == null)
+            {
+                return 0;
+            }
+            return Item.GetHashCode();
+        }
+        public override string ToString()
+        {
+            return Text;
+        }
     }
 }
