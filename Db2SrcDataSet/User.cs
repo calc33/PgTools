@@ -94,9 +94,18 @@ namespace Db2Source
         }
         protected User _backup;
 
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new User(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new User(null, this);
         }
         
         public override void Restore()
@@ -131,7 +140,7 @@ namespace Db2Source
         }
 
         public User(NamedCollection owner) : base(owner) { }
-        internal User(User basedOn) : base(null)
+        public User(NamedCollection owner, User basedOn) : base(owner)
         {
             if (basedOn == null)
             {

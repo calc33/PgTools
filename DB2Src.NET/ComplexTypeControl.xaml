@@ -94,18 +94,6 @@
                 </DockPanel>
             </Grid>
         </TabItem>
-        <TabItem Header="依存関係" Visibility="Collapsed" >
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Top" Padding="2"><Run Text="この型を参照"/></TextBlock>
-                <DataGrid x:Name="dataGridReferedBy" IsReadOnly="True" ItemsSource="{Binding Target.ReferFrom, ElementName=userControl}" AutoGenerateColumns="False">
-                    <DataGrid.Columns>
-                        <!--<DataGridTextColumn Header="No" IsReadOnly="True"/>-->
-                        <DataGridTextColumn Header="参照元" Binding="{Binding Table.FullName}"/>
-                        <DataGridTextColumn Header="列" Binding="{Binding Columns, Converter={StaticResource PgsqlColumnArrayToTextConverter}}"/>
-                    </DataGrid.Columns>
-                </DataGrid>
-            </DockPanel>
-        </TabItem>
         <TabItem Header="ソース">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">

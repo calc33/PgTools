@@ -633,7 +633,12 @@ namespace Db2Source
             }
         }
 
-        public override void Backup()
+        public override bool HasBackup()
+        {
+            return true;
+        }
+
+        public override void Backup(bool force)
         {
             _oldDefinition = _definition;
         }

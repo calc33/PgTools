@@ -2700,6 +2700,22 @@ namespace Db2Source
                     return store;
                 }
             }
+
+            public static PgObjectCollection<PgDatabase> FillByDatname(PgObjectCollection<PgDatabase> store, NpgsqlConnection connection, string datname)
+            {
+                string sql = AddCondition(DataSet.Properties.Resources.PgDatabase_SQL, string.Format("datname = {0}", ToLiteralStr(datname)));
+                if (store == null)
+                {
+                    return new PgObjectCollection<PgDatabase>(sql, connection);
+                }
+                else
+                {
+                    store.Fill(sql, connection, false);
+                    return store;
+                }
+
+            }
+
             public override void FillReference(WorkingData working)
             {
                 IsCurrent = (datname == current_database);
@@ -2850,10 +2866,13 @@ namespace Db2Source
                     Name = name,
                     Setting = setting,
                     Unit = unit,
+                    VarType = vartype,
+                    EnumVals = enumvals,
                     Category = category,
                     ShortDesc = short_desc,
                     ExtraDesc = extra_desc,
                     Context = this.context,
+                    Source = source,
                     BootVal = boot_val,
                     ResetVal = reset_val,
                     PendingRestart = pending_restart
@@ -3256,6 +3275,36 @@ namespace Db2Source
                 LoadFromPgDescription();
             }
 
+            public void FillDatabaseByName(string databaseName, NpgsqlConnection connection)
+            {
+                //PgRole.Load(connection);
+                //PgTablespace.Load(connection);
+                PgDatabase.FillByDatname(PgDatabases, connection, databaseName);
+                PgDatabases.BeginFillReference(this);
+                PgDatabases.FillReference(this);
+                PgDatabases.EndFillReference(this);
+            }
+
+            public void FillSettings(NpgsqlConnection connection) {
+                PgSettings = PgSetting.Load(connection, null);
+                PgSettings.BeginFillReference(this);
+                PgSettings.FillReference(this);
+                PgSettings.EndFillReference(this);
+                LoadFromPgSettings();
+            }
+
+            public void FillTablespaces(NpgsqlConnection connection)
+            {
+                PgNamespace.Load(connection);
+                LoadFromPgNamespaces();
+            }
+
+            public void FillUsers(NpgsqlConnection connection)
+            {
+                PgRole.Load(connection);
+                LoadFromPgRoles();
+            }
+
             public WorkingData(NpgsqlDataSet context)
             {
                 Context = context;
@@ -3284,16 +3333,25 @@ namespace Db2Source
 
             private void LoadFromPgSettings()
             {
-                PgsqlSettingCollection l = (Context?.Database as PgsqlDatabase)?.Settings;
+                if (Context == null || Context.Database == null)
+                {
+                    return;
+                }
+                PgsqlDatabase db = Context.Database;
+                PgsqlSettingCollection l = db.Settings;
                 if (l == null)
                 {
                     return;
                 }
+                l.Clear();
                 foreach (PgSetting s in PgSettings)
                 {
                     l.Add(s.ToPgsqlSetting(Context));
                 }
+                db.LcCtype = l["lc_ctype"]?.Setting;
+                db.LcCollate = l["lc_collate"]?.Setting;
             }
+
             private void LoadFromPgRoles()
             {
                 List<string> l = new List<string>();
@@ -3328,8 +3386,10 @@ namespace Db2Source
                 }
                 lTmpl.Sort(PgsqlDatabase.CompareTemplate);
                 lOther.Sort();
-                Context.OtherDatabases = lOther.ToArray();
-                Context.DatabaseTemplates = lTmpl.ToArray();
+                Context.OtherDatabases.Clear();
+                Context.OtherDatabases.AddRange(lOther);
+                Context.DatabaseTemplates.Clear();
+                Context.DatabaseTemplates.AddRange(lTmpl);
             }
 
             private void LoadFromPgClass()
@@ -3539,6 +3599,60 @@ namespace Db2Source
             }
             return ret;
         }
+
+        //private SchemaObject RefreshDatabase(PgsqlDatabase database, NpgsqlConnection connection)
+        //{
+        //    if (_backend == null)
+        //    {
+        //        LoadSchema(connection, false);
+        //        return DatabaseTemplates[database.Name];
+        //    }
+        //    else
+        //    {
+        //        _backend.FillDatabaseByName(database.Identifier, connection);
+        //    }
+        //    return Database;
+        //}
+
+        public override void RefreshSettings(IDbConnection connection)
+        {
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+            }
+            else
+            {
+                _backend.FillSettings(conn);
+            }
+        }
+
+        public override void RefreshTablespaces(IDbConnection connection)
+        {
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+            }
+            else
+            {
+                _backend.FillTablespaces(conn);
+            }
+        }
+
+        public override void RefreshUsers(IDbConnection connection)
+        {
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+            }
+            else
+            {
+                _backend.FillUsers(conn);
+            }
+        }
+
         public override SchemaObject Refresh(SchemaObject obj, IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
@@ -3557,6 +3671,11 @@ namespace Db2Source
             if (obj is StoredFunction)
             {
                 return RefreshStoredFunction((StoredFunction)obj, conn);
+            }
+            if (obj is PgsqlDatabase)
+            {
+                return obj;
+                //return RefreshDatabase((PgsqlDatabase)obj, conn);
             }
             throw new NotImplementedException();
             //return obj;

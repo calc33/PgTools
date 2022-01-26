@@ -23,7 +23,7 @@
         <TextBlock Grid.Row="1" Text="パスワード：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,3" Visibility="{Binding IsNew, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         <TextBox x:Name="textBoxPassword" Grid.Row="1" Grid.Column="1" Margin="0,2" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" Visibility="{Binding IsNew, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Left" MinWidth="100"/>
         <TextBlock Grid.Row="2" Text="権限：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <WrapPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal">
+        <WrapPanel x:Name="wrapPanelGrant" Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Visibility="{Binding IsReadOnly, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}">
             <CheckBox Content="ログイン可" Margin="0,2,4,2" IsChecked="{Binding Target.CanLogin, ElementName=userControl}"/>
             <CheckBox Content="Roleを継承" Margin="0,2,4,2" IsChecked="{Binding Target.IsInherit, ElementName=userControl}"/>
             <CheckBox Content="データベース作成" Margin="0,2,4,2" IsChecked="{Binding Target.CanCreateDb, ElementName=userControl}"/>
@@ -32,6 +32,7 @@
             <CheckBox Content="レプリケーション" Margin="0,2,4,2" IsChecked="{Binding Target.Replication, ElementName=userControl}"/>
             <CheckBox Content="RLS(Row Level Security)を無視" Margin="0,2,4,2" IsChecked="{Binding Target.BypassRowLevelSecurity, ElementName=userControl}"/>
         </WrapPanel>
+        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding GrantText, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsReadOnly, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}" IsReadOnly="True" Margin="0,2"/>
         <TextBlock Grid.Row="3" Text="同時接続数：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,3"/>
         <TextBox Grid.Row="3" Grid.Column="1" MinWidth="40" Margin="0,2" VerticalAlignment="Center" HorizontalContentAlignment="Right" Text="{Binding Target.ConnectionLimit, ElementName=userControl, Converter={StaticResource NullableIntConverter}}" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" HorizontalAlignment="Left"/>
     </Grid>

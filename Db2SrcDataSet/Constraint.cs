@@ -33,7 +33,7 @@ namespace Db2Source
             _deferred = deferred;
         }
 
-        internal Constraint(Table owner, Constraint basedOn) : base(basedOn)
+        public Constraint(Table owner, Constraint basedOn) : base(null, basedOn)
         {
             _tableSchema = basedOn.TableSchema;
             _tableName = basedOn.TableName;
@@ -213,8 +213,10 @@ namespace Db2Source
         }
 
         internal Constraint _backup;
-        protected internal abstract Constraint Backup(Table owner);
-        public override void Backup()
+
+        protected internal abstract Constraint Backup(Table owner, bool force);
+
+        public override void Backup(bool force)
         {
             throw new NotImplementedException();
         }
@@ -279,7 +281,7 @@ namespace Db2Source
         public string[] Columns { get; set; }
         internal ColumnsConstraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred)
             : base(context, owner, schema, name, tableSchema, tableName, isNoName, deferrable, deferred) { }
-        internal ColumnsConstraint(Table owner, ColumnsConstraint basedOn) : base(owner, basedOn)
+        public ColumnsConstraint(Table owner, ColumnsConstraint basedOn) : base(owner, basedOn)
         {
             Columns = (string[])basedOn.Columns.Clone();
         }
@@ -296,13 +298,22 @@ namespace Db2Source
         {
             _isPrimary = isPrimary;
         }
-        internal KeyConstraint(Table owner, KeyConstraint basedOn): base(owner, basedOn)
+        public KeyConstraint(Table owner, KeyConstraint basedOn): base(owner, basedOn)
         {
             _isPrimary = basedOn._isPrimary;
             ExtraInfo = (string[])basedOn.ExtraInfo.Clone();
         }
-        protected internal override Constraint Backup(Table owner)
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        protected internal override Constraint Backup(Table owner, bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return _backup;
+            }
             _backup = new KeyConstraint(owner, this);
             return _backup;
         }
@@ -510,7 +521,7 @@ namespace Db2Source
             DeleteRule = deleteRule;
         }
 
-        internal ForeignKeyConstraint(Table owner, ForeignKeyConstraint basedOn) : base(owner, basedOn)
+        public ForeignKeyConstraint(Table owner, ForeignKeyConstraint basedOn) : base(owner, basedOn)
         {
             ReferenceSchemaName = basedOn.ReferenceSchemaName;
             ReferenceConstraintName = basedOn.ReferenceConstraintName;
@@ -518,8 +529,17 @@ namespace Db2Source
             DeleteRule = basedOn.DeleteRule;
         }
 
-        protected internal override Constraint Backup(Table owner)
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        protected internal override Constraint Backup(Table owner, bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return _backup;
+            }
             _backup = new ForeignKeyConstraint(owner, this);
             return _backup;
         }
@@ -573,13 +593,22 @@ namespace Db2Source
             Condition = condition;
         }
 
-        internal CheckConstraint(Table owner, CheckConstraint basedOn) : base(owner, basedOn)
+        public CheckConstraint(Table owner, CheckConstraint basedOn) : base(owner, basedOn)
         {
             Condition = basedOn.Condition;
         }
 
-        protected internal override Constraint Backup(Table owner)
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        protected internal override Constraint Backup(Table owner, bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return _backup;
+            }
             _backup = new CheckConstraint(owner, this);
             return _backup;
         }

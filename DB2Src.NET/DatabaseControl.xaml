@@ -8,13 +8,18 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <DataTemplate x:Key="DataGridEditSettingColumnTemplate">
+            <Grid>
+                <Button ContentTemplate="{StaticResource ImageEdit12}" BorderThickness="0" Background="Transparent" ToolTip="変更" Click="EditSettingColumnButton_Click"/>
+            </Grid>
+        </DataTemplate>
         <local2:NameValue x:Key="NameValue"/>
         <local:StrArayToTextConverter x:Key="StrArayToTextConverter"/>
     </UserControl.Resources>
-    <TabControl x:Name="tabControlMain">
+    <TabControl x:Name="tabControlMain" SelectionChanged="tabControlMain_SelectionChanged">
         <TabItem Header="情報">
             <DockPanel>
-                <GroupBox DockPanel.Dock="Top" Header="接続情報" Margin="2">
+                <GroupBox DockPanel.Dock="Top" Header="データベース" Margin="2">
                     <DockPanel>
                         <TextBlock DockPanel.Dock="Top" Text="{Binding Target.Version, ElementName=userControl}" Margin="2,4"/>
                         <DataGrid x:Name="dataGridInfo" IsReadOnly="True" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column" SelectionUnit="Cell" HorizontalGridLinesBrush="#00000000">
@@ -23,67 +28,26 @@
                                 <DataGridTextColumn Header="サーバー" Binding="{Binding ConnectionInfo.ServerName}"/>
                                 <DataGridTextColumn Header="ポート" Binding="{Binding ConnectionInfo.ServerPort}"/>
                                 <DataGridTextColumn Header="管理者" Binding="{Binding DbaUserName}"/>
+                                <DataGridTextColumn Header="Search Path" Binding="{Binding SearchPath}"/>
                                 <DataGridTextColumn Header="Encoding" Binding="{Binding Encoding}"/>
+                                <DataGridTextColumn Header="LC CTYPE" Binding="{Binding LcCtype}"/>
+                                <DataGridTextColumn Header="LC COLLATE" Binding="{Binding LcCollate}"/>
                                 <DataGridTextColumn Header="表領域(初期値)" Binding="{Binding DefaultTablespace}"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
                 </GroupBox>
-                <DockPanel>
-                    
-                </DockPanel>
+                <GroupBox Header="接続ユーザー" DockPanel.Dock="Top" Margin="2">
+                    <local:PgsqlUserControl Target="{Binding CurrentUser, ElementName=userControl}" IsReadOnly="True"/>
+                </GroupBox>
+                <Grid/>
             </DockPanel>
         </TabItem>
         <TabItem Header="ユーザー">
-            <DockPanel>
-                <ListBox x:Name="listBoxUsers" DockPanel.Dock="Left" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" DisplayMemberPath="Id" LayoutUpdated="listBoxUsers_LayoutUpdated"/>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal">
-                        <ToolBar>
-                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更" IsChecked="{Binding IsEditing, ElementName=userControl}" Focusable="False"/>
-                            <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存" Focusable="False"/>
-                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し" Focusable="False"/>
-                            <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="ユーザーを削除" Focusable="False"/>
-                        </ToolBar>
-                    </StackPanel>
-                    <local:PgsqlUserControl Grid.Row="1" Target="{Binding SelectedItem, ElementName=listBoxUsers}"/>
-                </Grid>
-            </DockPanel>
+            <local:UserListControl/>
         </TabItem>
         <TabItem Header="表領域">
-            <DockPanel>
-                <DockPanel DockPanel.Dock="Left">
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
-                        <Button  Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}"/>
-                    </StackPanel>
-                    <ListBox x:Name="listBoxTablespaces"  MinWidth="100" ItemsSource="{Binding Tablespaces, ElementName=userControl}" LayoutUpdated="listBoxTablespaces_LayoutUpdated"/>
-                </DockPanel>
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal">
-                        <ToolBar>
-                            <ToggleButton ContentTemplate="{StaticResource ImageEdit14}" ToolTip="変更"/>
-                            <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageApply14}" ToolTip="保存"/>
-                            <Button ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し"/>
-                            <Separator/>
-                            <Button ContentTemplate="{StaticResource ImageDelete14}" ToolTip="表領域を削除"/>
-                        </ToolBar>
-                    </StackPanel>
-                    <local:PgsqlTablespaceControl Target="{Binding SelectedItem, ElementName=listBoxTablespaces}" Grid.Row="1"/>
-                </Grid>
-            </DockPanel>
+            <local:TablespaceListControl/>
         </TabItem>
         <TabItem Header="パラメータ" Height="22" VerticalAlignment="Top">
             <DockPanel>
@@ -92,16 +56,18 @@
                         <TextBlock Text="カテゴリ" VerticalAlignment="Center"/>
                         <ComboBox x:Name="comboBoxSettingCategory" MinWidth="100" Margin="2,0" DisplayMemberPath="Value" SelectedValuePath="Name" SelectionChanged="comboBoxSettingCategory_SelectionChanged"/>
                         <Separator/>
-                        <ToggleButton x:Name="toggleButtonSettingFilter" ContentTemplate="{StaticResource ImageSearch14}" Click="toggleButtonSettingFilter_Click"/>
+                        <ToggleButton x:Name="toggleButtonSettingFilter" IsChecked="True" ContentTemplate="{StaticResource ImageSearch14}" Click="toggleButtonSettingFilter_Click"/>
                         <TextBox x:Name="textBoxSettingFilter" MinWidth="150" Visibility="{Binding IsChecked, ElementName=toggleButtonSettingFilter, Converter={StaticResource BooleanToVisibilityConverter}}" TextChanged="textBoxSettingFilter_TextChanged"/>
                         <Separator/>
-                        <Button ContentTemplate="{StaticResource ImageRefresh16}" Click="buttonRefresh_Click"/>
+                        <Button ContentTemplate="{StaticResource ImageRefresh16}" Click="buttonRefresh_Click" VerticalAlignment="Stretch"/>
                     </ToolBar>
                 </StackPanel>
                 <DataGrid x:Name="dataGridSetting" Grid.Row="4" IsReadOnly="True" ItemsSource="{Binding Target.Settings, ElementName=userControl}" AutoGenerateColumns="False" SelectionUnit="Cell" CanUserResizeRows="False">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="パラメータ" IsReadOnly="True" Binding="{Binding Name}"/>
-                        <DataGridTextColumn Header="値" IsReadOnly="True" Binding="{Binding Setting}"/>
+                        <DataGridTextColumn x:Name="dataGridSettingNameColumn" Header="パラメータ" IsReadOnly="True" Binding="{Binding Name}"/>
+                        <DataGridTextColumn x:Name="dataGridSettingValueColumn" Header="値" IsReadOnly="True" Binding="{Binding Setting}"/>
+                        <DataGridTemplateColumn CellTemplate="{StaticResource DataGridEditSettingColumnTemplate}"/>
+                        <DataGridTextColumn x:Name="dataGridSettingContext" Header="設定元" Binding="{Binding Context}"/>
                         <DataGridTextColumn Header="説明" IsReadOnly="True" Binding="{Binding ShortDesc}"/>
                         <DataGridTextColumn Header="カテゴリ" IsReadOnly="True" Binding="{Binding Category}"/>
                     </DataGrid.Columns>

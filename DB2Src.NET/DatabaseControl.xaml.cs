@@ -27,6 +27,7 @@ namespace Db2Source
         public static readonly DependencyProperty UsersProperty = DependencyProperty.Register("Users", typeof(ObservableCollection<User>), typeof(DatabaseControl));
         public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(DatabaseControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(DatabaseControl));
+        public static readonly DependencyProperty CurrentUserProperty = DependencyProperty.Register("CurrentUser", typeof(PgsqlUser), typeof(DatabaseControl));
         public NpgsqlDataSet DataSet
         {
             get
@@ -84,6 +85,18 @@ namespace Db2Source
             }
         }
 
+        public PgsqlUser CurrentUser
+        {
+            get
+            {
+                return (PgsqlUser)GetValue(CurrentUserProperty);
+            }
+            set
+            {
+                SetValue(CurrentUserProperty, value);
+            }
+        }
+
         SchemaObject ISchemaObjectControl.Target
         {
             get
@@ -132,14 +145,30 @@ namespace Db2Source
                     lDest.Add(s);
                 }
             }
+            dataGridSetting.ItemsSource = null;
             dataGridSetting.ItemsSource = lDest;
+        }
+
+        private void RefreshDataGridSetting()
+        {
+            Db2SourceContext dataSet = App.CurrentDataSet;
+            using (System.Data.IDbConnection conn = dataSet.NewConnection(true))
+            {
+                dataSet.RefreshSettings(conn);
+            }
+            UpdateDataGridSetting();
         }
 
         private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
+            if (DataSet == null)
+            {
+                return;
+            }
             //Target = DataSet.Database as PgsqlDatabase;
             Users = new ObservableCollection<User>(DataSet.Users);
             Tablespaces = new ObservableCollection<Tablespace>(DataSet.Tablespaces);
+            CurrentUser = DataSet.Users[DataSet.ConnectionInfo.UserName] as PgsqlUser;
         }
         private void UpdateComboBoxSettingCategory()
         {
@@ -181,17 +210,7 @@ namespace Db2Source
             dataGridInfo.ItemsSource = new Database[] { Target };
             UpdateDataGridSetting();
         }
-        private void UpdateListBoxSelection(ListBox target)
-        {
-            if (target == null)
-            {
-                return;
-            }
-            if (target.SelectedItem == null && 0 < target.Items.Count)
-            {
-                target.SelectedItem = target.Items[0];
-            }
-        }
+
         private void OnUsersPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
         }
@@ -250,17 +269,38 @@ namespace Db2Source
 
         private void buttonRefresh_Click(object sender, RoutedEventArgs e)
         {
-            UpdateDataGridSetting();
+            RefreshDataGridSetting();
         }
 
-        private void listBoxUsers_LayoutUpdated(object sender, EventArgs e)
+        private static readonly Point ZeroPoint = new Point(0, 0);
+        private void EditSettingColumnButton_Click(object sender, RoutedEventArgs e)
         {
-            UpdateListBoxSelection(listBoxUsers);
+            EditPgsqlSetting win = new EditPgsqlSetting();
+            PgsqlSetting sel = dataGridSetting.CurrentItem as PgsqlSetting;
+            if (sel == null)
+            {
+                return;
+            }
+            DataGridCell cell = App.FindLogicalParent<DataGridCell>(dataGridSettingValueColumn.GetCellContent(sel));
+            win.FontFamily = FontFamily;
+            win.FontSize = FontSize;
+            win.FontStretch = FontStretch;
+            win.FontStyle = FontStyle;
+            win.FontWeight = FontWeight;
+            win.SetTarget(sel);
+            win.SettingWidth = dataGridSettingValueColumn.ActualWidth;
+            Rect r = new Rect(-1, -2, cell.ActualWidth + 1, cell.ActualHeight + 2);
+            WindowLocator.LocateNearby(cell, r, win, NearbyLocation.Overlap);
+            bool? ret = win.ShowDialog();
+            if (ret.HasValue && ret.Value)
+            {
+                RefreshDataGridSetting();
+            }
         }
 
-        private void listBoxTablespaces_LayoutUpdated(object sender, EventArgs e)
+        private void tabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            UpdateListBoxSelection(listBoxTablespaces);
+
         }
     }
     public class StrArayToTextConverter : IValueConverter

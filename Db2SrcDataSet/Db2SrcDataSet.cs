@@ -993,6 +993,24 @@ namespace Db2Source
         }
         public abstract void LoadSchema(IDbConnection connection, bool clearBeforeLoad);
         public abstract SchemaObject Refresh(SchemaObject obj, IDbConnection connection);
+        public abstract void RefreshSettings(IDbConnection connection);
+        public abstract void RefreshTablespaces(IDbConnection connection);
+        public void RefreshTablespaces()
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                RefreshTablespaces(conn);
+            }
+        }
+        public abstract void RefreshUsers(IDbConnection connection);
+        public void RefreshUsers()
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                RefreshUsers(conn);
+            }
+        }
+
         public SchemaObject Refresh(SchemaObject obj)
         {
             using (IDbConnection conn = NewConnection(true))
@@ -1300,7 +1318,7 @@ namespace Db2Source
         /// <param name="sql"></param>
         /// <param name="logEvent"></param>
         /// <returns>影響を受けた行数</returns>
-        public int ExecSql(string sql, EventHandler<LogEventArgs> logEvent)
+        public int ExecSql(string sql, EventHandler<LogEventArgs> logEvent, bool forceDisconnect = false)
         {
             int n = 0;
             using (IDbConnection conn = NewConnection(true))
@@ -1308,6 +1326,10 @@ namespace Db2Source
                 using (IDbCommand cmd = GetSqlCommand(sql, logEvent, conn))
                 {
                     n = cmd.ExecuteNonQuery();
+                }
+                if (forceDisconnect)
+                {
+                    conn.Close();
                 }
             }
             return n;
@@ -1318,7 +1340,7 @@ namespace Db2Source
         /// エラーはログメッセージとして出力されます。
         /// </summary>
         /// <param name="sql"></param>
-        public void ExecSqlWithLog(string sql)
+        public void ExecSqlWithLog(string sql, bool forceDisconnect = false)
         {
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1337,6 +1359,10 @@ namespace Db2Source
                     {
                         OnLog("[エラー] " + t.Message, LogStatus.Error, sql);
                     }
+                }
+                if (forceDisconnect)
+                {
+                    conn.Close();
                 }
             }
         }

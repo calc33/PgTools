@@ -151,9 +151,18 @@ namespace Db2Source
             }
         }
 
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new PgsqlUser(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new PgsqlUser(null, this);
         }
         public override void Restore()
         {
@@ -195,7 +204,7 @@ namespace Db2Source
         }
 
         public PgsqlUser(NamedCollection owner) : base(owner) { }
-        internal PgsqlUser(PgsqlUser basedOn): base(basedOn)
+        public PgsqlUser(NamedCollection owner, PgsqlUser basedOn) : base(owner, basedOn)
         {
             Oid = basedOn.Oid;
             CanLogin = basedOn.CanLogin;

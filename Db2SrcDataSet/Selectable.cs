@@ -92,7 +92,13 @@ namespace Db2Source
             }
             return _backup;
         }
-        public override void Backup()
+
+        public override bool HasBackup()
+        {
+            return false;
+        }
+
+        public override void Backup(bool force)
         {
             //Backup(Table);
             throw new NotImplementedException();
@@ -1096,7 +1102,7 @@ namespace Db2Source
             _columnSequences = new ColumnSequences(this);
         }
 
-        internal Selectable(Selectable basedOn) : base(basedOn)
+        internal Selectable(NamedCollection owner, Selectable basedOn) : base(owner, basedOn)
         {
             Columns = new ColumnCollection(this);
             Indexes = new IndexCollection(this);

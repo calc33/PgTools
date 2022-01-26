@@ -23,10 +23,11 @@ namespace Db2Source
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlUser), typeof(PgsqlUserControl));
         public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register("IsReadOnly", typeof(bool), typeof(PgsqlUserControl));
         public static readonly DependencyProperty IsNewProperty = DependencyProperty.Register("IsNew", typeof(bool), typeof(PgsqlUserControl));
+        public static readonly DependencyProperty GrantTextProperty = DependencyProperty.Register("GrantText", typeof(string), typeof(PgsqlUserControl));
         //public static readonly DependencyProperty CanEditPasswordProperty = DependencyProperty.Register("CanEditPassword", typeof(bool), typeof(PgsqlUserControl));
         //public static readonly DependencyProperty CanVerifyPasswordProperty = DependencyProperty.Register("CanVerifyPassword", typeof(bool), typeof(PgsqlUserControl));
 
-        public  PgsqlUser Target
+        public PgsqlUser Target
         {
             get { return (PgsqlUser)GetValue(TargetProperty); }
             set { SetValue(TargetProperty, value); }
@@ -44,6 +45,12 @@ namespace Db2Source
             set { SetValue(IsNewProperty, value); }
         }
 
+        public string GrantText
+        {
+            get { return (string)GetValue(GrantTextProperty); }
+            set { SetValue(GrantTextProperty, value); }
+        }
+
         //public bool CanEditPassword
         //{
         //    get { return (bool)GetValue(CanEditPasswordProperty); }
@@ -56,10 +63,78 @@ namespace Db2Source
         //    set { SetValue(CanVerifyPasswordProperty, value); }
         //}
 
-        //protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        //{
-        //    base.OnPropertyChanged(e);
-        //}
+        private bool _isUpdateGrantTextPosted = false;
+        private void UpdateGrantText()
+        {
+            _isUpdateGrantTextPosted = false;
+            List<string> l = new List<string>();
+            foreach (UIElement element in wrapPanelGrant.Children)
+            {
+                if (!(element is CheckBox))
+                {
+                    continue;
+                }
+                CheckBox cb = (CheckBox)element;
+                if (cb.IsChecked.HasValue && cb.IsChecked.Value)
+                {
+                    l.Add(cb.Content.ToString());
+                }
+            }
+            if (l.Count == 0)
+            {
+                GrantText = string.Empty;
+                return;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(l[0]);
+            for (int i = 1; i < l.Count; i++)
+            {
+                buf.Append(", ");
+                buf.Append(l[i]);
+            }
+            GrantText = buf.ToString();
+        }
+
+        private void DelayedUpdateGrantText()
+        {
+            if (_isUpdateGrantTextPosted)
+            {
+                return;
+            }
+            _isUpdateGrantTextPosted = true;
+            Dispatcher.InvokeAsync(UpdateGrantText);
+        }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue == e.NewValue)
+            {
+                return;
+            }
+            if (e.OldValue != null)
+            {
+                ((PgsqlUser)e.OldValue).PropertyChanged -= Target_PropertyChanged;
+            }
+            if (e.NewValue != null)
+            {
+                ((PgsqlUser)e.NewValue).PropertyChanged += Target_PropertyChanged;
+            }
+            DelayedUpdateGrantText();
+        }
+
+        private void Target_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            DelayedUpdateGrantText();
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property == TargetProperty)
+            {
+                OnTargetPropertyChanged(e);
+            }
+            base.OnPropertyChanged(e);
+        }
 
         public PgsqlUserControl()
         {

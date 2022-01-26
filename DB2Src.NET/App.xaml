@@ -136,6 +136,13 @@
                 <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M2,3 L6,0 L6,6 z"/>
             </Canvas>
         </DataTemplate>
+        <DataTemplate x:Key="ImageEdit12">
+            <Canvas Width="12" Height="12" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,9 l0,1.5 l1.5,0"/>
+                <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1"
+                      Data="M2.5,7.5 l3.5,-3.5 l2,2 l-3.5,3.5 l-2,-2 z M7.5,2.5 l1,-1 l2,2 l-1,1 l-2,-2 z"/>
+            </Canvas>
+        </DataTemplate>
         <DataTemplate x:Key="ImageEdit14">
             <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,11 l0,1.5 l1.5,0"/>

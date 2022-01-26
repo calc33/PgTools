@@ -73,7 +73,7 @@ namespace Db2Source
         {
             if (IsEditing)
             {
-                Target.Backup();
+                Target.Backup(false);
             }
         }
 
@@ -189,7 +189,7 @@ namespace Db2Source
         private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)
         {
             Window owner = App.FindVisualParent<Window>(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropTrigger"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropTrigger"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

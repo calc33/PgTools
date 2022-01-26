@@ -53,9 +53,18 @@ namespace Db2Source
             }
         }
 
-        public override void Backup()
+        //public override bool HasBackup()
+        //{
+        //    return _backup != null;
+        //}
+
+        public override void Backup(bool force)
         {
-            _backup = new PgsqlTablespace(this);
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new PgsqlTablespace(null, this);
         }
 
         //public override void Restore()
@@ -75,8 +84,8 @@ namespace Db2Source
                 && ArrayEquals(Options, ts.Options);
         }
 
-        public PgsqlTablespace(NamedCollection<Tablespace> owner) : base(owner) { }
-        internal PgsqlTablespace(PgsqlTablespace basedOn) : base(basedOn)
+        public PgsqlTablespace(NamedCollection owner) : base(owner) { }
+        public PgsqlTablespace(NamedCollection owner, PgsqlTablespace basedOn) : base(owner, basedOn)
         {
             Oid = basedOn.Oid;
             Owner = basedOn.Owner;

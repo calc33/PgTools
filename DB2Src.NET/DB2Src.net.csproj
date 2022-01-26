@@ -118,6 +118,9 @@
     <Compile Include="ConnectionInfoMenu.cs" />
     <Compile Include="CsvUtil.cs" />
     <Compile Include="DisplayItem.cs" />
+    <Compile Include="EditPgsqlSetting.xaml.cs">
+      <DependentUpon>EditPgsqlSetting.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MovableTabItem.cs" />
     <Compile Include="NewPgsqlDatabaseWindow.xaml.cs">
       <DependentUpon>NewPgsqlDatabaseWindow.xaml</DependentUpon>
@@ -220,8 +223,14 @@
     <Compile Include="TableInfoControl.xaml.cs">
       <DependentUpon>TableInfoControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TablespaceListControl.xaml.cs">
+      <DependentUpon>TablespaceListControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TriggerControl.xaml.cs">
       <DependentUpon>TriggerControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="UserListControl.xaml.cs">
+      <DependentUpon>UserListControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
@@ -240,6 +249,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ColumnCheckListWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EditPgsqlSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -371,7 +384,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="TablespaceListControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="TriggerControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UserListControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

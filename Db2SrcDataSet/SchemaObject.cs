@@ -116,7 +116,12 @@ namespace Db2Source
             return Context.GetEscapedIdentifier(SchemaName, Name, baseSchemaName, true);
         }
 
-        //protected override void Backup() { }
+        //public override bool HasBackup()
+        //{
+        //    return false;
+        //}
+
+        //protected override void Backup(bool force) { }
 
         protected void RestoreFrom(SchemaObject backup)
         {
@@ -234,7 +239,7 @@ namespace Db2Source
             Name = objectName;
             Triggers = new TriggerCollection(this);
         }
-        protected SchemaObject(SchemaObject basedOn): base(null)
+        protected SchemaObject(NamedCollection owner, SchemaObject basedOn): base(owner)
         {
             Context = basedOn.Context;
             Owner = basedOn.Owner;

@@ -42,9 +42,18 @@ namespace Db2Source
             return Name;
         }
 
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new Tablespace(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new Tablespace(null, this);
         }
         public override void Restore()
         {
@@ -65,6 +74,7 @@ namespace Db2Source
             return Name == ts.Name
                 && Path == ts.Path;
         }
+
         public override bool IsModified
         {
             get
@@ -72,8 +82,9 @@ namespace Db2Source
                 return (_backup != null) && !ContentEquals(_backup);
             }
         }
+
         public Tablespace(NamedCollection owner) : base(owner) { }
-        internal Tablespace(Tablespace basedOn) : base(null)
+        public Tablespace(NamedCollection owner, Tablespace basedOn) : base(owner)
         {
             if (basedOn == null)
             {

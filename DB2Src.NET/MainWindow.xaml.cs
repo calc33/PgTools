@@ -1539,6 +1539,16 @@ namespace Db2Source
                 LoadSchema(CurrentDataSet);
             }
         }
+
+        private void menuItemDatabaseInfo_Click(object sender, RoutedEventArgs e)
+        {
+            PgsqlDatabase db = (CurrentDataSet as NpgsqlDataSet).Database;
+            if (db == null)
+            {
+                return;
+            }
+            OpenViewer(db);
+        }
     }
     public class RGBToColorBrushConverter : IValueConverter
     {

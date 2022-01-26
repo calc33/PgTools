@@ -28,9 +28,18 @@ namespace Db2Source
         public bool Collatable { get; set; }
 
         protected internal PgsqlBasicType _backup;
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new PgsqlBasicType(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new PgsqlBasicType(null, this);
         }
         protected internal void RestoreFrom(PgsqlBasicType backup)
         {
@@ -123,7 +132,7 @@ namespace Db2Source
             }
         }
         internal PgsqlBasicType(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName) { }
-        internal PgsqlBasicType(PgsqlBasicType basedOn) : base(basedOn)
+        public PgsqlBasicType(NamedCollection owner, PgsqlBasicType basedOn) : base(owner, basedOn)
         {
             InputFunction = basedOn.InputFunction;
             OutputFunction = basedOn.OutputFunction;
@@ -151,9 +160,18 @@ namespace Db2Source
         public string[] Labels { get; set; }
 
         protected internal PgsqlEnumType _backup;
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new PgsqlEnumType(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new PgsqlEnumType(null, this);
         }
         protected internal void RestoreFrom(PgsqlEnumType backup)
         {
@@ -197,7 +215,7 @@ namespace Db2Source
             }
         }
         internal PgsqlEnumType(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName) { }
-        internal PgsqlEnumType(PgsqlEnumType basedOn) : base(basedOn)
+        public PgsqlEnumType(NamedCollection owner, PgsqlEnumType basedOn) : base(owner, basedOn)
         {
             Labels = (string[])basedOn.Labels.Clone();
         }
@@ -212,9 +230,18 @@ namespace Db2Source
         public string SubtypeDiff { get; set; }
 
         protected internal PgsqlRangeType _backup;
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new PgsqlRangeType(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new PgsqlRangeType(null, this);
         }
         protected internal void RestoreFrom(PgsqlRangeType backup)
         {
@@ -270,7 +297,7 @@ namespace Db2Source
         }
 
         internal PgsqlRangeType(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName) { }
-        internal PgsqlRangeType(PgsqlRangeType basedOn) : base(basedOn)
+        public PgsqlRangeType(NamedCollection owner, PgsqlRangeType basedOn) : base(owner, basedOn)
         {
             Subtype = basedOn.Subtype;
             SubtypeOpClass = basedOn.SubtypeOpClass;

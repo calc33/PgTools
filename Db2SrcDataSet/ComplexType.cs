@@ -16,13 +16,18 @@ namespace Db2Source
         //public TypeReferenceCollection ReferFrom { get; } = new TypeReferenceCollection();
 
 
-        public override void Backup()
+        public override bool HasBackup()
         {
-            if (_backup != null)
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
             {
                 return;
             }
-            _backup = new ComplexType(this);
+            _backup = new ComplexType(null, this);
         }
         public override void Restore()
         {
@@ -34,6 +39,6 @@ namespace Db2Source
         }
 
         internal ComplexType(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName) { }
-        internal ComplexType(ComplexType basedOn) : base(basedOn) { }
+        public ComplexType(NamedCollection owner, ComplexType basedOn) : base(owner, basedOn) { }
     }
 }

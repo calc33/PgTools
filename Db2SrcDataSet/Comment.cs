@@ -54,7 +54,11 @@ namespace Db2Source
                 return _text != _oldText;
             }
         }
-        public override void Backup()
+        public override bool HasBackup()
+        {
+            return true;
+        }
+        public override void Backup(bool force)
         {
             _oldText = _text;
         }

@@ -140,9 +140,18 @@ namespace Db2Source
         }
 
         internal Index _backup;
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new Index(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new Index(null, this);
         }
 
         protected internal void RestoreFrom(Index backup)
@@ -195,7 +204,7 @@ namespace Db2Source
             Columns = columns;
             //_definition = definition;
         }
-        internal Index(Index basedOn): base(basedOn)
+        public Index(NamedCollection owner, Index basedOn): base(owner, basedOn)
         {
             _tableSchema = basedOn.TableSchema;
             _tableName = basedOn.TableName;

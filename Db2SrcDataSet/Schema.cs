@@ -188,7 +188,12 @@ namespace Db2Source
             return l.ToArray();
         }
 
-        public override void Backup()
+        public override bool HasBackup()
+        {
+            return false;
+        }
+
+        public override void Backup(bool force)
         {
             throw new NotImplementedException();
         }

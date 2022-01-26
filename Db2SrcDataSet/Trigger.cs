@@ -723,8 +723,17 @@ namespace Db2Source
             }
         }
 
-        public override void Backup()
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
             _backup = new Trigger(this);
         }
 
@@ -778,7 +787,7 @@ namespace Db2Source
             //    _oldDefinition = _definition;
             //}
         }
-        public Trigger(Trigger basedOn): base(basedOn)
+        public Trigger(Trigger basedOn) : base(null, basedOn)
         {
             _updateEventColumns = new StringCollection(this);
             _updateEventColumns.AddRange(basedOn.UpdateEventColumns);

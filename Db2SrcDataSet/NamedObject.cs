@@ -40,7 +40,8 @@ namespace Db2Source
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public abstract void Backup();
+        public abstract bool HasBackup();
+        public abstract void Backup(bool force);
 
         public abstract void Restore();
 
@@ -454,6 +455,13 @@ namespace Db2Source
             base.Add(item);
         }
 
+        public void AddRange(IEnumerable<T> list)
+        {
+            foreach (T item in list)
+            {
+                Add(item);
+            }
+        }
         //public void Clear() {
         //    _list.Clear();
         //    _nameDict = null;

@@ -447,6 +447,7 @@
                     <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)">
                         <MenuItem Header="Postgres(NpgSql)"/>
                     </MenuItem>
+                    <MenuItem x:Name="menuItemDatabaseInfo" Header="情報(_I)" Click="menuItemDatabaseInfo_Click" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}"/>
                     <MenuItem x:Name="menuItemEditConnections" Header="接続リストの管理(_M)" Click="menuItemEditConnections_Click"/>
                     <MenuItem Header="更新(_U)" Click="menuItemRefreshSchema_Click" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}"/>
                     <MenuItem Header="新規データベース(_N)" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}" Click="menuItemNewDatabase_Click"/>

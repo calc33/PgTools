@@ -50,16 +50,26 @@ namespace Db2Source
         internal Sequence _backup;
         protected internal Sequence Backup(Column owner)
         {
-            _backup = new Sequence(this);
+            _backup = new Sequence(null, this);
             if (owner != null)
             {
                 _backup._ownedColumn = new WeakReference<Column>(owner);
             }
             return _backup;
         }
-        public override void Backup()
+
+        public override bool HasBackup()
         {
-            _backup = new Sequence(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new Sequence(null, this);
         }
         protected internal void RestoreFrom(Sequence backup)
         {
@@ -114,7 +124,7 @@ namespace Db2Source
 
         internal Sequence(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects) { }
 
-        internal Sequence(Sequence basedOn) : base(basedOn)
+        internal Sequence(NamedCollection owner, Sequence basedOn) : base(owner, basedOn)
         {
             StartValue = basedOn.StartValue;
             MinValue = basedOn.MinValue;

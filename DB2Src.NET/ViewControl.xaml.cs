@@ -107,9 +107,9 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void TargetChanged(DependencyPropertyChangedEventArgs e)
+        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            dataGridColumns.ItemsSource = Target.Columns;
+            dataGridColumns.ItemsSource = Target?.Columns;
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
             Dispatcher.Invoke(Fetch, DispatcherPriority.Normal);
@@ -119,7 +119,7 @@ namespace Db2Source
         {
             if (e.Property == TargetProperty)
             {
-                TargetChanged(e);
+                TargetPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }

@@ -12,7 +12,7 @@
         <ContextMenu x:Key="contextMenuDropTrigger">
             <MenuItem x:Name="menuItemDropTrigger" Header="トリガーを削除" Click="menuItemDropTrigger_Click"/>
         </ContextMenu>
-        <sys:String x:Key="messageDropTrigger">トリガーを削除します。削除しすると元に戻せません。よろしいですか?</sys:String>
+        <sys:String x:Key="messageDropTrigger">トリガー"{0}"を削除します。削除しすると元に戻せません。よろしいですか?</sys:String>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

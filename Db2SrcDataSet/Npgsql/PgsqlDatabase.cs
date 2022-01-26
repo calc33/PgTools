@@ -104,10 +104,27 @@ namespace Db2Source
             }
         }
 
+        public string SearchPath
+        {
+            get
+            {
+                return Settings["search_path"]?.Setting;
+            }
+        }
+
         public PgsqlSettingCollection Settings { get; private set; } = new PgsqlSettingCollection();
 
-        public override void Backup()
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
             _backup = new PgsqlDatabase(this);
         }
         protected void RestoreFrom(PgsqlDatabase backup)
@@ -137,7 +154,12 @@ namespace Db2Source
                 return false;
             }
             PgsqlDatabase db = (PgsqlDatabase)obj;
-            return Settings.ContentEquals(db.Settings);
+            return LcCollate == db.LcCollate
+                && LcCtype == db.LcCtype
+                && ConnectionLimit == db.ConnectionLimit
+                && AllowConnect == db.AllowConnect
+                && IsTemplate == db.IsTemplate
+                && Settings.ContentEquals(db.Settings);
         }
 
         private int GetPriorityByTemplateName()

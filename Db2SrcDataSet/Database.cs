@@ -125,8 +125,17 @@ namespace Db2Source
         private Dictionary<string, object> _attributes = new Dictionary<string, object>();
 
         protected Database _backup;
-        public override void Backup()
+        public override bool HasBackup()
         {
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
             _backup = new Database(this);
         }
 
@@ -169,7 +178,7 @@ namespace Db2Source
             Schema = null;
         }
 
-        internal Database(Database basedOn) : base(basedOn)
+        public Database(Database basedOn) : base(null, basedOn)
         {
             Schema = null;
             DbaUserName = basedOn.DbaUserName;

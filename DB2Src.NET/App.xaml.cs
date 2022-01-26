@@ -35,6 +35,31 @@ namespace Db2Source
                 return (Current?.MainWindow as MainWindow)?.CurrentDataSet;
             }
         }
+        /// <summary>
+        /// SQLを実行してエラーが出たらエラーメッセージをダイアログで表示する
+        /// </summary>
+        /// <param name="sql">実行したいSQL</param>
+        /// <param name="forceDisconnect">SQL実行後に確実にセッションを切断したい場合はtrue</param>
+        /// <returns>SQL実行に成功したらtrue, エラーが出たり実行できなかった場合はfalse</returns>
+        public static bool ExecSql(string sql, bool forceDisconnect = false)
+        {
+            Db2SourceContext ds = CurrentDataSet;
+            if (ds == null)
+            {
+                return false;
+            }
+            try
+            {
+                ds.ExecSql(sql, null, forceDisconnect);
+            }
+            catch (Exception t)
+            {
+                MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogException(sql, t);
+                return false;
+            }
+            return true;
+        }
         private void TabItemCloseButton_Click(object sender, RoutedEventArgs e)
         {
             TabItem item = (sender as Control).TemplatedParent as TabItem;
@@ -120,6 +145,10 @@ namespace Db2Source
         public static void LogException(Exception t)
         {
             LogWriter.Log(t.ToString());
+        }
+        public static void LogException(string message, Exception t)
+        {
+            LogWriter.Log(message + Environment.NewLine + t.ToString());
         }
 
         private static object _threadExceptionsLock = new object();

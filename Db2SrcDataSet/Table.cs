@@ -127,9 +127,18 @@ namespace Db2Source
 
         public string PartitionBound { get; set; }
 
-        public override void Backup()
+        public override bool HasBackup()
         {
-            _backup = new Table(this);
+            return _backup != null;
+        }
+
+        public override void Backup(bool force)
+        {
+            if (!force && _backup != null)
+            {
+                return;
+            }
+            _backup = new Table(null, this);
         }
 
         protected internal void RestoreFrom(Table backup)
@@ -210,11 +219,11 @@ namespace Db2Source
         {
             return Context.GetDropSQL(this, prefix, postfix, indent, cascade, addNewline);
         }
-        protected void BackupConstraints(Table destination)
+        protected void BackupConstraints(Table destination, bool force)
         {
             foreach (Constraint c in Constraints)
             {
-                destination.Constraints.Add(c.Backup(destination));
+                destination.Constraints.Add(c.Backup(destination, force));
             }
         }
 
@@ -224,13 +233,13 @@ namespace Db2Source
             Constraints = new ConstraintCollection(this);
             ReferFrom = new ReferedForeignKeyCollection(this);
         }
-        internal Table(Table basedOn): base(basedOn)
+        public Table(NamedCollection owner, Table basedOn): base(owner, basedOn)
         {
             Constraints = new ConstraintCollection(this);
             ReferFrom = new ReferedForeignKeyCollection(this);
             foreach (Constraint c in basedOn.Constraints)
             {
-                Constraints.Add(c.Backup(this));
+                Constraints.Add(c.Backup(this, true));
             }
             //Constraints
             //Indexes

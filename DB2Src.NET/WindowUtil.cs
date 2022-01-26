@@ -47,6 +47,10 @@ namespace Db2Source
         /// 右側に表示、下揃え
         /// </summary>
         RightSideBottom,
+        /// <summary>
+        /// 上に重ねる
+        /// </summary>
+        Overlap,
     }
     public class WindowLocator
     {
@@ -75,12 +79,14 @@ namespace Db2Source
             { NearbyLocation.LeftSideBottom, new NearbyLocation[] { NearbyLocation.LeftSideTop, NearbyLocation.RightSideBottom, NearbyLocation.RightSideTop } },
             { NearbyLocation.RightSideTop, new NearbyLocation[] { NearbyLocation.RightSideBottom, NearbyLocation.LeftSideTop, NearbyLocation.LeftSideBottom } },
             { NearbyLocation.RightSideBottom, new NearbyLocation[] { NearbyLocation.RightSideTop, NearbyLocation.LeftSideBottom, NearbyLocation.LeftSideTop } },
+            { NearbyLocation.Overlap, new NearbyLocation[0] },
         };
 
         private Rect _placement;
         private Rect _workingArea;
         private Window _window;
         private NearbyLocation _location;
+
         internal WindowLocator(FrameworkElement target, Rect rectOnTarget, Window window, NearbyLocation location)
         {
             _placement = new Rect(target.PointToScreen(rectOnTarget.TopLeft), target.PointToScreen(rectOnTarget.BottomRight));
@@ -132,6 +138,8 @@ namespace Db2Source
                     return new Rect(_placement.Right - windowRect.Left, _placement.Top - windowRect.Top, windowRect.Width, windowRect.Height);
                 case NearbyLocation.RightSideBottom:
                     return new Rect(_placement.Right - windowRect.Left, _placement.Bottom - windowRect.Bottom, windowRect.Width, windowRect.Height);
+                case NearbyLocation.Overlap:
+                    return new Rect(_placement.TopLeft, windowRect.Size);
                 default:
                     return new Rect(_placement.Left - windowRect.Left, _placement.Bottom - windowRect.Top, windowRect.Width, windowRect.Height);
             }

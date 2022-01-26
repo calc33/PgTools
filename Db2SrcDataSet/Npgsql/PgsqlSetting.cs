@@ -12,10 +12,13 @@ namespace Db2Source
         public string Name { get; set; }
         public string Setting { get; set; }
         public string Unit { get; set; }
+        public string[] EnumVals { get; set; }
+        public string VarType { get; set; }
         public string Category { get; set; }
         public string ShortDesc { get; set; }
         public string ExtraDesc { get; set; }
         public string Context { get; set; }
+        public string Source { get; set; }
         public string BootVal { get; set; }
         public string ResetVal { get; set; }
         public bool PendingRestart { get; set; }
@@ -69,6 +72,40 @@ namespace Db2Source
     public class PgsqlSettingCollection: IList<PgsqlSetting>, ICloneable
     {
         private List<PgsqlSetting> _list = new List<PgsqlSetting>();
+        private Dictionary<string, PgsqlSetting> _nameToSetting = null;
+
+        private void UpdateNameToSetting()
+        {
+            if (_nameToSetting != null)
+            {
+                return;
+            }
+            Dictionary<string, PgsqlSetting> dict = new Dictionary<string, PgsqlSetting>();
+            foreach (PgsqlSetting setting in _list)
+            {
+                dict[setting.Name.ToLower()] = setting;
+            }
+            _nameToSetting = dict;
+        }
+
+        private void InvalidateNameToSetting()
+        {
+            _nameToSetting = null;
+        }
+
+        public PgsqlSetting this[string name]
+        {
+            get
+            {
+                UpdateNameToSetting();
+                PgsqlSetting ret;
+                if (!_nameToSetting.TryGetValue(name.ToLower(), out ret))
+                {
+                    return null;
+                }
+                return ret;
+            }
+        }
 
         #region IListの実装
         public PgsqlSetting this[int index]
@@ -80,6 +117,7 @@ namespace Db2Source
             set
             {
                 _list[index] = value;
+                InvalidateNameToSetting();
             }
         }
 
@@ -101,11 +139,13 @@ namespace Db2Source
         public void Add(PgsqlSetting item)
         {
             _list.Add(item);
+            InvalidateNameToSetting();
         }
 
         public void Clear()
         {
             _list.Clear();
+            InvalidateNameToSetting();
         }
 
         public bool Contains(PgsqlSetting item)
@@ -131,16 +171,20 @@ namespace Db2Source
         public void Insert(int index, PgsqlSetting item)
         {
             _list.Insert(index, item);
+            InvalidateNameToSetting();
         }
 
         public bool Remove(PgsqlSetting item)
         {
-            return _list.Remove(item);
+            bool ret = _list.Remove(item);
+            InvalidateNameToSetting();
+            return ret;
         }
 
         public void RemoveAt(int index)
         {
             _list.RemoveAt(index);
+            InvalidateNameToSetting();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

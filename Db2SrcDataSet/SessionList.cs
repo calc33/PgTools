@@ -17,7 +17,12 @@ namespace Db2Source
             Schema = null;
         }
 
-        public override void Backup() { }
+        public override bool HasBackup()
+        {
+            return false;
+        }
+
+        public override void Backup(bool force) { }
         public override string GetExportFolderName()
         {
             throw new NotImplementedException();
