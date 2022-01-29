@@ -177,8 +177,8 @@ namespace Db2Source
                 RemoveCurrent();
                 return;
             }
-            string sql = string.Format("drop tablespace {0}", Target.Identifier);
-            if (App.ExecSql(sql))
+            string[] sqls = App.CurrentDataSet.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            if (App.ExecSqls(sqls))
             {
                 RefreshTablespaces();
             }
@@ -224,16 +224,7 @@ namespace Db2Source
             {
                 sqls = App.CurrentDataSet.GetAlterSQL(Target, Current, string.Empty, string.Empty, 0, false);
             }
-            bool failed = false;
-            foreach (string sql in sqls)
-            {
-                if (!App.ExecSql(sql))
-                {
-                    failed = true;
-                    break;
-                }
-            }
-            if (!failed)
+            if (App.ExecSqls(sqls))
             {
                 IsEditing = false;
                 RefreshTablespaces();
