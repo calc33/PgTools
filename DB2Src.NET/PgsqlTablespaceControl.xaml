@@ -23,7 +23,8 @@
         <TextBlock Text="名前：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox Grid.Column="1" Margin="0,2" Text="{Binding Target.Name, ElementName=userControl}" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" HorizontalAlignment="Left" MinWidth="150"/>
         <TextBlock Grid.Row="1" Text="所有者：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-        <ComboBox x:Name="userControlOwner" Grid.Row="1" Grid.Column="1" Margin="0,1" ItemsSource="{Binding UserItems, ElementName=userControl}" SelectedValue="{Binding Target.Owner, ElementName=userControl}" DisplayMemberPath="Text" SelectedValuePath="ItemName" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" HorizontalAlignment="Left" MinWidth="150"/>
+        <ComboBox x:Name="comboBoxOwner" Grid.Row="1" Grid.Column="1" Margin="0,1" ItemsSource="{Binding UserItems, ElementName=userControl}" SelectedValue="{Binding Target.Owner, ElementName=userControl}" DisplayMemberPath="Text" SelectedValuePath="ItemName" Visibility="{Binding IsReadOnly, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}" HorizontalAlignment="Left" MinWidth="150"/>
+        <TextBox x:Name="textBoxOwner" Grid.Row="1" Grid.Column="1" Margin="0,1" Text="{Binding Target.Owner, ElementName=userControl}" IsReadOnly="True" Visibility="{Binding IsReadOnly, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Left" MinWidth="150"/>
         <TextBlock Grid.Row="2" Text="ディレクトリ：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox Grid.Row="2" Grid.Column="1" Margin="0,2" Text="{Binding Target.Path, ElementName=userControl}" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}"/>
         <!--

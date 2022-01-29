@@ -88,6 +88,19 @@ namespace Db2Source
             }
         }
 
+        public bool IsNew()
+        {
+            return Current.Oid == 0;
+        }
+
+        private void RemoveCurrent()
+        {
+            int i = listBoxUsers.SelectedIndex;
+            Users.Remove(Current);
+            i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Users.Count - 1);
+            listBoxUsers.SelectedIndex = i;
+        }
+
         private void Revert()
         {
             if (Current != null)
@@ -115,8 +128,11 @@ namespace Db2Source
 
         private void RefreshUsers()
         {
+            int i = listBoxUsers.SelectedIndex;
             App.CurrentDataSet.RefreshUsers();
             UpdateUsers();
+            i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Users.Count - 1);
+            listBoxUsers.SelectedIndex = i;
         }
 
         private void OnCurrentPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -158,14 +174,16 @@ namespace Db2Source
             {
                 return;
             }
+            if (IsNew())
+            {
+                RemoveCurrent();
+                return;
+            }
 
             string sql = string.Format("drop User {0}", Target.Identifier);
             if (App.ExecSql(sql))
             {
-                int i = listBoxUsers.SelectedIndex;
-                App.CurrentDataSet.RefreshUsers();
-                i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Users.Count - 1);
-                listBoxUsers.SelectedIndex = i;
+                RefreshUsers();
             }
         }
 
@@ -197,7 +215,7 @@ namespace Db2Source
                 return;
             }
             string[] sqls;
-            if (Current.Oid == 0)
+            if (IsNew())
             {
                 sqls = App.CurrentDataSet.GetSQL(Target, string.Empty, string.Empty, 0, false);
             }
@@ -223,7 +241,14 @@ namespace Db2Source
 
         private void buttonRevert_Click(object sender, RoutedEventArgs e)
         {
-            Revert();
+            if (IsNew())
+            {
+                RemoveCurrent();
+            }
+            else
+            {
+                Revert();
+            }
             IsEditing = false;
         }
 

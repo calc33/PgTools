@@ -88,6 +88,19 @@ namespace Db2Source
             }
         }
 
+        public bool IsNew()
+        {
+            return Current != null && Current.Oid == 0;
+        }
+
+        private void RemoveCurrent()
+        {
+            int i = listBoxTablespaces.SelectedIndex;
+            Tablespaces.Remove(Current);
+            i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Tablespaces.Count - 1);
+            listBoxTablespaces.SelectedIndex = i;
+        }
+
         private void Revert()
         {
             if (Current != null)
@@ -114,8 +127,10 @@ namespace Db2Source
         }
         private void RefreshTablespaces()
         {
+            int i = listBoxTablespaces.SelectedIndex;
             App.CurrentDataSet.RefreshTablespaces();
-            UpdateTablespaces();
+            i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Tablespaces.Count - 1);
+            listBoxTablespaces.SelectedIndex = i;
         }
 
         private void OnCurrentPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -157,14 +172,15 @@ namespace Db2Source
             {
                 return;
             }
-
+            if (IsNew())
+            {
+                RemoveCurrent();
+                return;
+            }
             string sql = string.Format("drop tablespace {0}", Target.Identifier);
             if (App.ExecSql(sql))
             {
-                int i = listBoxTablespaces.SelectedIndex;
-                App.CurrentDataSet.RefreshTablespaces();
-                i = Math.Min(Math.Max(0, i), App.CurrentDataSet.Tablespaces.Count - 1);
-                listBoxTablespaces.SelectedIndex = i;
+                RefreshTablespaces();
             }
         }
 
@@ -180,7 +196,11 @@ namespace Db2Source
         {
             PgsqlTablespace newItem = new PgsqlTablespace(null);
             Tablespaces.Add(newItem);
-            Dispatcher.InvokeAsync(() => { listBoxTablespaces.SelectedItem = newItem; }, DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(() =>
+            {
+                listBoxTablespaces.SelectedItem = newItem;
+                IsEditing = true;
+            }, DispatcherPriority.ApplicationIdle);
         }
 
         private void buttonApply_Click(object sender, RoutedEventArgs e)
@@ -196,7 +216,7 @@ namespace Db2Source
                 return;
             }
             string[] sqls;
-            if (Current.Oid == 0)
+            if (IsNew())
             {
                 sqls = App.CurrentDataSet.GetSQL(Target, string.Empty, string.Empty, 0, false);
             }
@@ -222,7 +242,14 @@ namespace Db2Source
 
         private void buttonRevert_Click(object sender, RoutedEventArgs e)
         {
-            Revert();
+            if (IsNew())
+            {
+                RemoveCurrent();
+            }
+            else
+            {
+                Revert();
+            }
             IsEditing = false;
         }
 
