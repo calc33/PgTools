@@ -196,7 +196,15 @@ namespace Db2Source
                 IsEditing = false;
                 return;
             }
-            string[] sqls = App.CurrentDataSet.GetAlterSQL(Target, Current, string.Empty, string.Empty, 0, false);
+            string[] sqls;
+            if (Current.Oid == 0)
+            {
+                sqls = App.CurrentDataSet.GetSQL(Target, string.Empty, string.Empty, 0, false);
+            }
+            else
+            {
+                sqls = App.CurrentDataSet.GetAlterSQL(Target, Current, string.Empty, string.Empty, 0, false);
+            }
             bool failed = false;
             foreach (string sql in sqls)
             {
