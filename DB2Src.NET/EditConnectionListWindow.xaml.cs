@@ -110,7 +110,7 @@ namespace Db2Source
             dataGridConnections.Columns.Clear();
             dataGridConnections.Columns.Add(new DataGridTextColumn()
             {
-                Header = "種別",
+                Header = (string)Resources["columnHeaderDatabaseType"],
                 Binding = new Binding("DatabaseType")
             });
             foreach (ColumnInfo info in infos)
@@ -184,8 +184,8 @@ namespace Db2Source
                 buf.Append(info.Description);
                 buf.Append(' ');
             }
-            buf.Append("を削除します。よろしいですか?");
-            MessageBoxResult ret = MessageBox.Show(buf.ToString(), "削除", MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+            buf.Append((string)Resources["messageDelete"]);
+            MessageBoxResult ret = MessageBox.Show(buf.ToString(), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

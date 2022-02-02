@@ -5,11 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet" 
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local2:NameValue x:Key="NameValue"/>
         <local:StrArayToTextConverter x:Key="StrArayToTextConverter"/>
+        <sys:String x:Key="messageConnectDatabase">データベース{0}を作成しました。このデータベースに接続しますか?</sys:String>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

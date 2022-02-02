@@ -3,9 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         Title="スキーマを出力" Height="300" Width="500" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <sys:String x:Key="FolderBrowserDialog_Title">エクスポート先を選択</sys:String>
+        <sys:String x:Key="messageDone">出力完了</sys:String>
+    </Window.Resources>
     <DockPanel>
         <Grid DockPanel.Dock="Top">
             <Grid.ColumnDefinitions>

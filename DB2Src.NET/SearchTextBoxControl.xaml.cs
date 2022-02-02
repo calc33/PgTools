@@ -857,7 +857,7 @@ namespace Db2Source
     }
     public static class SearchCommands
     {
-        public static RoutedCommand FindNext = new RoutedCommand("次を検索", typeof(FrameworkElement), new InputGestureCollection(new KeyGesture[] { new KeyGesture(Key.F3) }));
-        public static RoutedCommand FindPrevious = new RoutedCommand("前を検索", typeof(FrameworkElement), new InputGestureCollection(new KeyGesture[] { new KeyGesture(Key.F3, ModifierKeys.Shift) }));
+        public static RoutedCommand FindNext = new RoutedCommand(Properties.Resources.FindNextCommand_Name, typeof(FrameworkElement), new InputGestureCollection(new KeyGesture[] { new KeyGesture(Key.F3) }));
+        public static RoutedCommand FindPrevious = new RoutedCommand(Properties.Resources.FindPreviousCommand_Name, typeof(FrameworkElement), new InputGestureCollection(new KeyGesture[] { new KeyGesture(Key.F3, ModifierKeys.Shift) }));
     }
 }

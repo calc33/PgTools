@@ -76,7 +76,7 @@ namespace Db2Source
                         MenuItem mi = new MenuItem
                         {
                             Header = item.Header,
-                            HeaderStringFormat = "{0}に接続"
+                            HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"]
                         };
                         mi.Click += MenuItemOtherDatabase_Click;
                         item.ContextMenu.Items.Add(mi);

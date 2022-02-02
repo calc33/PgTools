@@ -8,6 +8,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
+        <sys:String x:Key="messageRecovered">(修復しました)</sys:String>
+        <sys:String x:Key="messageRecoveryFailed">(修復失敗: {0})</sys:String>
+        <sys:String x:Key="messageFailed">エラー: {0}{1}</sys:String>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <ContextMenu x:Key="contextMenuDropTrigger">
             <MenuItem x:Name="menuItemDropTrigger" Header="トリガーを削除" Click="menuItemDropTrigger_Click"/>

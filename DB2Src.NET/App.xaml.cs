@@ -54,7 +54,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 LogException(sql, t);
                 return false;
             }
@@ -82,7 +82,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     LogException(sql, t);
                     return false;
                 }
@@ -193,7 +193,7 @@ namespace Db2Source
                     t = _threadExceptions[0];
                     _threadExceptions.RemoveAt(0);
                 }
-                MessageBox.Show(t.ToString(), "エラー1", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(t.ToString(), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         public static void HandleThreadException(Exception t)
@@ -207,14 +207,14 @@ namespace Db2Source
         }
         private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {
-            MessageBox.Show(e.Exception.ToString(), "エラー2", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(e.Exception.ToString(), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             LogException(e.Exception);
             e.Handled = true;
         }
 
         private static void ShowUsage()
         {
-            MessageBox.Show(Db2Source.Properties.Resources.Usage, "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(Db2Source.Properties.Resources.Usage, Db2Source.Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
             App.Current.Shutdown();
         }
 
@@ -678,7 +678,6 @@ namespace Db2Source
 
     public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo
     {
-        public const string DEFAULE_NAME = "新しい接続...";
         public NewNpgsqlConnectionInfo(bool fromSetting) : base()
         {
             if (fromSetting)
@@ -688,7 +687,7 @@ namespace Db2Source
                 DatabaseName = App.Database;
                 UserName = App.Username;
             }
-            Name = DEFAULE_NAME;
+            Name = Properties.Resources.NewConnectionTitle;
         }
     }
 

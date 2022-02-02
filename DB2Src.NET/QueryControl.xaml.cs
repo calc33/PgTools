@@ -117,6 +117,17 @@ namespace Db2Source
         {
             RegistryBinding.Save(App.RegistryFinder);
         }
+
+        public string GetTabItemHeader(int index)
+        {
+            string s = (string)Resources["tabItemHeader"];
+            if (index != 0)
+            {
+                s += " " + index.ToString();
+            }
+            return s;
+        }
+
         public QueryControl()
         {
             InitializeComponent();
@@ -226,7 +237,8 @@ namespace Db2Source
                     {
                         dataGridParameters.Focus();
                         dataGridParameters.SelectedItem = p;
-                        MessageBox.Show(string.Format("パラメータ{0}の値が不正です", p.ParameterName), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                        Window owner = App.FindVisualParent<Window>(this);
+                        MessageBox.Show(owner, string.Format((string)Resources["messageInvalidParameter"], p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
                 }
@@ -242,7 +254,7 @@ namespace Db2Source
                             DataGridControllerResult.Load(reader);
                             if (0 <= reader.RecordsAffected)
                             {
-                                AddLog(string.Format("{0}行反映しました。", reader.RecordsAffected), null, null, LogStatus.Normal, true);
+                                AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), null, null, LogStatus.Normal, true);
                             }
                             else if (0 < reader.FieldCount)
                             {
@@ -265,8 +277,8 @@ namespace Db2Source
                         DateTime end = DateTime.Now;
                         TimeSpan time = end - start;
                         string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                        AddLog(string.Format("実行しました (所要時間 {0})", s), cmd.CommandText, stores, LogStatus.Aux, false);
-                        textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", DataGridControllerResult.Rows.Count, s);
+                        AddLog(string.Format((string)Resources["messageExecuted"], s), cmd.CommandText, stores, LogStatus.Aux, false);
+                        textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
                     }
                 }
             }
@@ -314,19 +326,19 @@ namespace Db2Source
             Db2SourceContext ctx = CurrentDataSet;
             if (ctx == null)
             {
-                AddLog("データベースに接続していません。", null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNotConnected"], null, null, LogStatus.Error, true);
                 return;
             }
             string sql = textBoxSql.Text.TrimEnd();
             if (string.IsNullOrEmpty(sql))
             {
-                AddLog("SQLがありません。", null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNoSql"], null, null, LogStatus.Error, true);
                 return;
             }
             SQLParts parts = ctx.SplitSQL(sql);
             if (parts.Count == 0)
             {
-                AddLog("SQLがありません。", null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNoSql"], null, null, LogStatus.Error, true);
                 return;
             }
             listBoxErrors.Items.Clear();

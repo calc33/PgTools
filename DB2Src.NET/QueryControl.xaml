@@ -3,10 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:local="clr-namespace:Db2Source"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="488" Initialized="UserControl_Initialized" Unloaded="UserControl_Unloaded">
     <UserControl.Resources>
+        <sys:String x:Key="tabItemHeader">クエリ</sys:String>
+        <sys:String x:Key="messageInvalidParameter">パラメータ{0}の値が不正です</sys:String>
+        <sys:String x:Key="messageRowsAffected">{0}行反映しました</sys:String>
+        <sys:String x:Key="messageExecuted">実行しました (所要時間 {0})</sys:String>
+        <sys:String x:Key="messageRowsFound">{0}件見つかりました (所要時間 {1})</sys:String>
+        <sys:String x:Key="messageNotConnected">データベースに接続していません。</sys:String>
+        <sys:String x:Key="messageNoSql">データベースに接続していません。</sys:String>
         <ContextMenu x:Key="ContextMenuCopyTable" Placement="Bottom">
             <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
             <MenuItem Header="データのみ(_D)" Command="local:DataGridCommands.CopyTableContent" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>

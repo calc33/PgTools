@@ -149,7 +149,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(Target.Context.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(Target.Context.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
@@ -253,7 +253,7 @@ namespace Db2Source
                 int l;
                 if (!int.TryParse(textBoxLimitRow.Text, out l))
                 {
-                    MessageBox.Show("件数が数字ではありません", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show((string)Resources["messageInvalidLimitRow"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxLimitRow.Focus();
                 }
                 limit = l;

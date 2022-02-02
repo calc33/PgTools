@@ -86,7 +86,7 @@ namespace Db2Source
         private void buttonSelectFolder_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
-            dlg.Title = "エクスポート先を選択";
+            dlg.Title = (string)Resources["FolderBrowserDialog_Title"];
             dlg.SelectedPath = textBoxFolder.Text;
             Db2Source.DialogResult ret = dlg.ShowDialog(this);
             if (ret != Db2Source.DialogResult.OK)
@@ -322,7 +322,7 @@ namespace Db2Source
             AwaitWindow win = new AwaitWindow();
             win.Owner = this;
             win.WaitTask(t);
-            MessageBox.Show(this, "出力完了", "情報", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, (string)Resources["messageDone"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

@@ -8,6 +8,15 @@
         mc:Ignorable="d"
         Title="ダンプを出力" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded">
     <Window.Resources>
+        <sys:String x:Key="FolderBrowserDialog_Title">出力先フォルダを選択</sys:String>
+        <sys:String x:Key="messageNoFormat">出力方式を指定してください</sys:String>
+        <sys:String x:Key="messageNoFilePath">出力ファイル名を指定してください</sys:String>
+        <sys:String x:Key="messageNoDirectory">出力先フォルダを指定してください</sys:String>
+        <sys:String x:Key="messageInvalidJobs">並列ジョブ数が不正です</sys:String>
+        <sys:String x:Key="messageInvalidLockTime">テーブルがロックされていた場合の待ち秒数が不正です</sys:String>
+        <sys:String x:Key="messageProcessTerminated">*** 終了しました ***</sys:String>
+        <sys:String x:Key="messageDefaultValue">既定値</sys:String>
+        <sys:String x:Key="messageDefaultValueFmt">既定値({0})</sys:String>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
     </Window.Resources>

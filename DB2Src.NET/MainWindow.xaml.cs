@@ -177,7 +177,7 @@ namespace Db2Source
 
             _categoryPathToMenuItem = new Dictionary<string, MenuItem>();
             MenuItemOpenDb.Items.Insert(0, new Separator());
-            MenuItem mi = new MenuItem() { Header = "新しい接続..." };
+            MenuItem mi = new MenuItem() { Header = (string)Resources["NewConnectionHeader"] };
             mi.Click += MenuItemOpenDb_Click;
             MenuItemOpenDb.Items.Insert(0, mi);
         }
@@ -275,7 +275,7 @@ namespace Db2Source
             if (CurrentDataSet == null)
             {
                 Title = TitleBase;
-                treeViewItemTop.Header = "データベース";
+                treeViewItemTop.Header = (string)Resources["TreeViewItemTopHeader"];
                 treeViewItemTop.Items.Clear();
                 return;
             }
@@ -805,14 +805,14 @@ namespace Db2Source
             Binding b = new Binding("CurrentDataSet");
             b.ElementName = "window";
             c.SetBinding(QueryControl.CurrentDataSetProperty, b);
-            TabItem item = MovableTabItem.NewTabItem(tabControlMain, "クエリ " + _queryControlIndex.ToString(), c, FindResource("TabItemStyleClosable") as Style);
+            TabItem item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(_queryControlIndex), c, FindResource("TabItemStyleClosable") as Style);
             tabControlMain.SelectedItem = item;
             _queryControlIndex++;
         }
 
         private void buttonQuit_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult ret = MessageBox.Show("終了します。よろしいですか?", "終了", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult ret = MessageBox.Show(this, Properties.Resources.MessageBoxText_Quit, Properties.Resources.MessageBoxCaption_Quit, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

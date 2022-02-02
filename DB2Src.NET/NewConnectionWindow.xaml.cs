@@ -159,7 +159,7 @@ namespace Db2Source
                         cb = new CheckBox()
                         {
                             Name = newName,
-                            Content = "パスワードを表示",
+                            Content = (string)Resources["checkBoxTextShowPassword"],
                             IsChecked = false
                         };
                         RegisterName(cb.Name, cb);
@@ -304,7 +304,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(t.Message, "接続エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             App.Connections.Save(Target);
@@ -326,11 +326,11 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(t.Message, "接続エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
             }
-            MessageBox.Show("接続成功", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(Properties.Resources.MessageBoxText_Connected, Properties.Resources.MessageBoxCaption_Succeed, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void InitButtonSelectTarget()

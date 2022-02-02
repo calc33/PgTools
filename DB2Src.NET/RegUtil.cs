@@ -46,7 +46,7 @@ namespace Unicorn.Utility
                 case "HKCU":
                     Key = Registry.CurrentUser;
                     return;
-                case "KEY_LOCAL_MACHINE":
+                case "HKEY_LOCAL_MACHINE":
                 case "HKLM":
                     Key = Registry.LocalMachine;
                     return;

@@ -158,9 +158,9 @@ namespace Db2Source
             {
                 return;
             }
-            string msg = string.Format("{0}からの接続({1} {2}@{3} Pid={4})を強制切断します。よろしいですか?",
+            string msg = string.Format((string)Resources["messageDisconnectForce"],
                 obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, "強制切断", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(msg, (string)Resources["captionDisconnectForce"], MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -182,9 +182,9 @@ namespace Db2Source
             {
                 return;
             }
-            string msg = string.Format("{0}からの接続({1} {2}@{3} Pid={4})で実行中のクエリを中断します。よろしいですか?",
+            string msg = string.Format((string)Resources["messageAbortQuery"],
                 obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, "強制中断", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(msg, (string)Resources["captionAbortQuery"], MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

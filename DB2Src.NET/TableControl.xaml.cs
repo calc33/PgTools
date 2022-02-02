@@ -573,7 +573,8 @@ namespace Db2Source
             _fetched = false;
             if (!force && DataGridControllerResult.IsModified)
             {
-                MessageBoxResult ret = MessageBox.Show("変更が保存されていません。保存しますか?", "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                Window owner = App.FindVisualParent<Window>(this);
+                MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageConfirmSave"], Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 switch (ret)
                 {
                     case MessageBoxResult.Yes:
@@ -600,7 +601,8 @@ namespace Db2Source
                 int l;
                 if (!int.TryParse(textBoxLimitRow.Text, out l))
                 {
-                    MessageBox.Show("件数が数字ではありません", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    Window owner = App.FindVisualParent<Window>(this);
+                    MessageBox.Show(owner, (string)Resources["messageInvalidLimitRow"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxLimitRow.Focus();
                 }
                 limit = l;
@@ -903,8 +905,9 @@ namespace Db2Source
                 return;
             }
             MainWindow.TabBecomeVisible(this);
-            MessageBoxResult ret = MessageBox.Show(string.Format("\"{0}\"の変更が保存されていません。保存しますか?", Target.DisplayName),
-                "確認", MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+            Window owner = App.FindVisualParent<Window>(this);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageConfirmSaveAndClose"], Target.DisplayName),
+                Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             switch (ret)
             {
                 case MessageBoxResult.Yes:

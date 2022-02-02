@@ -10,6 +10,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
     <UserControl.Resources>
+        <sys:String x:Key="captionDisconnectForce">強制切断</sys:String>
+        <sys:String x:Key="messageDisconnectForce">{0}からの接続({1} {2}@{3} Pid={4})を強制切断します。よろしいですか?</sys:String>
+        <sys:String x:Key="captionAbortQuery">強制中断</sys:String>
+        <sys:String x:Key="messageAbortQuery">{0}からの接続({1} {2}@{3} Pid={4})で実行中のクエリを中断します。よろしいですか?</sys:String>
         <ControlTemplate x:Key="ComboBoxTemplate" TargetType="{x:Type ComboBox}">
             <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
                 <Grid.ColumnDefinitions>

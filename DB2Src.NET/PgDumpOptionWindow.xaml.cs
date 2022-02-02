@@ -70,7 +70,7 @@ namespace Db2Source
         private void buttonSelectDir_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog();
-            dlg.Title = "出力先フォルダを選択";
+            dlg.Title = (string)Resources["FolderBrowserDialog_Title"];
             dlg.SelectedPath = textBoxDir.Text;
             DialogResult ret = dlg.ShowDialog(this);
             if (ret != Db2Source.DialogResult.OK)
@@ -224,7 +224,7 @@ namespace Db2Source
                 int nJob;
                 if (!int.TryParse(textBoxNumJobs.Text, out nJob))
                 {
-                    textBoxLog.AppendText("並列ジョブ数が不正です");
+                    textBoxLog.AppendText((string)Resources["messageInvalidJobs"]);
                 } else
                 {
                     buf.Append(" -j ");
@@ -236,7 +236,7 @@ namespace Db2Source
                 int timeout;
                 if (!int.TryParse(textBoxLockTimeout.Text, out timeout))
                 {
-                    textBoxLog.AppendText("テーブルがロックされていた場合の待ち時間が不正です");
+                    textBoxLog.AppendText((string)Resources["messageInvalidLockTime"]);
                 }
                 else
                 {
@@ -293,7 +293,7 @@ namespace Db2Source
                 _runningProcess.WaitForExit();
                 lock (_outputBufferLock)
                 {
-                    _outputBuffer.Add("*** 終了しました ***" + Environment.NewLine);
+                    _outputBuffer.Add((string)Resources["messageProcessTerminated"] + Environment.NewLine);
                 }
                 Dispatcher.Invoke(UpdateTextBoxLog, DispatcherPriority.Normal);
             }
@@ -326,7 +326,7 @@ namespace Db2Source
             PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
             if (opt == null)
             {
-                MessageBox.Show(this, "出力方式を指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)Resources["messageNoFormat"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
             string path;
@@ -334,7 +334,7 @@ namespace Db2Source
             {
                 if (string.IsNullOrEmpty(textBoxPath.Text))
                 {
-                    MessageBox.Show(this, "出力ファイル名を指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, (string)Resources["messageNoFilePath"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxPath.Focus();
                     return false;
                 }
@@ -344,7 +344,7 @@ namespace Db2Source
             {
                 if (string.IsNullOrEmpty(textBoxDir.Text))
                 {
-                    MessageBox.Show(this, "出力先フォルダを指定してください", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, (string)Resources["messageNoDirectory"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxDir.Focus();
                     return false;
                 }
@@ -355,14 +355,14 @@ namespace Db2Source
             int n;
             if (IsChecked(checkBoxUseJob) && !int.TryParse(textBoxNumJobs.Text, out n))
             {
-                MessageBox.Show(this, "並列ジョブ数が不正です", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)Resources["messageInvalidJobs"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxNumJobs.Focus();
                 textBoxNumJobs.SelectAll();
                 return false;
             }
             if (IsChecked(checkBoxLockTimeout) && !int.TryParse(textBoxLockTimeout.Text, out n))
             {
-                MessageBox.Show(this, "ロック待ち秒数が不正です", "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)Resources["messageInvalidLockTime"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxLockTimeout.Focus();
                 textBoxLockTimeout.SelectAll();
                 return false;
@@ -465,12 +465,12 @@ namespace Db2Source
             List<Tuple<string, string>> l = new List<Tuple<string, string>>();
             if (DataSet == null)
             {
-                l.Add(new Tuple<string, string>(string.Empty, "既定値"));
+                l.Add(new Tuple<string, string>(string.Empty, (string)Resources["messageDefaultValue"]));
                 return;
             }
             else
             {
-                l.Add(new Tuple<string, string>(string.Empty, string.Format("既定値({0})", DataSet.GetServerEncoding())));
+                l.Add(new Tuple<string, string>(string.Empty, string.Format((string)Resources["messageDefaultValueFmt"], DataSet.GetServerEncoding())));
                 foreach (string s in DataSet.GetEncodings())
                 {
                     l.Add(new Tuple<string, string>(s, s));

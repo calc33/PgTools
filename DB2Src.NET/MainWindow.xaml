@@ -3,10 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" FontSize="14" FontFamily="Source Han Code JP Light" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed">
     <Window.Resources>
+        <sys:String x:Key="NewConnectionHeader">新しい接続...</sys:String>
+        <sys:String x:Key="TreeViewItemTopHeader">データベース</sys:String>
+        <sys:String x:Key="ConnectDatabaseFormat">{0}に接続</sys:String>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="TreeViewItemFocusVisual">
             <Setter Property="Control.Template">

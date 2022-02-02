@@ -109,7 +109,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                string recoverMsg = "(修復しました)";
+                string recoverMsg = (string)Resources["messageRecovered"];
                 string[] s = Target.GetRecoverSQL(string.Empty, string.Empty, 0, false);
                 if (s != null && s.Length != 0)
                 {
@@ -119,10 +119,11 @@ namespace Db2Source
                     }
                     catch (Exception t2)
                     {
-                        recoverMsg = string.Format("(修復失敗: {0})", ctx.GetExceptionMessage(t2));
+                        recoverMsg = string.Format((string)Resources["messageRecoveryFailed"], ctx.GetExceptionMessage(t2));
                     }
                 }
-                MessageBox.Show(string.Format("エラー: {0}{1}", ctx.GetExceptionMessage(t), recoverMsg));
+                Window owner = App.FindVisualParent<Window>(this);
+                MessageBox.Show(owner, string.Format((string)Resources["messageFailed"], ctx.GetExceptionMessage(t), recoverMsg), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

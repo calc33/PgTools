@@ -10,6 +10,9 @@
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
     <UserControl.Resources>
+        <sys:String x:Key="messageInvalidLimitRow">件数が数字ではありません</sys:String>
+        <sys:String x:Key="messageConfirmSave">変更が保存されていません。保存しますか?</sys:String>
+        <sys:String x:Key="messageConfirmSaveAndClose">"{0}"の変更が保存されていません。保存しますか?</sys:String>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:PgsqlColumnArrayToTextConverter x:Key="PgsqlColumnArrayToTextConverter"/>

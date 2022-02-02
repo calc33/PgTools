@@ -61,6 +61,42 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
+        ///   再実行 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string ButtonRedo_Tooltip {
+            get {
+                return ResourceManager.GetString("ButtonRedo_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   次を検索 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string FindNextCommand_Name {
+            get {
+                return ResourceManager.GetString("FindNextCommand_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   前を検索 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string FindPreviousCommand_Name {
+            get {
+                return ResourceManager.GetString("FindPreviousCommand_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   確認 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_Confirm {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   削除 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string MessageBoxCaption_Drop {
@@ -79,11 +115,65 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
+        ///   情報 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_Info {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_Info", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   終了 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_Quit {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_Quit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   結果 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string MessageBoxCaption_Result {
             get {
                 return ResourceManager.GetString("MessageBoxCaption_Result", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   成功 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_Succeed {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_Succeed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   接続成功 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_Connected {
+            get {
+                return ResourceManager.GetString("MessageBoxText_Connected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   終了します。よろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_Quit {
+            get {
+                return ResourceManager.GetString("MessageBoxText_Quit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   新しい接続... に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string NewConnectionTitle {
+            get {
+                return ResourceManager.GetString("NewConnectionTitle", resourceCulture);
             }
         }
         

@@ -19,6 +19,10 @@
         </ContextMenu>
         <sys:String x:Key="messageDropProcedure">ストアド手続きを削除します。削除したストアド手続きは元に戻せません。よろしいですか?</sys:String>
         <sys:String x:Key="messageDropFunction">ストアド関数を削除します。削除したストアド関数は元に戻せません。よろしいですか?</sys:String>
+        <sys:String x:Key="messageExecuted">実行しました (所要時間 {0})</sys:String>
+        <sys:String x:Key="messageRowsFound">{0}件見つかりました (所要時間 {1})</sys:String>
+        <sys:String x:Key="messageRowsAffected">{0}行反映しました</sys:String>
+        <sys:String x:Key="ParameterValueHeader">値</sys:String>
     </UserControl.Resources>
     <TabControl x:Name="tabControlMain">
         <TabItem x:Name="tabItemExecute" Header="実行">
@@ -94,7 +98,7 @@
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
             </Grid>
         </TabItem>
-        <TabItem Header="依存関係">
+        <!--<TabItem Header="依存関係">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
@@ -118,7 +122,7 @@
                     </DataGrid>
                 </DockPanel>
             </Grid>
-        </TabItem>
+        </TabItem>-->
         <TabItem Header="ソース">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">

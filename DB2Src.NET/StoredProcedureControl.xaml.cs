@@ -179,7 +179,7 @@ namespace Db2Source
         {
             if (!Target.Context.AllowOutputParameter)
             {
-                dataGridParameterValue.Header = "値";
+                dataGridParameterValue.Header = (string)Resources["ParameterValueHeader"];
                 dataGridParameterNewValue.Visibility = Visibility.Collapsed;
             }
             List<ParamEditor> list = new List<ParamEditor>();
@@ -213,7 +213,7 @@ namespace Db2Source
                         DataGridControllerResult.Load(reader);
                         if (0 <= reader.RecordsAffected)
                         {
-                            AddLog(string.Format("{0}行反映しました。", reader.RecordsAffected), null, LogStatus.Normal, true);
+                            AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), null, LogStatus.Normal, true);
                         }
                         else
                         {
@@ -238,7 +238,8 @@ namespace Db2Source
                 Db2SourceContext ctx = Target.Context;
                 string msg = ctx.GetExceptionMessage(t);
                 AddLog(msg, command.CommandText, LogStatus.Error, true);
-                //MessageBox.Show(msg, "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                //Window owner = App.FindVisualParent<Window>(this);
+                //MessageBox.Show(owner, msg, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             finally
@@ -246,8 +247,8 @@ namespace Db2Source
                 DateTime end = DateTime.Now;
                 TimeSpan time = end - start;
                 string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                AddLog(string.Format("実行しました (所要時間 {0})", s), command.CommandText, LogStatus.Aux, false);
-                textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", DataGridControllerResult.Rows.Count, s);
+                AddLog(string.Format((string)Resources["messageExecuted"], s), command.CommandText, LogStatus.Aux, false);
+                textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
             }
         }
 
@@ -345,7 +346,8 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(ctx.GetExceptionMessage(t), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                Window owner = App.FindVisualParent<Window>(this);
+                MessageBox.Show(owner, ctx.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
