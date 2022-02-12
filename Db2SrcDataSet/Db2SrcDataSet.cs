@@ -220,16 +220,17 @@ namespace Db2Source
         {
             SettingCollection l = new SettingCollection
             {
-                new RedirectedPropertySetting<string>("DateFormat", "日付書式(表示)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<string>("TimeFormat", "時刻書式(表示)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<string>("DateTimeFormat", "日時書式(表示)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<string>("ParseDateFormat", "日付書式(入力)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<string[]>("ParseTimeFormats", "時刻書式(入力)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<string[]>("ParseDateTimeFormats", "日時書式(入力)", typeof(Db2SourceContext)),
-                new RedirectedPropertySetting<NewLineRule>("NewLineRule", "改行文字", this)
+                new RedirectedPropertySetting<string>("DateFormat", DataSet.Db2srcDataSet.DateFormat, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("TimeFormat", DataSet.Db2srcDataSet.TimeFormat, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("DateTimeFormat", DataSet.Db2srcDataSet.DateTimeFormat, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string>("ParseDateFormat", DataSet.Db2srcDataSet.ParseDateFormat, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string[]>("ParseTimeFormats", DataSet.Db2srcDataSet.ParseTimeFormats, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<string[]>("ParseDateTimeFormats", DataSet.Db2srcDataSet.ParseDateTimeFormats, typeof(Db2SourceContext)),
+                new RedirectedPropertySetting<NewLineRule>("NewLineRule", DataSet.Db2srcDataSet.NewLineRule, this)
             };
             return l;
         }
+
         private SettingCollection _settings = null;
         public virtual SettingCollection Settings
         {
@@ -421,7 +422,7 @@ namespace Db2Source
                 _itemsProperty = typeof(Schema).GetProperty(itemsPropertyName);
                 if (_itemsProperty == null)
                 {
-                    throw new ArgumentException(string.Format("プロパティ {0} が見つかりません", itemsPropertyName), "itemsPropertyName");
+                    throw new ArgumentException(string.Format(DataSet.Db2srcDataSet.MessagePropertyNotFound, itemsPropertyName), "itemsPropertyName");
                 }
             }
             public T this[string schema, string identifier]
@@ -483,6 +484,7 @@ namespace Db2Source
                 }
             }
         }
+
         public bool CaseSensitive { get; set; }
         public string CurrentSchema { get; set; }
         public string SystemLocale { get; protected set; }
@@ -1304,12 +1306,12 @@ namespace Db2Source
                             int n = cmd.ExecuteNonQuery();
                             if (0 < n)
                             {
-                                OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, cmd);
+                                OnLog(string.Format(DataSet.Db2srcDataSet.MessageRowsAffected, n), LogStatus.Normal, cmd);
                             }
                         }
                         catch (Exception t)
                         {
-                            OnLog("[エラー] " + t.Message, LogStatus.Error, cmd);
+                            OnLog(DataSet.Db2srcDataSet.PrefixError + t.Message, LogStatus.Error, cmd);
                         }
                     }
                 }
@@ -1356,12 +1358,12 @@ namespace Db2Source
                         int n = cmd.ExecuteNonQuery();
                         if (0 < n)
                         {
-                            OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, cmd);
+                            OnLog(string.Format(DataSet.Db2srcDataSet.MessageRowsAffected, n), LogStatus.Normal, cmd);
                         }
                     }
                     catch (Exception t)
                     {
-                        OnLog("[エラー] " + t.Message, LogStatus.Error, cmd);
+                        OnLog(DataSet.Db2srcDataSet.PrefixError + t.Message, LogStatus.Error, cmd);
                     }
                 }
                 if (forceDisconnect)

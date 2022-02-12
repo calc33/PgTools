@@ -84,6 +84,11 @@
     <Compile Include="Constraint.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Db2SrcDataSet.cs" />
+    <Compile Include="Db2srcDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Db2srcDataSet.resx</DependentUpon>
+    </Compile>
     <Compile Include="Db2SrcDataSet.lex.cs" />
     <Compile Include="Db2srcDataSet.UI.cs" />
     <Compile Include="Dependency.cs" />
@@ -139,6 +144,11 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Db2srcDataSet.resx">
+      <DependentUpon>Db2SrcDataSet.cs</DependentUpon>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Db2srcDataSet.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
