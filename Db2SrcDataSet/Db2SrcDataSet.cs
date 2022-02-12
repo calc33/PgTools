@@ -58,12 +58,13 @@ namespace Db2Source
     {
         public LogStatus Status { get; private set; }
         public string Text { get; private set; }
-        public string Sql { get; private set; }
-        internal LogEventArgs(string text, LogStatus status, string sql)
+        public IDbCommand Command { get; private set; }
+
+        internal LogEventArgs(string text, LogStatus status, IDbCommand command)
         {
             Status = status;
             Text = text;
-            Sql = sql;
+            Command = command;
         }
     }
     public class SchemaObjectReplacedEventArgs : EventArgs
@@ -155,7 +156,6 @@ namespace Db2Source
 
     public interface ISession
     {
-        //string GetId();
         bool CanKill();
         bool CanAbortQuery();
         bool Kill(IDbConnection connection);
@@ -265,6 +265,8 @@ namespace Db2Source
         public string[] TablespaceNames { get; set; }
 
         public SessionList SessionList { get; private set; }
+
+        public QueryHistory History { get; private set; }
 
         public string GetTreeNodeHeader()
         {
@@ -438,7 +440,6 @@ namespace Db2Source
                     }
                     NamedCollection objs = _itemsProperty.GetValue(sc) as NamedCollection;
                     return objs[identifier] as T;
-                    //return sc.Objects[identifier] as T;
                 }
             }
             public T this[string name]
@@ -1245,18 +1246,21 @@ namespace Db2Source
         {
             return (0 < _changeLogDisabledLevel);
         }
+
         public void DisableChangeLog()
         {
             _changeLogDisabledLevel++;
         }
+
         public void EnableChangeLog()
         {
             _changeLogDisabledLevel--;
         }
+
         public event EventHandler<LogEventArgs> Log;
-        public void OnLog(string text, LogStatus status, string sql)
+        public void OnLog(string text, LogStatus status, IDbCommand command)
         {
-            Log?.Invoke(this, new LogEventArgs(text, status, sql));
+            Log?.Invoke(this, new LogEventArgs(text, status, command));
         }
 
         /// <summary>
@@ -1300,12 +1304,12 @@ namespace Db2Source
                             int n = cmd.ExecuteNonQuery();
                             if (0 < n)
                             {
-                                OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, s);
+                                OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, cmd);
                             }
                         }
                         catch (Exception t)
                         {
-                            OnLog("[エラー] " + t.Message, LogStatus.Error, s);
+                            OnLog("[エラー] " + t.Message, LogStatus.Error, cmd);
                         }
                     }
                 }
@@ -1352,12 +1356,12 @@ namespace Db2Source
                         int n = cmd.ExecuteNonQuery();
                         if (0 < n)
                         {
-                            OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, sql);
+                            OnLog(string.Format("{0}行に影響を与えました", n), LogStatus.Normal, cmd);
                         }
                     }
                     catch (Exception t)
                     {
-                        OnLog("[エラー] " + t.Message, LogStatus.Error, sql);
+                        OnLog("[エラー] " + t.Message, LogStatus.Error, cmd);
                     }
                 }
                 if (forceDisconnect)
@@ -1405,6 +1409,7 @@ namespace Db2Source
             Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers");
             Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences");
             SessionList = new SessionList(this, "Sessions");
+            History = new QueryHistory(ConnectionInfo);
         }
 
         public override string ToString()

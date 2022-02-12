@@ -320,7 +320,7 @@ namespace Db2Source
                 catch (Exception t)
                 {
                     Db2SourceContext ctx = Target.Context;
-                    ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, command.CommandText);
+                    ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, command);
                     return;
                 }
             }
@@ -616,14 +616,21 @@ namespace Db2Source
                 {
                     using (IDbCommand cmd = ctx.GetSqlCommand(sql, null, conn))
                     {
-                        UpdateDataGridResult(cmd);
+                        try
+                        {
+                            UpdateDataGridResult(cmd);
+                        }
+                        catch (Exception t)
+                        {
+                            ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, cmd);
+                            Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, ctx, offset);
+                        }
                     }
                 }
             }
             catch (Exception t)
             {
-                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, sql);
-                Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, ctx, offset);
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, null);
             }
             finally
             {
@@ -734,7 +741,7 @@ namespace Db2Source
             catch (Exception t)
             {
                 Db2SourceContext ctx = Target.Context;
-                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.Context.LastSql);
+                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, null);
                 return;
             }
         }

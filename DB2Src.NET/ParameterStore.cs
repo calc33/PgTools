@@ -275,6 +275,46 @@ namespace Db2Source
             return l;
         }
 
+        public static ParameterStoreCollection GetParameterStores(QueryHistory.Query query, ParameterStoreCollection stores, out bool modified)
+        {
+            modified = false;
+            ParameterStoreCollection l = new ParameterStoreCollection();
+            foreach (QueryHistory.Parameter p in query.Parameters)
+            {
+                ParameterStore ps = stores[p.Name];
+                ParameterStore psAll = AllParameters[p.Name];
+                if (ps != null)
+                {
+                    ps = ps.Clone() as ParameterStore;
+                    ps.Target = null;
+                    ps.Value = p.Value;
+                }
+                else if (psAll != null)
+                {
+                    ps = psAll.Clone() as ParameterStore;
+                    ps.Target = null;
+                    ps.Value = p.Value;
+                    modified = true;
+                }
+                else
+                {
+                    ps = new ParameterStore(p);
+                    modified = true;
+                }
+                l.Add(ps);
+
+                if (psAll != null)
+                {
+                    ps.CopyTo(psAll);
+                }
+                else
+                {
+                    AllParameters.Add(ps.Clone() as ParameterStore);
+                }
+            }
+            return l;
+        }
+
         private WeakReference<DbParameter> _target = null;
         private DbParameter GetTarget()
         {
@@ -529,6 +569,7 @@ namespace Db2Source
             _target = new WeakReference<DbParameter>(parameter);
             AllParameters.Add(this);
         }
+        
         public ParameterStore(string parameterName)
         {
             if (parameterName == null)
@@ -542,6 +583,23 @@ namespace Db2Source
             _sourceColumn = null;
             _sourceVersion = DataRowVersion.Current;
             _value = null;
+            _target = null;
+            AllParameters.Add(this);
+        }
+
+        public ParameterStore(QueryHistory.Parameter parameter)
+        {
+            if (parameter == null)
+            {
+                throw new ArgumentNullException("parameter");
+            }
+            DbType = parameter.DbType;
+            Direction = ParameterDirection.InputOutput;
+            IsNullable = true;
+            ParameterName = parameter.Name;
+            _sourceColumn = null;
+            _sourceVersion = DataRowVersion.Current;
+            _value = parameter.Value;
             _target = null;
             AllParameters.Add(this);
         }

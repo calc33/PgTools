@@ -70,11 +70,9 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   select pg_encoding_to_char(c.contoencoding) as encoding
-        ///from pg_database db
-        ///  join pg_conversion c on (db.encoding = c.conforencoding)
-        ///where db.datname = current_database()
-        ///order by pg_encoding_to_char(c.contoencoding) に類似しているローカライズされた文字列を検索します。
+        ///   select distinct pg_encoding_to_char(contoencoding) as encoding
+        ///from pg_conversion
+        ///order by encoding に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string GetEncodings_SQL {
             get {
@@ -267,8 +265,7 @@ namespace Db2Source.DataSet.Properties {
         ///  version() as version
         ///from pg_database as d
         ///  left outer join pg_user u on (d.datdba = u.usesysid)
-        ///  left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
-        ///where not d.datistemplate に類似しているローカライズされた文字列を検索します。
+        ///  left outer join pg_tablespace ts on (d.dattablespace = ts.oid) に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgDatabase_SQL {
             get {
@@ -287,7 +284,13 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///    に類似しているローカライズされた文字列を検索します。
+        ///   select ft.ftrelid as oid, ft.ftoptions,
+        ///  fs.srvname, fs.srvoptions,
+        ///  fdw.fdwname
+        ///from pg_foreign_table ft
+        ///  join pg_foreign_server fs on (ft.ftserver = fs.oid)
+        ///  join pg_foreign_data_wrapper fdw on (fs.srvfdw = fdw.oid)
+        ///order by ft.ftrelid に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgForeignTable_SQL {
             get {
@@ -507,6 +510,77 @@ namespace Db2Source.DataSet.Properties {
         internal static string PostgresReservedWords {
             get {
                 return ResourceManager.GetString("PostgresReservedWords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   INSERT INTO QUERY_HISTORY (SQL_ID, PARAM_HASH, LAST_EXECUTED)
+        ///VALUES (@SQL_ID, @PARAM_HASH, @LAST_EXECUTED)
+        ///RETURNING ID に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QueryHistory_InsertSQL {
+            get {
+                return ResourceManager.GetString("QueryHistory_InsertSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SELECT ID, SQL_ID, PARAM_HASH, LAST_EXECUTED
+        ///FROM QUERY_HISTORY
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QueryHistory_SQL {
+            get {
+                return ResourceManager.GetString("QueryHistory_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   UPDATE QUERY_HISTORY SET LAST_EXECUTED = @LAST_EXECUTED WHERE ID = @ID に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QueryHistory_UpdateSQL {
+            get {
+                return ResourceManager.GetString("QueryHistory_UpdateSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   INSERT INTO QUERY_PARAMETER (SQL_ID, NAME, PARAM_TYPE, VALUE)
+        ///VALUES (@SQL_ID, @NAME, @PARAM_TYPE, @VALUE)
+        ///RETURNING ID に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QueryParameter_InsertSQL {
+            get {
+                return ResourceManager.GetString("QueryParameter_InsertSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SELECT ID, SQL_ID, NAME, PARAM_TYPE, VALUE
+        ///FROM QUERY_PARAMETER
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QueryParameter_SQL {
+            get {
+                return ResourceManager.GetString("QueryParameter_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   INSERT INTO QUERY_SQL (SQL, HASH) VALUES (@SQL, @HASH) RETURNING ID に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QuerySql_InsertSQL {
+            get {
+                return ResourceManager.GetString("QuerySql_InsertSQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   SELECT ID, SQL, HASH FROM QUERY_SQL に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string QuerySql_SQL {
+            get {
+                return ResourceManager.GetString("QuerySql_SQL", resourceCulture);
             }
         }
         

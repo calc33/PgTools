@@ -16,8 +16,7 @@ namespace Db2Source
         public static readonly DependencyProperty TimeProperty = DependencyProperty.Register("Time", typeof(DateTime), typeof(LogListBoxItem));
         public static readonly DependencyProperty StatusProperty = DependencyProperty.Register("Status", typeof(LogStatus), typeof(LogListBoxItem));
         public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(LogListBoxItem));
-        public static readonly DependencyProperty SqlProperty = DependencyProperty.Register("Sql", typeof(string), typeof(LogListBoxItem));
-        public static readonly DependencyProperty ParametersProperty = DependencyProperty.Register("Parameters", typeof(ParameterStoreCollection), typeof(LogListBoxItem));
+        public static readonly DependencyProperty QueryProperty = DependencyProperty.Register("Query", typeof(QueryHistory.Query), typeof(LogListBoxItem));
         public static readonly DependencyProperty ErrorPositionProperty = DependencyProperty.Register("ErrorPosition", typeof(Tuple<int,int>), typeof(LogListBoxItem));
         public static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
         private static readonly Dictionary<LogStatus, Brush> LogStatusToBrush = new Dictionary<LogStatus, Brush>()
@@ -60,28 +59,18 @@ namespace Db2Source
             }
         }
 
-        public string Sql
+        public QueryHistory.Query Query
         {
             get
             {
-                return (string)GetValue(SqlProperty);
+                return (QueryHistory.Query)GetValue(QueryProperty);
             }
             set
             {
-                SetValue(SqlProperty, value);
+                SetValue(QueryProperty, value);
             }
         }
-        public ParameterStoreCollection Parameters
-        {
-            get
-            {
-                return (ParameterStoreCollection)GetValue(ParametersProperty);
-            }
-            set
-            {
-                SetValue(ParametersProperty, value);
-            }
-        }
+
         /// <summary>
         /// エラーの発生位置(文字数)+選択するキーワードの文字列長 のタプル
         /// エラー箇所の選択表示が不要な場合はnull
@@ -114,10 +103,10 @@ namespace Db2Source
         {
             textBlockText.Text = Message.TrimEnd();
         }
-        private void SqlPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void QueryPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            buttonRedo.Visibility = string.IsNullOrEmpty(Sql) ? Visibility.Collapsed : Visibility.Visible;
-            textBlockText.ToolTip = Sql;
+            buttonRedo.Visibility = (Query == null) ? Visibility.Collapsed : Visibility.Visible;
+            ToolTip = Query?.SqlText;
         }
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -133,9 +122,13 @@ namespace Db2Source
             {
                 StatusPropertyChanged(e);
             }
-            if (e.Property == SqlProperty)
+            //if (e.Property == SqlProperty)
+            //{
+            //    SqlPropertyChanged(e);
+            //}
+            if (e.Property == QueryProperty)
             {
-                SqlPropertyChanged(e);
+                QueryPropertyChanged(e);
             }
             base.OnPropertyChanged(e);
         }

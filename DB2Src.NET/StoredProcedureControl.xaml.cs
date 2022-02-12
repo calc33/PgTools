@@ -108,14 +108,15 @@ namespace Db2Source
             }
         }
 
-        private void AddLog(string text, string sql, LogStatus status, bool notice)
+        private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice)
         {
             LogListBoxItem item = new LogListBoxItem();
             item.Time = DateTime.Now;
             item.Status = status;
             item.Message = text;
-            item.Sql = sql;
+            item.Query = query;
             item.RedoSql += Item_RedoSql;
+            item.ToolTip = query?.ParamText.TrimEnd();
             listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
             if (notice)
@@ -126,10 +127,20 @@ namespace Db2Source
         private void Item_RedoSql(object sender, EventArgs e)
         {
             LogListBoxItem item = sender as LogListBoxItem;
-            if (string.IsNullOrEmpty(item.Sql))
+            if (item.Query == null)
             {
                 return;
             }
+            foreach (QueryHistory.Parameter src in item.Query.Parameters)
+            {
+                Parameter dest = Target.Parameters[src.Name];
+                if (dest == null || dest.DbParameter == null)
+                {
+                    continue;
+                }
+                dest.DbParameter.Value = src.Value;
+            }
+            UpdateDataGridParameters();
             //textBoxSql.Text = item.Sql;
             //Fetch();
         }
@@ -198,6 +209,7 @@ namespace Db2Source
         }
         private void UpdateDataGridResult(IDbCommand command)
         {
+            QueryHistory.Query history = new QueryHistory.Query(command);
             DateTime start = DateTime.Now;
             try
             {
@@ -213,7 +225,7 @@ namespace Db2Source
                         DataGridControllerResult.Load(reader);
                         if (0 <= reader.RecordsAffected)
                         {
-                            AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), null, LogStatus.Normal, true);
+                            AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
                         }
                         else
                         {
@@ -237,9 +249,7 @@ namespace Db2Source
             {
                 Db2SourceContext ctx = Target.Context;
                 string msg = ctx.GetExceptionMessage(t);
-                AddLog(msg, command.CommandText, LogStatus.Error, true);
-                //Window owner = App.FindVisualParent<Window>(this);
-                //MessageBox.Show(owner, msg, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                AddLog(msg, history, LogStatus.Error, true);
                 return;
             }
             finally
@@ -247,7 +257,7 @@ namespace Db2Source
                 DateTime end = DateTime.Now;
                 TimeSpan time = end - start;
                 string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                AddLog(string.Format((string)Resources["messageExecuted"], s), command.CommandText, LogStatus.Aux, false);
+                AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
                 textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
             }
         }
@@ -336,7 +346,7 @@ namespace Db2Source
                     }
                     catch (Exception t)
                     {
-                        ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, Target.FullName);
+                        ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, cmd);
                     }
                     finally
                     {

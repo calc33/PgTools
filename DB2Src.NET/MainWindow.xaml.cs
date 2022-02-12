@@ -496,7 +496,7 @@ namespace Db2Source
             item.Time = DateTime.Now;
             item.Status = e.Status;
             item.Message = e.Text;
-            item.ToolTip = e.Sql;
+            item.ToolTip = e.Command?.CommandText;
             listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
             listBoxLog.ScrollIntoView(item);

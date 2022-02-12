@@ -572,47 +572,9 @@ namespace Db2Source
             }
         }
     }
-    public enum SqliteDbType
-    {
-        Integer,
-        Real,
-        Text,
-        Blob
-    }
+
     partial class ConnectionList
     {
-        private static readonly string[] SqliteDbTypeName = new string[] { "INTEGER", "REAL", "TEXT", "BLOB" };
-        //private static readonly Dictionary<SqliteDbType, DbType> SqliteDbTypeToDbType = new Dictionary<SqliteDbType, DbType>()
-        //{
-        //    { SqliteDbType.Integer, DbType.Int64 },
-        //    { SqliteDbType.Real, DbType.Double },
-        //    { SqliteDbType.Text, DbType.String },
-        //    { SqliteDbType.Blob, DbType.Binary }
-        //};
-        private static SqliteDbType GetSqliteDbType(PropertyInfo property)
-        {
-            Type t = property.PropertyType;
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
-            {
-                t = t.GetGenericArguments()[0];
-            }
-            if (t.IsPrimitive)
-            {
-                if (t == typeof(float) || t == typeof(double))
-                {
-                    return SqliteDbType.Real;
-                }
-                else
-                {
-                    return SqliteDbType.Integer;
-                }
-            }
-            if (t == typeof(string) || t.IsSubclassOf(typeof(string)))
-            {
-                return SqliteDbType.Text;
-            }
-            throw new ArgumentException(string.Format("{0}: {1}型はサポートしていません", property.Name, t.Name));
-        }
         private static string GetSelectSql(Type databaseType, string condition)
         {
             string tbl = ConnectionInfo.GetTableName(databaseType);
@@ -638,100 +600,22 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        private static string[] GetDbFieldNames(SQLiteConnection connection, Type databaseType)
+        private static void RequireDataTable(SQLiteConnection connection, Type databaseType)
         {
-            try
-            {
-                using (SQLiteCommand cmd = new SQLiteCommand(string.Format("SELECT * FROM {0} WHERE 0=1", databaseType.Name), connection))
-                {
-                    using (SQLiteDataReader reader = cmd.ExecuteReader())
-                    {
-                        List<string> l = new List<string>(reader.FieldCount);
-                        for (int i = 0; i < reader.FieldCount; i++)
-                        {
-                            l.Add(reader.GetName(i));
-                        }
-                        return l.ToArray();
-                    }
-                }
-            }
-            catch
-            {
-                return StrUtil.EmptyStringArray;
-            }
-        }
-        private static string GetCreateTableSql(Type databaseType)
-        {
-            StringBuilder buf = new StringBuilder();
-            buf.Append("CREATE TABLE ");
-            buf.Append(ConnectionInfo.GetTableName(databaseType));
-            buf.AppendLine(" (");
-            buf.AppendLine("  ID INTEGER PRIMARY KEY AUTOINCREMENT,");
+            TableDefinition table = new TableDefinition() { Name = ConnectionInfo.GetTableName(databaseType) };
+            List<FieldDefinition> l = new List<FieldDefinition>();
+            l.Add(new FieldDefinition("ID", SqliteDbType.Integer) { NotNull = true, AutoIncrement = true });
             foreach (PropertyInfo p in ConnectionInfo.GetStoredFields(databaseType, false))
             {
                 if (string.Compare(p.Name, "ID", true) == 0)
                 {
                     continue;
                 }
-                buf.Append("  ");
-                buf.Append(ConnectionInfo.GetFieldName(p));
-                buf.Append(" ");
-                buf.Append(SqliteDbTypeName[(int)GetSqliteDbType(p)]);
-                buf.AppendLine(",");
+                l.Add(new FieldDefinition(p.Name.ToUpper(), FieldDefinition.GetSqliteDbType(p)));
             }
-            //buf.AppendLine("  BKCOLOR INTEGER,");
-            buf.AppendLine("  LAST_MODIFIED REAL");
-            buf.AppendLine(")");
-            return buf.ToString();
-        }
-        private static string[] GetAlterTableSql(SQLiteConnection connection, Type databaseType)
-        {
-            string[] dbFlds = GetDbFieldNames(connection, databaseType);
-            if (dbFlds == null || dbFlds.Length == 0)
-            {
-                return new string[] { GetCreateTableSql(databaseType) };
-            }
-            Dictionary<string, bool> dbFldDict = new Dictionary<string, bool>();
-            foreach (string f in dbFlds)
-            {
-                dbFldDict.Add(f.ToUpper(), true);
-            }
-            PropertyInfo[] flds = ConnectionInfo.GetStoredFields(databaseType, false);
-            List<string> l = new List<string>(flds.Length);
-            foreach (PropertyInfo p in flds)
-            {
-                string fld = ConnectionInfo.GetFieldName(p);
-                if (!dbFldDict.ContainsKey(fld))
-                {
-                    l.Add(string.Format("ALTER TABLE {0} ADD COLUMN {1} {2}", databaseType.Name, fld, SqliteDbTypeName[(int)GetSqliteDbType(p)]));
-                }
-            }
-            //if (!dbFldDict.ContainsKey("BKCOLOR"))
-            //{
-            //    l.Add(string.Format("ALTER TABLE {0} ADD COLUMN BKCOLOR INTEGER", databaseType.Name));
-            //}
-            return l.ToArray();
-        }
-        private static void RequireDataTable(SQLiteConnection connection, Type databaseType)
-        {
-            try
-            {
-                using (SQLiteCommand cmd = new SQLiteCommand(GetSelectSql(databaseType, "0=1"), connection))
-                {
-                    cmd.ExecuteNonQuery();
-                    return;
-                }
-            }
-            catch
-            {
-                using (SQLiteCommand cmd = new SQLiteCommand(connection)) {
-                    foreach (string sql in GetAlterTableSql(connection, databaseType))
-                    {
-                        cmd.CommandText = sql;
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-            }
+            table.Columns = l.ToArray();
+            table.Constraints = new ConstraintDefinition[] { new PrimaryKeyConstraintDefinition() { KeyColumns = new string[] { "ID" } } };
+            table.Apply(connection);
         }
         public static SQLiteConnection RequireDatabase(string databasePath)
         {

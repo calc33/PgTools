@@ -135,14 +135,13 @@ namespace Db2Source
             splitterParameters.Visibility = Visibility.Collapsed;
             dataGridColumnDbType.ItemsSource = DbTypeInfo.DbTypeInfos;
         }
-        private LogListBoxItem NewLogListBoxItem(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice, Tuple<int, int> errorPos)
+        private LogListBoxItem NewLogListBoxItem(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos)
         {
             LogListBoxItem item = new LogListBoxItem();
             item.Time = DateTime.Now;
             item.Status = status;
             item.Message = text;
-            item.Sql = sql;
-            item.Parameters = parameters;
+            item.Query = query;
             item.ErrorPosition = errorPos;
             return item;
         }
@@ -153,9 +152,10 @@ namespace Db2Source
             item.ErrorPosition = errorPos;
             return item;
         }
-        private void AddLog(string text, string sql, ParameterStoreCollection parameters, LogStatus status, bool notice, Tuple<int,int> errorPos = null)
+
+        private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos = null)
         {
-            LogListBoxItem item = NewLogListBoxItem(text, sql, parameters, status, notice, errorPos);
+            LogListBoxItem item = NewLogListBoxItem(text, query, status, notice, errorPos);
             item.RedoSql += Item_RedoSql;
             listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
@@ -196,28 +196,19 @@ namespace Db2Source
         private void Item_RedoSql(object sender, EventArgs e)
         {
             LogListBoxItem item = sender as LogListBoxItem;
-            if (string.IsNullOrEmpty(item.Sql))
+            string sql = item.Query?.SqlText;
+            if (string.IsNullOrEmpty(sql))
             {
                 return;
             }
-            textBoxSql.Text = item.Sql;
-            Parameters = item.Parameters;
+            textBoxSql.Text = sql;
+            ParameterStore.GetParameterStores(item.Query, Parameters, out _);
             //Fetch();
         }
 
         private void Command_Log(object sender, LogEventArgs e)
         {
-            AddLog(e.Text, e.Sql, null, e.Status, false);
-        }
-        private void AddToHistory(SQLPart sql, ParameterStoreCollection parameters)
-        {
-            QueryStore q = new QueryStore(sql.SQL, parameters);
-            string dir = System.IO.Path.GetDirectoryName(_historyPath);
-            Directory.CreateDirectory(dir);
-            using (StreamWriter wr = new StreamWriter(_historyPath, true, Encoding.UTF8))
-            {
-                q.WriteToStream(wr);
-            }
+            AddLog(e.Text, new QueryHistory.Query(e.Command), e.Status, false);
         }
         private void UpdateDataGridResult(SQLParts sqls)
         {
@@ -247,6 +238,7 @@ namespace Db2Source
                     IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
                     ParameterStoreCollection stores = ParameterStore.GetParameterStores(cmd, Parameters, out modified);
                     DateTime start = DateTime.Now;
+                    QueryHistory.Query history = new QueryHistory.Query(cmd);
                     try
                     {
                         using (IDataReader reader = cmd.ExecuteReader())
@@ -254,19 +246,19 @@ namespace Db2Source
                             DataGridControllerResult.Load(reader);
                             if (0 <= reader.RecordsAffected)
                             {
-                                AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), null, null, LogStatus.Normal, true);
+                                AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
                             }
                             else if (0 < reader.FieldCount)
                             {
                                 tabControlResult.SelectedItem = tabItemDataGrid;
                             }
                         }
-                        AddToHistory(sql, stores);
+                        ctx.History.AddHistory(history);
                     }
                     catch (Exception t)
                     {
                         Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
-                        AddLog(CurrentDataSet.GetExceptionMessage(t), sql.SQL, stores, LogStatus.Error, true, errPos);
+                        AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
                         Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
                         return;
                     }
@@ -277,7 +269,7 @@ namespace Db2Source
                         DateTime end = DateTime.Now;
                         TimeSpan time = end - start;
                         string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                        AddLog(string.Format((string)Resources["messageExecuted"], s), cmd.CommandText, stores, LogStatus.Aux, false);
+                        AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
                         textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
                     }
                 }
@@ -326,19 +318,19 @@ namespace Db2Source
             Db2SourceContext ctx = CurrentDataSet;
             if (ctx == null)
             {
-                AddLog((string)Resources["messageNotConnected"], null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNotConnected"], null, LogStatus.Error, true);
                 return;
             }
             string sql = textBoxSql.Text.TrimEnd();
             if (string.IsNullOrEmpty(sql))
             {
-                AddLog((string)Resources["messageNoSql"], null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNoSql"], null, LogStatus.Error, true);
                 return;
             }
             SQLParts parts = ctx.SplitSQL(sql);
             if (parts.Count == 0)
             {
-                AddLog((string)Resources["messageNoSql"], null, null, LogStatus.Error, true);
+                AddLog((string)Resources["messageNoSql"], null, LogStatus.Error, true);
                 return;
             }
             listBoxErrors.Items.Clear();

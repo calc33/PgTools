@@ -73,6 +73,7 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColorConverter.cs" />
@@ -122,6 +123,8 @@
     <Compile Include="Sequence.cs" />
     <Compile Include="SessionList.cs" />
     <Compile Include="Setting.cs" />
+    <Compile Include="QueryHistory.cs" />
+    <Compile Include="SqliteUtil.cs" />
     <Compile Include="StoredFunction.cs" />
     <Compile Include="StrUtil.cs" />
     <Compile Include="Table.cs" />
@@ -191,6 +194,8 @@
   <ItemGroup>
     <Content Include="Resources\ClientEncoding_SQL.txt" />
     <Content Include="Resources\GetEncodings_SQL.txt" />
+    <None Include="Resources\QueryParameter_SQL.txt" />
+    <None Include="Resources\QueryHistory_SQL.txt" />
     <None Include="Resources\PgDatabase_SQL.txt" />
     <None Include="Resources\PgRoles_SQL.txt" />
     <None Include="Resources\PgTablesspace_SQL.txt" />
@@ -205,6 +210,11 @@
     <None Include="Resources\PgProc10_SQL.txt" />
     <None Include="Resources\PgClass9_SQL.txt" />
     <None Include="Resources\PgForeignTable_SQL.txt" />
+    <None Include="Resources\QueryHistory_InsertSQL.txt" />
+    <None Include="Resources\QueryParameter_InsertSQL.txt" />
+    <None Include="Resources\QueryHistory_UpdateSQL.txt" />
+    <None Include="Resources\QuerySql_SQL.txt" />
+    <None Include="Resources\QuerySql_InsertSQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

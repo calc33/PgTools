@@ -415,7 +415,7 @@ namespace Db2Source
             return s + p;
         }
 
-        private string GetDatabaseIdentifier()
+        public override string GetDatabaseIdentifier()
         {
             string s = GetServerIdentifier();
             string d = (DatabaseName == DEFAULT_PGSQL_DBNAME) ? string.Empty : "/" + DatabaseName;
@@ -425,11 +425,6 @@ namespace Db2Source
         public override string GetDefaultCategoryPath()
         {
             return GetServerIdentifier();
-        }
-
-        public override string GetDefaultName()
-        {
-            return string.Format("{0}@{1}", UserName, GetDatabaseIdentifier());
         }
 
         public override string GetTreeNodeHeader()

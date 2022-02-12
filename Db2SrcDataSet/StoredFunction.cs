@@ -188,7 +188,7 @@ namespace Db2Source
             protected internal void OnParameterChanged(CollectionOperationEventArgs<Parameter> e)
             {
                 InvalidateNameToItem();
-                _owner.OnParameterChantged(e);
+                _owner.OnParameterChanged(e);
             }
             internal ParameterCollection(StoredFunction owner)
             {
@@ -544,11 +544,11 @@ namespace Db2Source
 
         public Type ValueType { get; set; }
         public ParameterCollection Parameters { get; private set; }
-        public event EventHandler<CollectionOperationEventArgs<Parameter>> ParameterChantged;
-        protected void OnParameterChantged(CollectionOperationEventArgs<Parameter> e)
+        public event EventHandler<CollectionOperationEventArgs<Parameter>> ParameterChanged;
+        protected void OnParameterChanged(CollectionOperationEventArgs<Parameter> e)
         {
             InvalidateName();
-            ParameterChantged?.Invoke(this, e);
+            ParameterChanged?.Invoke(this, e);
         }
         public string Language { get; set; }
         public string Definition

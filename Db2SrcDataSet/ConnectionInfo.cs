@@ -272,9 +272,14 @@ namespace Db2Source
                 return string.Format("{0}:{1}", DatabaseType, GetDefaultName());
             }
         }
+
+        public virtual string GetDatabaseIdentifier()
+        {
+            return ServerName;
+        }
         public virtual string GetDefaultName()
         {
-            return string.Format("{0}@{1}", UserName, ServerName);
+            return string.Format("{0}@{1}", UserName, GetDatabaseIdentifier());
         }
 
         public virtual string GetTreeNodeHeader()
