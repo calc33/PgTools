@@ -102,6 +102,7 @@ namespace Db2Source
             }
             NewConnectionWindow win = new NewConnectionWindow();
             win.Owner = this;
+            App.CopyFont(window, this);
             win.Target = info;
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
@@ -824,11 +825,7 @@ namespace Db2Source
         {
             ExportSchema win = new ExportSchema();
             win.Owner = this;
-            win.FontFamily = FontFamily;
-            win.FontSize = FontSize;
-            win.FontStretch = FontStretch;
-            win.FontStyle = FontStyle;
-            win.FontWeight = FontWeight;
+            App.CopyFont(win, this);
             win.DataSet = CurrentDataSet;
             win.ShowDialog();
         }
@@ -1008,6 +1005,7 @@ namespace Db2Source
             }
             NewConnectionWindow win = new NewConnectionWindow();
             win.Owner = this;
+            App.CopyFont(win, this);
             win.Target = info;
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
@@ -1116,6 +1114,7 @@ namespace Db2Source
             }
             PgDumpOptionWindow win = new PgDumpOptionWindow();
             win.Owner = this;
+            App.CopyFont(win, this);
             win.DataSet = CurrentDataSet;
             win.Show();
             //win.ShowDialog();
@@ -1165,6 +1164,8 @@ namespace Db2Source
         private void menuItemEditConnections_Click(object sender, RoutedEventArgs e)
         {
             EditConnectionListWindow win = new EditConnectionListWindow();
+            win.Owner = this;
+            App.CopyFont(win, this);
             win.ShowDialog();
             UpdateMenuItemOpenDb();
         }
@@ -1352,6 +1353,8 @@ namespace Db2Source
         {
             Button btn = sender as Button;
             SelectTabItemWindow win = new SelectTabItemWindow();
+            win.Owner = this;
+            App.CopyFont(win, win.Owner);
             win.TabControl = tabControlMain;
             win.Closed += SelectTabItemWindow_Closed;
             App.ShowNearby(win, btn, NearbyLocation.DownRight);
@@ -1533,6 +1536,7 @@ namespace Db2Source
             NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow();
             win.DataSet = CurrentDataSet as NpgsqlDataSet;
             win.Owner = this;
+            App.CopyFont(win, this);
             bool? ret = win.ShowDialog();
             if (ret.HasValue && ret.Value)
             {

@@ -70,6 +70,31 @@ namespace Db2Source
             }
         }
 
+        public void Fill(DateTime? startTime, DateTime? endTime)
+        {
+            string additional = string.Empty;
+            if (startTime.HasValue && endTime.HasValue)
+            {
+                additional = string.Format(" WHERE LAST_EXECUTED BETWEEN {0} AND {1} ORDER BY LAST_EXECUTED", startTime.Value.ToOADate(), endTime.Value.ToOADate());
+            }
+            else if (startTime.HasValue && !endTime.HasValue)
+            {
+                additional = string.Format(" WHERE LAST_EXECUTED >= {0} ORDER BY LAST_EXECUTED", startTime.Value.ToOADate());
+            }
+            else if (!startTime.HasValue && endTime.HasValue)
+            {
+                additional = string.Format(" WHERE LAST_EXECUTED < {0} ORDER BY LAST_EXECUTED", endTime.Value.ToOADate());
+            }
+            _sqlList = new SqlCollection(this);
+            _queryList = new List<Query>();
+
+            using (SQLiteConnection conn = GetConnection())
+            {
+                _sqlList.Fill(conn);
+                LoadQuery(conn, additional, _queryList, false, null);
+            }
+        }
+
         public Query NewQuery(IDbCommand command)
         {
             string s = command.CommandText.TrimEnd();
@@ -111,11 +136,12 @@ namespace Db2Source
                     }
                 }
             }
+            query.LastExecuted = DateTime.Now;
             if (query.Id != UNASSIGNED_ID)
             {
                 using (SQLiteCommand cmd = new SQLiteCommand(DataSet.Properties.Resources.QueryHistory_UpdateSQL, connection))
                 {
-                    cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = DateTime.Now.ToOADate() });
+                    cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = query.LastExecuted.ToOADate() });
                     cmd.Parameters.Add(new SQLiteParameter("ID", DbType.Int64) { Value = query.Id });
                     cmd.ExecuteNonQuery();
                 }
@@ -125,7 +151,7 @@ namespace Db2Source
             {
                 cmd.Parameters.Add(new SQLiteParameter("SQL_ID", DbType.Int64) { Value = query.SqlId });
                 cmd.Parameters.Add(new SQLiteParameter("PARAM_HASH", DbType.String) { Value = query.ParamHash });
-                cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = DateTime.Now.ToOADate() });
+                cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = query.LastExecuted.ToOADate() });
                 using (SQLiteDataReader reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
@@ -157,9 +183,10 @@ namespace Db2Source
                 {
                     int idxId = IndexOfField(reader, "ID");
                     int idxSqlId = IndexOfField(reader, "SQL_ID");
+                    int idxLastEx = IndexOfField(reader, "LAST_EXECUTED");
                     while (reader.Read())
                     {
-                        Query query = new Query() { Id = reader.GetInt64(idxId), Sql = _sqlList.FindById(reader.GetInt64(idxSqlId)) };
+                        Query query = new Query() { Id = reader.GetInt64(idxId), Sql = _sqlList.FindById(reader.GetInt64(idxSqlId)), LastExecuted = DateTime.FromOADate(reader.GetDouble(idxLastEx)) };
                         if (list != null)
                         {
                             list.Add(query);
@@ -663,6 +690,8 @@ namespace Db2Source
                 }
             }
 
+            public DateTime LastExecuted { get; set; } = DateTime.Now;
+
             private Parameter[] _parameters;
             public Parameter[] Parameters
             {
@@ -711,52 +740,6 @@ namespace Db2Source
                         dest.Value = src.Value;
                     }
                     catch (IndexOutOfRangeException) { }
-                }
-            }
-
-            public void Apply(SQLiteConnection connection, QueryHistory owner)
-            {
-                if (Id == UNASSIGNED_ID)
-                {
-                    List<Query> l = new List<Query>();
-                    owner.LoadQuery(connection, " WHERE SQL_ID = @SQL_ID AND PARAM_HASH = @PARAM_HASH", l, true,
-                        new SQLiteParameter[] { new SQLiteParameter("SQL_ID", DbType.Int64) { Value = SqlId }, new SQLiteParameter("PARAM_HASH", DbType.String) { Value = ParamHash } });
-                    foreach (Query q in l)
-                    {
-                        if (ParamText == q.ParamText)
-                        {
-                            Id = q.Id;
-                            break;
-                        }
-                    }
-                }
-                if (Id != UNASSIGNED_ID)
-                {
-                    using (SQLiteCommand cmd = new SQLiteCommand(DataSet.Properties.Resources.QueryHistory_UpdateSQL, connection))
-                    {
-                        cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = DateTime.Now.ToOADate() });
-                        cmd.Parameters.Add(new SQLiteParameter("ID", DbType.Int64) { Value = Id });
-                        cmd.ExecuteNonQuery();
-                    }
-                    return;
-                }
-                using (SQLiteCommand cmd = new SQLiteCommand(DataSet.Properties.Resources.QueryHistory_InsertSQL, connection))
-                {
-                    cmd.Parameters.Add(new SQLiteParameter("SQL_ID", DbType.Int64) { Value = SqlId });
-                    cmd.Parameters.Add(new SQLiteParameter("PARAM_HASH", DbType.String) { Value = ParamHash });
-                    cmd.Parameters.Add(new SQLiteParameter("LAST_EXECUTED", DbType.Double) { Value = DateTime.Now.ToOADate() });
-                    using (SQLiteDataReader reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            Id = reader.GetInt64(0);
-                        }
-                    }
-                }
-                foreach (Parameter p in Parameters)
-                {
-                    p.SqlId = Id;
-                    p.Save(connection);
                 }
             }
 

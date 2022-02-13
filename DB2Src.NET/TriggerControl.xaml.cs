@@ -122,7 +122,7 @@ namespace Db2Source
                         recoverMsg = string.Format((string)Resources["messageRecoveryFailed"], ctx.GetExceptionMessage(t2));
                     }
                 }
-                Window owner = App.FindVisualParent<Window>(this);
+                Window owner = Window.GetWindow(this);
                 MessageBox.Show(owner, string.Format((string)Resources["messageFailed"], ctx.GetExceptionMessage(t), recoverMsg), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -148,7 +148,7 @@ namespace Db2Source
 
         public void DropTarget(bool cascade)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
             SqlLogger logger = new SqlLogger();
@@ -189,7 +189,7 @@ namespace Db2Source
 
         private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropTrigger"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {

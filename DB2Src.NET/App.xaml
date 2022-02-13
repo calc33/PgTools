@@ -261,6 +261,13 @@
                 <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M0,2.5 L12,2.5 M3.5,2.5 C3.5,0.5 3.5,0.5 5.5,0.5 L6.5,0.5 C8.5,0.5 8.5,0.5 8.5,2.5 M4.5,4.5 L4.5,11.5 M7.5,4.5 L7.5,11.5 M1.5,2.5 L1.5,10.5 C1.5,13.5 1.5,13.5 3.5,13.5 L8.5,13.5 C10.5,13.5 10.5,13.5 10.5,11.5 L10.5,2.5"/>
             </Canvas>
         </DataTemplate>
+        <DataTemplate x:Key="ImageHistory14">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M3.8,11.2 A6,6 0 0 1 1,7 A6,6 0 1 1 7,13"/>
+                <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M5,12 l-4,0 l4,-4 z"/>
+                <Path x:Name="pathLine" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1"  Data="M7,3 L7,7 L10,10"/>
+            </Canvas>
+        </DataTemplate>
         <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
         <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
         <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>

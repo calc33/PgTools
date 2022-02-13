@@ -356,7 +356,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                Window owner = App.FindVisualParent<Window>(this);
+                Window owner = Window.GetWindow(this);
                 MessageBox.Show(owner, ctx.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -468,7 +468,7 @@ namespace Db2Source
 
         private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, _message_DropProcedure, Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {

@@ -383,7 +383,7 @@ namespace Db2Source
 
         private void DropTarget(bool cascade)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
             SqlLogger logger = new SqlLogger();
@@ -424,7 +424,7 @@ namespace Db2Source
 
         private void menuItemDropView_Click(object sender, RoutedEventArgs e)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropView"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {

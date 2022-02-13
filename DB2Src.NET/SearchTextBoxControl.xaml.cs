@@ -786,6 +786,7 @@ namespace Db2Source
         {
             SearchTextDirectionDropDown win = new SearchTextDirectionDropDown();
             win.Owner = Window.GetWindow(this);
+            App.CopyFont(win, win.Owner);
             win.Target = buttonSearch;
             win.Show();
             //int dir = (int)buttonSearch.Tag;

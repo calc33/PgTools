@@ -70,16 +70,17 @@
                         <ToolBarTray>
                             <ToolBar>
                                 <Button x:Name="buttonClearLog" Margin="1" Padding="2,0" ContentTemplate="{StaticResource ImageTrash14}" ToolTip="ログを消去" Click="menuItemClearLog_Click"/>
+                                <Button x:Name="buttonHistory" Margin="1" Padding="2,0" ContentTemplate="{StaticResource ImageHistory14}" ToolTip="履歴" Click="buttonHistory_Click" VerticalAlignment="Top"/>
                             </ToolBar>
                         </ToolBarTray>
                     </StackPanel>
                     <ListBox x:Name="listBoxLog" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" TabIndex="4" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Visible" SelectionMode="Extended" HorizontalContentAlignment="Stretch" MinHeight="20">
-                    <ListBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem x:Name="menuItemClearLog" Header="ログを消去" Click="menuItemClearLog_Click"/>
-                        </ContextMenu>
-                    </ListBox.ContextMenu>
-                </ListBox>
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="menuItemClearLog" Header="ログを消去" Click="menuItemClearLog_Click"/>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
                 </DockPanel>
             </TabItem>
             <TabItem x:Name="tabItemDataGrid" Header="結果" TabIndex="5">

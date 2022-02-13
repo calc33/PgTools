@@ -184,7 +184,7 @@ namespace Db2Source
 
         private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropSequence"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {

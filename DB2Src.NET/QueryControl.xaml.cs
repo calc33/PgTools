@@ -95,7 +95,7 @@ namespace Db2Source
                 return;
             }
             _registryBinding = new RegistryBinding();
-            Window window = App.FindVisualParent<Window>(this);
+            Window window = Window.GetWindow(this);
             _registryBinding.Register(window, gridVertical);
             _registryBinding.Register(window, gridSql);
         }
@@ -228,7 +228,7 @@ namespace Db2Source
                     {
                         dataGridParameters.Focus();
                         dataGridParameters.SelectedItem = p;
-                        Window owner = App.FindVisualParent<Window>(this);
+                        Window owner = Window.GetWindow(this);
                         MessageBox.Show(owner, string.Format((string)Resources["messageInvalidParameter"], p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                         return;
                     }
@@ -379,6 +379,14 @@ namespace Db2Source
         private void buttonSearchWord_Click(object sender, RoutedEventArgs e)
         {
             ApplicationCommands.Find.Execute(null, dataGridResult);
+        }
+
+        private void buttonHistory_Click(object sender, RoutedEventArgs e)
+        {
+            HistoryWindow window = new HistoryWindow();
+            window.Owner = Window.GetWindow(this);
+            App.CopyFont(window, window.Owner);
+            window.Show();
         }
     }
     public class IsErrorBrushConverter: IValueConverter

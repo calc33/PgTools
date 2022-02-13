@@ -91,18 +91,25 @@ namespace Db2Source
                 GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                 PropertyInfo prop = props[i];
                 InputFieldAttribute attr = (InputFieldAttribute)prop.GetCustomAttribute(typeof(InputFieldAttribute));
-                TextBlock lbl = new TextBlock();
-                lbl.Margin = new Thickness(2.0);
-                lbl.HorizontalAlignment = HorizontalAlignment.Right;
-                lbl.Text = attr?.Title;
+                TextBlock lbl = new TextBlock()
+                {
+                    Margin = new Thickness(2.0),
+                    HorizontalAlignment = HorizontalAlignment.Right,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Text = attr?.Title
+                };
                 Grid.SetRow(lbl, r);
                 GridProperties.Children.Add(lbl);
                 string newName = "textBox" + prop.Name;
                 TextBox tb = FindName(newName) as TextBox;
-                if (tb == null) {
-                    tb = new TextBox();
-                    tb.Name = newName;
-                    tb.Margin = new Thickness(2.0);
+                if (tb == null)
+                {
+                    tb = new TextBox()
+                    {
+                        Name = newName,
+                        Margin = new Thickness(2.0),
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
                     Binding b1 = new Binding("Target." + prop.Name)
                     {
                         ElementName = "window",
@@ -111,7 +118,7 @@ namespace Db2Source
                     tb.SetBinding(TextBox.TextProperty, b1);
                     tb.TextChanged += TextBox_TextChanged;
                     tb.LostFocus += TextBox_LostFocus;
-                RegisterName(tb.Name, tb);
+                    RegisterName(tb.Name, tb);
                 }
                 else
                 {
@@ -126,16 +133,15 @@ namespace Db2Source
                     PasswordBox pb = FindName(newName) as PasswordBox;
                     if (pb == null)
                     {
-                        pb = new PasswordBox();
-                        pb.Name = newName;
-                        pb.Margin = new Thickness(2.0);
-                        //Binding b2 = new Binding("Text");
-                        //b2.ElementName = tb.Name;
-                        //b2.Mode = BindingMode.TwoWay;
-                        //pb.SetBinding(PasswordBox.TextProperty, b2);
-                        pb.Password = Target.Password;
+                        pb = new PasswordBox()
+                        {
+                            Name = newName,
+                            Margin = new Thickness(2.0),
+                            VerticalAlignment = VerticalAlignment.Center,
+                            Password = Target.Password,
+                            Tag = tb
+                        };
                         pb.PasswordChanged += PbPassword_PasswordChanged;
-                        pb.Tag = tb;
                         tb.TextChanged += TbPassword_TextChanged;
                         tb.IsVisibleChanged += TbPassword_IsVisibleChanged;
                         tb.Tag = pb;
@@ -160,7 +166,8 @@ namespace Db2Source
                         {
                             Name = newName,
                             Content = (string)Resources["checkBoxTextShowPassword"],
-                            IsChecked = false
+                            IsChecked = false,
+                            VerticalAlignment = VerticalAlignment.Center
                         };
                         RegisterName(cb.Name, cb);
 
@@ -385,6 +392,7 @@ namespace Db2Source
             RGB rgb = Target.BackgroundColor;
             win.Color = Color.FromRgb(rgb.R, rgb.G, rgb.B);
             win.Owner = this;
+            App.CopyFont(win, win.Owner);
             bool? ret = win.ShowDialog();
             if (ret.HasValue && ret.Value)
             {

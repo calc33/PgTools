@@ -1,0 +1,139 @@
+﻿<Window x:Name="window" x:Class="Db2Source.HistoryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:local="clr-namespace:Db2Source"
+        mc:Ignorable="d"
+        Title="クエリ実行履歴検索" Height="450" Width="800" WindowStyle="ToolWindow">
+    <Window.Resources>
+        <local:TimestampTextConverter x:Key="TimestampTextConverter"/>
+        <local:DateRangeKindItem x:Key="DateRangeKindItem"/>
+        <DataTemplate x:Key="QueryHistoryTemplate">
+            <Border BorderThickness="0" HorizontalAlignment="Stretch">
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" SharedSizeGroup="HistoryListBoxItemSize0"/>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="HistoryListBoxItemSize1"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding LastExecuted, Converter={StaticResource TimestampTextConverter}}"/>
+                        <TextBlock Text="{Binding LastExecuted, StringFormat={}{0:yyyy/M/d HH:mm}}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Margin="5,0,0,0"/>
+                    </StackPanel>
+                    <TextBlock Grid.Row="1" Text="{Binding SqlText}"/>
+                    <TextBlock Grid.Column="1" Grid.RowSpan="2" Text="{Binding ParamText}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+        <Style x:Key="ListBoxItemStyle1" TargetType="{x:Type ListBoxItem}">
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Padding" Value="4,1"/>
+            <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.MouseOver.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.MouseOver.Border}"/>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Selector.IsSelectionActive" Value="False"/>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedInactive.Border}"/>
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="Selector.IsSelectionActive" Value="True"/>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Background}"/>
+                                <Setter Property="BorderBrush" TargetName="Bd" Value="{StaticResource Item.SelectedActive.Border}"/>
+                            </MultiTrigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="TextElement.Foreground" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+    <DockPanel>
+        <Grid DockPanel.Dock="Top">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" Margin="0,2">
+                <ComboBox x:Name="comboBoxDateKind" MinWidth="90" SelectedIndex="0">
+                    <ComboBox.Items>
+                        <local:DateRangeKindItem Text="(日付指定)"/>
+                        <local:DateRangeKindItem Text="12時間以内" Value="12" Unit="Hour"/>
+                        <local:DateRangeKindItem Text="24時間以内" Value="24" Unit="Hour"/>
+                        <local:DateRangeKindItem Text="指定時間内" UseSpan="True"/>
+                        <local:DateRangeKindItem Text="日付範囲" UseRange="True"/>
+                    </ComboBox.Items>
+                </ComboBox>
+                <StackPanel x:Name="stackPanelSpan" Orientation="Horizontal" Visibility="{Binding SelectedItem.UseSpan, ElementName=comboBoxDateKind, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <TextBox x:Name="textBoxSpan" MinWidth="20" Text="{Binding Span, ElementName=window}" HorizontalContentAlignment="Right" Margin="2,0"/>
+                    <ComboBox x:Name="comboBoxDateUnit" SelectedIndex="1" MinWidth="54">
+                        <ComboBox.Items>
+                            <ComboBoxItem Content="分">
+                                <ComboBoxItem.Tag>
+                                    <local:DateUnit>Minute</local:DateUnit>
+                                </ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="時間">
+                                <ComboBoxItem.Tag>
+                                    <local:DateUnit>Hour</local:DateUnit>
+                                </ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                            <ComboBoxItem Content="日">
+                                <ComboBoxItem.Tag>
+                                    <local:DateUnit>Day</local:DateUnit>
+                                </ComboBoxItem.Tag>
+                            </ComboBoxItem>
+                        </ComboBox.Items>
+                    </ComboBox>
+                </StackPanel>
+                <StackPanel x:Name="stackPanelDateRange" Orientation="Horizontal" Visibility="{Binding SelectedItem.UseRange, ElementName=comboBoxDateKind, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <DatePicker x:Name="datePickerBegin" MinWidth="100"/>
+                    <TextBlock Text="～"/>
+                    <DatePicker x:Name="datePickerEnd" MinWidth="100"/>
+                </StackPanel>
+            </StackPanel>
+            <TextBox x:Name="textBoxFilter" Grid.Row="1" Margin="0,2" ToolTip="(クエリに含まれる文字で絞りこみ)"/>
+            <Button x:Name="buttonFetch" Grid.Column="1" Grid.RowSpan="2" ContentTemplate="{StaticResource ImageSearch20}" Padding="10,5" VerticalAlignment="Top" Margin="2,0" Click="buttonFetch_Click"/>
+        </Grid>
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
+            <Button Content="OK" Padding="5,4" Margin="5" MinWidth="75"/>
+            <Button Content="キャンセル" Padding="5,4" Margin="5" MinWidth="75"/>
+        </StackPanel>
+        <ListBox x:Name="listBoxResult" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemTemplate="{DynamicResource QueryHistoryTemplate}" Grid.IsSharedSizeScope="True" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" HorizontalContentAlignment="Stretch"/>
+    </DockPanel>
+</Window>

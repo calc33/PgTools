@@ -166,7 +166,7 @@ namespace Db2Source
             {
                 return;
             }
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropTablespace"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {

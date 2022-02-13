@@ -121,6 +121,9 @@
     <Compile Include="EditPgsqlSetting.xaml.cs">
       <DependentUpon>EditPgsqlSetting.xaml</DependentUpon>
     </Compile>
+    <Compile Include="HistoryWindow.xaml.cs">
+      <DependentUpon>HistoryWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="MovableTabItem.cs" />
     <Compile Include="NewPgsqlDatabaseWindow.xaml.cs">
       <DependentUpon>NewPgsqlDatabaseWindow.xaml</DependentUpon>
@@ -253,6 +256,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="EditPgsqlSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="HistoryWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

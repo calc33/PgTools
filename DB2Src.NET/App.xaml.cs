@@ -465,6 +465,16 @@ namespace Db2Source
             window.Show();
         }
 
+        public static void CopyFont(Control destination, Control source)
+        {
+            destination.FontFamily = source.FontFamily;
+            destination.FontFamily = source.FontFamily;
+            destination.FontSize = source.FontSize;
+            destination.FontStretch = source.FontStretch;
+            destination.FontStyle = source.FontStyle;
+            destination.FontWeight = source.FontWeight;
+        }
+
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
@@ -475,6 +485,8 @@ namespace Db2Source
                 return;
             }
             SelectColumnWindow win = new SelectColumnWindow();
+            win.Owner = Window.GetWindow(grid);
+            CopyFont(win, win.Owner);
             win.Closed += SelectColumnWindow_Closed;
             win.Grid = grid;
             ShowNearby(win, button, NearbyLocation.DownRight);

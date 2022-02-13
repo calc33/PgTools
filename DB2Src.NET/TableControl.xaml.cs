@@ -573,7 +573,7 @@ namespace Db2Source
             _fetched = false;
             if (!force && DataGridControllerResult.IsModified)
             {
-                Window owner = App.FindVisualParent<Window>(this);
+                Window owner = Window.GetWindow(this);
                 MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageConfirmSave"], Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 switch (ret)
                 {
@@ -601,7 +601,7 @@ namespace Db2Source
                 int l;
                 if (!int.TryParse(textBoxLimitRow.Text, out l))
                 {
-                    Window owner = App.FindVisualParent<Window>(this);
+                    Window owner = Window.GetWindow(this);
                     MessageBox.Show(owner, (string)Resources["messageInvalidLimitRow"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxLimitRow.Focus();
                 }
@@ -650,7 +650,7 @@ namespace Db2Source
 
         public void DropTarget(bool cascade)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
             SqlLogger logger = new SqlLogger();
@@ -801,6 +801,7 @@ namespace Db2Source
                 _selectColumnWindow = new SelectColumnWindow();
 
                 _selectColumnWindow.Owner = Window.GetWindow(this);
+                App.CopyFont(_selectColumnWindow, _selectColumnWindow.Owner);
                 return _selectColumnWindow;
             }
         }
@@ -912,7 +913,7 @@ namespace Db2Source
                 return;
             }
             MainWindow.TabBecomeVisible(this);
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageConfirmSaveAndClose"], Target.DisplayName),
                 Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             switch (ret)
@@ -978,6 +979,8 @@ namespace Db2Source
                 return;
             }
             RecordViewerWindow win = new RecordViewerWindow();
+            win.Owner = Window.GetWindow(this);
+            App.CopyFont(win, win.Owner);
             win.Table = Target;
             win.Column = col;
             win.Row = row;
@@ -1235,6 +1238,7 @@ namespace Db2Source
             }
             ColumnCheckListWindow win = new ColumnCheckListWindow();
             win.Owner = Window.GetWindow(this);
+            App.CopyFont(win, win.Owner);
             win.Target = tbl;
             WindowLocator.LocateNearby(sender as FrameworkElement, win, NearbyLocation.DownLeft);
             win.Closed += ColumnCheckListWindow_Closed;

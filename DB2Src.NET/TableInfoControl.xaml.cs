@@ -143,6 +143,7 @@ namespace Db2Source
             FrameworkElement elem = sender as FrameworkElement ?? dataGridColumns;
             WindowLocator.LocateNearby(elem, win, NearbyLocation.UpLeft);
             win.Owner = Window.GetWindow(this);
+            App.CopyFont(win, win.Owner);
             win.Target = dataGridColumns;
             win.Show();
         }
@@ -222,7 +223,7 @@ namespace Db2Source
 
         private void menuItemDropTable_Click(object sender, RoutedEventArgs e)
         {
-            Window owner = App.FindVisualParent<Window>(this);
+            Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropTable"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
