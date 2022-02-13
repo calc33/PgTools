@@ -202,7 +202,7 @@ namespace Db2Source
                 return;
             }
             textBoxSql.Text = sql;
-            ParameterStore.GetParameterStores(item.Query, Parameters, out _);
+            Parameters = ParameterStore.GetParameterStores(item.Query, Parameters, out _);
             //Fetch();
         }
 
@@ -386,7 +386,18 @@ namespace Db2Source
             HistoryWindow window = new HistoryWindow();
             window.Owner = Window.GetWindow(this);
             App.CopyFont(window, window.Owner);
-            window.Show();
+            bool? ret = window.ShowDialog();
+            if (!ret.HasValue || !ret.Value)
+            {
+                return;
+            }
+            QueryHistory.Query sel = window.Selected;
+            if (sel == null)
+            {
+                return;
+            }
+            textBoxSql.Text = sel.SqlText;
+            Parameters = ParameterStore.GetParameterStores(sel, Parameters, out _);
         }
     }
     public class IsErrorBrushConverter: IValueConverter

@@ -330,7 +330,6 @@ namespace Db2Source
         private bool _isNullable;
         private string _sourceColumn;
         private DataRowVersion _sourceVersion;
-        private object _value;
 
         public DbType DbType
         {
@@ -565,8 +564,8 @@ namespace Db2Source
             ParameterName = parameter.ParameterName;
             _sourceColumn = parameter.SourceColumn;
             _sourceVersion = parameter.SourceVersion;
-            _value = parameter.Value;
             _target = new WeakReference<DbParameter>(parameter);
+            Value = parameter.Value;
             AllParameters.Add(this);
         }
         
@@ -582,8 +581,8 @@ namespace Db2Source
             ParameterName = parameterName;
             _sourceColumn = null;
             _sourceVersion = DataRowVersion.Current;
-            _value = null;
             _target = null;
+            Value = null;
             AllParameters.Add(this);
         }
 
@@ -599,8 +598,8 @@ namespace Db2Source
             ParameterName = parameter.Name;
             _sourceColumn = null;
             _sourceVersion = DataRowVersion.Current;
-            _value = parameter.Value;
             _target = null;
+            Value = parameter.Value;
             AllParameters.Add(this);
         }
 

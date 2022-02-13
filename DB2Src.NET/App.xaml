@@ -262,7 +262,7 @@
             </Canvas>
         </DataTemplate>
         <DataTemplate x:Key="ImageHistory14">
-            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+            <Canvas Width="14" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,2" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                 <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M3.8,11.2 A6,6 0 0 1 1,7 A6,6 0 1 1 7,13"/>
                 <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M5,12 l-4,0 l4,-4 z"/>
                 <Path x:Name="pathLine" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1"  Data="M7,3 L7,7 L10,10"/>

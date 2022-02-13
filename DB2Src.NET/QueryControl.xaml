@@ -70,7 +70,7 @@
                         <ToolBarTray>
                             <ToolBar>
                                 <Button x:Name="buttonClearLog" Margin="1" Padding="2,0" ContentTemplate="{StaticResource ImageTrash14}" ToolTip="ログを消去" Click="menuItemClearLog_Click"/>
-                                <Button x:Name="buttonHistory" Margin="1" Padding="2,0" ContentTemplate="{StaticResource ImageHistory14}" ToolTip="履歴" Click="buttonHistory_Click" VerticalAlignment="Top"/>
+                                <Button x:Name="buttonHistory" Margin="1" Padding="2,0" ContentTemplate="{StaticResource ImageHistory14}" ToolTip="履歴" Click="buttonHistory_Click"/>
                             </ToolBar>
                         </ToolBarTray>
                     </StackPanel>

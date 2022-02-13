@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -20,7 +21,8 @@ namespace Db2Source
     /// </summary>
     public partial class HistoryWindow : Window
     {
-        public static readonly DependencyProperty SpanProperty = DependencyProperty.Register("Hour", typeof(int), typeof(HistoryWindow));
+        public static readonly DependencyProperty SpanProperty = DependencyProperty.Register("Span", typeof(int), typeof(HistoryWindow));
+        public static readonly DependencyProperty SelectedProperty = DependencyProperty.Register("Selected", typeof(QueryHistory.Query), typeof(HistoryWindow));
         //public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(HistoryWindow));
 
         //public Db2SourceContext DataSet
@@ -47,13 +49,24 @@ namespace Db2Source
             }
         }
 
+        public QueryHistory.Query Selected
+        {
+            get
+            {
+                return (QueryHistory.Query)GetValue(SelectedProperty);
+            }
+            set
+            {
+                SetValue(SelectedProperty, value);
+            }
+        }
+
         private bool _isFetched = false;
 
 
         public HistoryWindow()
         {
             InitializeComponent();
-            Span = 1;
         }
 
         private static Tuple<DateTime?, DateTime?> GetDateTuple(int value, DateUnit unit)
@@ -127,12 +140,39 @@ namespace Db2Source
             listBoxResult.ItemsSource = l;
         }
 
-        private void buttonFetch_Click(object sender, RoutedEventArgs e)
+        private void Fetch()
         {
             Tuple<DateTime?, DateTime?> range = GetDateRange();
             App.CurrentDataSet.History.Fill(range.Item1, range.Item2);
             _isFetched = true;
             UpdateListBoxResult();
+        }
+
+        private void buttonFetch_Click(object sender, RoutedEventArgs e)
+        {
+            Fetch();
+        }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            Span = 2;
+            Dispatcher.InvokeAsync(Fetch, DispatcherPriority.ApplicationIdle);
+        }
+
+        private void listBoxResult_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            buttonOK_Click(sender, e);
+        }
+
+        private void buttonOK_Click(object sender, RoutedEventArgs e)
+        {
+            QueryHistory.Query sel = Selected;
+            if (sel == null)
+            {
+                return;
+            }
+            DialogResult = true;
+            Close();
         }
     }
 
