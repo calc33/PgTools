@@ -231,7 +231,7 @@ namespace Db2Source
         {
             if (e.Key == Key.Escape)
             {
-                _window.Close();
+                Dispatcher.CurrentDispatcher.InvokeAsync(_window.Close);
                 e.Handled = true;
             }
         }

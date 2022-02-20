@@ -189,7 +189,7 @@ namespace Db2Source
                     return;
                 }
                 _isUpdateGridPosted = true;
-                Dispatcher.Invoke(UpdateGrid, DispatcherPriority.Normal);
+                Dispatcher.InvokeAsync(UpdateGrid);
             }
         }
 

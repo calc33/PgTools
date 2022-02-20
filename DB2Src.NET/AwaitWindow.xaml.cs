@@ -31,7 +31,7 @@ namespace Db2Source
         {
             _timer.Stop();
             _timer = null;
-            Close();
+            Dispatcher.InvokeAsync(Close);
         }
         private void CheckTask(object sender, EventArgs e)
         {

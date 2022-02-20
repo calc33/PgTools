@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -127,7 +128,6 @@ namespace Db2Source
                 return;
             }
             DialogResult = true;
-            Close();
         }
 
         private void buttonApplySystemSetting_Click(object sender, RoutedEventArgs e)
@@ -138,7 +138,6 @@ namespace Db2Source
                 return;
             }
             DialogResult = true;
-            Close();
         }
     }
 }

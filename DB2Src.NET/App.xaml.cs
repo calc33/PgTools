@@ -209,7 +209,7 @@ namespace Db2Source
                 _threadExceptions.Add(t);
                 LogException(t);
             }
-            Current.Dispatcher.Invoke(ShowThreadException);
+            Current.Dispatcher.InvokeAsync(ShowThreadException);
         }
         private void Application_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
         {

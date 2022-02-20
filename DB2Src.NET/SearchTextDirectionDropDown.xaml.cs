@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -52,7 +53,7 @@ namespace Db2Source
             Button b = sender as Button;
             Target.Tag = b.Tag;
             Target.RenderTransform = b.RenderTransform?.Clone();
-            Close();
+            Dispatcher.InvokeAsync(Close, DispatcherPriority.ApplicationIdle);
         }
     }
 }

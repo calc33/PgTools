@@ -1655,8 +1655,7 @@ namespace Db2Source
                 return;
             }
             _updateIsModifiedPosted = true;
-            //Dispatcher.BeginInvoke((Action)UpdateIsModified);
-            Dispatcher.Invoke(UpdateIsModified, DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(UpdateIsModified, DispatcherPriority.ApplicationIdle);
         }
 
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;
@@ -1926,7 +1925,7 @@ namespace Db2Source
                 return;
             }
             _hasErrorUpdating = true;
-            Dispatcher.Invoke(UpdateHasError, DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(UpdateHasError, DispatcherPriority.ApplicationIdle);
         }
 
         private readonly Dictionary<string, ColumnInfo> _nameToField = new Dictionary<string, ColumnInfo>();
@@ -2293,7 +2292,7 @@ namespace Db2Source
             SearchDataGridControllerWindow win;
             if (_searchDataGridTextWindow.TryGetTarget(out win))
             {
-                win.Close();
+                Dispatcher.CurrentDispatcher.InvokeAsync(win.Close);
                 _searchDataGridTextWindow = null;
             }
         }

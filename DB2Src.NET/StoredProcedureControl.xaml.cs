@@ -174,7 +174,7 @@ namespace Db2Source
                 UpdateTextBoxSource();
                 UpdateStringResources();
                 AdjustSelectedTabItem();
-            }, DispatcherPriority.Normal);
+            });
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)

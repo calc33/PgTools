@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -47,13 +48,11 @@ namespace Db2Source
         {
             Color = colorPickerControl.Color;
             DialogResult = true;
-            Close();
         }
 
         private void buttonCancel_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
-            Close();
         }
 
         private void window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -61,7 +60,7 @@ namespace Db2Source
             if (e.Key == Key.Escape)
             {
                 e.Handled = true;
-                Close();
+                DialogResult = false;
             }
         }
     }

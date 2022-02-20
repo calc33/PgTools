@@ -354,7 +354,7 @@ namespace Db2Source
         private void CurrentDataSet_SchemaLoaded(object sender, EventArgs e)
         {
             _dataSetTemp = sender as Db2SourceContext;
-            Dispatcher.InvokeAsync(SetSchema, DispatcherPriority.Normal);
+            Dispatcher.InvokeAsync(SetSchema);
         }
 
         //#pragma warning disable 1998

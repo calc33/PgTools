@@ -172,7 +172,6 @@ namespace Db2Source
                 return;
             }
             DialogResult = true;
-            Close();
         }
     }
 

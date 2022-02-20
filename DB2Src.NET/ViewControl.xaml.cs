@@ -112,7 +112,7 @@ namespace Db2Source
             dataGridColumns.ItemsSource = Target?.Columns;
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
-            Dispatcher.Invoke(Fetch, DispatcherPriority.Normal);
+            Dispatcher.InvokeAsync(Fetch);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)

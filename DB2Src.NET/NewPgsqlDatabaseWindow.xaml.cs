@@ -112,12 +112,12 @@ namespace Db2Source
             //    return;
             //}
             //_isUpdateTextBoxSqlPosted = true;
-            //Dispatcher.InvokeAsync(UpdateTextBoxSql, DispatcherPriority.Normal);
+            //Dispatcher.InvokeAsync(UpdateTextBoxSql);
         }
 
         private void DataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            Dispatcher.InvokeAsync(InitDisplay, DispatcherPriority.Normal);
+            Dispatcher.InvokeAsync(InitDisplay);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -136,7 +136,7 @@ namespace Db2Source
 
         private void buttonGenerateSQL_Click(object sender, RoutedEventArgs e)
         {
-            Dispatcher.InvokeAsync(UpdateTextBoxSql, DispatcherPriority.Normal);
+            Dispatcher.InvokeAsync(UpdateTextBoxSql);
         }
 
         private void LogSQL(object sender, LogEventArgs e)
@@ -168,7 +168,6 @@ namespace Db2Source
                 App.OpenDatabase(Target);
             }
             DialogResult = true;
-            Close();
         }
 
         private void buttonError_Click(object sender, RoutedEventArgs e)

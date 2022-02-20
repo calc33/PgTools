@@ -94,7 +94,6 @@ namespace Db2Source
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
-            Close();
         }
 
         private Size _maxSize;
@@ -111,7 +110,6 @@ namespace Db2Source
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = true;
-            Close();
         }
 
         private void window_LayoutUpdated(object sender, EventArgs e)

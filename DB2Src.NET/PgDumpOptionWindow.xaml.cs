@@ -295,12 +295,12 @@ namespace Db2Source
                 {
                     _outputBuffer.Add((string)Resources["messageProcessTerminated"] + Environment.NewLine);
                 }
-                Dispatcher.Invoke(UpdateTextBoxLog, DispatcherPriority.Normal);
+                Dispatcher.InvokeAsync(UpdateTextBoxLog);
             }
             finally
             {
                 _runningProcess = null;
-                Dispatcher.Invoke(UpdateButtonExportEnabled, DispatcherPriority.Normal);
+                Dispatcher.InvokeAsync(UpdateButtonExportEnabled);
                 IO.File.Delete(_exportBat);
             }
         }
@@ -318,7 +318,7 @@ namespace Db2Source
             {
                 _outputBuffer.Add(e.Data + Environment.NewLine);
             }
-            Dispatcher.Invoke(UpdateTextBoxLog, DispatcherPriority.Normal);
+            Dispatcher.InvokeAsync(UpdateTextBoxLog);
         }
 
         private bool AnalyzeInput()
@@ -510,7 +510,7 @@ namespace Db2Source
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            Dispatcher.InvokeAsync(Close, DispatcherPriority.ApplicationIdle);
         }
 
         private void comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e)
