@@ -117,6 +117,7 @@
     </Compile>
     <Compile Include="ConnectionInfoMenu.cs" />
     <Compile Include="CsvUtil.cs" />
+    <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
     <Compile Include="EditPgsqlSetting.xaml.cs">
       <DependentUpon>EditPgsqlSetting.xaml</DependentUpon>

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Db2Source"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="FontDialog" WindowStyle="ToolWindow" SizeToContent="Width" Height="400" Loaded="window_Loaded">
+        Title="フォント選択" WindowStyle="ToolWindow" SizeToContent="Width" Height="400" Loaded="window_Loaded" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local:FontFamilyConverter x:Key="FontFamilyConverter"/>
         <local:FamilyTypefaceConverter x:Key="FamilyTypefaceConverter"/>
@@ -72,9 +72,9 @@
                 <sys:Double>72</sys:Double>
             </ListBox>
         </DockPanel>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="2" Grid.ColumnSpan="3">
-            <Button x:Name="buttonOK" Content="OK" Margin="10,5" Padding="10,4" MinWidth="70" IsDefault="True" Click="buttonOK_Click"/>
-            <Button Content="キャンセル" Margin="10,5" Padding="10,4" MinWidth="70" IsCancel="True"/>
-        </StackPanel>
+        <local:EquallyStackPanel HorizontalAlignment="Center" Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="3">
+            <Button x:Name="buttonOK" Content="OK" Margin="5" Padding="5" MinWidth="70" IsDefault="True" Click="buttonOK_Click"/>
+            <Button Content="キャンセル" Margin="5" Padding="5" MinWidth="70" IsCancel="True"/>
+        </local:EquallyStackPanel>
     </Grid>
 </Window>

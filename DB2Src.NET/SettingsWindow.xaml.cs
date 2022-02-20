@@ -33,6 +33,8 @@ namespace Db2Source
             FontDialog window = new FontDialog();
             window.Owner = this;
             FontPack target = (sender as FrameworkElement).DataContext as FontPack;
+            window.WindowStartupLocation = WindowStartupLocation.Manual;
+            WindowLocator.LocateNearby(sender as FrameworkElement, window, NearbyLocation.DownLeft);
             window.SelectFont(target);
             dataGridFont.ItemsSource = null;
             dataGridFont.ItemsSource = _fonts;

@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="SettingsWindow" Height="300" Width="427.811" Loaded="Window_Loaded">
+        Title="設定" Height="300" Width="427.811" Loaded="Window_Loaded" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <Style x:Key="FontTextBlockStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="2,0"/>
@@ -61,10 +61,10 @@
         </Style>
     </Window.Resources>
     <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-            <Button x:Name="buttonOK" Content="OK" Margin="10,4" Padding="10,4" MinWidth="70" Click="buttonOK_Click"/>
-            <Button x:Name="buttonCancel" Content="キャンセル" IsCancel="True" Margin="10,4" Padding="10,4" MinWidth="70" Click="buttonCancel_Click"/>
-        </StackPanel>
+        <local:EquallyStackPanel HorizontalAlignment="Center" Orientation="Horizontal" DockPanel.Dock="Bottom">
+            <Button x:Name="buttonOK" Content="OK" Margin="5" Padding="5" MinWidth="70" Click="buttonOK_Click"/>
+            <Button x:Name="buttonCancel" Content="キャンセル" IsCancel="True" Margin="5" Padding="5" MinWidth="70" Click="buttonCancel_Click"/>
+        </local:EquallyStackPanel>
         <TreeView DockPanel.Dock="Left">
             <TreeViewItem Header="表示" IsExpanded="True">
                 <TreeViewItem Header="フォント"/>
