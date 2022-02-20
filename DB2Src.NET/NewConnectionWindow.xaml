@@ -6,6 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="新規データベース接続" Height="Auto" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled"
         WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight" Background="White"
         HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
@@ -82,10 +83,15 @@
                 <CheckBox x:Name="checkBoxTitleColor" Content="既定値を使用" VerticalAlignment="Center" IsChecked="{Binding Target.UseDefaultBackgroundColor, ElementName=window}" Click="checkBoxTitleColor_Click"/>
             </StackPanel>
         </Grid>
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-            <Button x:Name="buttonTest" Width="80" Margin="8" Padding="2" Click="buttonTest_Click" Content="接続テスト"/>
-            <Button x:Name="buttonOK" Width="64" Margin="8" Padding="2" IsDefault="True" Click="buttonOK_Click" Content="OK"/>
-            <Button x:Name="buttonCancel" Width="64" Margin="8" Padding="2" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
-        </StackPanel>
+        <Grid HorizontalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button x:Name="buttonTest" Grid.Column="0" Margin="10,4" Padding="10,4" Click="buttonTest_Click" Content="接続テスト"/>
+            <Button x:Name="buttonOK" Grid.Column="1" Margin="10,4" Padding="10,4" IsDefault="True" Click="buttonOK_Click" Content="OK"/>
+            <Button x:Name="buttonCancel" Grid.Column="2" Margin="10,4" Padding="10,4" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
+        </Grid>
     </StackPanel>
 </Window>

@@ -32,7 +32,8 @@
                     </StackPanel>
                 </StackPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,4">
-                    <TextBox x:Name="textBoxTypeComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
+                    <TextBox x:Name="textBoxTypeComment" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Text="{Binding Target.CommentText, ElementName=userControl}" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"
+                             FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxTableComment" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTypeComment}" FontFamily="Yu Gothic UI"/>
                 </Grid>
                 <GridSplitter Height="4" ResizeDirection="Rows" Cursor="SizeNS" HorizontalAlignment="Stretch" VerticalAlignment="Bottom" Grid.Row="1"/>
@@ -65,7 +66,8 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
                 <Grid>
-                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                             FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>

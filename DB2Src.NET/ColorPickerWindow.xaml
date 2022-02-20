@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
         BorderThickness="1"
         Title="" ResizeMode="NoResize" SizeToContent="WidthAndHeight" WindowStyle="None" Loaded="Window_Loaded" PreviewKeyDown="window_PreviewKeyDown">

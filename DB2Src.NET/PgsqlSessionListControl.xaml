@@ -7,7 +7,7 @@
              xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Class="Db2Source.PgsqlSessionListControl"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <sys:String x:Key="captionDisconnectForce">強制切断</sys:String>
@@ -180,7 +180,8 @@
             <ComboBox x:Name="comboBoxFilterApplication" MinWidth="90" ToolTip="Application" IsEditable="True" Style="{DynamicResource FilterComboBoxStyle}" VerticalAlignment="Center" Margin="2,0" SelectionChanged="comboBoxFilter_SelectionChanged" DropDownClosed="comboBoxFilter_DropDownClosed"/>
             <ComboBox x:Name="comboBoxFilterHost" MinWidth="90" ToolTip="Host" IsEditable="True" Style="{DynamicResource FilterComboBoxStyle}" VerticalAlignment="Center" Margin="2,0" SelectionChanged="comboBoxFilter_SelectionChanged" DropDownClosed="comboBoxFilter_DropDownClosed"/>
         </StackPanel>
-        <DataGrid x:Name="dataGridSessionList" AutoGenerateColumns="False" IsReadOnly="True">
+        <DataGrid x:Name="dataGridSessionList" AutoGenerateColumns="False" IsReadOnly="True"
+                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem x:Name="menuItemKillSession" Header="セッションを強制終了" Click="menuItemKillSession_Click"/>

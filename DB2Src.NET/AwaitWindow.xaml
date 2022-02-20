@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="出力中" WindowStyle="ToolWindow" ResizeMode="NoResize" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" ScrollViewer.VerticalScrollBarVisibility="Disabled" Loaded="Window_Loaded">
     <Grid>
         <TextBlock Text="定義情報を出力しています..." Margin="10"/>

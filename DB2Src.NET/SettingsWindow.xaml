@@ -7,8 +7,64 @@
         xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
-        Title="SettingsWindow" Height="300" Width="300">
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
+        Title="SettingsWindow" Height="300" Width="427.811" Loaded="Window_Loaded">
+    <Window.Resources>
+        <Style x:Key="FontTextBlockStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="Margin" Value="2,0"/>
+            <Setter Property="FontFamily" Value="{Binding FontFamily}"/>
+            <Setter Property="FontSize" Value="{Binding FontSize}"/>
+            <Setter Property="FontStretch" Value="{Binding FontStretch}"/>
+            <Setter Property="FontStyle" Value="{Binding FontStyle}"/>
+            <Setter Property="FontWeight" Value="{Binding FontWeight}"/>
+        </Style>
+        <DataTemplate x:Key="FontButtonTemplate">
+            <Grid>
+                <Button Content="変更" Padding="2" Click="ButtonChangeFont_Click"/>
+            </Grid>
+        </DataTemplate>
+        <Style x:Key="DataGridButtonCellStyle" TargetType="{x:Type DataGridCell}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridCell}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" SnapsToDevicePixels="True">
+                            <ContentPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
+                </Trigger>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static DataGrid.FocusBorderBrushKey}}"/>
+                </Trigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsSelected" Value="true"/>
+                        <Condition Property="Selector.IsSelectionActive" Value="false"/>
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightBrushKey}}"/>
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.InactiveSelectionHighlightTextBrushKey}}"/>
+                </MultiTrigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+            <Button x:Name="buttonOK" Content="OK" Margin="10,4" Padding="10,4" MinWidth="70" Click="buttonOK_Click"/>
+            <Button x:Name="buttonCancel" Content="キャンセル" IsCancel="True" Margin="10,4" Padding="10,4" MinWidth="70" Click="buttonCancel_Click"/>
+        </StackPanel>
         <TreeView DockPanel.Dock="Left">
             <TreeViewItem Header="表示" IsExpanded="True">
                 <TreeViewItem Header="フォント"/>
@@ -16,10 +72,11 @@
         </TreeView>
         <TabControl>
             <TabItem>
-                <DataGrid>
+                <DataGrid x:Name="dataGridFont" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header=""/>
-                        <DataGridTextColumn Header="フォント"/>
+                        <DataGridTextColumn Header="対象" Binding="{Binding Title}"/>
+                        <DataGridTemplateColumn x:Name="dataGridColumnFontButton" CellTemplate="{DynamicResource FontButtonTemplate}" CellStyle="{DynamicResource DataGridButtonCellStyle}"/>
+                        <DataGridTextColumn Header="フォント" Binding="{Binding}" ElementStyle="{DynamicResource FontTextBlockStyle}"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

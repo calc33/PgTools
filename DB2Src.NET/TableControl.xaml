@@ -45,6 +45,8 @@
             <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
             <MenuItem Header="データのみ(_D)" Command="local:DataGridCommands.CopyTableContent" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
             <MenuItem Header="_Insert文形式" Command="local:DataGridCommands.CopyTableAsInsert" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
+            <MenuItem Header="_Update文形式" Command="local:DataGridCommands.CopyTableAsUpdate" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
+            <MenuItem Header="_Copy文形式" Command="local:DataGridCommands.CopyTableAsCopy" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}" Visibility="Collapsed"/>
         </ContextMenu>
         <!--<ContextMenu x:Key="ContextMenuPasteTable" Placement="Bottom">
             <MenuItem Header="セルに貼り付け" Command="ApplicationCommands.Paste" CommandTarget="{Binding dataGridResult, ElementName=userControl, Mode=OneWay}"/>
@@ -247,7 +249,8 @@
                         <local:SortFieldListControl x:Name="sortFields" VerticalContentAlignment="Top" Margin="0,2" Target="{Binding Target, ElementName=userControl}" Height="Auto" TabIndex="2"/>
                     </DockPanel>
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                        <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"/>
+                        <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"
+                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </DockPanel>
@@ -432,7 +435,8 @@
                     <CheckBox x:Name="checkBoxSourceDropReferredCons" Content="この表への参照を削除" IsChecked="False" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                 </WrapPanel>
                 <Grid>
-                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                             FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>
@@ -447,26 +451,30 @@
                             </DockPanel>
                         </Border>
                         <Grid>
-                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"  IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                            <TextBox x:Name="textBoxSelectSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True"  IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                                     FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                             <local:SearchTextBoxControl x:Name="searchTextBoxSelectSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSelectSql}" FontFamily="Yu Gothic UI"/>
                         </Grid>
                     </DockPanel>
                 </TabItem>
                 <TabItem x:Name="tabItemInsertSql" Header="INSERT">
                     <Grid>
-                        <TextBox x:Name="textBoxInsertSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                        <TextBox x:Name="textBoxInsertSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxInsertSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxInsertSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tabItemUpdateSql" Header="UPDATE">
                     <Grid>
-                        <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                        <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxUpdateSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxUpdateSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="tabItemDeleteSql" Header="DELETE">
                     <Grid>
-                        <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+                        <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxDeleteSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxDeleteSql}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </TabItem>

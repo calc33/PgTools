@@ -6,6 +6,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="クエリ実行履歴検索" Height="450" Width="800" WindowStyle="ToolWindow" Loaded="window_Loaded">
     <Window.Resources>
         <local:TimestampTextConverter x:Key="TimestampTextConverter"/>
@@ -127,13 +128,15 @@
                     <DatePicker x:Name="datePickerEnd" MinWidth="100"/>
                 </StackPanel>
             </StackPanel>
-            <TextBox x:Name="textBoxFilter" Grid.Row="1" Margin="0,2" ToolTip="(クエリに含まれる文字で絞りこみ)"/>
+            <TextBox x:Name="textBoxFilter" Grid.Row="1" Margin="0,2" ToolTip="(クエリに含まれる文字で絞りこみ)"
+                     FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
             <Button x:Name="buttonFetch" Grid.Column="1" Grid.RowSpan="2" ContentTemplate="{StaticResource ImageSearch20}" Padding="10,5" VerticalAlignment="Top" Margin="2,0" Click="buttonFetch_Click"/>
         </Grid>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="buttonOK" Content="OK" Padding="5,4" Margin="5" MinWidth="75" Click="buttonOK_Click"/>
             <Button Content="キャンセル" Padding="5,4" Margin="5" MinWidth="75" IsCancel="True"/>
         </StackPanel>
-        <ListBox x:Name="listBoxResult" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemTemplate="{DynamicResource QueryHistoryTemplate}" Grid.IsSharedSizeScope="True" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" SelectedItem="{Binding Selected, ElementName=window}" HorizontalContentAlignment="Stretch" MouseDoubleClick="listBoxResult_MouseDoubleClick"/>
+        <ListBox x:Name="listBoxResult" ScrollViewer.VerticalScrollBarVisibility="Visible" ItemTemplate="{DynamicResource QueryHistoryTemplate}" Grid.IsSharedSizeScope="True" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" SelectedItem="{Binding Selected, ElementName=window}" HorizontalContentAlignment="Stretch" MouseDoubleClick="listBoxResult_MouseDoubleClick"
+                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
     </DockPanel>
 </Window>

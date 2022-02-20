@@ -618,7 +618,50 @@ namespace Db2Source
 
         public override string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys)
         {
-            throw new NotImplementedException();
+            string spc = new string(' ', indent);
+            Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
+            foreach (ColumnInfo info in data.Keys)
+            {
+                name2col.Add(info.Name, info);
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(spc);
+            buf.Append("update ");
+            buf.Append(table.EscapedIdentifier(CurrentSchema));
+            string prefix = " set";
+            foreach (Column c in table.Columns)
+            {
+                ColumnInfo info;
+                if (!name2col.TryGetValue(c.Name, out info))
+                {
+                    continue;
+                }
+                buf.AppendLine(prefix);
+                buf.Append(spc);
+                buf.Append("  ");
+                buf.Append(GetEscapedIdentifier(c.Name, true));
+                buf.Append(" = ");
+                buf.Append(GetImmediatedStr(info, data[info]));
+                prefix = ",";
+            }
+            prefix = "where ";
+            foreach (string c in table.PrimaryKey.Columns)
+            {
+                ColumnInfo info;
+                if (!name2col.TryGetValue(c, out info))
+                {
+                    continue;
+                }
+                buf.AppendLine();
+                buf.Append(spc);
+                buf.Append(prefix);
+                buf.Append(GetEscapedIdentifier(c, true));
+                buf.Append(" = ");
+                buf.Append(GetImmediatedStr(info, data[info]));
+                prefix = "and ";
+            }
+            buf.AppendLine(postfix);
+            return buf.ToString();
         }
         /// <summary>
         /// 条件文付でDELETE文を生成する

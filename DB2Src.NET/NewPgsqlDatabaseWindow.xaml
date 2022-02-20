@@ -7,6 +7,7 @@
         xmlns:local2="clr-namespace:Db2Source;assembly=Db2SrcDataSet" 
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
     <Window.Resources>
         <local2:NameValue x:Key="NameValue"/>
@@ -86,7 +87,8 @@
             <Button x:Name="buttonGenerateSQL" Content="SQL生成" Margin="5,2" Padding="5,2" Click="buttonGenerateSQL_Click" VerticalAlignment="Top"/>
             <Button x:Name="buttonError" Margin="2" Foreground="Red" BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="buttonError_Click"/>
         </StackPanel>
-        <TextBox x:Name="textBoxSql" Grid.ColumnSpan="2" Grid.Row="8" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" MinHeight="60"/>
+        <TextBox x:Name="textBoxSql" Grid.ColumnSpan="2" Grid.Row="8" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" MinHeight="60"
+                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="10" Grid.ColumnSpan="2">
             <Button x:Name="buttonExecute"  Content="実行" Margin="10,5" Padding="5,2" MinWidth="70" Click="buttonExecute_Click"/>
             <Button Content="キャンセル" Margin="10,5" Padding="5,2" MinWidth="70" IsCancel="True"/>

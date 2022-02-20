@@ -121,7 +121,8 @@
         </Style>
     </Window.Resources>
     <Grid>
-        <DataGrid x:Name="dataGridColumnValues" IsReadOnly="True" AutoGenerateColumns="False" RowStyle="{DynamicResource DataGridColumnValuesRowStyle}">
+        <DataGrid x:Name="dataGridColumnValues" IsReadOnly="True" AutoGenerateColumns="False" RowStyle="{DynamicResource DataGridColumnValuesRowStyle}"
+                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}">
             <DataGrid.Columns>
                 <DataGridTextColumn x:Name="dataGridTextColumnColumnName" Header="項目" MinWidth="64" MaxWidth="400" Binding="{Binding ColumnName}" CellStyle="{DynamicResource DataGridCellColumnNameStyle}"/>
                 <DataGridTextColumn x:Name="dataGridTextColumnValue" Header="値" MinWidth="64" MaxWidth="400" Binding="{Binding Value}" CellStyle="{DynamicResource DataGridCellValueStyle}"/>

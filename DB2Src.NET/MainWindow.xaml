@@ -6,7 +6,8 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
-        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" FontSize="14" FontFamily="Source Han Code JP Light" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed">
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
+        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed">
     <Window.Resources>
         <sys:String x:Key="NewConnectionHeader">新しい接続...</sys:String>
         <sys:String x:Key="TreeViewItemTopHeader">データベース</sys:String>
@@ -467,7 +468,8 @@
                         <MenuItem Header="タイトル+データ(_T)" InputGestureText="Ctrl+Shift+C" Command="local:DataGridCommands.CopyTable"/>
                         <MenuItem Header="データのみ(_D)" InputGestureText="Ctrl+Shift+D" Command="local:DataGridCommands.CopyTableContent"/>
                         <MenuItem Header="_Insert文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsInsert"/>
-                        <MenuItem Header="_COPY文形式" InputGestureText="Ctrl+Shift+I" Command="local:DataGridCommands.CopyTableAsCopy" Visibility="Collapsed"/>
+                        <MenuItem Header="_Update文形式" InputGestureText="Ctrl+Shift+U" Command="local:DataGridCommands.CopyTableAsUpdate"/>
+                        <MenuItem Header="_Copy文形式" InputGestureText="Ctrl+Shift+C" Command="local:DataGridCommands.CopyTableAsCopy" Visibility="Collapsed"/>
                     </MenuItem>
                     <MenuItem Header="貼り付け(_P)" InputGestureText="Ctrl+V" Command="ApplicationCommands.Paste"/>
                     <MenuItem Header="削除(_D)" InputGestureText="Del" Command="ApplicationCommands.Delete"/>
@@ -491,7 +493,7 @@
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
                     <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
                     <Separator/>
-                    <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click" IsEnabled="False"/>
+                    <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click"/>
                 </MenuItem>
             </Menu>
             <Grid x:Name="gridBase">
@@ -520,7 +522,8 @@
                             </DockPanel>
                         </Border>
                     </StackPanel>
-                    <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True">
+                    <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True"
+                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
                         <TreeView.ContextMenu>
                             <ContextMenu IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>

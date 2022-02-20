@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Unicorn.Utility
+namespace Db2Source
 {
     class RegUtil
     {

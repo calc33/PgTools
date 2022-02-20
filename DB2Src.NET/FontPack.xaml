@@ -1,0 +1,98 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Db2Source"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <local:FontPack x:Key="BaseFont" Title="基本" FontFamily="Yu Gothic UI" FontSize="14" FontWeight="Normal" FontStretch="Normal" FontStyle="Normal"/>
+    <local:FontPack x:Key="CodeFont" Title="コード" Parent="{Binding Source={StaticResource BaseFont}}"/>
+    <local:FontPack x:Key="TreeFont" Title="ツリー" Parent="{Binding Source={StaticResource BaseFont}}"/>
+    <local:FontPack x:Key="DataGridFont" Title="グリッド" Parent="{Binding Source={StaticResource BaseFont}}"/>
+    <sys:String x:Key="WeightStyleDelimiter">-</sys:String>
+    <local:TextDictinary x:Key="FontWeightText">
+        <sys:String x:Key="Thin">極細</sys:String>
+        <sys:String x:Key="ExtraLight">特細</sys:String>
+        <sys:String x:Key="UltraLight">特細</sys:String>
+        <sys:String x:Key="Light">細</sys:String>
+        <sys:String x:Key="Normal">中細</sys:String>
+        <sys:String x:Key="Regular">中細</sys:String>
+        <sys:String x:Key="Medium">中</sys:String>
+        <sys:String x:Key="DemiBold">中太</sys:String>
+        <sys:String x:Key="SemiBold">中太</sys:String>
+        <sys:String x:Key="Bold">太</sys:String>
+        <sys:String x:Key="ExtraBold">特太</sys:String>
+        <sys:String x:Key="UltraBold">特太</sys:String>
+        <sys:String x:Key="Black">極太</sys:String>
+        <sys:String x:Key="Heavy">極太</sys:String>
+        <sys:String x:Key="ExtraBlack">極極太</sys:String>
+        <sys:String x:Key="UltraBlack">極極太</sys:String>
+    </local:TextDictinary>
+    <local:TextDictinary x:Key="FontStyleText">
+        <x:Static x:Key="Normal" Member="sys:String.Empty"/>
+        <sys:String x:Key="Italic">斜体</sys:String>
+        <sys:String x:Key="Oblique">斜投影</sys:String>
+    </local:TextDictinary>
+    <local:TextDictinary x:Key="FontWeightStyleText">
+        <sys:String x:Key="Thin-Normal">極細</sys:String>
+        <sys:String x:Key="ExtraLight-Normal">特細</sys:String>
+        <sys:String x:Key="UltraLight-Normal">特細</sys:String>
+        <sys:String x:Key="Light-Normal">細</sys:String>
+        <sys:String x:Key="Normal-Normal">中細</sys:String>
+        <sys:String x:Key="Regular-Normal">中細</sys:String>
+        <sys:String x:Key="Medium-Normal">中</sys:String>
+        <sys:String x:Key="DemiBold-Normal">中太</sys:String>
+        <sys:String x:Key="SemiBold-Normal">中太</sys:String>
+        <sys:String x:Key="Bold-Normal">太</sys:String>
+        <sys:String x:Key="ExtraBold-Normal">特太</sys:String>
+        <sys:String x:Key="UltraBold-Normal">特太</sys:String>
+        <sys:String x:Key="Black-Normal">極太</sys:String>
+        <sys:String x:Key="Heavy-Normal">極太</sys:String>
+        <sys:String x:Key="ExtraBlack-Normal">極極太</sys:String>
+        <sys:String x:Key="UltraBlack-Normal">極極太</sys:String>
+        <sys:String x:Key="Thin-Italic">極細斜体</sys:String>
+        <sys:String x:Key="ExtraLight-Italic">特細斜体</sys:String>
+        <sys:String x:Key="UltraLight-Italic">特細斜体</sys:String>
+        <sys:String x:Key="Light-Italic">細斜体</sys:String>
+        <sys:String x:Key="Normal-Italic">中細斜体</sys:String>
+        <sys:String x:Key="Regular-Italic">中細斜体</sys:String>
+        <sys:String x:Key="Medium-Italic">中斜体</sys:String>
+        <sys:String x:Key="DemiBold-Italic">中太斜体</sys:String>
+        <sys:String x:Key="SemiBold-Italic">中太斜体</sys:String>
+        <sys:String x:Key="Bold-Italic">太斜体</sys:String>
+        <sys:String x:Key="ExtraBold-Italic">特太斜体</sys:String>
+        <sys:String x:Key="UltraBold-Italic">特太斜体</sys:String>
+        <sys:String x:Key="Black-Italic">極太斜体</sys:String>
+        <sys:String x:Key="Heavy-Italic">極太斜体</sys:String>
+        <sys:String x:Key="ExtraBlack-Italic">極極太斜体</sys:String>
+        <sys:String x:Key="UltraBlack-Italic">極極太斜体</sys:String>
+        <sys:String x:Key="Thin-Oblique">極細斜投影</sys:String>
+        <sys:String x:Key="ExtraLight-Oblique">特細斜投影</sys:String>
+        <sys:String x:Key="UltraLight-Oblique">特細斜投影</sys:String>
+        <sys:String x:Key="Light-Oblique">細斜投影</sys:String>
+        <sys:String x:Key="Normal-Oblique">中細斜投影</sys:String>
+        <sys:String x:Key="Regular-Oblique">中細斜投影</sys:String>
+        <sys:String x:Key="Medium-Oblique">中斜投影</sys:String>
+        <sys:String x:Key="DemiBold-Oblique">中太斜投影</sys:String>
+        <sys:String x:Key="SemiBold-Oblique">中太斜投影</sys:String>
+        <sys:String x:Key="Bold-Oblique">太斜投影</sys:String>
+        <sys:String x:Key="ExtraBold-Oblique">特太斜投影</sys:String>
+        <sys:String x:Key="UltraBold-Oblique">特太斜投影</sys:String>
+        <sys:String x:Key="Black-Oblique">極太斜投影</sys:String>
+        <sys:String x:Key="Heavy-Oblique">極太斜投影</sys:String>
+        <sys:String x:Key="ExtraBlack-Oblique">極極太斜投影</sys:String>
+        <sys:String x:Key="UltraBlack-Oblique">極極太斜投影</sys:String>
+    </local:TextDictinary>
+    <local:TextDictinary x:Key="FontStretchText">
+        <x:Static x:Key="Normal" Member="sys:String.Empty"/>
+        <x:Static x:Key="Medium" Member="sys:String.Empty"/>
+    </local:TextDictinary>
+    <local:TextDictinary x:Key="OpenTypeStretchText">
+        <sys:String x:Key="1">50%</sys:String>
+        <sys:String x:Key="2">62.5%</sys:String>
+        <sys:String x:Key="3">75%</sys:String>
+        <sys:String x:Key="4">87.5%</sys:String>
+        <sys:String x:Key="5">100%</sys:String>
+        <sys:String x:Key="6">112.5%</sys:String>
+        <sys:String x:Key="7">125%</sys:String>
+        <sys:String x:Key="8">150%</sys:String>
+        <sys:String x:Key="9">200%</sys:String>
+    </local:TextDictinary>
+</ResourceDictionary>

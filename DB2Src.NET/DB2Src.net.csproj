@@ -121,6 +121,10 @@
     <Compile Include="EditPgsqlSetting.xaml.cs">
       <DependentUpon>EditPgsqlSetting.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FontDialog.xaml.cs">
+      <DependentUpon>FontDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FontPack.cs" />
     <Compile Include="HistoryWindow.xaml.cs">
       <DependentUpon>HistoryWindow.xaml</DependentUpon>
     </Compile>
@@ -256,6 +260,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="EditPgsqlSetting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FontPack.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="FontDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

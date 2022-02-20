@@ -94,6 +94,7 @@ namespace Db2Source
         public static readonly RoutedCommand CopyTable = InitCopyTable();
         public static readonly RoutedCommand CopyTableContent = InitCopyTableContent();
         public static readonly RoutedCommand CopyTableAsInsert = InitCopyTableAsInsert();
+        public static readonly RoutedCommand CopyTableAsUpdate = InitCopyTableAsUpdate();
         public static readonly RoutedCommand CopyTableAsCopy = InitCopyTableAsCopy();
         public static readonly RoutedCommand CheckAll = InitCheckAll();
         public static readonly RoutedCommand UncheckAll = InitUncheckAll();
@@ -120,6 +121,12 @@ namespace Db2Source
         {
             RoutedCommand ret = new RoutedCommand("表をINSERT文形式でコピー", typeof(DataGrid));
             ret.InputGestures.Add(new KeyGesture(Key.I, ModifierKeys.Control | ModifierKeys.Shift));
+            return ret;
+        }
+        private static RoutedCommand InitCopyTableAsUpdate()
+        {
+            RoutedCommand ret = new RoutedCommand("表をUPDATE文形式でコピー", typeof(DataGrid));
+            ret.InputGestures.Add(new KeyGesture(Key.U, ModifierKeys.Control | ModifierKeys.Shift));
             return ret;
         }
         private static RoutedCommand InitCopyTableAsCopy()
@@ -2169,6 +2176,8 @@ namespace Db2Source
                 Grid.CommandBindings.Add(cb);
                 cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
                 Grid.CommandBindings.Add(cb);
+                cb = new CommandBinding(DataGridCommands.CopyTableAsUpdate, CopyTableAsUpdateCommand_Executed, CopyTableCommand_CanExecute);
+                Grid.CommandBindings.Add(cb);
                 cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
                 Grid.CommandBindings.Add(cb);
                 if (editable)
@@ -2955,11 +2964,119 @@ namespace Db2Source
             Clipboard.SetDataObject(obj);
         }
 
+        private void DoCopyTableAsUpdate()
+        {
+            if (Table == null)
+            {
+                return;
+            }
+            Dictionary<object, Dictionary<ColumnInfo, object>> dict = new Dictionary<object, Dictionary<ColumnInfo, object>>();
+            Dictionary<object, Dictionary<ColumnInfo, object>> dictKeys = new Dictionary<object, Dictionary<ColumnInfo, object>>();
+            switch (Grid.SelectedCells.Count)
+            {
+                case 0:
+                    return;
+                case 1:
+                    Row row;
+                    Dictionary<ColumnInfo, object> values;
+                    Dictionary<ColumnInfo, object> keys;
+                    row = Grid.CurrentItem as Row;
+                    if (row == null)
+                    {
+                        return;
+                    }
+                    values = new Dictionary<ColumnInfo, object>();
+                    dict.Add(row, values);
+                    keys = new Dictionary<ColumnInfo, object>();
+                    dictKeys.Add(row, keys);
+                    foreach (DataGridColumn col in Grid.Columns)
+                    {
+                        ColumnInfo c = col.Header as ColumnInfo;
+                        if (c == null)
+                        {
+                            continue;
+                        }
+                        values.Add(c, row[c.Index]);
+                    }
+                    if (KeyFields != null)
+                    {
+                        foreach (ColumnInfo col in KeyFields)
+                        {
+                            keys.Add(col, row[col.Index]);
+                        }
+                    }
+                    break;
+                default:
+                    foreach (DataGridCellInfo cell in Grid.SelectedCells)
+                    {
+                        row = cell.Item as Row;
+                        if (row == null)
+                        {
+                            continue;
+                        }
+                        if (!dict.TryGetValue(row, out values))
+                        {
+                            values = new Dictionary<ColumnInfo, object>();
+                            dict.Add(row, values);
+                        }
+                        if (!dictKeys.TryGetValue(row, out keys))
+                        {
+                            keys = new Dictionary<ColumnInfo, object>();
+                            if (KeyFields != null)
+                            {
+                                foreach (ColumnInfo c in KeyFields)
+                                {
+                                    keys.Add(c, row[c.Index]);
+                                }
+                            }
+                            dictKeys.Add(row, keys);
+                        }
+                        ColumnInfo col = cell.Column.Header as ColumnInfo;
+                        if (col == null)
+                        {
+                            continue;
+                        }
+                        values.Add(col, row[col.Index]);
+                    }
+                    break;
+            }
+            if (dict.Count == 0)
+            {
+                return;
+            }
+            StringBuilder buf = new StringBuilder();
+            foreach (object row in Grid.ItemsSource)
+            {
+                Dictionary<ColumnInfo, object> values;
+                Dictionary<ColumnInfo, object> keys;
+                if (!dict.TryGetValue(row, out values))
+                {
+                    continue;
+                }
+                if (!dictKeys.TryGetValue(row, out keys))
+                {
+                    keys = null;
+                }
+                buf.Append(DataSet.GetUpdateSql(Table, 0, 80, ";", values, keys));
+            }
+            DataObject obj = new DataObject();
+            obj.SetData(DataFormats.Text, buf.ToString());
+            obj.SetData(DataFormats.UnicodeText, buf.ToString());
+            Clipboard.SetDataObject(obj);
+        }
+
         private void CopyTableAsInsertCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             e.Handled = true;
             DoCopyTableAsInsert();
         }
+
+        private void CopyTableAsUpdateCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            e.Handled = true;
+            DoCopyTableAsUpdate();
+        }
+
         private void CopyTableAsCopyCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             e.Handled = true;

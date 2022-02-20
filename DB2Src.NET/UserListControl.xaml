@@ -5,8 +5,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
-             mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" Loaded="userControl_Loaded">
+             mc:Ignorable="d"
+             FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
+    d:DesignHeight="450" d:DesignWidth="800" Loaded="userControl_Loaded">
     <UserControl.Resources>
         <sys:String x:Key="messageUser">ユーザー"{0}"を削除します。削除しすると元に戻せません。よろしいですか?</sys:String>
     </UserControl.Resources>

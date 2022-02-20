@@ -18,7 +18,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Unicorn.Utility;
 using Microsoft.Windows.Themes;
 
 namespace Db2Source
@@ -28,6 +27,13 @@ namespace Db2Source
     /// </summary>
     public partial class App: Application
     {
+        public static new App Current
+        {
+            get
+            {
+                return Application.Current as App;
+            }
+        }
         public static Db2SourceContext CurrentDataSet
         {
             get
@@ -363,111 +369,40 @@ namespace Db2Source
             return binding;
         }
 
+        private RegistryBinding SettingsBinding = new RegistryBinding();
+
+        private void RegisterFontPackBinding(string path, FontPack fontPack)
+        {
+            SettingsBinding.Register(path, "FontFamily", fontPack, "FontFamilyName", new StringOperator());
+            SettingsBinding.Register(path, "FontSize", fontPack, "FontSizeValue", new DoubleOperator());
+            SettingsBinding.Register(path, "FontStretch", fontPack, "FontStretchName", new StringOperator());
+            SettingsBinding.Register(path, "FontStyle", fontPack, "FontStyleName", new StringOperator());
+            SettingsBinding.Register(path, "FontWeight", fontPack, "FontWeightName", new StringOperator());
+        }
+
+        private void InitSettingsFromRegistry()
+        {
+            RegisterFontPackBinding("BaseFont", FontPack.BaseFont);
+            RegisterFontPackBinding("CodeFont", FontPack.CodeFont);
+            RegisterFontPackBinding("TreeFont", FontPack.TreeFont);
+            RegisterFontPackBinding("GridFont", FontPack.DataGridFont);
+        }
+
+        public void SaveSettingToRegistry()
+        {
+            SettingsBinding.Save(RegistryFinder);
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+            InitSettingsFromRegistry();
+            SettingsBinding.Load(RegistryFinder);
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
         }
 
-        private static Rect GetWorkingAreaOf(FrameworkElement element)
-        {
-            Point p = element.PointToScreen(new Point());
-            System.Windows.Forms.Screen sc = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
-            return new Rect(sc.WorkingArea.X, sc.WorkingArea.Y, sc.WorkingArea.Width, sc.WorkingArea.Height);
-        }
-
-        private static Point LocateNearby(Rect elementRect, Rect windowRect, NearbyLocation location)
-        {
-            switch (location)
-            {
-                case NearbyLocation.DownLeft:
-                    return new Point(elementRect.Left - windowRect.Left, elementRect.Bottom - windowRect.Top);
-                case NearbyLocation.DownRight:
-                    return new Point(elementRect.Right - windowRect.Right, elementRect.Bottom - windowRect.Top);
-                case NearbyLocation.UpLeft:
-                    return new Point(elementRect.Left - windowRect.Left, elementRect.Top - windowRect.Bottom);
-                case NearbyLocation.UpRight:
-                    return new Point(elementRect.Right - windowRect.Right, elementRect.Top - windowRect.Bottom);
-                case NearbyLocation.LeftSideTop:
-                    return new Point(elementRect.Left - windowRect.Right, elementRect.Top - windowRect.Top);
-                case NearbyLocation.LeftSideBottom:
-                    return new Point(elementRect.Left - windowRect.Right, elementRect.Bottom - windowRect.Bottom);
-                case NearbyLocation.RightSideTop:
-                    return new Point(elementRect.Right - windowRect.Left, elementRect.Top - windowRect.Top);
-                case NearbyLocation.RightSideBottom:
-                    return new Point(elementRect.Right - windowRect.Left, elementRect.Bottom - windowRect.Bottom);
-                default:
-                    return new Point(elementRect.Left - windowRect.Left, elementRect.Bottom - windowRect.Top);
-            }
-        }
-
-        private static readonly Thickness ResizeDelta = new Thickness(10, 0, 15, 0);
-        private static Rect GetWindowRect(Window window, Size widthSize, Thickness margin)
-        {
-            Rect r = new Rect(margin.Left, margin.Top, widthSize.Width + margin.Right, widthSize.Height + margin.Bottom);
-            if (window.ResizeMode == ResizeMode.CanResize || window.ResizeMode == ResizeMode.CanResizeWithGrip)
-            {
-                r.X += ResizeDelta.Left;
-                r.Y += ResizeDelta.Top;
-                r.Width -= ResizeDelta.Right;
-                r.Height -= ResizeDelta.Bottom;
-            }
-            return r;
-        }
-        private static readonly Dictionary<NearbyLocation, NearbyLocation[]> NearbyLocationCandidates = new Dictionary<NearbyLocation, NearbyLocation[]>()
-        {
-            { NearbyLocation.DownLeft, new NearbyLocation[] { NearbyLocation.DownRight, NearbyLocation.UpLeft, NearbyLocation.UpRight } },
-            { NearbyLocation.DownRight, new NearbyLocation[] { NearbyLocation.DownLeft, NearbyLocation.UpRight, NearbyLocation.UpLeft } },
-            { NearbyLocation.UpLeft, new NearbyLocation[] { NearbyLocation.UpRight, NearbyLocation.DownLeft, NearbyLocation.DownRight } },
-            { NearbyLocation.UpRight, new NearbyLocation[] { NearbyLocation.UpLeft, NearbyLocation.DownRight, NearbyLocation.DownLeft } },
-            { NearbyLocation.LeftSideTop, new NearbyLocation[] { NearbyLocation.LeftSideBottom, NearbyLocation.RightSideTop, NearbyLocation.RightSideBottom } },
-            { NearbyLocation.LeftSideBottom, new NearbyLocation[] { NearbyLocation.LeftSideTop, NearbyLocation.RightSideBottom, NearbyLocation.RightSideTop } },
-            { NearbyLocation.RightSideTop, new NearbyLocation[] { NearbyLocation.RightSideBottom, NearbyLocation.LeftSideTop, NearbyLocation.LeftSideBottom } },
-            { NearbyLocation.RightSideBottom, new NearbyLocation[] { NearbyLocation.RightSideTop, NearbyLocation.LeftSideBottom, NearbyLocation.LeftSideTop } },
-        };
-        private static Rect TryLocate(Window window, Size windowSize, Thickness margin, Rect elementRect, NearbyLocation location, Rect workingArea)
-        {
-            Rect rW = GetWindowRect(window, windowSize, margin);
-            Rect r0 = new Rect(LocateNearby(elementRect, rW, location), windowSize);
-            if (workingArea.Contains(r0))
-            {
-                return r0;
-            }
-            foreach (NearbyLocation l in NearbyLocationCandidates[location])
-            {
-                Rect r = new Rect(LocateNearby(elementRect, rW, l), windowSize);
-                if (workingArea.Contains(r))
-                {
-                    return r;
-                }
-            }
-            if (workingArea.Right < r0.Right)
-            {
-                r0.X += (workingArea.Right - r0.Right);
-            }
-            if (workingArea.Bottom < r0.Bottom)
-            {
-                r0.Y += (workingArea.Bottom - r0.Bottom);
-            }
-            if (r0.Left < workingArea.Left)
-            {
-                r0.X = workingArea.Left;
-            }
-            if (r0.Top < workingArea.Top)
-            {
-                r0.Y = workingArea.Top;
-            }
-            return r0;
-        }
-        public static void ShowNearby(Window window, FrameworkElement element, NearbyLocation location)
-        {
-            WindowLocator.LocateNearby(element, window, location);
-            window.Show();
-        }
-
         public static void CopyFont(Control destination, Control source)
         {
-            destination.FontFamily = source.FontFamily;
             destination.FontFamily = source.FontFamily;
             destination.FontSize = source.FontSize;
             destination.FontStretch = source.FontStretch;
@@ -489,7 +424,8 @@ namespace Db2Source
             CopyFont(win, win.Owner);
             win.Closed += SelectColumnWindow_Closed;
             win.Grid = grid;
-            ShowNearby(win, button, NearbyLocation.DownRight);
+            WindowLocator.LocateNearby(button, win, NearbyLocation.DownRight);
+            win.Show();
         }
 
         private void SelectColumnWindow_Closed(object sender, EventArgs e)

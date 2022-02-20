@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="データの貼り付け" Height="450" Width="800" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LayoutUpdated="window_LayoutUpdated">
     <Window.Resources>
         <local:DataGridCellToCellConverter x:Key="DataGridCellToCellConverter"/>
@@ -65,6 +66,7 @@
             <Button Content="貼り付け" MinWidth="70" Margin="10,6" Padding="4" IsDefault="True" IsEnabled="{Binding Clipboard.IsValid, ElementName=window}" Click="Button_Click"/>
             <Button Content="キャンセル" MinWidth="70" Margin="10,6" Padding="4" IsCancel="True" Click="ButtonClose_Click"/>
         </StackPanel>
-        <DataGrid x:Name="dataGridClipboardData" AutoGenerateColumns="False" CellStyle="{DynamicResource DataGridCellDataStyle}" IsReadOnly="True" CanUserSortColumns="False" CanUserReorderColumns="False"/>
+        <DataGrid x:Name="dataGridClipboardData" AutoGenerateColumns="False" CellStyle="{DynamicResource DataGridCellDataStyle}" IsReadOnly="True" CanUserSortColumns="False" CanUserReorderColumns="False"
+                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}"/>
     </DockPanel>
 </Window>

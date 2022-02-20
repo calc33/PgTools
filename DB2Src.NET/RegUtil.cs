@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 
-namespace Unicorn.Utility
+namespace Db2Source
 {
     public struct RegistryPath
     {
@@ -450,7 +450,7 @@ namespace Unicorn.Utility
         {
             Assembly asm = Assembly.GetExecutingAssembly();
             string s = Path.GetFileNameWithoutExtension(asm.Location);
-            return @"\Software\Unicorn\" + s;
+            return @"\Software\" + s;
         }
         public RegistryPath[] SearchPaths { get; set; } = new RegistryPath[] {
             new RegistryPath(Registry.CurrentUser, GetDefaultBaseDir()),

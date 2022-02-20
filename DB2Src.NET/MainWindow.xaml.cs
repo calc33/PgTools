@@ -23,8 +23,6 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Peers;
-using Unicorn.Utility;
-using Microsoft.Win32;
 
 namespace Db2Source
 {
@@ -975,6 +973,8 @@ namespace Db2Source
             CommandBindings.Add(cb);
             cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
             CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsUpdate, CopyTableAsUpdateCommand_Executed, CopyTableCommand_CanExecute);
+            CommandBindings.Add(cb);
             cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
             CommandBindings.Add(cb);
         }
@@ -1078,6 +1078,21 @@ namespace Db2Source
             e.Handled = true;
         }
 
+        private void CopyTableAsUpdateCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.OriginalSource is DataGrid)
+            {
+                return;
+            }
+            DataGrid gr = GetActiveDataGrid();
+            if (gr == null)
+            {
+                return;
+            }
+            DataGridCommands.CopyTableAsUpdate.Execute(null, gr);
+            e.Handled = true;
+        }
+
         private void CopyTableAsCopyCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             if (e.OriginalSource is DataGrid)
@@ -1152,7 +1167,9 @@ namespace Db2Source
 
         private void menuItemOption_Click(object sender, RoutedEventArgs e)
         {
-
+            SettingsWindow window = new SettingsWindow();
+            window.Owner = this;
+            window.Show();
         }
 
         private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
@@ -1357,7 +1374,8 @@ namespace Db2Source
             App.CopyFont(win, win.Owner);
             win.TabControl = tabControlMain;
             win.Closed += SelectTabItemWindow_Closed;
-            App.ShowNearby(win, btn, NearbyLocation.DownRight);
+            WindowLocator.LocateNearby(btn, win, NearbyLocation.DownRight);
+            win.Show();
         }
 
         private void SelectTabItemWindow_Closed(object sender, EventArgs e)
