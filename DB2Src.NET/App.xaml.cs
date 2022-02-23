@@ -393,22 +393,88 @@ namespace Db2Source
             SettingsBinding.Save(RegistryFinder);
         }
 
+        private static bool TryConnect(ConnectionInfo info)
+        {
+            try
+            {
+                using (IDbConnection conn = info.NewConnection(true)) { }
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private static ConnectionInfo NewConnectionInfoFromRegistry()
+        {
+            NpgsqlConnectionInfo info = new NpgsqlConnectionInfo()
+            {
+                ServerName = RegistryFinder.GetString("Connection", "ServerName", Hostname),
+                ServerPort = RegistryFinder.GetInt32("Connection", "ServerPort", Port),
+                DatabaseName = RegistryFinder.GetString("Connection", "DatabaseName", Database),
+                UserName = RegistryFinder.GetString("Connection", "UserName", Username),
+                SearchPath = RegistryFinder.GetString("Connection", "SearchPath", SearchPath),
+            };
+            info.FillStoredPassword(false);
+            info = Connections.Find(info) as NpgsqlConnectionInfo;
+            return info;
+        }
+
+        public static ConnectionInfo GetStartupConnection()
+        {
+            ConnectionInfo info = new NpgsqlConnectionInfo()
+            {
+                ServerName = Hostname,
+                ServerPort = Port,
+                DatabaseName = Database,
+                UserName = Username
+            };
+
+            if (HasConnectionInfo)
+            {
+                if (info.FillStoredPassword(true))
+                {
+                    if (TryConnect(info))
+                    {
+                        return info;
+                    }
+                }
+            }
+            else
+            {
+                info = NewConnectionInfoFromRegistry();
+            }
+            NewConnectionWindow win = new NewConnectionWindow();
+            win.Target = info;
+            bool? ret = win.ShowDialog();
+            if (!ret.HasValue || !ret.Value)
+            {
+                return null;
+            }
+            return win.Target;
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             InitSettingsFromRegistry();
             SettingsBinding.Load(RegistryFinder);
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
+            MainWindow w = new MainWindow();
+            w.StartupConnection = GetStartupConnection();
+            MainWindow = w;
+            MainWindow.Show();
         }
 
-        public static void CopyFont(Control destination, Control source)
-        {
-            destination.FontFamily = source.FontFamily;
-            destination.FontSize = source.FontSize;
-            destination.FontStretch = source.FontStretch;
-            destination.FontStyle = source.FontStyle;
-            destination.FontWeight = source.FontWeight;
-        }
+        //public static void CopyFont(Control destination, Control source)
+        //{
+        //    destination.FontFamily = source.FontFamily;
+        //    destination.FontSize = source.FontSize;
+        //    destination.FontStretch = source.FontStretch;
+        //    destination.FontStyle = source.FontStyle;
+        //    destination.FontWeight = source.FontWeight;
+        //}
 
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
         {
@@ -421,7 +487,6 @@ namespace Db2Source
             }
             SelectColumnWindow win = new SelectColumnWindow();
             win.Owner = Window.GetWindow(grid);
-            CopyFont(win, win.Owner);
             win.Closed += SelectColumnWindow_Closed;
             win.Grid = grid;
             WindowLocator.LocateNearby(button, win, NearbyLocation.DownRight);

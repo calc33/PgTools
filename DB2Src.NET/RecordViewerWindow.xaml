@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
+        FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="RecordViewerWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStyle="None" MaxWidth="600" MaxHeight="500" Loaded="Window_Loaded">
     <Window.Resources>
         <local:TypeToHorizontalAlignementConverter x:Key="TypeToHorizontalAlignementConverter"/>

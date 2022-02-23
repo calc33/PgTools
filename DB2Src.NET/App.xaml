@@ -4,7 +4,6 @@
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
-             StartupUri="MainWindow.xaml"
              DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
     <Application.Resources>
         <ResourceDictionary>

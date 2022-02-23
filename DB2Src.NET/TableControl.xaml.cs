@@ -801,7 +801,6 @@ namespace Db2Source
                 _selectColumnWindow = new SelectColumnWindow();
 
                 _selectColumnWindow.Owner = Window.GetWindow(this);
-                App.CopyFont(_selectColumnWindow, _selectColumnWindow.Owner);
                 return _selectColumnWindow;
             }
         }
@@ -980,7 +979,6 @@ namespace Db2Source
             }
             RecordViewerWindow win = new RecordViewerWindow();
             win.Owner = Window.GetWindow(this);
-            App.CopyFont(win, win.Owner);
             win.Table = Target;
             win.Column = col;
             win.Row = row;
@@ -1239,7 +1237,6 @@ namespace Db2Source
             }
             ColumnCheckListWindow win = new ColumnCheckListWindow();
             win.Owner = Window.GetWindow(this);
-            App.CopyFont(win, win.Owner);
             win.Target = tbl;
             WindowLocator.LocateNearby(sender as FrameworkElement, win, NearbyLocation.DownLeft);
             win.Closed += ColumnCheckListWindow_Closed;

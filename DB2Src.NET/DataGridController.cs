@@ -2634,7 +2634,6 @@ namespace Db2Source
                 return;
             }
             win.Owner = Window.GetWindow(Grid);
-            App.CopyFont(win, win.Owner);
             win.Target = this;
             WindowLocator.LocateNearby(Grid, win, NearbyLocation.UpLeft);
             win.Show();
@@ -3127,7 +3126,6 @@ namespace Db2Source
                 Owner = Window.GetWindow(Grid),
                 Clipboard = clipboard
             };
-            App.CopyFont(win, win.Owner);
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {

@@ -239,7 +239,6 @@ namespace Db2Source
             FrameworkElement elem = sender as FrameworkElement ?? dataGridColumns;
             WindowLocator.LocateNearby(elem, win, NearbyLocation.UpLeft);
             win.Owner = Window.GetWindow(this);
-            App.CopyFont(win, win.Owner);
             win.Target = dataGridColumns;
             win.Show();
         }

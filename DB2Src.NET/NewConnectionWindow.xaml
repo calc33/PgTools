@@ -8,7 +8,7 @@
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
         Title="新規データベース接続" Height="Auto" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled"
-        WindowStartupLocation="CenterOwner" SizeToContent="WidthAndHeight" Background="White"
+        WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" Background="White"
         HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
         Initialized="window_Initialized">
     <Window.Resources>

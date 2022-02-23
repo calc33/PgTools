@@ -384,7 +384,6 @@ namespace Db2Source
         {
             HistoryWindow window = new HistoryWindow();
             window.Owner = Window.GetWindow(this);
-            App.CopyFont(window, window.Owner);
             bool? ret = window.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {

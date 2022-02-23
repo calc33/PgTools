@@ -100,7 +100,6 @@ namespace Db2Source
             }
             NewConnectionWindow win = new NewConnectionWindow();
             win.Owner = this;
-            App.CopyFont(window, this);
             win.Target = info;
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
@@ -823,7 +822,6 @@ namespace Db2Source
         {
             ExportSchema win = new ExportSchema();
             win.Owner = this;
-            App.CopyFont(win, this);
             win.DataSet = CurrentDataSet;
             win.ShowDialog();
         }
@@ -890,7 +888,6 @@ namespace Db2Source
 
         private void Connect(ConnectionInfo info)
         {
-            LoadLocationFromConnectionInfo(info);
             Db2SourceContext ds = info.NewDataSet();
             ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
             ConnectionStatus = SchemaConnectionStatus.Connecting;
@@ -978,42 +975,31 @@ namespace Db2Source
             cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
             CommandBindings.Add(cb);
         }
+
+        private ConnectionInfo _startupConnection;
+        public ConnectionInfo StartupConnection
+        {
+            get
+            {
+                return _startupConnection;
+            }
+            set
+            {
+                _startupConnection = value;
+                if (_startupConnection != null)
+                {
+                    LoadLocationFromConnectionInfo(_startupConnection);
+                }
+            }
+        }
+
         private void StartConnection()
         {
             ConnectionStatus = SchemaConnectionStatus.Done;
-            ConnectionInfo info = new NpgsqlConnectionInfo()
+            if (StartupConnection != null)
             {
-                ServerName = App.Hostname,
-                ServerPort = App.Port,
-                DatabaseName = App.Database,
-                UserName = App.Username
-            };
-
-            if (App.HasConnectionInfo)
-            {
-                if (info.FillStoredPassword(true))
-                {
-                    if (TryConnect(info))
-                    {
-                        return;
-                    }
-                }
+                Connect(StartupConnection);
             }
-            else
-            {
-                info = NewConnectionInfoFromRegistry();
-            }
-            NewConnectionWindow win = new NewConnectionWindow();
-            win.Owner = this;
-            App.CopyFont(win, this);
-            win.Target = info;
-            bool? ret = win.ShowDialog();
-            if (!ret.HasValue || !ret.Value)
-            {
-                return;
-            }
-            info = win.Target;
-            Connect(info);
         }
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -1129,7 +1115,6 @@ namespace Db2Source
             }
             PgDumpOptionWindow win = new PgDumpOptionWindow();
             win.Owner = this;
-            App.CopyFont(win, this);
             win.DataSet = CurrentDataSet;
             win.Show();
             //win.ShowDialog();
@@ -1182,7 +1167,6 @@ namespace Db2Source
         {
             EditConnectionListWindow win = new EditConnectionListWindow();
             win.Owner = this;
-            App.CopyFont(win, this);
             win.ShowDialog();
             UpdateMenuItemOpenDb();
         }
@@ -1371,7 +1355,6 @@ namespace Db2Source
             Button btn = sender as Button;
             SelectTabItemWindow win = new SelectTabItemWindow();
             win.Owner = this;
-            App.CopyFont(win, win.Owner);
             win.TabControl = tabControlMain;
             win.Closed += SelectTabItemWindow_Closed;
             WindowLocator.LocateNearby(btn, win, NearbyLocation.DownRight);
@@ -1554,7 +1537,6 @@ namespace Db2Source
             NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow();
             win.DataSet = CurrentDataSet as NpgsqlDataSet;
             win.Owner = this;
-            App.CopyFont(win, this);
             bool? ret = win.ShowDialog();
             if (ret.HasValue && ret.Value)
             {

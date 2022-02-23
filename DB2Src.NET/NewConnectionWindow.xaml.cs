@@ -392,7 +392,6 @@ namespace Db2Source
             RGB rgb = Target.BackgroundColor;
             win.Color = Color.FromRgb(rgb.R, rgb.G, rgb.B);
             win.Owner = this;
-            App.CopyFont(win, win.Owner);
             bool? ret = win.ShowDialog();
             if (ret.HasValue && ret.Value)
             {

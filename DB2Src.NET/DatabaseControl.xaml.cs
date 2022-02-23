@@ -282,7 +282,6 @@ namespace Db2Source
                 return;
             }
             DataGridCell cell = App.FindLogicalParent<DataGridCell>(dataGridSettingValueColumn.GetCellContent(sel));
-            App.CopyFont(win, this);
             win.SetTarget(sel);
             win.SettingWidth = dataGridSettingValueColumn.ActualWidth;
             Rect r = new Rect(-1, -2, cell.ActualWidth + 1, cell.ActualHeight + 2);
