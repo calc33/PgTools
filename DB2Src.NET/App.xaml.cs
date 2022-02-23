@@ -461,20 +461,11 @@ namespace Db2Source
             SettingsBinding.Load(RegistryFinder);
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
-            MainWindow w = new MainWindow();
-            w.StartupConnection = GetStartupConnection();
-            MainWindow = w;
-            MainWindow.Show();
+            MainWindow window = new MainWindow();
+            window.StartupConnection = GetStartupConnection();
+            window.Show();
+            //MainWindow = window;    // 最初に作成したwindowが自動的にMainWindowになるため不要
         }
-
-        //public static void CopyFont(Control destination, Control source)
-        //{
-        //    destination.FontFamily = source.FontFamily;
-        //    destination.FontSize = source.FontSize;
-        //    destination.FontStretch = source.FontStretch;
-        //    destination.FontStyle = source.FontStyle;
-        //    destination.FontWeight = source.FontWeight;
-        //}
 
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
         {
