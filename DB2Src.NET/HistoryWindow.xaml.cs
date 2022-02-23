@@ -161,7 +161,13 @@ namespace Db2Source
 
         private void listBoxResult_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            buttonOK_Click(sender, e);
+            HitTestResult result = VisualTreeHelper.HitTest(listBoxResult, e.MouseDevice.GetPosition(listBoxResult));
+            ListBoxItem item = App.FindVisualParent<ListBoxItem>(result.VisualHit);
+            if (item != null)
+            {
+                e.Handled = true;
+                buttonOK_Click(sender, e);
+            }
         }
 
         private void buttonOK_Click(object sender, RoutedEventArgs e)
@@ -224,9 +230,9 @@ namespace Db2Source
             }
             if (dt0.Year == dt.Year)
             {
-                return string.Format("m/d", dt);
+                return string.Format("{0:M/d}", dt);
             }
-            return string.Format("yyyy/m/d", dt);
+            return string.Format("{0:yyyy/M/d}", dt);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
