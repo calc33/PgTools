@@ -441,6 +441,26 @@ namespace Db2Source
         {
             Index = -1;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is ColumnInfo))
+            {
+                return false;
+            }
+            ColumnInfo o = (ColumnInfo)obj;
+            return Column.Equals(o.Column);
+        }
+
+        public override int GetHashCode()
+        {
+            if (Column == null)
+            {
+                return 0;
+            }
+            return Column.GetHashCode();
+        }
+
         public override string ToString()
         {
             return Name;

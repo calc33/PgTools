@@ -86,9 +86,149 @@ namespace Db2Source
         Delete
     }
 
+    public sealed class DataArray : ICollection<object>
+    {
+        private object[] _data;
+        public DataArray(int length)
+        {
+            _data = new object[length];
+        }
+        public DataArray(object[] data)
+        {
+            if (data == null)
+            {
+                throw new ArgumentNullException("data");
+            }
+            _data = new object[data.Length];
+            data.CopyTo(_data, 0);
+        }
+
+        public object this[int index]
+        {
+            get
+            {
+                return _data[index];
+            }
+            set
+            {
+                _data[index] = value;
+            }
+        }
+
+        public int Length
+        {
+            get
+            {
+                return _data.Length;
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                return _data.Length;
+            }
+        }
+
+        public object SyncRoot
+        {
+            get
+            {
+                return _data.SyncRoot;
+            }
+        }
+
+        public bool IsSynchronized
+        {
+            get
+            {
+                return _data.IsSynchronized;
+            }
+        }
+
+        public bool IsReadOnly => ((ICollection<object>)_data).IsReadOnly;
+
+        public IEnumerator GetEnumerator()
+        {
+            return _data.GetEnumerator();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is DataArray))
+            {
+                return false;
+            }
+            DataArray o = (DataArray)obj;
+            if (Length != o.Length)
+            {
+                return false;
+            }
+            for (int i = 0; i < Length; i++)
+            {
+                if (!this[i].Equals(o[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+            foreach (object o in _data)
+            {
+                hash = hash * 17 + o.GetHashCode();
+            }
+            return hash;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("DataArray[{0}]", Length);
+        }
+
+        public void CopyTo(Array array, int index)
+        {
+            _data.CopyTo(array, index);
+        }
+
+        public void Add(object item)
+        {
+            ((ICollection<object>)_data).Add(item);
+        }
+
+        public void Clear()
+        {
+            ((ICollection<object>)_data).Clear();
+        }
+
+        public bool Contains(object item)
+        {
+            return ((ICollection<object>)_data).Contains(item);
+        }
+
+        public void CopyTo(object[] array, int arrayIndex)
+        {
+            ((ICollection<object>)_data).CopyTo(array, arrayIndex);
+        }
+
+        public bool Remove(object item)
+        {
+            return ((ICollection<object>)_data).Remove(item);
+        }
+
+        IEnumerator<object> IEnumerable<object>.GetEnumerator()
+        {
+            return ((IEnumerable<object>)_data).GetEnumerator();
+        }
+    }
+
     public interface IChangeSetRows
     {
-        IChangeSetRow FingRowByOldKey(object[] key);
+        IChangeSetRow FindRowByOldKey(DataArray key);
         void AcceptChanges();
         void RevertChanges();
         ICollection<IChangeSetRow> TemporaryRows { get; }
@@ -108,7 +248,7 @@ namespace Db2Source
         bool IsModified(int index);
         ChangeKind ChangeKind { get; }
         object Old(int index);
-        object[] GetKeys();
+        DataArray GetKeys();
         void Read(IDataReader reader, int[] indexList);
         void AcceptChanges();
         void SetError(Exception t);

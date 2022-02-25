@@ -22,7 +22,7 @@ namespace Db2Source
     {
         public static readonly DependencyProperty ClipboardProperty = DependencyProperty.Register("Clipboard", typeof(GridClipboard), typeof(GridClipboardWindow));
         public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(GridClipboard.Cell), typeof(GridClipboardWindow));
-        
+
         public static GridClipboard.Cell GetCellInfo(DependencyObject obj)
         {
             return (GridClipboard.Cell)obj.GetValue(CellInfoProperty);
@@ -142,7 +142,7 @@ namespace Db2Source
             {
                 return ColumnInfo.Stub;
             }
-            return row.Cells[col.Index];
+            return row.Cells[cell.Column.DisplayIndex];
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -49,6 +49,7 @@ namespace Db2Source
             }
             public event PropertyChangedEventHandler PropertyChanged;
         }
+
         public class Row : IReadOnlyList<Cell>, INotifyPropertyChanged
         {
             public Cell[] Cells { get; private set; }
@@ -138,14 +139,15 @@ namespace Db2Source
             }
             public event PropertyChangedEventHandler PropertyChanged;
 
-            public object[] GetDataArray(int[] indexes)
+            public DataArray GetDataArray(int[] indexes)
             {
-                object[] ret = new object[indexes.Length];
-                for(int i = 0; i < indexes.Length; i++)
+                int n = indexes.Length;
+                DataArray array = new DataArray(n);
+                for (int i = 0; i < n; i++)
                 {
-                    ret[i] = Cells[indexes[i]].Data;
+                    array[i] = Cells[indexes[i]].Data;
                 }
-                return ret;
+                return array;
             }
 
             #region IReadOnlyList<Cell>の実装
@@ -354,7 +356,7 @@ namespace Db2Source
             for (int i = UseExplicitHeader ? 1 : 0; i < n; i++)
             {
                 Row row = Cells[i];
-                object[] keys = row.GetDataArray(KeyIndexes);
+                DataArray keys = row.GetDataArray(KeyIndexes);
                 Db2Source.Row target = Controller.Rows.FindRowByOldKey(keys);
                 if (target == null)
                 {
@@ -471,6 +473,7 @@ namespace Db2Source
                 _explicitKeyFields = new ColumnInfo[0];
                 _explicitKeyIndexes = new int[0];
             }
+            _mergeByKey = CanMergeByKey;
         }
 
         private void InitImplicitFields()

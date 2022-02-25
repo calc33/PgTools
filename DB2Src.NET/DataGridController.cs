@@ -442,8 +442,8 @@ namespace Db2Source
     {
         private static readonly object Unchanged = new object();
         private readonly DataGridController _owner;
-        internal object[] _data;
-        internal object[] _old;
+        internal DataArray _data;
+        internal DataArray _old;
         internal bool _added = false;
         internal bool _deleted = false;
         private bool? _hasChanges = null;
@@ -698,13 +698,13 @@ namespace Db2Source
             }
         }
 
-        public object[] GetKeys()
+        public DataArray GetKeys()
         {
             if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
             {
                 return _data;
             }
-            object[] ret = new object[_owner.KeyFields.Length];
+            DataArray ret = new DataArray(_owner.KeyFields.Length);
             for (int i = 0; i < _owner.KeyFields.Length; i++)
             {
                 ColumnInfo f = _owner.KeyFields[i];
@@ -712,13 +712,13 @@ namespace Db2Source
             }
             return ret;
         }
-        public object[] GetOldKeys()
+        public DataArray GetOldKeys()
         {
             if (_owner == null || _owner.KeyFields == null || _owner.KeyFields.Length == 0)
             {
                 return _data;
             }
-            object[] ret = new object[_owner.KeyFields.Length];
+            DataArray ret = new DataArray(_owner.KeyFields.Length);
             for (int i = 0; i < _owner.KeyFields.Length; i++)
             {
                 int p = _owner.KeyFields[i].Index;
@@ -775,7 +775,7 @@ namespace Db2Source
         {
             get
             {
-                return ((ICollection<object>)_data).Count;
+                return _data.Length;
             }
         }
 
@@ -876,8 +876,8 @@ namespace Db2Source
             _owner = owner;
             _added = false;
             _deleted = false;
-            _data = new object[reader.FieldCount];
-            _old = new object[reader.FieldCount];
+            _data = new DataArray(reader.FieldCount);
+            _old = new DataArray(reader.FieldCount);
             for (int i = 0; i < _old.Length; i++)
             {
                 try
@@ -905,8 +905,8 @@ namespace Db2Source
             _owner = owner;
             _added = true;
             _deleted = false;
-            _data = new object[owner.Fields.Length];
-            _old = new object[owner.Fields.Length];
+            _data = new DataArray(owner.Fields.Length);
+            _old = new DataArray(owner.Fields.Length);
             int i = 0;
             foreach (ColumnInfo info in owner.Fields)
             {
@@ -921,8 +921,8 @@ namespace Db2Source
         {
             _added = true;
             _deleted = false;
-            _data = new object[0];
-            _old = new object[0];
+            _data = new DataArray(0);
+            _old = new DataArray(0);
         }
         public override bool Equals(object obj)
         {
@@ -934,8 +934,8 @@ namespace Db2Source
             {
                 return ReferenceEquals(this, obj);
             }
-            object[] k1 = GetOldKeys();
-            object[] k2 = ((Row)obj).GetOldKeys();
+            DataArray k1 = GetOldKeys();
+            DataArray k2 = ((Row)obj).GetOldKeys();
             if (k1.Length != k2.Length)
             {
                 return false;
@@ -952,7 +952,7 @@ namespace Db2Source
         public override int GetHashCode()
         {
             int ret = 0;
-            object[] k = GetOldKeys();
+            DataArray k = GetOldKeys();
             foreach (object o in k)
             {
                 if (o != null)
@@ -1011,7 +1011,7 @@ namespace Db2Source
             }
             return CompareKey(item1.GetOldKeys(), item2.GetOldKeys());
         }
-        public static int CompareKey(object[] item1, object[] item2)
+        public static int CompareKey(DataArray item1, DataArray item2)
         {
             if (item1 == null || item2 == null)
             {
@@ -1053,8 +1053,8 @@ namespace Db2Source
     {
         private readonly DataGridController _owner;
         private readonly List<Row> _list = new List<Row>();
-        private Dictionary<object[], Row> _keyToRow = null;
-        private readonly Dictionary<object[], Row> _oldKeyToRow = new Dictionary<object[], Row>();
+        private Dictionary<DataArray, Row> _keyToRow = null;
+        private readonly Dictionary<DataArray, Row> _oldKeyToRow = new Dictionary<DataArray, Row>();
         //private List<Row> _deletedRows = new List<Row>();
         private List<Row> _temporaryRows = new List<Row>();
 
@@ -1071,7 +1071,7 @@ namespace Db2Source
             {
                 return;
             }
-            _keyToRow = new Dictionary<object[], Row>();
+            _keyToRow = new Dictionary<DataArray, Row>();
             foreach (Row row in _list)
             {
                 _keyToRow[row.GetKeys()] = row;
@@ -1082,7 +1082,7 @@ namespace Db2Source
             _keyToRow = null;
         }
 
-        public Row FindRowByKey(object[] key)
+        public Row FindRowByKey(DataArray key)
         {
             RequireKeyToRow();
             Row row;
@@ -1092,7 +1092,7 @@ namespace Db2Source
             }
             return row;
         }
-        public Row FindRowByOldKey(object[] key)
+        public Row FindRowByOldKey(DataArray key)
         {
             Row row;
             if (!_oldKeyToRow.TryGetValue(key, out row))
@@ -1101,7 +1101,7 @@ namespace Db2Source
             }
             return row;
         }
-        IChangeSetRow IChangeSetRows.FingRowByOldKey(object[] key)
+        IChangeSetRow IChangeSetRows.FindRowByOldKey(DataArray key)
         {
             Row row;
             if (!_oldKeyToRow.TryGetValue(key, out row))

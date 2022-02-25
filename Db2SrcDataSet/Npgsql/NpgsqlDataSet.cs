@@ -894,7 +894,7 @@ namespace Db2Source
                 throw new ArgumentNullException("owner");
             }
 
-            IChangeSetRow dep = owner.Rows.FingRowByOldKey(row.GetKeys());
+            IChangeSetRow dep = owner.Rows.FindRowByOldKey(row.GetKeys());
             if (dep != null && dep != row)
             {
                 ApplyChange(owner, dep, connection, transaction, applied);
