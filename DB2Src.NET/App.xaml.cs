@@ -463,6 +463,11 @@ namespace Db2Source
             AnalyzeArguments(e.Args);
             MainWindow window = new MainWindow();
             window.StartupConnection = GetStartupConnection();
+            if (HasConnectionInfo && window.StartupConnection == null)
+            {
+                Shutdown();
+                return;
+            }
             window.Show();
             //MainWindow = window;    // 最初に作成したwindowが自動的にMainWindowになるため不要
         }
