@@ -1931,8 +1931,12 @@ namespace Db2Source
         private readonly Dictionary<string, ColumnInfo> _nameToField = new Dictionary<string, ColumnInfo>();
         public ColumnInfo GetFieldByName(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
             ColumnInfo ret;
-            if (_nameToField.TryGetValue(name, out ret))
+            if (_nameToField.TryGetValue(name.ToLower(), out ret))
             {
                 return ret;
             }
@@ -1979,7 +1983,7 @@ namespace Db2Source
                     fi.StringFormat = c.StringFormat;
                 }
                 Fields[i] = fi;
-                _nameToField[fi.Name] = fi;
+                _nameToField[fi.Name.ToLower()] = fi;
             }
             while (reader.Read())
             {
@@ -3153,6 +3157,14 @@ namespace Db2Source
                 else
                 {
                     PasteAsDataGrid(e, clipboard);
+                }
+            }
+            if (Rows.Count != 0)
+            {
+                Row last = Rows.Last();
+                if (last.IsAdded)
+                {
+                    gr.ScrollIntoView(last);
                 }
             }
         }

@@ -255,21 +255,31 @@ namespace Db2Source
         public string StringFormat { get; set; }
         //public IValueConverter Converter { get; set; }
         public int Index { get; private set; }
-        public object ParseValue(string value)
+        public object ParseValue(string value, out bool valid)
         {
+            valid = true;
             if (value == null)
             {
                 return null;
             }
-            MethodInfo mi = FieldType.GetMethod("Parse", new Type[] { typeof(string) });
+            Type refType = FieldType.MakeByRefType();
+            MethodInfo mi = FieldType.GetMethod("TryParse", new Type[] { typeof(string), refType });
             if (mi != null)
             {
                 try
                 {
-                    return mi.Invoke(null, new object[] { value });
+                    object[] args = new object[] { value, null };
+                    bool ret = (bool)mi.Invoke(null, args);
+                    if (!ret)
+                    {
+                        valid = false;
+                        return null;
+                    }
+                    return args[1];
                 }
                 catch
                 {
+                    valid = false;
                     return null;
                 }
             }
@@ -289,7 +299,8 @@ namespace Db2Source
             object ret = value;
             if (value is string)
             {
-                ret = ParseValue((string)value);
+                bool valid;
+                ret = ParseValue((string)value, out valid);
             }
             if (ret == null)
             {
@@ -449,7 +460,7 @@ namespace Db2Source
                 return false;
             }
             ColumnInfo o = (ColumnInfo)obj;
-            return Column.Equals(o.Column);
+            return Equals(Column, o.Column);
         }
 
         public override int GetHashCode()
