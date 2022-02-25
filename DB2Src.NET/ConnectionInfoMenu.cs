@@ -65,10 +65,6 @@ namespace Db2Source
                     MenuItem subItem = item.Items[0] as MenuItem;
                     if (subItem != null && !subItem.HasItems)
                     {
-                        if (isTop)
-                        {
-                            subItem.Header = string.Format("{0} > {1}", item.Header, subItem.Header);
-                        }
                         item.Items.Remove(subItem);
                         menuItems[i] = subItem;
                     }
