@@ -1021,6 +1021,19 @@ namespace Db2Source
             menu.IsOpen = true;
         }
 
+        private void SelectGridCell(DataGrid grid, object row, DataGridColumn column)
+        {
+            DataGridCellInfo cell = new DataGridCellInfo(row, column);
+            grid.CurrentCell = cell;
+            grid.SelectedCells.Clear();
+            grid.SelectedCells.Add(cell);
+        }
+
+        private void DelayedSelectGridCell(DataGrid grid, object row, DataGridColumn column)
+        {
+            Dispatcher.InvokeAsync(() => { SelectGridCell(grid, row, column); });
+        }
+
         private void dataGridResult_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             TextBox tb = e.OriginalSource as TextBox;
@@ -1047,10 +1060,7 @@ namespace Db2Source
                         return;
                     }
                     r--;
-                    cell = new DataGridCellInfo(rows[r], cell.Column);
-                    gr.CurrentCell = cell;
-                    gr.SelectedCells.Clear();
-                    gr.SelectedCells.Add(cell);
+                    DelayedSelectGridCell(gr, rows[r], cell.Column);
                     e.Handled = true;
                     break;
                 case Key.Down:
@@ -1063,10 +1073,7 @@ namespace Db2Source
                         return;
                     }
                     r++;
-                    cell = new DataGridCellInfo(rows[r], cell.Column);
-                    gr.CurrentCell = cell;
-                    gr.SelectedCells.Clear();
-                    gr.SelectedCells.Add(cell);
+                    DelayedSelectGridCell(gr, rows[r], cell.Column);
                     e.Handled = true;
                     break;
                 case Key.Left:
@@ -1079,10 +1086,7 @@ namespace Db2Source
                     {
                         return;
                     }
-                    cell = new DataGridCellInfo(rows[r], gr.Columns[c]);
-                    gr.CurrentCell = cell;
-                    gr.SelectedCells.Clear();
-                    gr.SelectedCells.Add(cell);
+                    DelayedSelectGridCell(gr, rows[r], gr.Columns[c]);
                     e.Handled = true;
                     break;
                 case Key.Right:
@@ -1095,10 +1099,7 @@ namespace Db2Source
                     {
                         return;
                     }
-                    cell = new DataGridCellInfo(rows[r], gr.Columns[c]);
-                    gr.CurrentCell = cell;
-                    gr.SelectedCells.Clear();
-                    gr.SelectedCells.Add(cell);
+                    DelayedSelectGridCell(gr, rows[r], gr.Columns[c]);
                     e.Handled = true;
                     break;
                 case Key.PageUp:
