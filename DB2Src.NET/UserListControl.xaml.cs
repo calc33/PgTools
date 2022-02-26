@@ -209,7 +209,7 @@ namespace Db2Source
                 IsEditing = false;
                 return;
             }
-            if (!Target.ContentEquals(Current))
+            if (Current != null && Target.ContentEquals(Current))
             {
                 IsEditing = false;
                 return;

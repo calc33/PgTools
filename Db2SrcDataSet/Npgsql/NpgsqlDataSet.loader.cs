@@ -3295,13 +3295,13 @@ namespace Db2Source
 
             public void FillTablespaces(NpgsqlConnection connection)
             {
-                PgNamespace.Load(connection);
+                PgNamespaces = PgNamespace.Load(connection);
                 LoadFromPgNamespaces();
             }
 
             public void FillUsers(NpgsqlConnection connection)
             {
-                PgRole.Load(connection);
+                PgRoles = PgRole.Load(connection);
                 LoadFromPgRoles();
             }
 

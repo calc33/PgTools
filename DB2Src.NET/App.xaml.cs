@@ -60,7 +60,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Current.MainWindow, CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 LogException(sql, t);
                 return false;
             }
@@ -88,7 +88,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(Current.MainWindow, App.CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(Current.MainWindow, CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     LogException(sql, t);
                     return false;
                 }
@@ -221,7 +221,7 @@ namespace Db2Source
         private static void ShowUsage()
         {
             MessageBox.Show(Db2Source.Properties.Resources.Usage, Db2Source.Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
-            App.Current.Shutdown();
+            Current.Shutdown();
         }
 
         public static void OpenDatabase(Database database)

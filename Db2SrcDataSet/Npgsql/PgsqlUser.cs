@@ -190,7 +190,7 @@ namespace Db2Source
             {
                 return false;
             }
-            PgsqlUser u = (PgsqlUser)_backup;
+            PgsqlUser u = (PgsqlUser)obj;
             return Oid == u.Oid
                 && CanLogin == u.CanLogin
                 && IsInherit == u.IsInherit
@@ -214,7 +214,7 @@ namespace Db2Source
             IsSuperUser = basedOn.IsSuperUser;
             Replication = basedOn.Replication;
             BypassRowLevelSecurity = BypassRowLevelSecurity;
-            Config = (string[])basedOn.Config.Clone();
+            Config = (string[])basedOn.Config?.Clone();
             ConnectionLimit = basedOn.ConnectionLimit;
         }
     }

@@ -16,7 +16,7 @@
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
                 <Button x:Name="buttonAddUser" Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonAddUser_Click"/>
             </StackPanel>
-            <ListBox x:Name="listBoxUsers" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" SelectedItem="{Binding Target, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" LayoutUpdated="listBoxUsers_LayoutUpdated"/>
+            <ListBox x:Name="listBoxUsers" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" SelectedItem="{Binding Current, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" LayoutUpdated="listBoxUsers_LayoutUpdated"/>
         </DockPanel>
         <Grid>
             <Grid.RowDefinitions>
