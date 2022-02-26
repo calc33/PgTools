@@ -33,7 +33,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Text="名前" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,3"/>
-        <TextBox x:Name="textBoxDbName" Margin="2" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Text="{Binding Target.Name, ElementName=window}"/>
+        <TextBox x:Name="textBoxDbName" Margin="2" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Text="{Binding Target.Name, ElementName=window}" Loaded="textBoxDbName_Loaded"/>
         <TextBlock Text="所有者" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Margin="0,5"/>
         <ComboBox x:Name="comboBoxOwner" Margin="2,2,0,2" HorizontalAlignment="Left" VerticalAlignment="Center" MinWidth="100" DisplayMemberPath="Text" SelectedValuePath="ItemName" ItemsSource="{Binding DataSet.Users, ElementName=window}" Grid.Column="1" Grid.Row="1" SelectedValue="{Binding Target.DbaUserName, ElementName=window}"/>
         <local:PgsqlUserControl Grid.Column="1" Grid.Row="2" Width="500" Target="{Binding SelectedItem.Item, ElementName=comboBoxOwner}" Visibility="{Binding SelectedItem.IsNew, ElementName=comboBoxOwner, Converter={StaticResource BooleanToVisibilityConverter}}" IsNew="{Binding SelectedItem.IsNew, ElementName=comboBoxOwner}"/>
@@ -84,13 +84,13 @@
             </StackPanel>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="7" Grid.ColumnSpan="2">
-            <Button x:Name="buttonGenerateSQL" Content="SQL生成" Margin="5,2" Padding="5,2" Click="buttonGenerateSQL_Click" VerticalAlignment="Top"/>
+            <Button x:Name="buttonGenerateSQL" Content="SQL生成" Margin="5,2" Padding="5,2" IsEnabled="{Binding Text, ElementName=textBoxDbName, Converter={StaticResource NotNullOrEmptyToBooleanConverter}}" Click="buttonGenerateSQL_Click"/>
             <Button x:Name="buttonError" Margin="2" Foreground="Red" BorderThickness="0" Background="Transparent" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Click="buttonError_Click"/>
         </StackPanel>
         <TextBox x:Name="textBoxSql" Grid.ColumnSpan="2" Grid.Row="8" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" MinHeight="60"
                  FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Grid.Row="10" Grid.ColumnSpan="2">
-            <Button x:Name="buttonExecute"  Content="実行" Margin="10,5" Padding="5,2" MinWidth="70" Click="buttonExecute_Click"/>
+            <Button x:Name="buttonExecute"  Content="実行" Margin="10,5" Padding="5,2" MinWidth="70" IsEnabled="{Binding Text, ElementName=textBoxSql, Converter={StaticResource NotNullOrEmptyToBooleanConverter}}" Click="buttonExecute_Click"/>
             <Button Content="キャンセル" Margin="10,5" Padding="5,2" MinWidth="70" IsCancel="True"/>
         </StackPanel>
     </Grid>

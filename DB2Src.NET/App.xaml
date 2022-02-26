@@ -29,6 +29,7 @@
             <local:RGBToBrushConverter x:Key="RGBToBrushConverter"/>
             <local:NullableIntConverter x:Key="NullableIntConverter"/>
             <local:NotNullToBooleanConverter x:Key="NotNullToBooleanConverter"/>
+            <local:NotNullOrEmptyToBooleanConverter x:Key="NotNullOrEmptyToBooleanConverter"/>
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>

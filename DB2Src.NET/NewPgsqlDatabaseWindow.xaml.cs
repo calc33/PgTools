@@ -145,7 +145,12 @@ namespace Db2Source
 
         private void buttonExecute_Click(object sender, RoutedEventArgs e)
         {
-            SQLParts sqls = DataSet.SplitSQL(textBoxSql.Text);
+            string s = textBoxSql.Text.Trim();
+            SQLParts sqls = DataSet.SplitSQL(s);
+            if (sqls.Count == 0)
+            {
+                return;
+            }
             foreach (SQLPart sql in sqls)
             {
                 try
@@ -178,6 +183,11 @@ namespace Db2Source
             textBoxSql.ScrollToLine(l);
             textBoxSql.Focus();
 
+        }
+
+        private void textBoxDbName_Loaded(object sender, RoutedEventArgs e)
+        {
+            textBoxDbName.Focus();
         }
     }
 }
