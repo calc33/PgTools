@@ -664,31 +664,7 @@ namespace Db2Source
             {
                 return (((ulong)oid) << 32) | (uint)subid;
             }
-            //private void InvalidateDictionary()
-            //{
-            //    _oidNumToItem = null;
-            //}
-            //private void RequireDictionary()
-            //{
-            //    if (_oidNumToItem != null)
-            //    {
-            //        return;
-            //    }
-            //    lock (_dictionaryLock)
-            //    {
-            //        if (_oidNumToItem != null)
-            //        {
-            //            return;
-            //        }
-            //        Dictionary<ulong, T> dictOid = new Dictionary<ulong, T>();
-            //        foreach (T obj in _items)
-            //        {
-            //            ulong v = (((ulong)obj.Oid) << 32) | (uint)obj.Subid;
-            //            dictOid[v] = obj;
-            //        }
-            //        _oidNumToItem = dictOid;
-            //    }
-            //}
+
             //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
             public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
             {

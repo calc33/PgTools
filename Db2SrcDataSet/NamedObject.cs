@@ -53,7 +53,7 @@ namespace Db2Source
             }
             for (int i = 0; i < a.Length; i++)
             {
-                if (a[i] != b[i])
+                if (!Equals(a[i], b[i]))
                 {
                     return false;
                 }
@@ -77,7 +77,7 @@ namespace Db2Source
             foreach (KeyValuePair<K, V> kv in a)
             {
                 V v;
-                if (!b.TryGetValue(kv.Key, out v) || kv.Value != v)
+                if (!b.TryGetValue(kv.Key, out v) || !Equals(kv.Value, v))
                 {
                     return false;
                 }
