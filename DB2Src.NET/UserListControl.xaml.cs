@@ -164,12 +164,12 @@ namespace Db2Source
 
         private void buttonDropUser_Click(object sender, RoutedEventArgs e)
         {
-            if (Target == null)
+            if (Current == null)
             {
                 return;
             }
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropUser"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropUser"], Current.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -180,9 +180,10 @@ namespace Db2Source
                 return;
             }
 
-            string[] sqls = App.CurrentDataSet.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            string[] sqls = App.CurrentDataSet.GetDropSQL(Current, string.Empty, string.Empty, 0, false, false);
             if (App.ExecSqls(sqls))
             {
+                RemoveCurrent();
                 RefreshUsers();
             }
         }
