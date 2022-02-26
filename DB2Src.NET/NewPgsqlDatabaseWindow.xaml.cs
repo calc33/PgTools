@@ -185,7 +185,7 @@ namespace Db2Source
 
         }
 
-        private void textBoxDbName_Loaded(object sender, RoutedEventArgs e)
+        private void window_Loaded(object sender, RoutedEventArgs e)
         {
             textBoxDbName.Focus();
         }

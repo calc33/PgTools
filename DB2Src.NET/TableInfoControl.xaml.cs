@@ -82,19 +82,28 @@ namespace Db2Source
         }
 
         private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
-        private SearchDataGridWindow RequireSearchWindowDataGridColumns()
+        private void ShowSearchDataGridWindow()
         {
-            SearchDataGridWindow win;
-            if (_searchWindowDataGridColumns != null && _searchWindowDataGridColumns.TryGetTarget(out win))
+            SearchDataGridWindow win = null;
+            if (_searchWindowDataGridColumns != null)
             {
-                return win;
+                _searchWindowDataGridColumns.TryGetTarget(out win);
+            }
+            if (win != null)
+            {
+                if (win.IsVisible)
+                {
+                    win.Activate();
+                    return;
+                }
+                win.Close();
             }
             win = new SearchDataGridWindow();
             win.Target = dataGridColumns;
             win.Owner = Window.GetWindow(this);
             win.Closed += SearchWindowDataGridColumns_Closed;
             _searchWindowDataGridColumns = new WeakReference<SearchDataGridWindow>(win);
-            return win;
+            win.Show();
         }
 
         private void SearchWindowDataGridColumns_Closed(object sender, EventArgs e)
@@ -104,8 +113,7 @@ namespace Db2Source
 
         private void FindCommand_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            SearchDataGridWindow win = RequireSearchWindowDataGridColumns();
-            win.Show();
+            ShowSearchDataGridWindow();
         }
 
         private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)

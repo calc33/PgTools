@@ -2628,15 +2628,17 @@ namespace Db2Source
             {
                 _searchDataGridTextWindow.TryGetTarget(out win);
             }
-            if (win == null || !win.IsVisible)
+            if (win != null)
             {
-                win = new SearchDataGridControllerWindow();
-                _searchDataGridTextWindow = new WeakReference<SearchDataGridControllerWindow>(win);
+                if (win.IsVisible)
+                {
+                    win.Activate();
+                    return;
+                }
+                win.Close();
             }
-            if (win == null)
-            {
-                return;
-            }
+            win = new SearchDataGridControllerWindow();
+            _searchDataGridTextWindow = new WeakReference<SearchDataGridControllerWindow>(win);
             win.Owner = Window.GetWindow(Grid);
             win.Target = this;
             WindowLocator.LocateNearby(Grid, win, NearbyLocation.UpLeft);

@@ -30,10 +30,10 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <TextBlock x:Name="textBlockNotFound" Text="検索文字列が見つかりません" Foreground="Red" VerticalAlignment="Center" Margin="2" Visibility="Hidden"/>
-            <StackPanel Grid.Column="1" Orientation="Horizontal">
+            <local:EquallyStackPanel Grid.Column="1" Orientation="Horizontal">
                 <Button x:Name="buttonPrevious" Content="前を検索(_P)" Padding="10,4" Margin="4" Click="buttonPrevious_Click"/>
                 <Button x:Name="buttonNext" Content="次を検索(_F)" Padding="10,4" Margin="4" IsDefault="True" Click="buttonNext_Click"/>
-            </StackPanel>
+            </local:EquallyStackPanel>
         </Grid>
     </StackPanel>
 </Window>

@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner">
+        Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="window_Loaded">
     <Window.Resources>
         <local2:NameValue x:Key="NameValue"/>
         <local:StrArayToTextConverter x:Key="StrArayToTextConverter"/>
@@ -33,40 +33,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TextBlock Text="名前" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,3"/>
-        <TextBox x:Name="textBoxDbName" Margin="2" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Text="{Binding Target.Name, ElementName=window}" Loaded="textBoxDbName_Loaded"/>
+        <TextBox x:Name="textBoxDbName" Margin="2" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Text="{Binding Target.Name, ElementName=window}"/>
         <TextBlock Text="所有者" HorizontalAlignment="Right" VerticalAlignment="Center" Grid.Row="1" Margin="0,5"/>
         <ComboBox x:Name="comboBoxOwner" Margin="2,2,0,2" HorizontalAlignment="Left" VerticalAlignment="Center" MinWidth="100" DisplayMemberPath="Text" SelectedValuePath="ItemName" ItemsSource="{Binding DataSet.Users, ElementName=window}" Grid.Column="1" Grid.Row="1" SelectedValue="{Binding Target.DbaUserName, ElementName=window}"/>
         <local:PgsqlUserControl Grid.Column="1" Grid.Row="2" Width="500" Target="{Binding SelectedItem.Item, ElementName=comboBoxOwner}" Visibility="{Binding SelectedItem.IsNew, ElementName=comboBoxOwner, Converter={StaticResource BooleanToVisibilityConverter}}" IsNew="{Binding SelectedItem.IsNew, ElementName=comboBoxOwner}"/>
         <TextBlock Text="表領域" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5" Grid.Row="3"/>
         <ComboBox x:Name="comboBoxTablespace" Margin="2,2,0,2" HorizontalAlignment="Left" VerticalAlignment="Center" MinWidth="100" Grid.Column="1" Grid.Row="3" DisplayMemberPath="Text" SelectedValuePath="ItemName" SelectedValue="{Binding Target.DefaultTablespace, ElementName=window}"/>
         <local:PgsqlTablespaceControl x:Name="tablespaceControl" Grid.Column="1" Grid.Row="4" Visibility="{Binding SelectedItem.IsNew, ElementName=comboBoxTablespace, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-        <!--<StackPanel x:Name="stackPanelNewTablespace" Grid.Column="1" Grid.Row="4" Visibility="{Binding SelectedItem.IsNew, ElementName=comboBoxTablespace, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition/>
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="1" Text="表領域名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Item.Name, ElementName=comboBoxTablespace}"/>
-                <TextBlock Grid.Row="2" Text="所有者：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <ComboBox x:Name="comboBoxTablespaceOwner" Grid.Row="2" Grid.Column="1" Margin="0,2" IsEditable="True" Text="{Binding SelectedItem.Item.Owner, ElementName=comboBoxTablespace}"/>
-                <TextBlock Grid.Row="3" Text="フォルダ：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Item.Path, ElementName=comboBoxOwner}"/>
-                <TextBlock Grid.Row="4" Text="オプション：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
-                <TextBox Grid.Row="4" Grid.Column="1" Margin="0,2" Text="{Binding SelectedItem.Item.Options, ElementName=comboBoxTablespace, Converter={StaticResource StrArayToTextConverter}}"/>
-                <TextBlock Grid.Row="5" Text="アクセス権限：" HorizontalAlignment="Right" Margin="0,2"/>
-                <DataGrid Grid.Row="5" Grid.Column="1" Margin="0,2"/>
-            </Grid>
-        </StackPanel>-->
         <TextBlock Text="Encoding" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,5,1,5" Grid.Row="5"/>
         <StackPanel Orientation="Horizontal" Grid.Column="1" Grid.Row="5">
             <ComboBox x:Name="comboBoxEncoding" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Center" MinWidth="100" IsEditable="True" Text="{Binding Target.Encoding, ElementName=window}"/>
