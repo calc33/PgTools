@@ -57,7 +57,7 @@ namespace Db2Source
             {
                 return string.Empty;
             }
-            
+
             StringBuilder buf = new StringBuilder();
             buf.Append('(');
             buf.Append(l[0]);
@@ -1321,6 +1321,25 @@ namespace Db2Source
                 l.Add(string.Format("{0}{1}alter role {2} with {3}{4}{5}", spc, prefix, after.Id, bufOpt.ToString(), postfix, nl));
             }
             return l.ToArray();
+        }
+
+        public string[] GetAlterSQL(PgsqlSetting setting, string prefix, string postfix, int indent, bool addNewline)
+        {
+            string spc = new string(' ', indent);
+            string nl = addNewline ? Environment.NewLine : string.Empty;
+            return new string[]
+            {
+                string.Format("{0}{1}alter role all set {2} to {3}{4}{5}", spc, prefix, setting.Name, setting.Setting, postfix, nl)
+            };
+        }
+        public string[] GetAlterSQL(PgsqlSetting setting, string userName, string prefix, string postfix, int indent, bool addNewline)
+        {
+            string spc = new string(' ', indent);
+            string nl = addNewline ? Environment.NewLine : string.Empty;
+            return new string[]
+            {
+                string.Format("{0}{1}alter role {2} set {3} to {4}{5}{6}", spc, prefix, userName, setting.Name, setting.Setting, postfix, nl)
+            };
         }
 
 

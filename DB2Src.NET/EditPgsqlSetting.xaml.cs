@@ -122,8 +122,8 @@ namespace Db2Source
 
         private void buttonApplyUserSetting_Click(object sender, RoutedEventArgs e)
         {
-            string sql = string.Format("alter role {0} set {1} to {2}", App.CurrentDataSet.ConnectionInfo.UserName, Target.Name, Target.Setting);
-            if (!App.ExecSql(sql, true))
+            string[] sql = (App.CurrentDataSet as NpgsqlDataSet).GetAlterSQL(Target, App.CurrentDataSet.ConnectionInfo.UserName, string.Empty, string.Empty, 0, false);
+            if (!App.ExecSqls(sql, true))
             {
                 return;
             }
@@ -132,8 +132,8 @@ namespace Db2Source
 
         private void buttonApplySystemSetting_Click(object sender, RoutedEventArgs e)
         {
-            string sql = string.Format("alter role all set {0} to {1}", Target.Name, Target.Setting);
-            if (!App.ExecSql(sql, true))
+            string[] sql = (App.CurrentDataSet as NpgsqlDataSet).GetAlterSQL(Target, string.Empty, string.Empty, 0, false);
+            if (!App.ExecSqls(sql, true))
             {
                 return;
             }
