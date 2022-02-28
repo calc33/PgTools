@@ -1332,6 +1332,7 @@ namespace Db2Source
                 string.Format("{0}{1}alter role all set {2} to {3}{4}{5}", spc, prefix, setting.Name, setting.Setting, postfix, nl)
             };
         }
+
         public string[] GetAlterSQL(PgsqlSetting setting, string userName, string prefix, string postfix, int indent, bool addNewline)
         {
             string spc = new string(' ', indent);

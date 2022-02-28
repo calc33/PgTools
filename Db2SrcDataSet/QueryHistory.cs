@@ -66,7 +66,7 @@ namespace Db2Source
             using (SQLiteConnection conn = GetConnection())
             {
                 _sqlList.Fill(conn);
-                LoadQuery(conn, " ORDER BY LAST_EXECUTED", _queryList, false, null);
+                LoadQuery(conn, string.Empty, _queryList, false, null);
             }
         }
 
@@ -75,15 +75,15 @@ namespace Db2Source
             string additional = string.Empty;
             if (startTime.HasValue && endTime.HasValue)
             {
-                additional = string.Format(" WHERE LAST_EXECUTED BETWEEN {0} AND {1} ORDER BY LAST_EXECUTED", startTime.Value.ToOADate(), endTime.Value.ToOADate());
+                additional = string.Format(" WHERE LAST_EXECUTED BETWEEN {0} AND {1}", startTime.Value.ToOADate(), endTime.Value.ToOADate());
             }
             else if (startTime.HasValue && !endTime.HasValue)
             {
-                additional = string.Format(" WHERE LAST_EXECUTED >= {0} ORDER BY LAST_EXECUTED", startTime.Value.ToOADate());
+                additional = string.Format(" WHERE LAST_EXECUTED >= {0}", startTime.Value.ToOADate());
             }
             else if (!startTime.HasValue && endTime.HasValue)
             {
-                additional = string.Format(" WHERE LAST_EXECUTED < {0} ORDER BY LAST_EXECUTED", endTime.Value.ToOADate());
+                additional = string.Format(" WHERE LAST_EXECUTED < {0}", endTime.Value.ToOADate());
             }
             _sqlList = new SqlCollection(this);
             _queryList = new List<Query>();
@@ -166,7 +166,7 @@ namespace Db2Source
                 p.Save(connection);
             }
             _queryList.Remove(query);
-            _queryList.Add(query);
+            _queryList.Insert(0, query);
         }
 
         public void LoadQuery(SQLiteConnection connection, string additionalSql, List<Query> queryList, bool loadParamById, SQLiteParameter[] parameters)
@@ -259,6 +259,7 @@ namespace Db2Source
                 q.Parameters = paramDict[q.Id].ToArray();
             }
             queryList.AddRange(list);
+            queryList.Sort(Query.CompareByLastExecuted);
         }
 
         private static int IndexOfField(SQLiteDataReader reader, string name)
@@ -765,6 +766,20 @@ namespace Db2Source
             public override string ToString()
             {
                 return SqlText;
+            }
+
+            public static int CompareByLastExecuted(Query item1, Query item2)
+            {
+                if (item1 == null || item2 == null)
+                {
+                    return (item1 != null ? 0 : 1) - (item2 != null ? 0 : 1);
+                }
+                int ret = -DateTime.Compare(item1.LastExecuted, item2.LastExecuted);
+                if (ret != 0)
+                {
+                    return ret;
+                }
+                return item1.Id.CompareTo(item2.Id);
             }
         }
 
