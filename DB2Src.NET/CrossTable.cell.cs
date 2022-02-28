@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,20 +8,20 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
+    public enum SummaryOperation
+    {
+        List = 0,
+        Summary = 1,
+        Average = 2,
+        Minimum = 3,
+        Maximum = 4,
+        Count = 5,
+        StdDev = 6,
+        Variance = 7
+    }
+
     partial class CrossTable
     {
-        public enum SummaryOperation
-        {
-            List = 0,
-            Summary = 1,
-            Average = 2,
-            Minimum = 3,
-            Maximum = 4,
-            Count = 5,
-            StdDev = 6,
-            Variance = 7
-        }
-
         public abstract class SummaryOperatorBase
         {
             protected object _result;
@@ -49,7 +50,7 @@ namespace Db2Source
             {
                 _isResultValid = false;
             }
-            public Record Owner { get; private set; }
+            public SummaryCell Owner { get; private set; }
             public Axis Axis { get; private set; }
             public object Result
             {
@@ -59,7 +60,7 @@ namespace Db2Source
                     return _result;
                 }
             }
-            public SummaryOperatorBase(Record owner, Axis axis)
+            public SummaryOperatorBase(SummaryCell owner, Axis axis)
             {
                 if (owner == null)
                 {
@@ -86,11 +87,11 @@ namespace Db2Source
                 List<string> l = new List<string>();
                 foreach (object rec in Owner.Items)
                 {
-                    l.Add(Axis.GetText(Axis.GetValue(rec)));
+                    l.Add(Axis.GetValueText(rec));
                 }
                 _result = l;
             }
-            public ListOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public ListOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class SummaryOperator : SummaryOperatorBase
@@ -112,7 +113,7 @@ namespace Db2Source
                 }
                 _result = v;
             }
-            public SummaryOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public SummaryOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class AverageOperator : SummaryOperatorBase
@@ -146,7 +147,7 @@ namespace Db2Source
                     _result = double.NaN;
                 }
             }
-            public AverageOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public AverageOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class MinimumOperator : SummaryOperatorBase
@@ -173,7 +174,7 @@ namespace Db2Source
                 }
                 _result = min;
             }
-            public MinimumOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public MinimumOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class MaximumOperator : SummaryOperatorBase
@@ -200,7 +201,7 @@ namespace Db2Source
                 }
                 _result = max;
             }
-            public MaximumOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public MaximumOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class CountOperator : SummaryOperatorBase
@@ -225,7 +226,7 @@ namespace Db2Source
                 _result = n;
             }
 
-            public CountOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public CountOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class StdDevOperator : SummaryOperatorBase
@@ -256,7 +257,7 @@ namespace Db2Source
                 _result = (count != 0) ? (Math.Sqrt((sum2 / count) - (sum / count) * (sum / count))) : 0;
             }
 
-            public StdDevOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public StdDevOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class VarianceOperator : SummaryOperatorBase
@@ -287,7 +288,7 @@ namespace Db2Source
                 _result = (count != 0) ? ((sum2 / count) - (sum / count) * (sum / count)) : 0;
             }
 
-            public VarianceOperator(Record owner, Axis axis) : base(owner, axis) { }
+            public VarianceOperator(SummaryCell owner, Axis axis) : base(owner, axis) { }
         }
 
         public class SummaryDefinition
@@ -307,8 +308,8 @@ namespace Db2Source
             public Axis Axis { get; set; }
             public SummaryOperation Operation { get; set; }
 
-            private static readonly Type[] SummaryOperatorConstructorArgTypes = new Type[] { typeof(Record), typeof(Axis) };
-            public SummaryOperatorBase NewOperator(Record owner, Axis axis)
+            private static readonly Type[] SummaryOperatorConstructorArgTypes = new Type[] { typeof(SummaryCell), typeof(Axis) };
+            public SummaryOperatorBase NewOperator(SummaryCell owner, Axis axis)
             {
                 int i = (int)Operation;
                 if (i < 0 || OperatorTypes.Length <= i)
@@ -323,6 +324,139 @@ namespace Db2Source
                 }
                 SummaryOperatorBase op = (SummaryOperatorBase)ctor.Invoke(new object[] { owner, axis });
                 return op;
+            }
+        }
+        public class SummaryCell
+        {
+            public class ItemCollection : IList<object>
+            {
+                private SummaryCell _owner;
+                private List<object> _list = new List<object>();
+
+                public object this[int index]
+                {
+                    get
+                    {
+                        return _list[index];
+                    }
+                    set
+                    {
+                        _list[index] = value;
+                        _owner.InvalidateSummaryResult();
+                    }
+                }
+
+                public int Count { get { return _list.Count; } }
+
+                public bool IsReadOnly { get { return false; } }
+
+                public void Add(object item)
+                {
+                    _list.Add(item);
+                    _owner.InvalidateSummaryResult();
+                }
+
+                public void Clear()
+                {
+                    _list.Clear();
+                    _owner.InvalidateSummaryResult();
+                }
+
+                public bool Contains(object item)
+                {
+                    return _list.Contains(item);
+                }
+
+                public void CopyTo(object[] array, int arrayIndex)
+                {
+                    _list.CopyTo(array, arrayIndex);
+                }
+
+                public IEnumerator<object> GetEnumerator()
+                {
+                    return _list.GetEnumerator();
+                }
+
+                public int IndexOf(object item)
+                {
+                    return _list.IndexOf(item);
+                }
+
+                public void Insert(int index, object item)
+                {
+                    _list.Insert(index, item);
+                    _owner.InvalidateSummaryResult();
+                }
+
+                public bool Remove(object item)
+                {
+                    bool ret = _list.Remove(item);
+                    if (ret)
+                    {
+                        _owner.InvalidateSummaryResult();
+                    }
+                    return ret;
+                }
+
+                public void RemoveAt(int index)
+                {
+                    _list.RemoveAt(index);
+                    _owner.InvalidateSummaryResult();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return ((IEnumerable)_list).GetEnumerator();
+                }
+                internal ItemCollection(SummaryCell owner)
+                {
+                    if (owner == null)
+                    {
+                        throw new ArgumentNullException("owner");
+                    }
+                    _owner = owner;
+                }
+            }
+            public ItemCollection Items { get; private set; }
+            public Axis.AxisValueArray KeyAxis { get; internal set; }
+            public SummaryOperatorBase[] Summaries { get; internal set; }
+
+            public SummaryCell(IList<Axis> axises, Axis.AxisValueArray key, IList<SummaryDefinition> summaryDefinitions)
+            {
+                Items = new ItemCollection(this);
+                KeyAxis = key;
+                Summaries = new SummaryOperatorBase[summaryDefinitions.Count];
+                for (int i = 0; i < Summaries.Length; i++)
+                {
+                    Summaries[i] = summaryDefinitions[i].NewOperator(this, axises[i]);
+                }
+            }
+
+            public void Add(object record)
+            {
+                Items.Add(record);
+            }
+
+            private void InvalidateSummaryResult()
+            {
+                foreach (SummaryOperatorBase op in Summaries)
+                {
+                    op.InvalidateResult();
+                }
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is SummaryCell))
+                {
+                    return false;
+                }
+                SummaryCell rec = (SummaryCell)obj;
+                return Equals(KeyAxis, rec.KeyAxis);
+            }
+            public override int GetHashCode()
+            {
+                return KeyAxis.GetHashCode();
             }
         }
     }

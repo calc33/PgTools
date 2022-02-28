@@ -1051,7 +1051,7 @@ namespace Db2Source
 
     public sealed class RowCollection: IList<Row>, IList, IChangeSetRows, INotifyPropertyChanged, INotifyCollectionChanged
     {
-        private readonly DataGridController _owner;
+        public DataGridController Owner { get; }
         private readonly List<Row> _list = new List<Row>();
         private Dictionary<DataArray, Row> _keyToRow = null;
         private readonly Dictionary<DataArray, Row> _oldKeyToRow = new Dictionary<DataArray, Row>();
@@ -1176,7 +1176,7 @@ namespace Db2Source
 
         internal RowCollection(DataGridController owner)
         {
-            _owner = owner;
+            Owner = owner;
         }
 
         #region interfaceの実装
@@ -1271,7 +1271,7 @@ namespace Db2Source
                 _oldKeyToRow.Add(item.GetOldKeys(), item);
             }
             item.BecomeUndeleted();
-            _owner?.OnRowAdded(new RowChangedEventArgs(item));
+            Owner?.OnRowAdded(new RowChangedEventArgs(item));
         }
 
         public void RemoveAt(int index)
@@ -1296,7 +1296,7 @@ namespace Db2Source
                 _oldKeyToRow.Add(item.GetOldKeys(), item);
             }
             item.BecomeUndeleted();
-            _owner?.OnRowAdded(new RowChangedEventArgs(item));
+            Owner?.OnRowAdded(new RowChangedEventArgs(item));
         }
 
         public void Clear()
@@ -1358,7 +1358,7 @@ namespace Db2Source
                 _oldKeyToRow.Add(row.GetOldKeys(), row);
             }
             row.BecomeUndeleted();
-            _owner?.OnRowAdded(new RowChangedEventArgs(row));
+            Owner?.OnRowAdded(new RowChangedEventArgs(row));
             return ret;
 
         }
@@ -1388,7 +1388,7 @@ namespace Db2Source
                 _oldKeyToRow.Add(row.GetOldKeys(), row);
             }
             row.BecomeUndeleted();
-            _owner?.OnRowAdded(new RowChangedEventArgs(row));
+            Owner?.OnRowAdded(new RowChangedEventArgs(row));
         }
 
         public void Remove(object value)

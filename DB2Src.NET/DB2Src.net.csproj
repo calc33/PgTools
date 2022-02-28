@@ -119,8 +119,9 @@
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CrossTable.axis.cs" />
     <Compile Include="CrossTable.cs" />
-    <Compile Include="CrossTable.op.cs" />
+    <Compile Include="CrossTable.cell.cs" />
     <Compile Include="CsvUtil.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
