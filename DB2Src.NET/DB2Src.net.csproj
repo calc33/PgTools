@@ -116,6 +116,11 @@
       <DependentUpon>ColumnCheckListWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConnectionInfoMenu.cs" />
+    <Compile Include="CrossGrid.xaml.cs">
+      <DependentUpon>CrossGrid.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="CrossTable.cs" />
+    <Compile Include="CrossTable.op.cs" />
     <Compile Include="CsvUtil.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
@@ -257,6 +262,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ColumnCheckListWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CrossGrid.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
