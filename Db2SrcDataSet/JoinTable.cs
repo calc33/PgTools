@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
@@ -319,17 +320,15 @@ namespace Db2Source
             InitVisibleColumns();
         }
     }
-    public class JoinTableCollection : IList<JoinTable>, IList, INotifyCollectionChanged
+    public class JoinTableCollection : ObservableCollection<JoinTable>
     {
-        private List<JoinTable> _list = new List<JoinTable>();
-
         public string GetSelectSQL(string where, string orderBy, int? limit, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             buf.AppendLine("select");
             string delimiter = "," + Environment.NewLine;
             string prefix = string.Empty;
-            foreach (JoinTable t in _list)
+            foreach (JoinTable t in Items)
             {
                 string s = t.GetFieldsSQL(2);
                 if (string.IsNullOrEmpty(s))
@@ -343,7 +342,7 @@ namespace Db2Source
             buf.AppendLine();
             buf.Append("from ");
             bool isFirst = true;
-            foreach (JoinTable t in _list)
+            foreach (JoinTable t in Items)
             {
                 buf.Append(t.GetJoinSQL(2, isFirst));
                 isFirst = false;
@@ -440,175 +439,5 @@ namespace Db2Source
             int whereOffset;
             return GetSelectSQL(where, orderBy, limit, out whereOffset);
         }
-
-        public event NotifyCollectionChangedEventHandler CollectionChanged;
-        private void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
-        {
-            CollectionChanged?.Invoke(this, e);
-        }
-
-        #region IList<JoinTable>, IList の実装
-        public JoinTable this[int index]
-        {
-            get
-            {
-                return _list[index];
-            }
-
-            set
-            {
-                _list[index] = value;
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, _list[index], index));
-            }
-        }
-
-        object IList.this[int index]
-        {
-            get
-            {
-                return ((IList)_list)[index];
-            }
-
-            set
-            {
-                ((IList)_list)[index] = value;
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, _list[index], index));
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return _list.Count;
-            }
-        }
-
-        public bool IsFixedSize
-        {
-            get
-            {
-                return ((IList)_list).IsFixedSize;
-            }
-        }
-
-        public bool IsReadOnly
-        {
-            get
-            {
-                return ((IList<JoinTable>)_list).IsReadOnly;
-            }
-        }
-
-        public bool IsSynchronized
-        {
-            get
-            {
-                return ((IList)_list).IsSynchronized;
-            }
-        }
-
-        public object SyncRoot
-        {
-            get
-            {
-                return ((IList)_list).SyncRoot;
-            }
-        }
-
-        public int Add(object value)
-        {
-            int ret = ((IList)_list).Add(value);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
-            return ret;
-        }
-
-        public void Add(JoinTable item)
-        {
-            _list.Add(item);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
-        }
-
-        public void Clear()
-        {
-            _list.Clear();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-        }
-
-        public bool Contains(object value)
-        {
-            return ((IList)_list).Contains(value);
-        }
-
-        public bool Contains(JoinTable item)
-        {
-            return _list.Contains(item);
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            ((IList)_list).CopyTo(array, index);
-        }
-
-        public void CopyTo(JoinTable[] array, int arrayIndex)
-        {
-            _list.CopyTo(array, arrayIndex);
-        }
-
-        public IEnumerator<JoinTable> GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-
-        public int IndexOf(object value)
-        {
-            return ((IList)_list).IndexOf(value);
-        }
-
-        public int IndexOf(JoinTable item)
-        {
-            return _list.IndexOf(item);
-        }
-
-        public void Insert(int index, object value)
-        {
-            ((IList)_list).Insert(index, value);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, value));
-        }
-
-        public void Insert(int index, JoinTable item)
-        {
-            _list.Insert(index, item);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
-        }
-
-        public void Remove(object value)
-        {
-            ((IList)_list).Remove(value);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, value));
-        }
-
-        public bool Remove(JoinTable item)
-        {
-            bool ret = _list.Remove(item);
-            if (ret)
-            {
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
-            }
-            return ret;
-        }
-
-        public void RemoveAt(int index)
-        {
-            JoinTable old = _list[index];
-            _list.RemoveAt(index);
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, old));
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-        #endregion
     }
 }
