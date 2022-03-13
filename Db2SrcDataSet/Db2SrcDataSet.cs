@@ -231,7 +231,7 @@ namespace Db2Source
         IChangeSetRow FindRowByOldKey(DataArray key);
         void AcceptChanges();
         void RevertChanges();
-        ICollection<IChangeSetRow> TemporaryRows { get; }
+        //ICollection<IChangeSetRow> TemporaryRows { get; }
 
     }
     public interface IChangeSet

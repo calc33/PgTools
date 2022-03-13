@@ -755,15 +755,7 @@ namespace Db2Source
         private void dataGridResult_AddingNewItem(object sender, AddingNewItemEventArgs e)
         {
             Row row = new Row(DataGridControllerResult);
-            //DataGridControllerResult.Rows.Add(row);
             e.NewItem = row;
-        }
-
-        private void dataGridResult_InitializingNewItem(object sender, InitializingNewItemEventArgs e)
-        {
-            //Row row = e.NewItem as Row;
-            //row.SetOwner(DataGridControllerResult);
-            //DataGridControllerResult.Rows.TemporaryRows.Add(row);
         }
 
         private void buttonAdd_Click(object sender, RoutedEventArgs e)
