@@ -115,7 +115,14 @@ namespace Db2Source
                 return;
             }
             tab.Items.Remove(item);
+            SchemaObject target = ctrl?.Target;
             ctrl?.OnTabClosed(sender);
+            if (target != null)
+            {
+                target.Control = null;
+            }
+            Dispatcher.InvokeAsync(() => { GC.Collect(); }, DispatcherPriority.ApplicationIdle);
+            
         }
 
         private static readonly object LogLock = new object();

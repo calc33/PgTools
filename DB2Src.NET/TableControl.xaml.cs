@@ -920,7 +920,12 @@ namespace Db2Source
             }
         }
 
-        public void OnTabClosed(object sender) { }
+        public void OnTabClosed(object sender)
+        {
+            dataGridResult.ItemsSource = null;
+            DataGridControllerResult.Rows.Clear();
+            DataGridControllerResult = null;
+        }
 
         private bool HasReferenceRecord(DataGridCellInfo cell)
         {
