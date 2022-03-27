@@ -121,6 +121,8 @@ namespace Db2Source
             {
                 target.Control = null;
             }
+            (item as MovableTabItem)?.Dispose();
+            DisposeDependencyObject(item);
             Dispatcher.InvokeAsync(() => { GC.Collect(); }, DispatcherPriority.ApplicationIdle);
             
         }
@@ -608,6 +610,53 @@ namespace Db2Source
         //    }
         //    return null;
         //}
+
+        private static void UnlinkLogicalChildren(DependencyObject obj)
+        {
+            if (obj == null)
+            {
+                return;
+            }
+            Panel panel = obj as Panel;
+            if (panel != null)
+            {
+                foreach (UIElement elem in panel.Children)
+                {
+                    UnlinkLogicalChildren(elem);
+                }
+                panel.Children.Clear();
+            }
+            ContentControl control = obj as ContentControl;
+            if (control != null)
+            {
+                DependencyObject content = control.Content as DependencyObject;
+                if (content != null)
+                {
+                    UnlinkLogicalChildren(content);
+                }
+                control.Content = null;
+            }
+            BindingOperations.ClearAllBindings(obj);
+            LocalValueEnumerator enumerator = obj.GetLocalValueEnumerator();
+            enumerator.Reset();
+            while (enumerator.MoveNext())
+            {
+                DependencyProperty property = enumerator.Current.Property;
+                if (property.ReadOnly)
+                {
+                    continue;
+                }
+                if (property.PropertyType.IsValueType)
+                {
+                    continue;
+                }
+                obj.SetValue(property, null);
+            }
+        }
+        public static void DisposeDependencyObject(DependencyObject obj)
+        {
+            UnlinkLogicalChildren(obj);
+        }
 
         private void DataGridCheckBoxColumnHeaderStyleBorder_MouseUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

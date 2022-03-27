@@ -86,6 +86,10 @@ namespace Db2Source
         private HiddenLevelDisplayItem[] HiddenLevelItems = new HiddenLevelDisplayItem[0];
         private void UpdateHiddenLevelDisplayItems()
         {
+            if (Target == null)
+            {
+                return;
+            }
             Column oid = Target.Columns["oid"];
             bool hasOid = (oid != null && oid.HiddenLevel == HiddenLevel.Hidden);
             HiddenLevel lv = hasOid ? HiddenLevel.Hidden : HiddenLevel.Visible;
@@ -219,6 +223,10 @@ namespace Db2Source
         {
             Dispatcher.InvokeAsync(() =>
             {
+                if (DataGridControllerResult == null)
+                {
+                    return;
+                }
                 JoinTables.Clear();
                 JoinTable jt = new JoinTable() { Alias = "a", Table = Target, Kind = JoinKind.Root };
                 jt.PropertyChanged += JoinTable_PropertyChanged;
@@ -308,6 +316,10 @@ namespace Db2Source
         private void UpdateDataGridResult(IDbCommand command)
         {
             dataGridResult.CancelEdit();
+            if (Target == null)
+            {
+                return;
+            }
             DateTime start = DateTime.Now;
             try
             {
@@ -505,6 +517,10 @@ namespace Db2Source
             {
                 return;
             }
+            if (Target == null)
+            {
+                return;
+            }
             if (JoinTables.Count == 0)
             {
                 textBoxSelectSql.Text = string.Empty;
@@ -529,7 +545,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxInsertSql.Text = Target.GetInsertSql(0, 80, string.Empty);
+            textBoxInsertSql.Text = Target?.GetInsertSql(0, 80, string.Empty);
         }
         private void UpdateTextBoxUpdateSql()
         {
@@ -537,7 +553,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxUpdateSql.Text = Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty);
+            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty): string.Empty;
         }
 
         private void UpdateTextBoxDeleteSql()
@@ -546,7 +562,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxDeleteSql.Text = Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty);
+            textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty) : string.Empty;
         }
 
         private void UpdateTextBoxTemplateSql()
@@ -650,6 +666,10 @@ namespace Db2Source
 
         public void DropTarget(bool cascade)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
@@ -728,12 +748,20 @@ namespace Db2Source
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             textBoxCondition.Text = Target.Context.NormalizeSQL(textBoxCondition.Text);
             e.Handled = true;
         }
 
         private void ButtonApply_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             try
             {
                 DataGridControllerResult.Save();
@@ -920,15 +948,32 @@ namespace Db2Source
             }
         }
 
-        public void OnTabClosed(object sender)
+        public void Dispose()
         {
+            Name = null;
+            Target = null;
             dataGridResult.ItemsSource = null;
+            dataGridResult.CommandBindings.Clear();
             DataGridControllerResult.Rows.Clear();
             DataGridControllerResult = null;
+            tableInfoControl.Dispose();
+            tableInfoControl = null;
+            dataGridResult = null;
+            CommandBindings.Clear();
+            BindingOperations.ClearAllBindings(this);
+        }
+
+        public void OnTabClosed(object sender)
+        {
+            Dispose();
         }
 
         private bool HasReferenceRecord(DataGridCellInfo cell)
         {
+            if (Target == null)
+            {
+                return false;
+            }
             ColumnInfo col = cell.Column.Header as ColumnInfo;
             Row row = cell.Item as Row;
             if (col == null || row == null)
@@ -1244,6 +1289,11 @@ namespace Db2Source
         private void ColumnCheckListWindow_Closed(object sender, EventArgs e)
         {
             UpdateTextBoxSelectSql();
+        }
+
+        ~TableControl()
+        {
+            App.Log("~TableControl");
         }
     }
 

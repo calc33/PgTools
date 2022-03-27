@@ -67,18 +67,18 @@ namespace Db2Source
             bool? flg = checkBoxShowHidden.IsChecked;
             if (flg.HasValue && flg.Value)
             {
-                dataGridColumns.ItemsSource = Target.Columns.AllColumns;
+                dataGridColumns.ItemsSource = Target?.Columns.AllColumns;
             }
             else
             {
-                dataGridColumns.ItemsSource = Target.Columns;
+                dataGridColumns.ItemsSource = Target?.Columns;
             }
         }
 
         private void UpdateDataGridIndexes()
         {
             dataGridIndexes.ItemsSource = null;
-            dataGridIndexes.ItemsSource = Target.Indexes;
+            dataGridIndexes.ItemsSource = Target?.Indexes;
         }
 
         private WeakReference<SearchDataGridWindow> _searchWindowDataGridColumns = null;
@@ -140,9 +140,23 @@ namespace Db2Source
             base.OnPropertyChanged(e);
         }
 
+        public void Dispose()
+        {
+            dataGridColumns.ItemsSource = null;
+            dataGridColumns.CommandBindings.Clear();
+            Target = null;
+            _searchWindowDataGridColumns = null;
+            CommandBindings.Clear();
+        }
+
         public TableInfoControl()
         {
             InitializeComponent();
+        }
+
+        ~TableInfoControl()
+        {
+
         }
 
         private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)

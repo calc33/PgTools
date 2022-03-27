@@ -88,11 +88,14 @@ namespace Db2Source
 
         private void UpdateDataGridColumns()
         {
-            dataGridColumns.ItemsSource = Target.Columns.AllColumns;
+            if (dataGridColumns == null)
+            {
+                return;
+            }
+            dataGridColumns.ItemsSource = Target?.Columns?.AllColumns;
         }
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            //dataGridColumns.ItemsSource = Target.Columns;
             UpdateDataGridColumns();
             UpdateTextBoxSource();
         }
@@ -178,6 +181,10 @@ namespace Db2Source
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Db2SourceContext ctx = Target.Context;
             List<string> sqls = new List<string>();
             if ((Target.Comment != null) && Target.Comment.IsModified)
@@ -213,6 +220,10 @@ namespace Db2Source
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Db2SourceContext ctx = Target.Context;
             ctx.Revert(Target);
             IsEditing = false;
@@ -231,7 +242,15 @@ namespace Db2Source
         {
         }
 
-        public void OnTabClosed(object sender) { }
+        public void Dispose()
+        {
+            BindingOperations.ClearAllBindings(this);
+        }
+
+        public void OnTabClosed(object sender)
+        {
+            //Dispose();
+        }
 
         private void buttonSearchSchema_Click(object sender, RoutedEventArgs e)
         {

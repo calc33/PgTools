@@ -368,7 +368,7 @@
             </Grid>
         </TabItem>
         <TabItem x:Name="tabItemInfo" Header="情報">
-            <local:TableInfoControl Target="{Binding Target, ElementName=userControl}"/>
+            <local:TableInfoControl x:Name="tableInfoControl" Target="{Binding Target, ElementName=userControl}"/>
         </TabItem>
         <TabItem Header="トリガー">
             <Grid>

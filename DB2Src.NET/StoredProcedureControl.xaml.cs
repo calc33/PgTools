@@ -126,6 +126,10 @@ namespace Db2Source
         }
         private void Item_RedoSql(object sender, EventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             LogListBoxItem item = sender as LogListBoxItem;
             if (item.Query == null)
             {
@@ -188,6 +192,10 @@ namespace Db2Source
 
         private void UpdateDataGridParameters()
         {
+            if (Target == null)
+            {
+                return;
+            }
             if (!Target.Context.AllowOutputParameter)
             {
                 dataGridParameterValue.Header = (string)Resources["ParameterValueHeader"];
@@ -268,7 +276,7 @@ namespace Db2Source
         }
         private void UpdateTabItemExecuteVisibility()
         {
-            if (Target.DataType == "trigger")
+            if (Target == null || Target.DataType == "trigger")
             {
                 tabItemExecute.Visibility = Visibility.Collapsed;
             }
@@ -417,6 +425,10 @@ namespace Db2Source
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Db2SourceContext ctx = Target.Context;
             List<string> sqls = new List<string>();
             if ((Target.Comment != null) && Target.Comment.IsModified)
@@ -444,7 +456,15 @@ namespace Db2Source
 
         public void OnTabClosing(object sender, ref bool cancel) { }
 
-        public void OnTabClosed(object sender) { }
+        public void Dispose()
+        {
+            BindingOperations.ClearAllBindings(this);
+        }
+
+        public void OnTabClosed(object sender)
+        {
+            Dispose();
+        }
 
         private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
         {
@@ -468,6 +488,10 @@ namespace Db2Source
 
         private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Window owner = Window.GetWindow(this);
             MessageBoxResult ret = MessageBox.Show(owner, _message_DropProcedure, Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)

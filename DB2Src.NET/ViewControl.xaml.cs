@@ -137,6 +137,14 @@ namespace Db2Source
 
         private void UpdateDataGridResult(IDbCommand command)
         {
+            if (DataGridControllerResult == null)
+            {
+                return;
+            }
+            if (Target == null)
+            {
+                return;
+            }
             DateTime start = DateTime.Now;
             try
             {
@@ -224,6 +232,10 @@ namespace Db2Source
         private void UpdateTextBoxSelectSql()
         {
             if (textBoxSelectSql == null)
+            {
+                return;
+            }
+            if (Target == null)
             {
                 return;
             }
@@ -327,6 +339,10 @@ namespace Db2Source
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Db2SourceContext ctx = Target.Context;
             List<string> sqls = new List<string>();
             if ((Target.Comment != null) && Target.Comment.IsModified)
@@ -362,10 +378,22 @@ namespace Db2Source
 
         public void OnTabClosing(object sender, ref bool cancel) { }
 
-        public void OnTabClosed(object sender) { }
+        public void Dispose()
+        {
+            BindingOperations.ClearAllBindings(this);
+        }
+
+        public void OnTabClosed(object sender)
+        {
+            Dispose();
+        }
 
         private void buttonRevertSchema_Click(object sender, RoutedEventArgs e)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Db2SourceContext ctx = Target.Context;
             ctx.Revert(Target);
             IsEditing = false;
@@ -383,6 +411,10 @@ namespace Db2Source
 
         private void DropTarget(bool cascade)
         {
+            if (Target == null)
+            {
+                return;
+            }
             Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);

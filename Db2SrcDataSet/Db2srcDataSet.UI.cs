@@ -138,6 +138,8 @@ namespace Db2Source
         string SelectedTabKey { get; set; }
         void OnTabClosing(object sender, ref bool cancel);
         void OnTabClosed(object sender);
+
+        void Dispose();
     }
 
     partial class NamedObject

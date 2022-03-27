@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace Db2Source
 {
@@ -93,5 +94,12 @@ namespace Db2Source
             target.Control = ret;
             return ret;
         }
+
+        public void Dispose()
+        {
+            BindingOperations.ClearAllBindings(this);
+        }
+
+        ~MovableTabItem() { }
     }
 }

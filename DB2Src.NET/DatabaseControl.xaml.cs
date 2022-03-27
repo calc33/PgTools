@@ -243,8 +243,13 @@ namespace Db2Source
         {
         }
 
+        public void Dispose()
+        {
+            BindingOperations.ClearAllBindings(this);
+        }
         public void OnTabClosed(object sender)
         {
+            //Dispose();
         }
 
         public DatabaseControl()

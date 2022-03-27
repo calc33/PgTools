@@ -173,6 +173,10 @@ namespace Db2Source
         {
             _selectableForeignKeys.Clear();
             Table tbl = Table as Table;
+            if (tbl == null)
+            {
+                return;
+            }
             foreach (ForeignKeyConstraint cons in tbl.ReferTo)
             {
                 bool found = false;
