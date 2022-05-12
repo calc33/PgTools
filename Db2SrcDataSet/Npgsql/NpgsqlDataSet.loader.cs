@@ -1149,6 +1149,7 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
+                v.InvalidateColumns();
                 Generated = new WeakReference<NamedObject>(v);
                 return v;
             }
@@ -1182,6 +1183,7 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
+                t.InvalidateColumns();
                 Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
@@ -1207,6 +1209,7 @@ namespace Db2Source
                         c.Index = i++;
                     }
                 }
+                t.InvalidateColumns();
                 Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
