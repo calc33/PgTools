@@ -312,6 +312,7 @@ namespace Db2Source
             catch (Exception t)
             {
                 MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                App.LogException(t);
                 return;
             }
             App.Connections.Save(Target);
@@ -334,6 +335,7 @@ namespace Db2Source
                 catch (Exception t)
                 {
                     MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    App.LogException(t);
                     return;
                 }
             }
