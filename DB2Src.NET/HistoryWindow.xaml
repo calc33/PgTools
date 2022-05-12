@@ -22,12 +22,18 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding LastExecuted, Converter={StaticResource TimestampTextConverter}}"/>
-                        <TextBlock Text="{Binding LastExecuted, StringFormat={}{0:yyyy/M/d HH:mm}}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Margin="5,0,0,0"/>
-                    </StackPanel>
-                    <TextBlock Grid.Row="1" Text="{Binding SqlText}" ToolTip="{Binding SqlText}"/>
-                    <TextBlock Grid.Column="1" Grid.RowSpan="2" Text="{Binding ParamText}" ToolTip="{Binding ParamText}" Margin="4,0,0,0"/>
+                    <Border Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding LastExecuted, Converter={StaticResource TimestampTextConverter}}"/>
+                            <TextBlock Text="{Binding LastExecuted, StringFormat={}{0:yyyy/M/d HH:mm}}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Margin="5,0,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <TextBlock Text="{Binding SqlText}" ToolTip="{Binding SqlText}"/>
+                    </ScrollViewer>
+                    <ScrollViewer Grid.Column="1" Grid.RowSpan="2" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                        <TextBlock Text="{Binding ParamText}" ToolTip="{Binding ParamText}" Margin="4,0,0,0"/>
+                    </ScrollViewer>
                 </Grid>
             </Border>
         </DataTemplate>
