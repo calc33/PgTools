@@ -21,6 +21,7 @@ namespace Db2Source
         public int Offset { get; set; }
         public string SQL { get; set; }
         public string[] ParameterNames { get; set; }
+        public bool IsExecutable { get; set; }
     }
 
     public class SQLParts: IEnumerable<SQLPart>

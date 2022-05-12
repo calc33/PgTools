@@ -234,6 +234,10 @@ namespace Db2Source
                 }
                 foreach (SQLPart sql in sqls.Items)
                 {
+                    if (!sql.IsExecutable)
+                    {
+                        continue;
+                    }
                     IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
                     ParameterStoreCollection stores = ParameterStore.GetParameterStores(cmd, Parameters, out modified);
                     DateTime start = DateTime.Now;

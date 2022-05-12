@@ -365,17 +365,20 @@ namespace Db2Source
                                 if (Sql[p + 1] != '-')
                                 {
                                     p++;
-                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Comment, c, p0, p));
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, c, p0, p));
                                 }
                                 else
                                 {
                                     for (p += 2; p < n && Sql[p] != '\r' && Sql[p] != '\n'; p++) ;
-                                    if (Sql[p] == '\r' && Sql[p + 1] == '\n')
+                                    if (p < n - 1 && Sql[p] == '\r' && Sql[p + 1] == '\n')
                                     {
                                         p++;
                                     }
-                                    p++;
-                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Operator, TokenID.Comment, p0, p));
+                                    if (p < n)
+                                    {
+                                        p++;
+                                    }
+                                    AddToken(tokens, selectedPos, new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p));
                                 }
                                 break;
                             case '$':
@@ -668,13 +671,22 @@ namespace Db2Source
                 {
                     endByNewLine = true;
                 }
-                for (; i < n && tsql.Tokens[i].Kind != TokenKind.Semicolon && (!endByNewLine || tsql.Tokens[i].Kind != TokenKind.NewLine); i++) ;
+                bool executable = false;
+                for (; i < n && tsql.Tokens[i].Kind != TokenKind.Semicolon && (!endByNewLine || tsql.Tokens[i].Kind != TokenKind.NewLine); i++)
+                {
+                    TokenKind k = tsql.Tokens[i].Kind;
+                    if (k != TokenKind.Space && k != TokenKind.Comment && k != TokenKind.NewLine)
+                    {
+                        executable = true;
+                    }
+                }
                 string s = tsql.Extract(t0, tsql.Tokens[i - 1]);
                 SQLPart sp = new SQLPart()
                 {
                     Offset = t0.StartPos,
                     SQL = s,
                     ParameterNames = GetParameterNames(s).ToArray(),
+                    IsExecutable = executable,
                 };
                 l.Add(sp);
                 i++;
