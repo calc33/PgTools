@@ -205,7 +205,7 @@ namespace Db2Source
         }
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            DataSet = Target.Context as NpgsqlDataSet;
+            DataSet = Target?.Context as NpgsqlDataSet;
             UpdateComboBoxSettingCategory();
             dataGridInfo.ItemsSource = new Database[] { Target };
             UpdateDataGridSetting();
