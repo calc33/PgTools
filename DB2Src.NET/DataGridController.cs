@@ -1518,17 +1518,31 @@ namespace Db2Source
         public Row NewRow()
         {
             Row row = new Row(this);
-            DataGridCellInfo cur = Grid.SelectedCells[0];
-            int i = Rows.IndexOf(cur.Item as Row);
+            DataGridColumn col = null;
+            int i = -1;
+            if (Grid.SelectedCells.Count != 0)
+            {
+                DataGridCellInfo cur = Grid.SelectedCells[0];
+                i = Rows.IndexOf(cur.Item as Row);
+                col = cur.Column;
+            }
             if (i == -1)
             {
                 i = Rows.Count;
             }
+            if (col == null && Grid.Columns.Count != 0)
+            {
+                col = Grid.Columns[0];
+            }
             Rows.Insert(i, row);
-            Grid.ItemsSource = null;
-            Grid.ItemsSource = Rows;
+            Grid.GetBindingExpression(ItemsControl.ItemsSourceProperty)?.UpdateSource();
+            //Grid.ItemsSource = null;
+            //Grid.ItemsSource = Rows;
             //UpdateGrid();
-            Grid.CurrentCell = new DataGridCellInfo(row, cur.Column);
+            if (row != null && col != null)
+            {
+                Dispatcher.InvokeAsync(() => { Grid.CurrentCell = new DataGridCellInfo(row, col); }, DispatcherPriority.Normal);
+            }
             return row;
         }
         public ColumnInfo[] GetForeignKeyColumns(ForeignKeyConstraint constraint)
