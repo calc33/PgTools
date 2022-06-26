@@ -583,7 +583,16 @@ namespace Db2Source
             {
                 return;
             }
-            _identifier = Name + Parameters.GetInputDataTypeText("(", ",", ")");
+            string id = Name + Parameters.GetInputDataTypeText("(", ",", ")");
+            _identifier = id;
+            if (!string.IsNullOrEmpty(Owner))
+            {
+                _identifier = Owner + "." + id;
+            }
+            else
+            {
+                _identifier = id;
+            }
         }
 
         private void UpdateHeaderDef()
@@ -625,6 +634,7 @@ namespace Db2Source
             UpdateIdentifier();
             return _identifier;
         }
+
         public override bool IsModified
         {
             get

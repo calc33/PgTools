@@ -96,7 +96,7 @@ namespace Db2Source
         }
         protected override string GetIdentifier()
         {
-            return _name;
+            return FullName;
         }
 
         public string FullName

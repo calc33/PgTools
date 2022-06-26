@@ -42,12 +42,6 @@ namespace Db2Source
             _deferrable = basedOn.Deferrable;
             _deferred = basedOn.Deferred;
         }
-        protected override string GetIdentifier()
-        {
-            //return Table?.Identifier + "+" + Name;
-            return base.GetIdentifier();
-        }
-
         public override string GetSqlType()
         {
             return "CONSTRAINT";

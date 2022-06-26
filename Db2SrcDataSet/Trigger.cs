@@ -272,7 +272,7 @@ namespace Db2Source
 
         protected override string GetIdentifier()
         {
-            return base.GetIdentifier() + "@" + Table.Identifier;
+            return Name + "@" + Table.Identifier;
         }
         private TriggerTiming _timing;
         private string _timingText;

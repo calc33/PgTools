@@ -151,7 +151,7 @@ namespace Db2Source
             {
                 return string.Compare(GetType().FullName, obj.GetType().FullName);
             }
-            return string.Compare(Identifier, (((NamedObject)obj).Identifier));
+            return string.Compare(Identifier, ((NamedObject)obj).Identifier);
         }
 
         protected virtual void Dispose(bool disposing)

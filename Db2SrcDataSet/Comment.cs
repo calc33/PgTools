@@ -254,7 +254,7 @@ namespace Db2Source
         private string[] _arguments = StrUtil.EmptyStringArray;
         protected override string GetIdentifier()
         {
-            return Target + StrUtil.DelimitedText(_arguments, ",", "(", ")");
+            return base.GetIdentifier() + StrUtil.DelimitedText(_arguments, ",", "(", ")");
         }
 
         public override string EscapedTargetName(string baseSchemaName)

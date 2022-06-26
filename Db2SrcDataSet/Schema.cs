@@ -149,14 +149,14 @@ namespace Db2Source
             Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
             foreach (Trigger t in Triggers)
             {
-                string key = t.ProcedureSchema + "." + t.ProcedureName;
+                string key = t.ProcedureSchema + "." + t.ProcedureName + "()";
                 List<string> l;
                 if (!dict.TryGetValue(key, out l))
                 {
                     l = new List<string>();
                     dict.Add(key, l);
                 }
-                string v = t.Name + "@" + t.Owner;
+                string v = t.Identifier;
                 l.Add(v);
             }
             _storedProcToTrigger = new Dictionary<string, string[]>();
