@@ -272,7 +272,8 @@ namespace Db2Source
 
         protected override string GetIdentifier()
         {
-            return Name + "@" + Table.Identifier;
+            string s = string.IsNullOrEmpty(TableSchema) ? TableName : TableSchema + "." + TableName;
+            return string.Format("{0}@{1}", Name, s);
         }
         private TriggerTiming _timing;
         private string _timingText;

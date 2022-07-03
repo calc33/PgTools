@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Reflection;
 using System.Text;
 
@@ -1307,6 +1308,16 @@ namespace Db2Source
         {
             int whereOffset;
             return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
+        }
+
+        public long GetRecordCount(IDbConnection connection)
+        {
+            string sql = string.Format("select count(1) from {0}", EscapedIdentifier(null));
+            using (IDbCommand cmd = Context.GetSqlCommand(sql, null, connection))
+            {
+                object o = cmd.ExecuteScalar();
+                return Convert.ToInt64(o);
+            }
         }
     }
 }

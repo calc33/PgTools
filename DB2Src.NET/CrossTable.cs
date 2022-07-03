@@ -1,20 +1,24 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Db2Source
 {
-    public partial class CrossTable
+    public partial class CrossTable: DependencyObject
     {
-        private SortedList<Axis.AxisValueArray, SummaryCell> _cells = null;
+        public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(IEnumerable), typeof(CrossTable));
+
+        private SortedList<AxisValueArray, SummaryCell> _cells = null;
         private object _recordsLock = new object();
 
-        private void AddRecordInternal(SortedList<Axis.AxisValueArray, SummaryCell> list, Axis.AxisValueArray key, object value)
+        private void AddRecordInternal(SortedList<AxisValueArray, SummaryCell> list, AxisValueArray key, object value)
         {
             SummaryCell rec;
             if (!list.TryGetValue(key, out rec))
@@ -25,7 +29,7 @@ namespace Db2Source
             rec.Add(value);
         }
 
-        private void AddRecordRecursive(SortedList<Axis.AxisValueArray, SummaryCell> list, Axis.AxisValueArray key, int replacingIndex, object value)
+        private void AddRecordRecursive(SortedList<AxisValueArray, SummaryCell> list, AxisValueArray key, int replacingIndex, object value)
         {
             if (replacingIndex == key.Count)
             {
@@ -33,7 +37,7 @@ namespace Db2Source
                 return;
             }
             AddRecordRecursive(list, key, replacingIndex + 1, value);
-            Axis.AxisValueArray key2 = new Axis.AxisValueArray(key);
+            AxisValueArray key2 = new AxisValueArray(key);
             key2[replacingIndex] = Axises[replacingIndex].NoValue;
             AddRecordRecursive(list, key2, replacingIndex + 1, value);
         }
@@ -51,7 +55,7 @@ namespace Db2Source
                     return;
                 }
                 Axis[] axises = Axises.ToArray();
-                SortedList<Axis.AxisValueArray, SummaryCell> l = new SortedList<Axis.AxisValueArray, SummaryCell>();
+                SortedList<AxisValueArray, SummaryCell> l = new SortedList<AxisValueArray, SummaryCell>();
                 if (ItemsSource == null)
                 {
                     _cells = l;
@@ -59,15 +63,96 @@ namespace Db2Source
                 }
                 foreach (object obj in ItemsSource)
                 {
-                    Axis.AxisValueArray key = new Axis.AxisValueArray(obj, axises);
+                    AxisValueArray key = new AxisValueArray(obj, axises);
                     AddRecordRecursive(l, key, 0, obj);
                 }
                 _cells = l;
             }
         }
+
         private void InvalidateCells()
         {
             _cells = null;
+        }
+
+        public static int CompareAxisEntry(AxisEntry item1, AxisEntry item2)
+        {
+            if (item1 == null || item2 == null)
+            {
+                return (item1 != null ? 0 : 1) - (item2 != null ? 0 : 1);
+            }
+            if (item1.Values.Count != item2.Values.Count)
+            {
+                throw new ArgumentException();
+            }
+            int n = item1.Values.Count;
+            for (int i = 0; i < n; i++)
+            {
+                AxisValue v1 = item1.Values[i];
+                AxisValue v2 = item2.Values[i];
+                int ret = v1.Index.CompareTo(v2.Index);
+                if (ret != 0)
+                {
+                    return ret;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// axisesで縦軸もしくは横軸に表示する可能性のある項目一覧を渡し、
+        /// 表示用にグループ化したエントリの一覧を生成する
+        /// </summary>
+        /// <param name="axises"></param>
+        /// <returns></returns>
+        public List<AxisEntry>[] GetAxisEntries(Axis[][] axises)
+        {
+            UpdateCells();
+            int n = axises.Length;
+            List<AxisEntry>[] lists = new List<AxisEntry>[n];
+            for(int i = 0; i < n; i++)
+            {
+                List<AxisEntry> entries = new List<AxisEntry>();
+                Dictionary<AxisValueArray, List<SummaryCell>> dict = new Dictionary<AxisValueArray, List<SummaryCell>>();
+                foreach (SummaryCell cell in _cells.Values)
+                {
+                    AxisValueArray subKey = new AxisValueArray(cell.KeyAxis, axises[i]);
+                    List<SummaryCell> l;
+                    if (!dict.TryGetValue(subKey, out l))
+                    {
+                        l = new List<SummaryCell>();
+                        dict.Add(subKey, l);
+                    }
+                    l.Add(cell);
+                }
+                foreach (KeyValuePair<AxisValueArray, List<SummaryCell>> pair in dict)
+                {
+                    AxisEntry entry = new AxisEntry() { Values = pair.Key };
+                    entry.Cells.AddRange(pair.Value);
+                    entries.Add(entry);
+                }
+                entries.Sort(CompareAxisEntry);
+                AxisEntry last = entries[0];
+                AxisEntry[] store = new AxisEntry[last.Values.Count];
+                store[0] = last;
+                //for (int k = 0; k < store.Length; k++)
+                //{
+                //    store[k] = last;
+                //}
+                for (int j = 1; j < entries.Count; j++)
+                {
+                    AxisEntry entry = entries[j];
+                    for (int k = 0; k < store.Length; k++)
+                    {
+                        if (last.Values[k].IsNoValue && !entry.Values[k].IsNoValue)
+                        {
+
+                        }
+                    }
+                }
+                lists[i] = entries;
+            }
+            return lists;
         }
 
         private Type _itemType;
@@ -84,6 +169,7 @@ namespace Db2Source
                 UpdateAxisCandidatesByItemType();
             }
         }
+
         private void UpdateItemType()
         {
             if (ItemsSource == null)
@@ -119,14 +205,15 @@ namespace Db2Source
                 Axis axis = new Axis(this) { Title = column.Name, PropertyName = "Items", PropertyIndexes = new object[] { column.Index }, StringFormat = column.StringFormat };
                 l.Add(axis);
             }
-            AxisCandidates = l.ToArray();
+            _axisCandidates = l.ToArray();
+            ItemType = typeof(Row);
         }
 
         private void UpdateAxisCandidatesByItemType()
         {
             if (ItemType == null)
             {
-                AxisCandidates = new Axis[0];
+                _axisCandidates = new Axis[0];
                 return;
             }
             PropertyInfo[] props = ItemType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -135,20 +222,38 @@ namespace Db2Source
             {
                 l.Add(new Axis(this) { PropertyName = p.Name, Title = p.Name });
             }
-            AxisCandidates = l.ToArray();
+            _axisCandidates = l.ToArray();
         }
 
+        private object _axisCandidatesLock = new object();
         private void UpdateAxisCandidates() {
-            if (ItemsSource == null)
+            if (_axisCandidates != null)
             {
                 return;
             }
-            if (ItemsSource is RowCollection)
+            lock (_axisCandidatesLock)
             {
-                UpdateAxisCandidatesByRowCollection((RowCollection)ItemsSource);
-                return;
+                if (_axisCandidates != null)
+                {
+                    return;
+                }
+                if (ItemsSource == null)
+                {
+                    _axisCandidates = new Axis[0];
+                    return;
+                }
+                if (ItemsSource is RowCollection)
+                {
+                    UpdateAxisCandidatesByRowCollection((RowCollection)ItemsSource);
+                    return;
+                }
+                UpdateItemType();
             }
-            UpdateItemType();
+        }
+
+        private void InvalidateAxisCandidates()
+        {
+            _axisCandidates = null;
         }
 
         /// <summary>
@@ -160,7 +265,7 @@ namespace Db2Source
         public SummaryCell Find(params AxisValue[] axisValues)
         {
             UpdateCells();
-            Axis.AxisValueArray key = new Axis.AxisValueArray(Axises);
+            AxisValueArray key = new AxisValueArray(Axises);
             foreach (AxisValue value in axisValues)
             {
                 int i = value.Owner.Index;
@@ -178,29 +283,53 @@ namespace Db2Source
             return cell;
         }
 
-        public Axis[] AxisCandidates { get; private set; } = new Axis[0];
+
+
+        private Axis[] _axisCandidates = null;
+        public Axis[] AxisCandidates
+        {
+            get
+            {
+                UpdateAxisCandidates();
+                return _axisCandidates;
+            }
+            //private set;
+        }
 
         public AxisCollection Axises { get; }
 
         public List<SummaryDefinition> SummaryDefinitions { get; } = new List<SummaryDefinition>();
-        private IEnumerable _itemsSource;
+
         public IEnumerable ItemsSource
         {
-            get
+            get { return (IEnumerable)GetValue(ItemsSourceProperty); }
+            set { SetValue(ItemsSourceProperty, value); }
+        }
+
+        private void ItemsSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            InvalidateAxisCandidates();
+            InvalidateCells();
+        }
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.Property == ItemsSourceProperty)
             {
-                return _itemsSource;
+                ItemsSourcePropertyChanged(e);
             }
-            set
-            {
-                _itemsSource = value;
-                UpdateAxisCandidates();
-                InvalidateCells();
-            }
+            base.OnPropertyChanged(e);
         }
 
         public CrossTable()
         {
-            Axises = new AxisCollection(this);
+            Axises = new AxisCollection();
+            Axises.CollectionChanged += Axises_CollectionChanged;
+        }
+
+        private void Axises_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            InvalidateCells();
         }
     }
 }

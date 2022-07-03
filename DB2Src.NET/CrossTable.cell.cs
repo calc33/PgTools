@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -328,108 +329,28 @@ namespace Db2Source
         }
         public class SummaryCell
         {
-            public class ItemCollection : IList<object>
-            {
-                private SummaryCell _owner;
-                private List<object> _list = new List<object>();
+            public class ItemCollection : ObservableCollection<object> { }
 
-                public object this[int index]
-                {
-                    get
-                    {
-                        return _list[index];
-                    }
-                    set
-                    {
-                        _list[index] = value;
-                        _owner.InvalidateSummaryResult();
-                    }
-                }
-
-                public int Count { get { return _list.Count; } }
-
-                public bool IsReadOnly { get { return false; } }
-
-                public void Add(object item)
-                {
-                    _list.Add(item);
-                    _owner.InvalidateSummaryResult();
-                }
-
-                public void Clear()
-                {
-                    _list.Clear();
-                    _owner.InvalidateSummaryResult();
-                }
-
-                public bool Contains(object item)
-                {
-                    return _list.Contains(item);
-                }
-
-                public void CopyTo(object[] array, int arrayIndex)
-                {
-                    _list.CopyTo(array, arrayIndex);
-                }
-
-                public IEnumerator<object> GetEnumerator()
-                {
-                    return _list.GetEnumerator();
-                }
-
-                public int IndexOf(object item)
-                {
-                    return _list.IndexOf(item);
-                }
-
-                public void Insert(int index, object item)
-                {
-                    _list.Insert(index, item);
-                    _owner.InvalidateSummaryResult();
-                }
-
-                public bool Remove(object item)
-                {
-                    bool ret = _list.Remove(item);
-                    if (ret)
-                    {
-                        _owner.InvalidateSummaryResult();
-                    }
-                    return ret;
-                }
-
-                public void RemoveAt(int index)
-                {
-                    _list.RemoveAt(index);
-                    _owner.InvalidateSummaryResult();
-                }
-
-                IEnumerator IEnumerable.GetEnumerator()
-                {
-                    return ((IEnumerable)_list).GetEnumerator();
-                }
-                internal ItemCollection(SummaryCell owner)
-                {
-                    if (owner == null)
-                    {
-                        throw new ArgumentNullException("owner");
-                    }
-                    _owner = owner;
-                }
-            }
             public ItemCollection Items { get; private set; }
-            public Axis.AxisValueArray KeyAxis { get; internal set; }
+            public AxisValueArray KeyAxis { get; internal set; }
             public SummaryOperatorBase[] Summaries { get; internal set; }
 
-            public SummaryCell(IList<Axis> axises, Axis.AxisValueArray key, IList<SummaryDefinition> summaryDefinitions)
+            public SummaryCell(IList<Axis> axises, AxisValueArray key, IList<SummaryDefinition> summaryDefinitions)
             {
-                Items = new ItemCollection(this);
+                Items = new ItemCollection();
+                Items.CollectionChanged += Items_CollectionChanged;
+
                 KeyAxis = key;
                 Summaries = new SummaryOperatorBase[summaryDefinitions.Count];
                 for (int i = 0; i < Summaries.Length; i++)
                 {
                     Summaries[i] = summaryDefinitions[i].NewOperator(this, axises[i]);
                 }
+            }
+
+            private void Items_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+            {
+                InvalidateSummaryResult();
             }
 
             public void Add(object record)
@@ -459,5 +380,7 @@ namespace Db2Source
                 return KeyAxis.GetHashCode();
             }
         }
+
+        public class SummaryCellCollection: ObservableCollection<SummaryCell> { }
     }
 }

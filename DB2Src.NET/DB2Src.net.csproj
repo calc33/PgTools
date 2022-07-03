@@ -122,6 +122,9 @@
     <Compile Include="CrossTable.axis.cs" />
     <Compile Include="CrossTable.cs" />
     <Compile Include="CrossTable.cell.cs" />
+    <Compile Include="CrossTableViewer.xaml.cs">
+      <DependentUpon>CrossTableViewer.xaml</DependentUpon>
+    </Compile>
     <Compile Include="CsvUtil.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
@@ -185,6 +188,9 @@
       <DependentUpon>QueryControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="QueryStore.cs" />
+    <Compile Include="RecordCountWindow.xaml.cs">
+      <DependentUpon>RecordCountWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RecordViewerWindow.xaml.cs">
       <DependentUpon>RecordViewerWindow.xaml</DependentUpon>
     </Compile>
@@ -270,6 +276,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="CrossTableViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="EditPgsqlSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -347,6 +357,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="QueryControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RecordCountWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

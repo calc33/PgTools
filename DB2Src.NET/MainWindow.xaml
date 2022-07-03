@@ -523,7 +523,7 @@
                         </Border>
                     </StackPanel>
                     <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True"
-                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
+                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}" Margin="0,5,0,-5">
                         <TreeView.ContextMenu>
                             <ContextMenu IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
@@ -532,6 +532,7 @@
                                     <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>
                                     <MenuItem x:Name="menuItemNewUser" Header="ユーザー" IsEnabled="False"/>
                                 </MenuItem>
+                                <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
                             </ContextMenu>
                         </TreeView.ContextMenu>
                         <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">

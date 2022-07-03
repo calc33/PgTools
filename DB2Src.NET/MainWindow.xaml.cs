@@ -1553,6 +1553,17 @@ namespace Db2Source
             }
             OpenViewer(db);
         }
+
+        private void menuItemCount_Click(object sender, RoutedEventArgs e)
+        {
+            RecordCountWindow win = new RecordCountWindow()
+            {
+                Owner = this,
+                WindowStartupLocation = WindowStartupLocation.CenterScreen,
+                DataSet = CurrentDataSet
+            };
+            win.Show();
+        }
     }
     public class RGBToColorBrushConverter : IValueConverter
     {
