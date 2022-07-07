@@ -20,8 +20,8 @@ namespace Db2Source
                 throw new ArgumentNullException("item");
             }
             Item = item;
-            Text = item.Identifier;
-            ItemName = item.Identifier;
+            Text = item.FullIdentifier;
+            ItemName = item.FullIdentifier;
             IsNew = false;
         }
         public DisplayItem(NamedObject item, string text)

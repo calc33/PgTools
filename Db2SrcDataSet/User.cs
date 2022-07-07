@@ -134,6 +134,12 @@ namespace Db2Source
                 && IsPasswordShadowed == u.IsPasswordShadowed
                 && PasswordExpiration == u.PasswordExpiration;
         }
+
+        protected override string GetFullIdentifier()
+        {
+            return Id;
+        }
+        
         protected override string GetIdentifier()
         {
             return Id;

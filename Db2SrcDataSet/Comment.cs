@@ -37,9 +37,13 @@ namespace Db2Source
         {
             return GetTarget()?.GetSqlType();
         }
+        protected override string GetFullIdentifier()
+        {
+            return Db2SourceContext.JointIdentifier(SchemaName, Target);
+        }
         protected override string GetIdentifier()
         {
-            return Context.GetEscapedIdentifier(SchemaName, Target, null, true);
+            return Target;
         }
 
         /// <summary>
@@ -74,7 +78,7 @@ namespace Db2Source
             {
                 return false;
             }
-            if (Identifier != obj.Identifier)
+            if (FullIdentifier != obj.FullIdentifier)
             {
                 return false;
             }
@@ -224,9 +228,13 @@ namespace Db2Source
                 InvalidateIdentifier();
             }
         }
+        protected override string GetFullIdentifier()
+        {
+            return Db2SourceContext.JointIdentifier(SchemaName, Target, _column);
+        }
         protected override string GetIdentifier()
         {
-            return base.GetIdentifier() + "." + _column;
+            return Db2SourceContext.JointIdentifier(Target, _column);
         }
         public override ICommentable GetTarget()
         {
@@ -252,6 +260,10 @@ namespace Db2Source
     public class StoredFunctionComment : Comment
     {
         private string[] _arguments = StrUtil.EmptyStringArray;
+        protected override string GetFullIdentifier()
+        {
+            return base.GetFullIdentifier() + StrUtil.DelimitedText(_arguments, ",", "(", ")");
+        }
         protected override string GetIdentifier()
         {
             return base.GetIdentifier() + StrUtil.DelimitedText(_arguments, ",", "(", ")");
@@ -282,13 +294,17 @@ namespace Db2Source
         internal SubObjectComment(Db2SourceContext context, string schema, string table, string subObject, string comment, bool isLoaded) : base(context, schema, subObject, table, comment, isLoaded)
         {
         }
+        protected override string GetFullIdentifier()
+        {
+            return Target + "@" + Db2SourceContext.JointIdentifier(SchemaName, Owner);
+        }
         protected override string GetIdentifier()
         {
-            return Target + "@" + Context.GetEscapedIdentifier(SchemaName, Owner, null, true);
+            return Target + "@" + Owner;
         }
         public override string EscapedTargetName(string baseSchemaName)
         {
-            return Context.GetEscapedIdentifier(null, Target, null, true);
+            return Context.GetEscapedIdentifier(Target, true);
         }
     }
     public class TriggerComment : SubObjectComment

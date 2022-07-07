@@ -117,6 +117,10 @@ namespace Db2Source
             }
         }
 
+        protected override string GetFullIdentifier()
+        {
+            return Name;
+        }
         protected override string GetIdentifier()
         {
             return Name;

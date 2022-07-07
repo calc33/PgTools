@@ -61,7 +61,7 @@ namespace Db2Source
                 {
                     return -1;
                 }
-                return string.Compare(Target?.Identifier, ((TableRecordCount)obj).Target?.Identifier);
+                return string.Compare(Target?.FullIdentifier, ((TableRecordCount)obj).Target?.FullIdentifier);
             }
         }
 
@@ -244,12 +244,12 @@ namespace Db2Source
                 {
                     return -1;
                 }
-                return string.Compare(Target?.Identifier, ((TreeNode)obj).Target?.Identifier);
+                return string.Compare(Target?.FullIdentifier, ((TreeNode)obj).Target?.FullIdentifier);
             }
 
             public override string ToString()
             {
-                return Target?.Identifier;
+                return Target?.FullIdentifier;
             }
         }
 
@@ -383,7 +383,6 @@ namespace Db2Source
         private void UpdateListBoxTables()
         {
             _updateListBoxTablesTimer.Stop();
-            System.Media.SystemSounds.Asterisk.Play();
             UpdateFilteredEntries();
             List<TreeNode> l = new List<TreeNode>();
             foreach (TreeNode node in _filteredEntries)
@@ -501,30 +500,6 @@ namespace Db2Source
                 ToggleSelectedItems();
                 e.Handled = true;
             }
-        }
-    }
-    public class LevelWidthConverter : IValueConverter
-    {
-        private const double WIDTH_PER_LEVEL = 10.0;
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null)
-            {
-                return new GridLength(WIDTH_PER_LEVEL);
-            }
-            try
-            {
-                return new GridLength((System.Convert.ToDouble(value) + 1) * WIDTH_PER_LEVEL);
-            }
-            catch
-            {
-                return value;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }

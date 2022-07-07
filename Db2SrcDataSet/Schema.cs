@@ -91,6 +91,10 @@ namespace Db2Source
             _collections = new NamedCollection[] { null, Objects, Constraints, Columns, Comments, Indexes, Triggers, Sequences /*, Procedures */ };
         }
 
+        protected override string GetFullIdentifier()
+        {
+            return Name;
+        }
         protected override string GetIdentifier()
         {
             return Name;
@@ -156,7 +160,7 @@ namespace Db2Source
                     l = new List<string>();
                     dict.Add(key, l);
                 }
-                string v = t.Identifier;
+                string v = t.FullIdentifier;
                 l.Add(v);
             }
             _storedProcToTrigger = new Dictionary<string, string[]>();
@@ -172,7 +176,7 @@ namespace Db2Source
         {
             UpdateStoredProcToTrigger();
             string[] triggerNames;
-            if (!_storedProcToTrigger.TryGetValue(triggerFunction.Identifier, out triggerNames))
+            if (!_storedProcToTrigger.TryGetValue(triggerFunction.FullIdentifier, out triggerNames))
             {
                 return NoTrigger;
             }

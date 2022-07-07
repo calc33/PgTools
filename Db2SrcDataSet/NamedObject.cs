@@ -8,6 +8,13 @@ namespace Db2Source
 {
     public abstract partial class NamedObject : IComparable, IDisposable, INotifyPropertyChanged
     {
+        public string FullIdentifier
+        {
+            get
+            {
+                return GetFullIdentifier();
+            }
+        }
         public string Identifier
         {
             get
@@ -15,6 +22,7 @@ namespace Db2Source
                 return GetIdentifier();
             }
         }
+        protected abstract string GetFullIdentifier();
         protected abstract string GetIdentifier();
         protected void InvalidateIdentifier()
         {
@@ -95,7 +103,7 @@ namespace Db2Source
             {
                 return false;
             }
-            if (Identifier != obj.Identifier)
+            if (FullIdentifier != obj.FullIdentifier)
             {
                 return false;
             }
@@ -119,7 +127,7 @@ namespace Db2Source
 
         public override string ToString()
         {
-            return Identifier;
+            return FullIdentifier;
         }
         public override bool Equals(object obj)
         {
@@ -131,15 +139,16 @@ namespace Db2Source
             {
                 return false;
             }
-            return Identifier == ((NamedObject)obj).Identifier;
+            return FullIdentifier == ((NamedObject)obj).FullIdentifier;
         }
         public override int GetHashCode()
         {
-            if (string.IsNullOrEmpty(Identifier))
+            string id = FullIdentifier;
+            if (string.IsNullOrEmpty(id))
             {
                 return 0;
             }
-            return Identifier.GetHashCode();
+            return id.GetHashCode();
         }
         public virtual int CompareTo(object obj)
         {
@@ -151,7 +160,7 @@ namespace Db2Source
             {
                 return string.Compare(GetType().FullName, obj.GetType().FullName);
             }
-            return string.Compare(Identifier, ((NamedObject)obj).Identifier);
+            return string.Compare(FullIdentifier, ((NamedObject)obj).FullIdentifier);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -217,12 +226,13 @@ namespace Db2Source
                 List<NamedObject> source = new List<NamedObject>(_list);
                 foreach (NamedObject item in source)
                 {
-                    if (string.IsNullOrEmpty(item.Identifier))
+                    //string id = item.FullIdentifier;
+                    string id = item.Identifier;
+                    if (string.IsNullOrEmpty(id))
                     {
                         continue;
                     }
                     //重複している場合には古い方(_serialが小さい方)を削除
-                    string id = item.Identifier;
                     NamedObject old;
                     if (!dict.TryGetValue(id, out old))
                     {

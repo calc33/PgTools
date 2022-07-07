@@ -498,6 +498,7 @@ namespace Db2Source
             #endregion
         }
 
+        private string _fullIdentifier;
         private string _identifier;
         //private string _nameExtension;
         private string _definition;
@@ -572,6 +573,7 @@ namespace Db2Source
 
         internal void InvalidateName()
         {
+            _fullIdentifier = null;
             _identifier = null;
             _displayName = null;
             _headerDef = null;
@@ -587,11 +589,11 @@ namespace Db2Source
             _identifier = id;
             if (!string.IsNullOrEmpty(Owner))
             {
-                _identifier = Owner + "." + id;
+                _fullIdentifier = Owner + "." + _identifier;
             }
             else
             {
-                _identifier = id;
+                _fullIdentifier = _identifier;
             }
         }
 
@@ -628,6 +630,11 @@ namespace Db2Source
                 UpdateDisplayName();
                 return _displayName;
             }
+        }
+        protected override string GetFullIdentifier()
+        {
+            UpdateIdentifier();
+            return _fullIdentifier;
         }
         protected override string GetIdentifier()
         {

@@ -37,6 +37,10 @@ namespace Db2Source
             }
         }
         internal Tablespace _backup;
+        protected override string GetFullIdentifier()
+        {
+            return Name;
+        }
         protected override string GetIdentifier()
         {
             return Name;

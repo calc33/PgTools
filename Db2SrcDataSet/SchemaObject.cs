@@ -94,9 +94,13 @@ namespace Db2Source
                 return _name;
             }
         }
-        protected override string GetIdentifier()
+        protected override string GetFullIdentifier()
         {
             return FullName;
+        }
+        protected override string GetIdentifier()
+        {
+            return Name;
         }
 
         public string FullName
@@ -297,7 +301,7 @@ namespace Db2Source
                 return false;
             }
             SchemaObject sc = (SchemaObject)obj;
-            return Schema.Equals(sc.Schema) && (Identifier == sc.Identifier);
+            return Schema.Equals(sc.Schema) && (FullIdentifier == sc.FullIdentifier);
         }
         public override int GetHashCode()
         {
@@ -320,7 +324,7 @@ namespace Db2Source
             {
                 return ret;
             }
-            ret = string.Compare(Identifier, sc.Identifier);
+            ret = string.Compare(FullIdentifier, sc.FullIdentifier);
             return ret;
         }
     }

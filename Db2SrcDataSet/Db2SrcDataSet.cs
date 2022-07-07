@@ -771,8 +771,11 @@ namespace Db2Source
                     }
                     break;
                 case SourceSchemaOption.Every:
-                    buf.Append(GetEscapedIdentifier(schemaName, strict));
-                    buf.Append('.');
+                    if (!string.IsNullOrEmpty(schemaName))
+                    {
+                        buf.Append(GetEscapedIdentifier(schemaName, strict));
+                        buf.Append('.');
+                    }
                     break;
             }
             bool needDot = false;
@@ -786,6 +789,14 @@ namespace Db2Source
                 needDot = true;
             }
             return buf.ToString();
+        }
+        public static string JointIdentifier(string id1, string id2)
+        {
+            return id1 + "." + id2;
+        }
+        public static string JointIdentifier(string id1, string id2, string id3)
+        {
+            return id1 + "." + id2 + "." + id3;
         }
         /// <summary>
         /// 
@@ -1250,7 +1261,7 @@ namespace Db2Source
             }
             Schema sch = table.Schema;
             //string schnm = sch.Name;
-            string objid = table.Identifier;
+            string objid = table.FullIdentifier;
             Schema.CollectionIndex idx = table.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1268,7 +1279,7 @@ namespace Db2Source
             }
             Schema sch = view.Schema;
             //string schnm = sch.Name;
-            string objid = view.Identifier;
+            string objid = view.FullIdentifier;
             Schema.CollectionIndex idx = view.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1291,7 +1302,7 @@ namespace Db2Source
             }
             Schema sch = type.Schema;
             //string schnm = sch.Name;
-            string objid = type.Identifier;
+            string objid = type.FullIdentifier;
             Schema.CollectionIndex idx = type.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
@@ -1312,7 +1323,7 @@ namespace Db2Source
                 throw new ArgumentNullException("function");
             }
             Schema sch = function.Schema;
-            string objid = function.Identifier;
+            string objid = function.FullIdentifier;
             Schema.CollectionIndex idx = function.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {

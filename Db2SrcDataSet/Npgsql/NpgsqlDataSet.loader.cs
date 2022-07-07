@@ -3546,7 +3546,7 @@ namespace Db2Source
             StoredFunction ret = null;
             string sch = function.SchemaName;
             string name = function.Name;
-            string id = function.Identifier;
+            string id = function.FullIdentifier;
             if (_backend == null)
             {
                 LoadSchema(connection, false);

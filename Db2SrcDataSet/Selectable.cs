@@ -27,9 +27,13 @@ namespace Db2Source
         private string _tableName;
         private Selectable _owner;
         private string _name;
+        protected override string GetFullIdentifier()
+        {
+            return Db2SourceContext.JointIdentifier(SchemaName, TableName, Name);
+        }
         protected override string GetIdentifier()
         {
-            return Table?.Identifier + "." + Name;
+            return Db2SourceContext.JointIdentifier(TableName, Name);
         }
         private int _index;
         public int Index { get
@@ -207,7 +211,7 @@ namespace Db2Source
         }
         public override string ToString()
         {
-            return Identifier;
+            return FullIdentifier;
         }
 
         public Selectable Table

@@ -272,7 +272,7 @@ namespace Db2Source
 
         protected override string GetIdentifier()
         {
-            string s = string.IsNullOrEmpty(TableSchema) ? TableName : TableSchema + "." + TableName;
+            string s = Db2SourceContext.JointIdentifier(TableSchema, TableName);
             return string.Format("{0}@{1}", Name, s);
         }
         private TriggerTiming _timing;
