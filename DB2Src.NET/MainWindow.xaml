@@ -486,6 +486,7 @@
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
                     <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
+                    <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
                     <MenuItem x:Name="menuItemSessionList" Header="セッション一覧" Click="menuItemSessionList_Click"/>
                     <MenuItem x:Name="menuItemQueryHistory" Header="クエリ履歴" Click="menuItemQueryHistory_Click"/>
                     <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
@@ -532,7 +533,6 @@
                                     <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>
                                     <MenuItem x:Name="menuItemNewUser" Header="ユーザー" IsEnabled="False"/>
                                 </MenuItem>
-                                <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
                             </ContextMenu>
                         </TreeView.ContextMenu>
                         <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">

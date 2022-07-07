@@ -188,8 +188,8 @@
       <DependentUpon>QueryControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="QueryStore.cs" />
-    <Compile Include="RecordCountWindow.xaml.cs">
-      <DependentUpon>RecordCountWindow.xaml</DependentUpon>
+    <Compile Include="RecordCountControl.xaml.cs">
+      <DependentUpon>RecordCountControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="RecordViewerWindow.xaml.cs">
       <DependentUpon>RecordViewerWindow.xaml</DependentUpon>
@@ -360,7 +360,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="RecordCountWindow.xaml">
+    <Page Include="RecordCountControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

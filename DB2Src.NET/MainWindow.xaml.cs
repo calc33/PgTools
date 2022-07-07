@@ -1554,15 +1554,27 @@ namespace Db2Source
             OpenViewer(db);
         }
 
+        private WeakReference<TabItem> _recordCountTabItem;
         private void menuItemCount_Click(object sender, RoutedEventArgs e)
         {
-            RecordCountWindow win = new RecordCountWindow()
+            TabItem item;
+            if (_recordCountTabItem != null && _recordCountTabItem.TryGetTarget(out item))
             {
-                Owner = this,
-                WindowStartupLocation = WindowStartupLocation.CenterScreen,
-                DataSet = CurrentDataSet
-            };
-            win.Show();
+                if (item.Parent != null)
+                {
+                    tabControlMain.Items.Add(item);
+                }
+                tabControlMain.SelectedItem = item;
+                return;
+            }
+
+            RecordCountControl c = new RecordCountControl();
+            Binding b = new Binding("CurrentDataSet");
+            b.Source = this;
+            c.SetBinding(RecordCountControl.DataSetProperty, b);
+            item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), c, FindResource("TabItemStyleClosable") as Style);
+            _recordCountTabItem = new WeakReference<TabItem>(item);
+            tabControlMain.SelectedItem = item;
         }
     }
     public class RGBToColorBrushConverter : IValueConverter

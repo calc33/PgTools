@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
@@ -13,16 +12,18 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace Db2Source
 {
     /// <summary>
-    /// RecordCountWindow.xaml の相互作用ロジック
+    /// RecordCountControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class RecordCountWindow : Window
+    public partial class RecordCountControl : UserControl, ISchemaObjectWpfControl
     {
+        //private static TabItem TabItem;
         private static bool IsTrue(bool? value)
         {
             return value.HasValue && value.Value;
@@ -32,7 +33,7 @@ namespace Db2Source
             return value.HasValue && !value.Value;
         }
 
-        public class TableRecordCount: DependencyObject, IComparable
+        public class TableRecordCount : DependencyObject, IComparable
         {
             public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TableRecordCount));
             public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(TableRecordCount));
@@ -104,7 +105,7 @@ namespace Db2Source
                 }
             }
 
-            public RecordCountWindow Owner { get; internal set; }
+            public RecordCountControl Owner { get; internal set; }
 
             private void UpdateIsCheckedByChildren()
             {
@@ -173,7 +174,7 @@ namespace Db2Source
                 Parent?.UpdateIsCheckedByChildren();
             }
 
-            public TreeNode(RecordCountWindow owner, TreeNode parent, NamedObject target)
+            public TreeNode(RecordCountControl owner, TreeNode parent, NamedObject target)
             {
                 Parent = parent;
                 Target = target;
@@ -255,7 +256,7 @@ namespace Db2Source
 
         internal bool IsCheckedUpdating;
 
-        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(RecordCountWindow));
+        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(RecordCountControl));
 
         public Db2SourceContext DataSet
         {
@@ -266,6 +267,8 @@ namespace Db2Source
         private List<TreeNode> _filteredEntries = new List<TreeNode>();
         //private List<TableRecordCount> _visibleItems { get; set; } = new List<TableRecordCount>();
         private List<TableRecordCount> _checkedItems { get; set; } = new List<TableRecordCount>();
+        public SchemaObject Target { get { return null; } set { } }
+        public string SelectedTabKey { get { return null; } set { } }
 
         private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
@@ -282,11 +285,16 @@ namespace Db2Source
             base.OnPropertyChanged(e);
         }
 
-        public RecordCountWindow()
+        public RecordCountControl()
         {
             InitializeComponent();
-            _updateListBoxTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500*10000), IsEnabled = false };
+            _updateListBoxTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500 * 10000), IsEnabled = false };
             _updateListBoxTablesTimer.Tick += UpdateDataGridTablesTimer_Tick;
+        }
+
+        public string GetTabItemHeader()
+        {
+            return (string)Resources["tabItemHeader"];
         }
 
         private void UpdateDataGridTablesTimer_Tick(object sender, EventArgs e)
@@ -297,31 +305,34 @@ namespace Db2Source
         private void UpdateItems()
         {
             List<TreeNode> l = new List<TreeNode>();
-            foreach (Schema sc in DataSet.Schemas)
+            if (DataSet != null)
             {
-                if (sc.IsHidden)
+                foreach (Schema sc in DataSet.Schemas)
                 {
-                    continue;
-                }
-                TreeNode nodeSc = new TreeNode(this, null, sc) { IsFolded = true };
-                List<TreeNode> lTbl = new List<TreeNode>();
-                foreach (SchemaObject obj in sc.Objects)
-                {
-                    if (!(obj is Table))
+                    if (sc.IsHidden)
                     {
                         continue;
                     }
-                    TableRecordCount rec = new TableRecordCount() { Target = (Selectable)obj };
-                    TreeNode node = new TreeNode(this, nodeSc, obj) { RecordCount = rec, IsChecked = false };
-                    BindingOperations.SetBinding(rec, TableRecordCount.IsCheckedProperty, new Binding("IsChecked") { Source = node, Mode = BindingMode.TwoWay });
-                    lTbl.Add(node);
-                }
-                lTbl.Sort();
+                    TreeNode nodeSc = new TreeNode(this, null, sc) { IsFolded = true };
+                    List<TreeNode> lTbl = new List<TreeNode>();
+                    foreach (SchemaObject obj in sc.Objects)
+                    {
+                        if (!(obj is Table))
+                        {
+                            continue;
+                        }
+                        TableRecordCount rec = new TableRecordCount() { Target = (Selectable)obj };
+                        TreeNode node = new TreeNode(this, nodeSc, obj) { RecordCount = rec, IsChecked = false };
+                        BindingOperations.SetBinding(rec, TableRecordCount.IsCheckedProperty, new Binding("IsChecked") { Source = node, Mode = BindingMode.TwoWay });
+                        lTbl.Add(node);
+                    }
+                    lTbl.Sort();
 
-                if (lTbl.Count != 0)
-                {
-                    nodeSc.Items = lTbl.ToArray();
-                    l.Add(nodeSc);
+                    if (lTbl.Count != 0)
+                    {
+                        nodeSc.Items = lTbl.ToArray();
+                        l.Add(nodeSc);
+                    }
                 }
             }
             l.Sort();
@@ -500,6 +511,45 @@ namespace Db2Source
                 ToggleSelectedItems();
                 e.Handled = true;
             }
+        }
+
+        public void OnTabClosing(object sender, ref bool cancel)
+        {
+
+        }
+
+        public void OnTabClosed(object sender)
+        {
+            //throw new NotImplementedException();
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+    }
+    public class LevelWidthConverter : IValueConverter
+    {
+        private const double WIDTH_PER_LEVEL = 10.0;
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null)
+            {
+                return new GridLength(WIDTH_PER_LEVEL);
+            }
+            try
+            {
+                return new GridLength((System.Convert.ToDouble(value) + 1) * WIDTH_PER_LEVEL);
+            }
+            catch
+            {
+                return value;
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }
