@@ -571,7 +571,7 @@ namespace Db2Source
                 Dictionary<string, T> dict = new Dictionary<string, T>();
                 foreach (T obj in _items)
                 {
-                    string id = obj.GetIdentifier();
+                    string id = obj.GetIdentifier(true);
                     if (string.IsNullOrEmpty(id))
                     {
                         continue;
@@ -850,7 +850,7 @@ namespace Db2Source
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
             public abstract void FillReference(WorkingData working);
-            public abstract string GetIdentifier();
+            public abstract string GetIdentifier(bool fullName);
             public PgObject() { }
         }
         private class PgNamespace: PgObject
@@ -888,7 +888,7 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
             }
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
                 return nspname;
             }
@@ -1059,9 +1059,9 @@ namespace Db2Source
                     }
                 }
             }
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(Schema?.nspname, relname);
+                return fullName ? ToIdentifier(Schema?.nspname, relname) : relname;
             }
             public override void BeginFillReference(WorkingData working)
             {
@@ -1511,9 +1511,9 @@ namespace Db2Source
                 }
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(Schema?.nspname, typname);
+                return fullName ? ToIdentifier(Schema?.nspname, typname) : typname;
             }
             public override string ToString()
             {
@@ -1733,9 +1733,9 @@ namespace Db2Source
                 }
                 return null;
             }
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(Schema?.nspname, Object?.relname, conname);
+                return fullName ? ToIdentifier(Schema?.nspname, Object?.relname, conname) : ToIdentifier(Object?.relname, conname);
             }
 
             public override string ToString()
@@ -1987,31 +1987,73 @@ namespace Db2Source
                     TargetAttribute = working.PgAttributes.FindByOidNum(objoid, objsubid);
                 }
             }
-            private string[] GetTargetName()
+            private string[] GetTargetName(bool fullName)
             {
                 if (TargetAttribute != null)
                 {
-                    return new string[] { TargetAttribute.Owner?.Schema?.nspname, TargetAttribute.Owner?.relname, TargetAttribute.attname };
+                    if (fullName)
+                    {
+                        return new string[] { TargetAttribute.Owner?.Schema?.nspname, TargetAttribute.Owner?.relname, TargetAttribute.attname };
+                    }
+                    else
+                    {
+                        return new string[] { TargetAttribute.Owner?.relname, TargetAttribute.attname };
+                    }
                 }
                 if (TargetClass != null)
                 {
-                    return new string[] { TargetClass.Schema?.nspname, TargetClass.relname };
+                    if (fullName)
+                    {
+                        return new string[] { TargetClass.Schema?.nspname, TargetClass.relname };
+                    }
+                    else
+                    {
+                        return new string[] { TargetClass.relname };
+                    }
                 }
                 if (TargetConstraint != null)
                 {
-                    return new string[] { TargetConstraint.Schema?.nspname, TargetConstraint.conname };
+                    if (fullName)
+                    {
+                        return new string[] { TargetConstraint.Schema?.nspname, TargetConstraint.conname };
+                    }
+                    else
+                    {
+                        return new string[] { TargetConstraint.conname };
+                    }
                 }
                 if (TargetProc != null)
                 {
-                    return new string[] { TargetProc.Schema?.nspname, TargetProc.GetIdentifier() };
+                    if (fullName)
+                    {
+                        return new string[] { TargetProc.Schema?.nspname, TargetProc.GetIdentifier(false) };
+                    }
+                    else
+                    {
+                        return new string[] { TargetProc.GetIdentifier(false) };
+                    }
                 }
                 if (TargetTrigger != null)
                 {
-                    return new string[] { TargetTrigger.Target?.Schema.nspname, TargetTrigger.tgname };
+                    if (fullName)
+                    {
+                        return new string[] { TargetTrigger.Target?.Schema.nspname, TargetTrigger.tgname };
+                    }
+                    else
+                    {
+                        return new string[] { TargetTrigger.Target?.Schema.nspname, TargetTrigger.tgname };
+                    }
                 }
                 if (TargetType != null)
                 {
-                    return new string[] { TargetType.Schema?.nspname, TargetType.typname };
+                    if (fullName)
+                    {
+                        return new string[] { TargetType.Schema?.nspname, TargetType.typname };
+                    }
+                    else
+                    {
+                        return new string[] { TargetType.typname };
+                    }
                 }
                 return new string[0];
             }
@@ -2052,9 +2094,9 @@ namespace Db2Source
                 return c;
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(GetTargetName());
+                return ToIdentifier(GetTargetName(fullName));
             }
             public override string ToString()
             {
@@ -2229,7 +2271,7 @@ namespace Db2Source
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
                 {
                     ProcedureSchema = Procedure.Schema?.nspname,
-                    ProcedureName = Procedure.GetIdentifier(),
+                    ProcedureName = Procedure.GetIdentifier(false),
                     Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
                 };
 
@@ -2316,9 +2358,9 @@ namespace Db2Source
                 return t;
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(Target?.Schema?.nspname, Target?.relname, tgname);
+                return fullName ? ToIdentifier(Target?.Schema?.nspname, Target?.relname, tgname) : ToIdentifier(Target?.relname, tgname);
             }
             public override string ToString()
             {
@@ -2378,7 +2420,7 @@ namespace Db2Source
 
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
                 return spcname;
             }
@@ -2449,9 +2491,9 @@ namespace Db2Source
                 return StrUtil.DelimitedText(GetArgTypeStrs(), ",", "(", ")");
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
-                return ToIdentifier(Schema?.nspname, proname + GetArgumentStr());
+                return fullName ? ToIdentifier(Schema?.nspname, proname + GetArgumentStr()) : proname + GetArgumentStr();
             }
             public static void FillByOid(PgObjectCollection<PgProc> store, NpgsqlConnection connection, uint oid)
             {
@@ -2717,7 +2759,7 @@ namespace Db2Source
                 return ret;
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
                 return datname;
             }
@@ -2987,7 +3029,7 @@ namespace Db2Source
                 return u;
             }
 
-            public override string GetIdentifier()
+            public override string GetIdentifier(bool fullName)
             {
                 return rolname;
             }
