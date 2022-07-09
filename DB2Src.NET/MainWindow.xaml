@@ -503,7 +503,7 @@
                     <ColumnDefinition Width="1*" MinWidth="34"/>
                 </Grid.ColumnDefinitions>
                 <DockPanel Margin="0,0,4,0">
-                    <StackPanel DockPanel.Dock="Top" Margin="0,0,0,2">
+                    <StackPanel DockPanel.Dock="Top" Margin="0,2">
                         <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Background="Transparent">
                             <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
                                 <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
@@ -524,7 +524,7 @@
                         </Border>
                     </StackPanel>
                     <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True"
-                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}" Margin="0,5,0,-5">
+                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
                         <TreeView.ContextMenu>
                             <ContextMenu IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
