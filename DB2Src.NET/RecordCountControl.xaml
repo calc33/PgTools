@@ -137,17 +137,17 @@
         <Border DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="1,2" BorderThickness="1" BorderBrush="{DynamicResource TextBox.Static.Border}">
             <StackPanel Orientation="Horizontal">
                 <TextBox x:Name="textBoxFilterTable" MinWidth="200" BorderThickness="0" TextChanged="textBoxFilterTable_TextChanged" KeyDown="textBoxFilterTable_KeyDown" ToolTip="(テーブル名で絞り込み)"/>
-                <Button x:Name="buttonSearch" ContentTemplate="{StaticResource ImageSearch14}" Background="Transparent" BorderThickness="0" Click="buttonSearch_Click"/>
+                <Button x:Name="buttonSearch" ContentTemplate="{StaticResource ImageSearch14}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderThickness="0" Click="buttonSearch_Click"/>
             </StackPanel>
         </Border>
         <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
-            <Button x:Name="buttonExecute" Content="件数取得" ToolTip="チェックを入れたテーブルの件数を取得します" Margin="2,2,2,0" Click="buttonExecute_Click" Height="20" VerticalAlignment="Top"/>
+            <Button x:Name="buttonExecute" Content="件数取得" ToolTip="チェックを入れたテーブルの件数を取得します" Margin="2" Click="buttonExecute_Click" Height="20" VerticalAlignment="Top"/>
         </StackPanel>
         <ListBox x:Name="listBoxTables"  Grid.Row="1" MinWidth="200" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" DisplayMemberPath="Target.Name"/>
         <GridSplitter Grid.RowSpan="2" Grid.Column="1" Width="5" HorizontalAlignment="Left"/>
         <DataGrid Grid.Row="1" Grid.Column="1" x:Name="dataGridTables" Margin="5,0,0,0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" PreviewMouseLeftButtonUp="dataGridTables_PreviewMouseLeftButtonUp" PreviewKeyUp="dataGridTables_PreviewKeyUp">
             <DataGrid.Columns>
-                <DataGridCheckBoxColumn x:Name="dataGridTablesChecked" Header="" Binding="{Binding IsChecked}" IsReadOnly="True"/>
+                <!--<DataGridCheckBoxColumn x:Name="dataGridTablesChecked" Header="" Binding="{Binding IsChecked}" IsReadOnly="True"/>-->
                 <DataGridTextColumn Header="テーブル" Binding="{Binding Target.FullName}" IsReadOnly="True"/>
                 <DataGridTextColumn Header="件数" Binding="{Binding Count}" IsReadOnly="True">
                     <DataGridTextColumn.ElementStyle>

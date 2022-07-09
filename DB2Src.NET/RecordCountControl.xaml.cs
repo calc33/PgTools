@@ -172,6 +172,7 @@ namespace Db2Source
                     }
                 }
                 Parent?.UpdateIsCheckedByChildren();
+                Owner.DelayedUpdateDataGridTables();
             }
 
             public TreeNode(RecordCountControl owner, TreeNode parent, NamedObject target)
@@ -289,7 +290,14 @@ namespace Db2Source
         {
             InitializeComponent();
             _updateListBoxTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500 * 10000), IsEnabled = false };
-            _updateListBoxTablesTimer.Tick += UpdateDataGridTablesTimer_Tick;
+            _updateListBoxTablesTimer.Tick += UpdateListBoxTablesTimer_Tick;
+            _updateDataGridTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500 * 10000), IsEnabled = false };
+            _updateDataGridTablesTimer.Tick += UpdateDataGridTablesTimer_Tick;
+        }
+
+        private void UpdateDataGridTablesTimer_Tick(object sender, EventArgs e)
+        {
+            UpdateDataGridTables();
         }
 
         public string GetTabItemHeader()
@@ -297,7 +305,7 @@ namespace Db2Source
             return (string)Resources["tabItemHeader"];
         }
 
-        private void UpdateDataGridTablesTimer_Tick(object sender, EventArgs e)
+        private void UpdateListBoxTablesTimer_Tick(object sender, EventArgs e)
         {
             UpdateListBoxTables();
         }
@@ -405,10 +413,16 @@ namespace Db2Source
         }
 
         private DispatcherTimer _updateListBoxTablesTimer;
+        private DispatcherTimer _updateDataGridTablesTimer;
 
         private void DelayedUpdateListBoxTables()
         {
             _updateListBoxTablesTimer.IsEnabled = true;
+        }
+
+        private void DelayedUpdateDataGridTables()
+        {
+            _updateDataGridTablesTimer.IsEnabled = true;
         }
 
         private void AddCheckedRecordCount(List<TableRecordCount> list, TreeNode node)
@@ -424,6 +438,7 @@ namespace Db2Source
         }
         private void UpdateDataGridTables()
         {
+            _updateDataGridTablesTimer.Stop();
             List<TableRecordCount> l = new List<TableRecordCount>();
             foreach (TreeNode node in _allEntries)
             {
@@ -436,14 +451,17 @@ namespace Db2Source
 
         private void textBoxFilterTable_TextChanged(object sender, TextChangedEventArgs e)
         {
-            _updateListBoxTablesTimer.IsEnabled = !string.IsNullOrEmpty(textBoxFilterTable.Text);
+            if (!string.IsNullOrEmpty(textBoxFilterTable.Text))
+            {
+                DelayedUpdateListBoxTables();
+            }
         }
 
         private void textBoxFilterTable_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
             {
-                _updateListBoxTablesTimer.IsEnabled = true;
+                DelayedUpdateListBoxTables();
             }
         }
 
@@ -456,7 +474,7 @@ namespace Db2Source
         {
             if (e.Key == Key.Enter)
             {
-                _updateListBoxTablesTimer.IsEnabled = true;
+                DelayedUpdateListBoxTables();
             }
         }
 
@@ -474,15 +492,15 @@ namespace Db2Source
 
         private void dataGridTables_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            DataGridCell cell = App.FindVisualParent<DataGridCell>(e.OriginalSource as DependencyObject);
-            if (cell != null && cell.Column == dataGridTablesChecked)
-            {
-                TableRecordCount rec = cell.DataContext as TableRecordCount;
-                if (rec != null)
-                {
-                    rec.IsChecked = !rec.IsChecked;
-                }
-            }
+            //DataGridCell cell = App.FindVisualParent<DataGridCell>(e.OriginalSource as DependencyObject);
+            //if (cell != null && cell.Column == dataGridTablesChecked)
+            //{
+            //    TableRecordCount rec = cell.DataContext as TableRecordCount;
+            //    if (rec != null)
+            //    {
+            //        rec.IsChecked = !rec.IsChecked;
+            //    }
+            //}
         }
 
         private void ToggleSelectedItems()
