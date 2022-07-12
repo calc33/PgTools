@@ -126,73 +126,17 @@ namespace Db2Source
             Dispatcher.InvokeAsync(() => { GC.Collect(); }, DispatcherPriority.ApplicationIdle);
             
         }
-
-        private static readonly object LogLock = new object();
-        internal class LogWriter
-        {
-            private static readonly string LogDir = Path.Combine(Db2SourceContext.AppDataDir, "Log");
-            private static readonly string LockPath = Path.Combine(Db2SourceContext.AppDataDir, "log_lock");
-            private string LogPath;
-            private string Message;
-            private LogWriter(string message)
-            {
-                DateTime dt = DateTime.Now;
-                LogPath = Path.Combine(LogDir, string.Format("Log{0:yyyyMMdd}.txt", dt));
-                Message = string.Format("[{0:HH:mm:ss}] {1}", dt, message);
-            }
-
-            private void DoExecute()
-            {
-                FileStream lockStream = null;
-                while (lockStream == null)
-                {
-                    try
-                    {
-                        lockStream = new FileStream(LockPath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-                    }
-                    catch (IOException)
-                    {
-                        Thread.Sleep(0);
-                    }
-                    catch { throw; }
-                }
-                try
-                {
-                    Directory.CreateDirectory(LogDir);
-                    using (StreamWriter writer = new StreamWriter(LogPath, true, Encoding.UTF8))
-                    {
-                        writer.WriteLine(Message);
-                        writer.Flush();
-                    }
-                }
-                finally
-                {
-                    lockStream.Close();
-                    lockStream.Dispose();
-                }
-            }
-
-            private void Execute()
-            {
-                Task t = Task.Run(new Action(DoExecute));
-            }
-            public static void Log(string message)
-            {
-                LogWriter writer = new LogWriter(message);
-                writer.Execute();
-            }
-        }
         public static void Log(string message)
         {
-            LogWriter.Log(message);
+            Logger.Default.Log(message);
         }
         public static void LogException(Exception t)
         {
-            LogWriter.Log(t.ToString());
+            Logger.Default.Log(t.ToString());
         }
         public static void LogException(string message, Exception t)
         {
-            LogWriter.Log(message + Environment.NewLine + t.ToString());
+            Logger.Default.Log(message + Environment.NewLine + t.ToString());
         }
 
         private static object _threadExceptionsLock = new object();

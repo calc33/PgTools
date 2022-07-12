@@ -102,6 +102,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Index.cs" />
     <Compile Include="JoinTable.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="NamedObject.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.db.cs" />
