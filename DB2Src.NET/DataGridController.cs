@@ -2079,7 +2079,7 @@ namespace Db2Source
         private static readonly char[] TabTextEscapedChars = new char[] { '\t', '\n', '\r', '"' };
         private static readonly char[] CsvEscapedChars = new char[] { '\n', '\r', '"', ',' };
         //private static readonly char[] HtmlEscapedChars = new char[] { '\n', '\r', ' ', '&', '<', '>' };
-        private string EscapedText(string value, char[] EscapedChars)
+        private static string EscapedText(string value, char[] EscapedChars)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -2588,10 +2588,8 @@ namespace Db2Source
             return data.ToArray();
         }
 
-        private void DoCopyTable(bool includesHeader)
+        public static void CopyTableToClipboard(string[][] data)
         {
-            //DataGrid gr = sender as DataGrid;
-            string[][] data = GetCellData(includesHeader);
             if (data.Length == 0)
             {
                 return;
@@ -2644,6 +2642,12 @@ namespace Db2Source
             //obj.SetData(DataFormats.Html, html);
             obj.SetData(DataFormats.CommaSeparatedValue, csv);
             Clipboard.SetDataObject(obj);
+        }
+        private void DoCopyTable(bool includesHeader)
+        {
+            //DataGrid gr = sender as DataGrid;
+            string[][] data = GetCellData(includesHeader);
+            CopyTableToClipboard(data);
         }
 
         

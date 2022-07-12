@@ -69,7 +69,7 @@ namespace Db2Source
         public class TreeNode : DependencyObject, IComparable
         {
             public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TreeNode));
-            public static readonly DependencyProperty IsFoldedProperty = DependencyProperty.Register("IsFolded", typeof(bool), typeof(TreeNode));
+            public static readonly DependencyProperty IsExpandedProperty = DependencyProperty.Register("IsExpanded", typeof(bool), typeof(TreeNode));
             public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(NamedObject), typeof(TreeNode));
             public static readonly DependencyProperty RecordCountProperty = DependencyProperty.Register("RecordCount", typeof(TableRecordCount), typeof(TreeNode));
 
@@ -79,10 +79,10 @@ namespace Db2Source
                 set { SetValue(IsCheckedProperty, value); }
             }
 
-            public bool IsFolded
+            public bool IsExpanded
             {
-                get { return (bool)GetValue(IsFoldedProperty); }
-                set { SetValue(IsFoldedProperty, value); }
+                get { return (bool)GetValue(IsExpandedProperty); }
+                set { SetValue(IsExpandedProperty, value); }
             }
             public bool IsExpandable { get { return FilteredItems.Count != 0; } }
             public bool IsLeaf { get { return Target is Selectable; } }
@@ -180,7 +180,7 @@ namespace Db2Source
                 Parent = parent;
                 Target = target;
                 IsChecked = false;
-                IsFolded = true;
+                IsExpanded = false;
                 Owner = owner;
             }
 
@@ -201,7 +201,7 @@ namespace Db2Source
 
             public int Level { get; internal set; }
 
-            private void IsFoldedPropertyChanged(DependencyPropertyChangedEventArgs e)
+            private void IsExpandedPropertyChanged(DependencyPropertyChangedEventArgs e)
             {
                 Owner?.UpdateListBoxTables();
             }
@@ -229,9 +229,9 @@ namespace Db2Source
 
             protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
             {
-                if (e.Property == IsFoldedProperty)
+                if (e.Property == IsExpandedProperty)
                 {
-                    IsFoldedPropertyChanged(e);
+                    IsExpandedPropertyChanged(e);
                 }
                 if (e.Property == IsCheckedProperty)
                 {
@@ -293,6 +293,24 @@ namespace Db2Source
             _updateListBoxTablesTimer.Tick += UpdateListBoxTablesTimer_Tick;
             _updateDataGridTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500 * 10000), IsEnabled = false };
             _updateDataGridTablesTimer.Tick += UpdateDataGridTablesTimer_Tick;
+            CommandBinding cb = new CommandBinding(DataGridCommands.CopyTable, dataGridTables_Executed, dataGridTables_CanExecute);
+            dataGridTables.CommandBindings.Add(cb);
+        }
+
+        private void dataGridTables_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = dataGridTables.ItemsSource != null;
+        }
+
+        private void dataGridTables_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            List<string[]> l = new List<string[]>();
+            l.Add(new string[] { dataGridTables.Columns[0].Header.ToString(), dataGridTables.Columns[1].Header.ToString() });
+            foreach (TableRecordCount rec in dataGridTables.ItemsSource)
+            {
+                l.Add(new string[] { rec.Target.Name, rec.Count?.ToString() });
+            }
+            DataGridController.CopyTableToClipboard(l.ToArray());
         }
 
         private void UpdateDataGridTablesTimer_Tick(object sender, EventArgs e)
@@ -321,7 +339,7 @@ namespace Db2Source
                     {
                         continue;
                     }
-                    TreeNode nodeSc = new TreeNode(this, null, sc) { IsFolded = true };
+                    TreeNode nodeSc = new TreeNode(this, null, sc) { IsExpanded = false };
                     List<TreeNode> lTbl = new List<TreeNode>();
                     foreach (SchemaObject obj in sc.Objects)
                     {
@@ -389,7 +407,7 @@ namespace Db2Source
         private void AddToList(List<TreeNode> list, TreeNode node)
         {
             list.Add(node);
-            if (!node.IsExpandable || node.IsFolded)
+            if (!node.IsExpandable || !node.IsExpanded)
             {
                 return;
             }
@@ -544,6 +562,17 @@ namespace Db2Source
         public void Dispose()
         {
             throw new NotImplementedException();
+        }
+
+        private void buttonCopyTable_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu menu = buttonCopyTable.ContextMenu;
+            menu.PlacementTarget = sender as UIElement;
+            menu.IsOpen = true;
+            foreach (MenuItem mi in menu.Items)
+            {
+                mi.CommandTarget = dataGridTables;
+            }
         }
     }
     public class LevelWidthConverter : IValueConverter

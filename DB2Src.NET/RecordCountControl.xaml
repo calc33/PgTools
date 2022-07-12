@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Db2Source.RecordCountControl"
+﻿<UserControl x:Name="userControl" x:Class="Db2Source.RecordCountControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -10,6 +10,65 @@
     <UserControl.Resources>
         <sys:String x:Key="tabItemHeader">レコード件数一覧</sys:String>
         <local:LevelWidthConverter x:Key="LevelWidthConverter"/>
+        <Style x:Key="TreeViewItemFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Checked.Fill" Color="#FF595959"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Checked.Stroke" Color="#FF262626"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.MouseOver.Stroke" Color="#FF27C7F7"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.MouseOver.Fill" Color="#FFCCEEFB"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.MouseOver.Checked.Stroke" Color="#FF1CC4F7"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.MouseOver.Checked.Fill" Color="#FF82DFFB"/>
+        <PathGeometry x:Key="TreeArrow" Figures="M0,0 L0,6 L6,0 z"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Fill" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="TreeViewItem.TreeArrow.Static.Stroke" Color="#FF818181"/>
+        <Style x:Key="ExpandCollapseToggleStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Background="Transparent" Height="16" Padding="5,5,5,5" Width="16">
+                            <Path x:Name="ExpandPath" Data="{StaticResource TreeArrow}" Fill="{StaticResource TreeViewItem.TreeArrow.Static.Fill}" Stroke="{StaticResource TreeViewItem.TreeArrow.Static.Stroke}">
+                                <Path.RenderTransform>
+                                    <RotateTransform Angle="135" CenterY="3" CenterX="3"/>
+                                </Path.RenderTransform>
+                            </Path>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="RenderTransform" TargetName="ExpandPath">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="180" CenterY="3" CenterX="3"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Fill" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.Static.Checked.Fill}"/>
+                                <Setter Property="Stroke" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.Static.Checked.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Stroke" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.MouseOver.Stroke}"/>
+                                <Setter Property="Fill" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.MouseOver.Fill}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter Property="Stroke" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.MouseOver.Checked.Stroke}"/>
+                                <Setter Property="Fill" TargetName="ExpandPath" Value="{StaticResource TreeViewItem.TreeArrow.MouseOver.Checked.Fill}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="CheckBoxStyleFold" TargetType="{x:Type CheckBox}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource OptionMark.Static.Background}"/>
@@ -85,7 +144,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <CheckBox Grid.Column="0" x:Name="CheckboxFolded" IsChecked="{Binding IsFolded}" Visibility="{Binding IsExpandable, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Style="{DynamicResource CheckBoxStyleFold}"/>
+                            <ToggleButton Grid.Column="0" x:Name="CheckboxFolded" IsChecked="{Binding IsExpanded}" Visibility="{Binding IsExpandable, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" Style="{DynamicResource ExpandCollapseToggleStyle}"/>
                             <Border Grid.Column="1" x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true" VerticalAlignment="Center">
                                 <CheckBox IsChecked="{Binding IsChecked}">
                                     <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
@@ -126,38 +185,48 @@
         </Style>
     </UserControl.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="1,2" BorderThickness="1" BorderBrush="{DynamicResource TextBox.Static.Border}">
-            <StackPanel Orientation="Horizontal">
-                <TextBox x:Name="textBoxFilterTable" MinWidth="200" BorderThickness="0" TextChanged="textBoxFilterTable_TextChanged" KeyDown="textBoxFilterTable_KeyDown" ToolTip="(テーブル名で絞り込み)"/>
-                <Button x:Name="buttonSearch" ContentTemplate="{StaticResource ImageSearch14}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderThickness="0" Click="buttonSearch_Click"/>
+        <DockPanel MinWidth="200">
+            <Border DockPanel.Dock="Top" HorizontalAlignment="Left" Margin="1,2" BorderThickness="1" BorderBrush="{DynamicResource TextBox.Static.Border}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox x:Name="textBoxFilterTable" MinWidth="200" BorderThickness="0" TextChanged="textBoxFilterTable_TextChanged" KeyDown="textBoxFilterTable_KeyDown" ToolTip="(テーブル名で絞り込み)"/>
+                    <Button x:Name="buttonSearch" ContentTemplate="{StaticResource ImageSearch14}" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderThickness="0" Click="buttonSearch_Click"/>
+                </StackPanel>
+            </Border>
+            <ListBox x:Name="listBoxTables"  ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" DisplayMemberPath="Target.Name"/>
+        </DockPanel>
+        <DockPanel Grid.Column="1">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="5,0,0,0">
+                <ToolBar>
+                    <Button x:Name="buttonExecute" ToolTip="テーブルの件数を取得します" ContentTemplate="{StaticResource ImageRollback14}" Click="buttonExecute_Click"/>
+                    <Button x:Name="buttonCopyTable" ToolTip="結果をコピーします" ContentTemplate="{StaticResource ImageCopy14}" Click="buttonCopyTable_Click">
+                        <Button.ContextMenu>
+                            <ContextMenu Placement="Bottom" PlacementTarget="{Binding buttonCopyTable, ElementName=userControl}">
+                                <MenuItem Header="タイトル+データ(_T)" Command="local:DataGridCommands.CopyTable" CommandTarget="{Binding dataGridTables, ElementName=userControl, Mode=OneWay}"/>
+                                <MenuItem Header="データのみ(_D)" Command="local:DataGridCommands.CopyTableContent" CommandTarget="{Binding dataGridTables, ElementName=userControl, Mode=OneWay}"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+                </ToolBar>
             </StackPanel>
-        </Border>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="5,0,0,0">
-            <Button x:Name="buttonExecute" Content="件数取得" ToolTip="チェックを入れたテーブルの件数を取得します" Margin="2" Click="buttonExecute_Click" Height="20" VerticalAlignment="Top"/>
-        </StackPanel>
-        <ListBox x:Name="listBoxTables"  Grid.Row="1" MinWidth="200" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" DisplayMemberPath="Target.Name"/>
-        <GridSplitter Grid.RowSpan="2" Grid.Column="1" Width="5" HorizontalAlignment="Left"/>
-        <DataGrid Grid.Row="1" Grid.Column="1" x:Name="dataGridTables" Margin="5,0,0,0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" PreviewMouseLeftButtonUp="dataGridTables_PreviewMouseLeftButtonUp" PreviewKeyUp="dataGridTables_PreviewKeyUp">
-            <DataGrid.Columns>
-                <!--<DataGridCheckBoxColumn x:Name="dataGridTablesChecked" Header="" Binding="{Binding IsChecked}" IsReadOnly="True"/>-->
-                <DataGridTextColumn Header="テーブル" Binding="{Binding Target.FullName}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="件数" Binding="{Binding Count}" IsReadOnly="True">
-                    <DataGridTextColumn.ElementStyle>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="TextAlignment" Value="Right" />
-                            <Setter Property="Margin" Value="2"/>
-                        </Style>
-                    </DataGridTextColumn.ElementStyle>
-                </DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+            <DataGrid Grid.Row="1" Grid.Column="1" x:Name="dataGridTables" Margin="5,0,0,0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" PreviewMouseLeftButtonUp="dataGridTables_PreviewMouseLeftButtonUp" PreviewKeyUp="dataGridTables_PreviewKeyUp">
+                <DataGrid.Columns>
+                    <!--<DataGridCheckBoxColumn x:Name="dataGridTablesChecked" Header="" Binding="{Binding IsChecked}" IsReadOnly="True"/>-->
+                    <DataGridTextColumn Header="テーブル" Binding="{Binding Target.FullName}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="件数" Binding="{Binding Count}" IsReadOnly="True">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextAlignment" Value="Right" />
+                                <Setter Property="Margin" Value="2"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Left"/>
     </Grid>
 </UserControl>
