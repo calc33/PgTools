@@ -183,10 +183,15 @@ namespace Db2Source
     }
     public abstract class KeyConstraintDefinition : ConstraintDefinition
     {
+        private bool _noSql = false;
         public abstract string ConstraintType();
         public string[] KeyColumns { get; set; }
         public override string GetSQLPart()
         {
+            if (_noSql)
+            {
+                return null;
+            }
             StringBuilder buf = new StringBuilder();
             if (!string.IsNullOrEmpty(Name))
             {
@@ -211,11 +216,18 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        public KeyConstraintDefinition() : base() { }
-        public KeyConstraintDefinition(string name) : base(name) { }
-        public KeyConstraintDefinition(string name, string[] keys) : base(name)
+        public KeyConstraintDefinition(bool noSql) : base()
+        {
+            _noSql = noSql;
+        }
+        public KeyConstraintDefinition(string name, bool noSql) : base(name)
+        {
+            _noSql = noSql;
+        }
+        public KeyConstraintDefinition(string name, string[] keys, bool noSql) : base(name)
         {
             KeyColumns = keys;
+            _noSql = noSql;
         }
     }
 
@@ -226,10 +238,10 @@ namespace Db2Source
             return "PRIMARY KEY";
         }
 
-        public PrimaryKeyConstraintDefinition() : base() { }
-        public PrimaryKeyConstraintDefinition(string name) : base(name) { }
-        public PrimaryKeyConstraintDefinition(string[] keys) : base(null, keys) { }
-        public PrimaryKeyConstraintDefinition(string name, string[] keys) : base(name, keys) { }
+        public PrimaryKeyConstraintDefinition(bool noSql) : base(noSql) { }
+        public PrimaryKeyConstraintDefinition(string name, bool noSql) : base(name, noSql) { }
+        public PrimaryKeyConstraintDefinition(string[] keys, bool noSql) : base(null, keys, noSql) { }
+        public PrimaryKeyConstraintDefinition(string name, string[] keys, bool noSql) : base(name, keys, noSql) { }
     }
     public class UniqueConstraintDefinition : KeyConstraintDefinition
     {
@@ -238,9 +250,9 @@ namespace Db2Source
             return "UNIQUE";
         }
 
-        public UniqueConstraintDefinition() : base() { }
-        public UniqueConstraintDefinition(string name) : base(name) { }
-        public UniqueConstraintDefinition(string name, string[] keys) : base(name, keys) { }
+        public UniqueConstraintDefinition(bool noSql) : base(noSql) { }
+        public UniqueConstraintDefinition(string name, bool noSql) : base(name, noSql) { }
+        public UniqueConstraintDefinition(string name, string[] keys, bool noSql) : base(name, keys, noSql) { }
     }
     public class ForeignKeyConstraintDefinition: ConstraintDefinition
     {
@@ -336,7 +348,15 @@ namespace Db2Source
             }
             using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
             {
-                cmd.ExecuteNonQuery();
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch
+                {
+                    Logger.Default.Log(cmd.CommandText);
+                    throw;
+                }
             }
         }
 
@@ -377,9 +397,14 @@ namespace Db2Source
             {
                 foreach (ConstraintDefinition cons in Constraints)
                 {
+                    string s = cons.GetSQLPart();
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        continue;
+                    }
                     buf.AppendLine(prefix);
                     buf.Append("  ");
-                    buf.Append(cons.GetSQLPart());
+                    buf.Append(s);
                     prefix = ",";
                 }
             }
@@ -443,7 +468,15 @@ namespace Db2Source
                 }
                 using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
                 {
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch
+                    {
+                        Logger.Default.Log(cmd.CommandText);
+                        throw;
+                    }
                 }
                 if (Indexes != null)
                 {
@@ -459,7 +492,15 @@ namespace Db2Source
                 string sql = string.Format("ALTER TABLE {0} ADD COLUMN {1}", Name, column.GetSQLPart());
                 using (SQLiteCommand cmd = new SQLiteCommand(sql, connection))
                 {
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch
+                    {
+                        Logger.Default.Log(cmd.CommandText);
+                        throw;
+                    }
                 }
             }
             IndexDefinition[] diff = GetAdditionalIndexes(old);

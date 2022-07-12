@@ -611,10 +611,12 @@ namespace Db2Source
                 {
                     continue;
                 }
-                l.Add(new FieldDefinition(p.Name.ToUpper(), FieldDefinition.GetSqliteDbType(p)));
+                string fld = ConnectionInfo.GetFieldName(p);
+                l.Add(new FieldDefinition(fld.ToUpper(), FieldDefinition.GetSqliteDbType(p)));
             }
+            l.Add(new FieldDefinition("LAST_MODIFIED", SqliteDbType.Real));
             table.Columns = l.ToArray();
-            table.Constraints = new ConstraintDefinition[] { new PrimaryKeyConstraintDefinition() { KeyColumns = new string[] { "ID" } } };
+            table.Constraints = new ConstraintDefinition[] { new PrimaryKeyConstraintDefinition(true) { KeyColumns = new string[] { "ID" } } };
             table.Apply(connection);
         }
         public static SQLiteConnection RequireDatabase(string databasePath)
@@ -652,16 +654,24 @@ namespace Db2Source
                     }
                     using (SQLiteCommand cmd = new SQLiteCommand(GetSelectSql(t, null), conn))
                     {
-                        using (SQLiteDataReader reader = cmd.ExecuteReader())
+                        try
                         {
-                            PropertyInfo[] props = ConnectionInfo.PrepareForReader(t, reader);
-                            while (reader.Read())
+                            using (SQLiteDataReader reader = cmd.ExecuteReader())
                             {
-                                ConnectionInfo obj = ctor.Invoke(null) as ConnectionInfo;
-                                obj.ReadFromReader(reader, props);
-                                obj.IsPasswordHidden = true;
-                                l.Add(obj);
+                                PropertyInfo[] props = ConnectionInfo.PrepareForReader(t, reader);
+                                while (reader.Read())
+                                {
+                                    ConnectionInfo obj = ctor.Invoke(null) as ConnectionInfo;
+                                    obj.ReadFromReader(reader, props);
+                                    obj.IsPasswordHidden = true;
+                                    l.Add(obj);
+                                }
                             }
+                        }
+                        catch (SQLiteException)
+                        {
+                            Logger.Default.Log(cmd.CommandText);
+                            throw;
                         }
                     }
                 }
