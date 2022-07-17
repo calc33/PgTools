@@ -279,7 +279,8 @@
             <DataGrid Grid.Row="1" Grid.Column="1" x:Name="dataGridTables" Margin="5,0,0,0" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False" PreviewMouseLeftButtonUp="dataGridTables_PreviewMouseLeftButtonUp" PreviewKeyUp="dataGridTables_PreviewKeyUp">
                 <DataGrid.Columns>
                     <!--<DataGridCheckBoxColumn x:Name="dataGridTablesChecked" Header="" Binding="{Binding IsChecked}" IsReadOnly="True"/>-->
-                    <DataGridTextColumn Header="テーブル" Binding="{Binding Target.FullName}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="スキーマ" Binding="{Binding Target.SchemaName}" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="テーブル" Binding="{Binding Target.Name}" IsReadOnly="True"/>
                     <DataGridTextColumn Header="件数" Binding="{Binding Count}" IsReadOnly="True">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
