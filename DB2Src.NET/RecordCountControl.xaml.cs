@@ -4,6 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -36,7 +37,7 @@ namespace Db2Source
         public class TableRecordCount : DependencyObject, IComparable
         {
             public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TableRecordCount));
-            public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(TableRecordCount));
+            //public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(TableRecordCount));
             public static readonly DependencyProperty CountProperty = DependencyProperty.Register("Count", typeof(long?), typeof(TableRecordCount));
 
             public bool? IsChecked
@@ -45,11 +46,9 @@ namespace Db2Source
                 set { SetValue(IsCheckedProperty, value); }
             }
 
-            public Selectable Target
-            {
-                get { return (Selectable)GetValue(TargetProperty); }
-                set { SetValue(TargetProperty, value); }
-            }
+            public Selectable Target { get; set; }
+
+            private long? _count;
             public long? Count
             {
                 get { return (long?)GetValue(CountProperty); }
@@ -63,6 +62,20 @@ namespace Db2Source
                     return -1;
                 }
                 return string.Compare(Target?.FullIdentifier, ((TableRecordCount)obj).Target?.FullIdentifier);
+            }
+            private void UpdateCount()
+            {
+                Count = _count;
+            }
+            public bool UpdateRecordCount(IDbConnection connection, bool force)
+            {
+                if (!force && _count.HasValue)
+                {
+                    return false;
+                }
+                _count = Target.GetRecordCount(connection);
+                Dispatcher.InvokeAsync(UpdateCount);
+                return true;
             }
         }
 
@@ -315,7 +328,7 @@ namespace Db2Source
 
         private void UpdateDataGridTablesTimer_Tick(object sender, EventArgs e)
         {
-            UpdateDataGridTables();
+            UpdateDataGridTables(false);
         }
 
         public string GetTabItemHeader()
@@ -454,9 +467,10 @@ namespace Db2Source
                 AddCheckedRecordCount(list, subNode);
             }
         }
-        private void UpdateDataGridTables()
+        private void UpdateDataGridTables(bool refresh)
         {
             _updateDataGridTablesTimer.Stop();
+            AbortUpdateRecordCountTask(true);
             List<TableRecordCount> l = new List<TableRecordCount>();
             foreach (TreeNode node in _allEntries)
             {
@@ -465,6 +479,8 @@ namespace Db2Source
             _checkedItems = l;
             dataGridTables.ItemsSource = null;
             dataGridTables.ItemsSource = _checkedItems;
+            Db2SourceContext dataSet = DataSet;
+            UpdateRecordCount(refresh);
         }
 
         private void textBoxFilterTable_TextChanged(object sender, TextChangedEventArgs e)
@@ -496,15 +512,79 @@ namespace Db2Source
             }
         }
 
+        private bool _isButtonExecuteRunning;
+        private Task _recordCountTask;
+        private bool _isRecordCountTaskCancelling;
+        private bool IsButtonExecuteRunning
+        {
+            get { return _isButtonExecuteRunning; }
+            set
+            {
+                if (_isButtonExecuteRunning == value)
+                {
+                    return;
+                }
+                _isButtonExecuteRunning = value;
+                Dispatcher.InvokeAsync(() => { buttonExecute.IsChecked = _isButtonExecuteRunning; });
+            }
+        }
+
+        private void UpdateRecordCount(bool force)
+        {
+            Db2SourceContext dataSet = DataSet;
+            Task t = _recordCountTask;
+            if (t != null && !t.IsCompleted)
+            {
+                return;
+            }
+            _recordCountTask = Task.Run(() =>
+            {
+                try
+                {
+                    _isRecordCountTaskCancelling = false;
+                    IsButtonExecuteRunning = true;
+                    using (IDbConnection conn = dataSet.NewConnection(true))
+                    {
+                        List<TableRecordCount> l = _checkedItems;
+                        foreach (TableRecordCount rec in l)
+                        {
+                            if (_isRecordCountTaskCancelling)
+                            {
+                                break;
+                            }
+                            if (rec.UpdateRecordCount(conn, force))
+                            {
+                                Thread.Sleep(10);
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    IsButtonExecuteRunning = false;
+                    _recordCountTask = null;
+                    _isRecordCountTaskCancelling = false;
+                }
+            });
+        }
+        private void AbortUpdateRecordCountTask(bool waitForAborted)
+        {
+            _isRecordCountTaskCancelling = true;
+            Task t = _recordCountTask;
+            if (waitForAborted && t != null && !t.IsCompleted)
+            {
+                t.Wait();
+            }
+        }
         private void buttonExecute_Click(object sender, RoutedEventArgs e)
         {
-            UpdateDataGridTables();
-            using (IDbConnection conn = DataSet.NewConnection(true))
+            if (IsButtonExecuteRunning)
             {
-                foreach (TableRecordCount rec in _checkedItems)
-                {
-                    rec.Count = rec.Target.GetRecordCount(conn);
-                }
+                AbortUpdateRecordCountTask(false);
+            }
+            else
+            {
+                UpdateDataGridTables(true);
             }
         }
 

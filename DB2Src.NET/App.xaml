@@ -130,6 +130,11 @@
                     <Path x:Name="pathArrow" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M2,4 L6,0 L6,8 z"/>
                 </Canvas>
             </DataTemplate>
+            <DataTemplate x:Key="ImageStop14">
+                <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
+                    <Rectangle Canvas.Left="1" Canvas.Top="2" Width="10" Height="10" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                </Canvas>
+            </DataTemplate>
             <DataTemplate x:Key="ImageRollback12">
                 <Canvas Width="12" Height="14" HorizontalAlignment="Center" VerticalAlignment="Center" SnapsToDevicePixels="{Binding SnapsToDevicePixels, RelativeSource={RelativeSource AncestorType=ButtonBase}}">
                     <Path x:Name="pathArc" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" Data="M6,3 A4,4 0 1 1 1,7"/>
