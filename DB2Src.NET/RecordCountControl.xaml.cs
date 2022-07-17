@@ -306,22 +306,35 @@ namespace Db2Source
             _updateListBoxTablesTimer.Tick += UpdateListBoxTablesTimer_Tick;
             _updateDataGridTablesTimer = new DispatcherTimer(DispatcherPriority.Normal) { Interval = new TimeSpan(500 * 10000), IsEnabled = false };
             _updateDataGridTablesTimer.Tick += UpdateDataGridTablesTimer_Tick;
-            CommandBinding cb = new CommandBinding(DataGridCommands.CopyTable, dataGridTables_Executed, dataGridTables_CanExecute);
+            CommandBinding cb = new CommandBinding(DataGridCommands.CopyTable, dataGridTablesCopyTable_Executed, dataGridTablesCopyTable_CanExecute);
+            dataGridTables.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableContent, dataGridTablesCopyTableContent_Executed, dataGridTablesCopyTable_CanExecute);
             dataGridTables.CommandBindings.Add(cb);
         }
 
-        private void dataGridTables_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void dataGridTablesCopyTable_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = dataGridTables.ItemsSource != null;
         }
 
-        private void dataGridTables_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void dataGridTablesCopyTable_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             List<string[]> l = new List<string[]>();
-            l.Add(new string[] { dataGridTables.Columns[0].Header.ToString(), dataGridTables.Columns[1].Header.ToString() });
+            l.Add(new string[] { dataGridTables.Columns[0].Header.ToString(), dataGridTables.Columns[1].Header.ToString(), dataGridTables.Columns[2].Header.ToString() });
             foreach (TableRecordCount rec in dataGridTables.ItemsSource)
             {
-                l.Add(new string[] { rec.Target.Name, rec.Count?.ToString() });
+                l.Add(new string[] { rec.Target.SchemaName, rec.Target.Name, rec.Count?.ToString() });
+            }
+            DataGridController.CopyTableToClipboard(l.ToArray());
+        }
+
+        private void dataGridTablesCopyTableContent_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            List<string[]> l = new List<string[]>();
+            //l.Add(new string[] { dataGridTables.Columns[0].Header.ToString(), dataGridTables.Columns[1].Header.ToString() });
+            foreach (TableRecordCount rec in dataGridTables.ItemsSource)
+            {
+                l.Add(new string[] { rec.Target.SchemaName, rec.Target.Name, rec.Count?.ToString() });
             }
             DataGridController.CopyTableToClipboard(l.ToArray());
         }
