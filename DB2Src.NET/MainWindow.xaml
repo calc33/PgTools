@@ -12,6 +12,10 @@
         <sys:String x:Key="NewConnectionHeader">新しい接続...</sys:String>
         <sys:String x:Key="TreeViewItemTopHeader">データベース</sys:String>
         <sys:String x:Key="ConnectDatabaseFormat">{0}に接続</sys:String>
+        <sys:String x:Key="TextBoxFilterTooltipNone">(絞り込み対象なし)</sys:String>
+        <sys:String x:Key="TextBoxFilterTooltipBoth">(名前・列名で絞り込み)</sys:String>
+        <sys:String x:Key="TextBoxFilterTooltipByObject">(名前で絞り込み)</sys:String>
+        <sys:String x:Key="TextBoxFilterTooltipByColumn">(列名で絞り込み)</sys:String>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <Style x:Key="TreeViewItemFocusVisual">
             <Setter Property="Control.Template">
@@ -509,8 +513,8 @@
                                 <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem x:Name="menuItemFilterByObjectName" Header="名前で絞り込み" IsCheckable="True" IsChecked="True"/>
-                                            <MenuItem x:Name="menuItemFilterByColumnName" Header="列名で絞り込み" IsCheckable="True"/>
+                                            <MenuItem x:Name="menuItemFilterByObjectName" Header="名前で絞り込み" IsCheckable="True" IsChecked="True" Checked="menuItemFilterByObjectName_Checked" Unchecked="menuItemFilterByObjectName_Unchecked"/>
+                                            <MenuItem x:Name="menuItemFilterByColumnName" Header="列名で絞り込み" IsCheckable="True" Checked="menuItemFilterByColumnName_Checked" Unchecked="menuItemFilterByColumnName_Unchecked"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                     <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16">
@@ -519,7 +523,7 @@
                                         <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
-                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" />
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus"/>
                             </DockPanel>
                         </Border>
                     </StackPanel>

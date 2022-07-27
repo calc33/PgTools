@@ -794,7 +794,11 @@ namespace Db2Source
 
         private void buttonFilterKind_Click(object sender, RoutedEventArgs e)
         {
-            buttonFilterKind.ContextMenu.IsOpen = true;
+            ContextMenu menu = buttonFilterKind.ContextMenu;
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = buttonFilterKind;
+            menu.IsOpen = true;
+            DelayedFilterTreeView();
         }
 
         private void menuItemAddQuery_Click(object sender, RoutedEventArgs e)
@@ -1005,6 +1009,7 @@ namespace Db2Source
         {
             InitMenu();
             InitCommandBindings();
+            UpdateTextBoxFilter();
             Dispatcher.InvokeAsync(StartConnection, DispatcherPriority.ApplicationIdle);
         }
 
@@ -1575,6 +1580,50 @@ namespace Db2Source
             item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), c, FindResource("TabItemStyleClosable") as Style);
             _recordCountTabItem = new WeakReference<TabItem>(item);
             tabControlMain.SelectedItem = item;
+        }
+
+        private static readonly bool[,] TextBoxFilterEnabledMap = new bool[,]
+        {
+            { false, true },
+            { true, true },
+        };
+        private static readonly string[,] TextBoxFilterTooltipResourceKeyMap = new string[,]
+        {
+            { "TextBoxFilterTooltipNone", "TextBoxFilterTooltipByColumn" },
+            { "TextBoxFilterTooltipByObject", "TextBoxFilterTooltipBoth" },
+        };
+        private void UpdateTextBoxFilter()
+        {
+            if (menuItemFilterByObjectName== null || menuItemFilterByColumnName == null)
+            {
+                return;
+            }
+            int idxByObj = menuItemFilterByObjectName.IsChecked ? 1 : 0;
+            int idxByCol = menuItemFilterByColumnName.IsChecked ? 1 : 0;
+            string resName = TextBoxFilterTooltipResourceKeyMap[idxByObj, idxByCol];
+            textBoxFilter.ToolTip = (string)Resources[resName];
+            textBoxFilter.IsEnabled = TextBoxFilterEnabledMap[idxByObj, idxByCol];
+            DelayedFilterTreeView();
+        }
+
+        private void menuItemFilterByObjectName_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxFilter();
+        }
+
+        private void menuItemFilterByObjectName_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxFilter();
+        }
+
+        private void menuItemFilterByColumnName_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxFilter();
+        }
+
+        private void menuItemFilterByColumnName_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxFilter();
         }
     }
     public class RGBToColorBrushConverter : IValueConverter

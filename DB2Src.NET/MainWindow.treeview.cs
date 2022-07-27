@@ -176,13 +176,14 @@ namespace Db2Source
         private string _treeViewFilterText;
         public void FilterTreeView(bool force)
         {
-            if (!force && _treeViewFilterText == textBoxFilter.Text)
+            bool filterByName = menuItemFilterByObjectName.IsChecked;
+            bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
+            string txt = (filterByName || filterByColumnName) ? textBoxFilter.Text : string.Empty;
+            if (!force && _treeViewFilterText == txt)
             {
                 return;
             }
-            _treeViewFilterText = textBoxFilter.Text;
-            bool filterByName = menuItemFilterByObjectName.IsChecked;
-            bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
+            _treeViewFilterText = txt;
             string f = _treeViewFilterText.ToUpper();
             foreach (TreeViewItem itemDb in treeViewItemTop.Items)
             {
@@ -240,7 +241,7 @@ namespace Db2Source
                             }
                         }
                         TreeNode nodeGr = itemGr.Tag as TreeNode;
-                        if ((nodeGr.ShowChildCount))
+                        if (nodeGr.ShowChildCount)
                         {
                             itemGr.Header = string.Format(nodeGr.NameBase, n);
                         }
