@@ -181,7 +181,8 @@ namespace Db2Source
             int hash = 0;
             foreach (object o in _data)
             {
-                hash = hash * 17 + o.GetHashCode();
+                int v = o != null ? o.GetHashCode() : 0;
+                hash = hash * 17 + v;
             }
             return hash;
         }

@@ -221,6 +221,30 @@ namespace Db2Source
             }
         }
         private string _indexPropertyName;
+
+        private void InvalidateIndexPropertyName()
+        {
+            _indexPropertyName = null;
+        }
+
+        private void UpdateIndexPropertyName()
+        {
+            if (_indexPropertyName != null)
+            {
+                return;
+            }
+            _indexPropertyName = string.Format("[{0}]", Index);
+        }
+
+        private string IndexPropertyName
+        {
+            get
+            {
+                UpdateIndexPropertyName();
+                return _indexPropertyName;
+            }
+        }
+
         public int Index
         {
             get
@@ -366,7 +390,7 @@ namespace Db2Source
 
         private void Row_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == _indexPropertyName)
+            if (e.PropertyName == IndexPropertyName)
             {
                 UpdateData();
             }
@@ -398,17 +422,14 @@ namespace Db2Source
             }
             UpdateData();
         }
-        private void UpdateIndexPropertyName()
-        {
-            _indexPropertyName = string.Format("[{0}]", Index);
-        }
+
         private void IndexPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            UpdateIndexPropertyName();
             if (e.OldValue == e.NewValue)
             {
                 return;
             }
+            InvalidateIndexPropertyName();
             UpdateData();
         }
         private void CellPropertyChanged(DependencyPropertyChangedEventArgs e)
