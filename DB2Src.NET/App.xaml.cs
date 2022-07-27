@@ -398,8 +398,7 @@ namespace Db2Source
             {
                 info = NewConnectionInfoFromRegistry();
             }
-            NewConnectionWindow win = new NewConnectionWindow();
-            win.Target = info;
+            NewConnectionWindow win = new NewConnectionWindow() { Target = info };
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {
@@ -414,8 +413,7 @@ namespace Db2Source
             SettingsBinding.Load(RegistryFinder);
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
-            MainWindow window = new MainWindow();
-            window.StartupConnection = GetStartupConnection();
+            MainWindow window = new MainWindow() { StartupConnection = GetStartupConnection() };
             if (HasConnectionInfo && window.StartupConnection == null)
             {
                 Shutdown();
@@ -434,10 +432,8 @@ namespace Db2Source
             {
                 return;
             }
-            SelectColumnWindow win = new SelectColumnWindow();
-            win.Owner = Window.GetWindow(grid);
+            SelectColumnWindow win = new SelectColumnWindow() { Owner = Window.GetWindow(grid), Grid = grid };
             win.Closed += SelectColumnWindow_Closed;
-            win.Grid = grid;
             WindowLocator.LocateNearby(button, win, NearbyLocation.DownRight);
             win.Show();
         }

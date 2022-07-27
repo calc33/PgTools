@@ -658,7 +658,6 @@ namespace Db2Source
             private readonly List<T> _items = new List<T>();
             private Dictionary<ulong, T> _oidNumToItem = new Dictionary<ulong, T>();
             private Dictionary<string, T> _nameToItem = null;
-            private readonly object _dictionaryLock = new object();
 
             private static ulong ToKey(uint oid, int subid)
             {
@@ -1137,7 +1136,6 @@ namespace Db2Source
                 {
                     return null;
                 }
-                string prefix = string.Empty;
                 View.Kind k = (relkind == 'm') ? View.Kind.MarerializedView : View.Kind.View;
                 View v = new View(context, k, ownername, Schema?.nspname, relname, viewdef, true);
                 int i = 1;
@@ -2772,7 +2770,6 @@ namespace Db2Source
         private class PgSettingCollection : IReadOnlyList<PgSetting>
         {
             private readonly List<PgSetting> _items = new List<PgSetting>();
-            private readonly object _dictionaryLock = new object();
 
             public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
             {
@@ -3546,7 +3543,6 @@ namespace Db2Source
         }
         internal Selectable RefreshSelectable(Selectable selectable, char relkind, NpgsqlConnection connection)
         {
-            Selectable ret = null;
             string sch = selectable.SchemaName;
             string name = selectable.Name;
             if (_backend == null)
@@ -3563,7 +3559,7 @@ namespace Db2Source
                 }
                 _backend.FillSelectableByOid(oid.Value, connection);
             }
-            ret = Tables[sch, name];
+            Selectable ret = Tables[sch, name];
             if (ret != selectable)
             {
                 selectable.ReplaceTo(ret);
@@ -3585,14 +3581,11 @@ namespace Db2Source
         }
         internal StoredFunction RefreshStoredFunction(StoredFunction function,  NpgsqlConnection connection)
         {
-            StoredFunction ret = null;
             string sch = function.SchemaName;
-            string name = function.Name;
             string id = function.FullIdentifier;
             if (_backend == null)
             {
                 LoadSchema(connection, false);
-                ret = StoredFunctions[sch, id];
             }
             else
             {
@@ -3612,7 +3605,7 @@ namespace Db2Source
                 }
                 _backend.FillProcByOid(oid.Value, connection);
             }
-            ret = StoredFunctions[sch, id];
+            StoredFunction ret = StoredFunctions[sch, id];
             if (ret != function)
             {
                 function.ReplaceTo(ret);

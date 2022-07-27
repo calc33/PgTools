@@ -277,7 +277,6 @@ namespace Db2Source
             RefreshDataGridSetting();
         }
 
-        private static readonly Point ZeroPoint = new Point(0, 0);
         private void EditSettingColumnButton_Click(object sender, RoutedEventArgs e)
         {
             EditPgsqlSetting win = new EditPgsqlSetting();

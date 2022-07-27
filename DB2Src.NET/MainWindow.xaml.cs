@@ -98,9 +98,7 @@ namespace Db2Source
             {
                 info = NewConnectionInfoFromRegistry();
             }
-            NewConnectionWindow win = new NewConnectionWindow();
-            win.Owner = this;
-            win.Target = info;
+            NewConnectionWindow win = new NewConnectionWindow() { Owner = this, Target = info };
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {
@@ -226,22 +224,6 @@ namespace Db2Source
                 return null;
             }
             return FindDataGridRecursive(tabControlMain);
-        }
-
-        private static CommandBinding FindCommandBinding(DataGrid grid, ICommand command)
-        {
-            if (grid == null)
-            {
-                return null;
-            }
-            foreach (CommandBinding b in grid.CommandBindings)
-            {
-                if (b.Command == command)
-                {
-                    return b;
-                }
-            }
-            return null;
         }
 
         public static void TabBecomeVisible(FrameworkElement element)
@@ -490,11 +472,13 @@ namespace Db2Source
 
         private void CurrentDataSet_Log(object sender, LogEventArgs e)
         {
-            LogListBoxItem item = new LogListBoxItem();
-            item.Time = DateTime.Now;
-            item.Status = e.Status;
-            item.Message = e.Text;
-            item.ToolTip = e.Command?.CommandText;
+            LogListBoxItem item = new LogListBoxItem()
+            {
+                Time = DateTime.Now,
+                Status = e.Status,
+                Message = e.Text,
+                ToolTip = e.Command?.CommandText
+            };
             listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
             listBoxLog.ScrollIntoView(item);
@@ -523,10 +507,6 @@ namespace Db2Source
             }
         }
 
-        private SchemaObject GetTarget(TabItem item)
-        {
-            return (item.Content as ISchemaObjectWpfControl)?.Target;
-        }
         private void ReplaceSchemaObjectRecursive(TreeViewItem treeViewItem, SchemaObject newObj, SchemaObject oldObj)
         {
             for (int i = treeViewItem.Items.Count - 1; 0 <= i; i--)
@@ -804,8 +784,7 @@ namespace Db2Source
         private void menuItemAddQuery_Click(object sender, RoutedEventArgs e)
         {
             QueryControl c = new QueryControl();
-            Binding b = new Binding("CurrentDataSet");
-            b.ElementName = "window";
+            Binding b = new Binding("CurrentDataSet") { ElementName = "window" };
             c.SetBinding(QueryControl.CurrentDataSetProperty, b);
             TabItem item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(_queryControlIndex), c, FindResource("TabItemStyleClosable") as Style);
             tabControlMain.SelectedItem = item;
@@ -824,9 +803,7 @@ namespace Db2Source
 
         private void menuItemExportSchema_Click(object sender, RoutedEventArgs e)
         {
-            ExportSchema win = new ExportSchema();
-            win.Owner = this;
-            win.DataSet = CurrentDataSet;
+            ExportSchema win = new ExportSchema() { Owner = this, DataSet = CurrentDataSet };
             win.ShowDialog();
         }
 
@@ -905,34 +882,7 @@ namespace Db2Source
                 throw;
             }
         }
-        private bool TryConnect(ConnectionInfo info)
-        {
-            ConnectionStatus = SchemaConnectionStatus.Connecting;
-            try
-            {
-                IDbConnection conn = null;
-                try
-                {
-                    conn = info.NewConnection(true);
-                }
-                catch
-                {
-                    ConnectionStatus = SchemaConnectionStatus.Done;
-                    return false;
-                }
-                LoadLocationFromConnectionInfo(info);
-                Db2SourceContext ds = info.NewDataSet();
-                ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
-                Task t = LoadSchemaAsync(ds, conn);
-                Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info); }, DispatcherPriority.ApplicationIdle);
-            }
-            catch
-            {
-                ConnectionStatus = SchemaConnectionStatus.Done;
-                throw;
-            }
-            return true;
-        }
+
         private string GetExecutableFromPath(string filename)
         {
             if (System.IO.Path.IsPathRooted(filename) && File.Exists(filename))
@@ -1118,9 +1068,7 @@ namespace Db2Source
             {
                 return;
             }
-            PgDumpOptionWindow win = new PgDumpOptionWindow();
-            win.Owner = this;
-            win.DataSet = CurrentDataSet;
+            PgDumpOptionWindow win = new PgDumpOptionWindow() { Owner = this, DataSet = CurrentDataSet };
             win.Show();
             //win.ShowDialog();
         }
@@ -1157,8 +1105,7 @@ namespace Db2Source
 
         private void menuItemOption_Click(object sender, RoutedEventArgs e)
         {
-            SettingsWindow window = new SettingsWindow();
-            window.Owner = this;
+            SettingsWindow window = new SettingsWindow() { Owner = this };
             window.Show();
         }
 
@@ -1170,8 +1117,7 @@ namespace Db2Source
 
         private void menuItemEditConnections_Click(object sender, RoutedEventArgs e)
         {
-            EditConnectionListWindow win = new EditConnectionListWindow();
-            win.Owner = this;
+            EditConnectionListWindow win = new EditConnectionListWindow() { Owner = this };
             win.ShowDialog();
             UpdateMenuItemOpenDb();
         }
@@ -1243,7 +1189,6 @@ namespace Db2Source
             {
                 return;
             }
-            TabPanel pnl = tabControl.FindName("headerPanel") as TabPanel;
             TabItem item = tabControl.Items[index] as TabItem;
             Point p = item.TranslatePoint(new Point(), panel);
             viewer.ScrollToHorizontalOffset(p.X);
@@ -1258,7 +1203,6 @@ namespace Db2Source
             Point p1 = item.TranslatePoint(new Point(item.ActualWidth + 1, item.ActualHeight + 1), panel);
             double x0 = p1.X - viewer.ActualWidth;
             Point p0 = item.TranslatePoint(new Point(), panel);
-            int i0 = index;
             for (int i = index - 1; 0 <= i; i--)
             {
                 item = tabControl.Items[i] as TabItem;
@@ -1267,7 +1211,6 @@ namespace Db2Source
                 {
                     break;
                 }
-                i0 = i;
                 p0 = p;
                 if (p.X == x0)
                 {
@@ -1358,9 +1301,7 @@ namespace Db2Source
         private void buttonScrollSearchTabItem_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
-            SelectTabItemWindow win = new SelectTabItemWindow();
-            win.Owner = this;
-            win.TabControl = tabControlMain;
+            SelectTabItemWindow win = new SelectTabItemWindow() { Owner = this, TabControl = tabControlMain };
             win.Closed += SelectTabItemWindow_Closed;
             WindowLocator.LocateNearby(btn, win, NearbyLocation.DownRight);
             win.Show();
@@ -1539,9 +1480,7 @@ namespace Db2Source
 
         private void menuItemNewDatabase_Click(object sender, RoutedEventArgs e)
         {
-            NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow();
-            win.DataSet = CurrentDataSet as NpgsqlDataSet;
-            win.Owner = this;
+            NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow() { DataSet = CurrentDataSet as NpgsqlDataSet, Owner = this };
             bool? ret = win.ShowDialog();
             if (ret.HasValue && ret.Value)
             {
@@ -1574,8 +1513,7 @@ namespace Db2Source
             }
 
             RecordCountControl c = new RecordCountControl();
-            Binding b = new Binding("CurrentDataSet");
-            b.Source = this;
+            Binding b = new Binding("CurrentDataSet") { Source = this };
             c.SetBinding(RecordCountControl.DataSetProperty, b);
             item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), c, FindResource("TabItemStyleClosable") as Style);
             _recordCountTabItem = new WeakReference<TabItem>(item);

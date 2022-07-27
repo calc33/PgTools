@@ -71,23 +71,27 @@ namespace Db2Source
             l.Sort();
             foreach (Schema sc in l)
             {
-                CheckBox cb = new CheckBox();
-                cb.Content = sc;
-                cb.IsChecked = !sc.IsHidden;
-                cb.Padding = new Thickness(2, 2, 4, 2);
+                CheckBox cb = new CheckBox
+                {
+                    Content = sc,
+                    IsChecked = !sc.IsHidden,
+                    Padding = new Thickness(2, 2, 4, 2),
+                    VerticalContentAlignment = VerticalAlignment.Center
+                };
                 if (sc.IsHidden)
                 {
                     cb.Foreground = SystemColors.GrayTextBrush;
                 }
-                cb.VerticalContentAlignment = VerticalAlignment.Center;
                 wrapPanelSchemas.Children.Add(cb);
             }
         }
         private void buttonSelectFolder_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
-            dlg.Title = (string)Resources["FolderBrowserDialog_Title"];
-            dlg.SelectedPath = textBoxFolder.Text;
+            FolderBrowserDialog dlg = new FolderBrowserDialog()
+            {
+                Title = (string)Resources["FolderBrowserDialog_Title"],
+                SelectedPath = textBoxFolder.Text
+            };
             Db2Source.DialogResult ret = dlg.ShowDialog(this);
             if (ret != Db2Source.DialogResult.OK)
             {
@@ -319,8 +323,7 @@ namespace Db2Source
                 list.Add(s);
             }
             Task t = ExportAsync(DataSet, list, baseDir);
-            AwaitWindow win = new AwaitWindow();
-            win.Owner = this;
+            AwaitWindow win = new AwaitWindow() { Owner = this };
             win.WaitTask(t);
             MessageBox.Show(this, (string)Resources["messageDone"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
         }

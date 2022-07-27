@@ -846,7 +846,6 @@ namespace Db2Source
                 throw new ColumnNameException(item.Name);
             }
             RequireItems();
-            int ret = -1;
             //if ((item.Generation & Column.ColumnGeneration.New) != 0)
             //{
             //    ret = ((IList)_list).Add(item);
@@ -855,7 +854,7 @@ namespace Db2Source
             //{
             //    _list[1].Add(item);
             //}
-            ret = ((IList)_list).Add(item);
+            int ret = ((IList)_list).Add(item);
             _nameToColumn = null;
             return ret;
         }
@@ -1266,8 +1265,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset;
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
         {
@@ -1286,8 +1284,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset;
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
         }
         public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
@@ -1310,8 +1307,7 @@ namespace Db2Source
         }
         public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
         {
-            int whereOffset;
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
         }
 
         public long GetRecordCount(IDbConnection connection)

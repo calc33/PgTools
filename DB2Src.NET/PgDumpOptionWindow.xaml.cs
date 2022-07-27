@@ -69,9 +69,11 @@ namespace Db2Source
         }
         private void buttonSelectDir_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog dlg = new FolderBrowserDialog();
-            dlg.Title = (string)Resources["FolderBrowserDialog_Title"];
-            dlg.SelectedPath = textBoxDir.Text;
+            FolderBrowserDialog dlg = new FolderBrowserDialog()
+            {
+                Title = (string)Resources["FolderBrowserDialog_Title"],
+                SelectedPath = textBoxDir.Text
+            };
             DialogResult ret = dlg.ShowDialog(this);
             if (ret != Db2Source.DialogResult.OK)
             {
@@ -225,7 +227,8 @@ namespace Db2Source
                 if (!int.TryParse(textBoxNumJobs.Text, out nJob))
                 {
                     textBoxLog.AppendText((string)Resources["messageInvalidJobs"]);
-                } else
+                }
+                else
                 {
                     buf.Append(" -j ");
                     buf.Append(nJob);
@@ -352,15 +355,14 @@ namespace Db2Source
             }
             _exportDir = IO.Path.GetDirectoryName(path);
             _exportFile = IO.Path.GetFileName(path);
-            int n;
-            if (IsChecked(checkBoxUseJob) && !int.TryParse(textBoxNumJobs.Text, out n))
+            if (IsChecked(checkBoxUseJob) && !int.TryParse(textBoxNumJobs.Text, out _))
             {
                 MessageBox.Show(this, (string)Resources["messageInvalidJobs"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxNumJobs.Focus();
                 textBoxNumJobs.SelectAll();
                 return false;
             }
-            if (IsChecked(checkBoxLockTimeout) && !int.TryParse(textBoxLockTimeout.Text, out n))
+            if (IsChecked(checkBoxLockTimeout) && !int.TryParse(textBoxLockTimeout.Text, out _))
             {
                 MessageBox.Show(this, (string)Resources["messageInvalidLockTime"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxLockTimeout.Focus();
@@ -385,20 +387,22 @@ namespace Db2Source
                 textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
                 textBoxLog.AppendText(cmd + Environment.NewLine);
                 IO.File.WriteAllLines(_exportBat, new string[] { "@ECHO OFF", "CHCP 65001 > NUL:", cmd });
-                ProcessStartInfo info = new ProcessStartInfo();
-                info.FileName = _exportBat;
-                //info.Arguments = cmd;
-                info.CreateNoWindow = true;
-                info.UseShellExecute = false;
-                info.RedirectStandardOutput = true;
-                info.RedirectStandardError = true;
-                //info.RedirectStandardError = false;
-                info.RedirectStandardInput = true;
-                info.StandardOutputEncoding = Encoding.UTF8;
-                info.StandardErrorEncoding = Encoding.UTF8;
-                info.WorkingDirectory = _exportDir;
+                ProcessStartInfo info = new ProcessStartInfo()
+                {
+                    FileName = _exportBat,
+                    //Arguments = cmd,
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    //RedirectStandardError = false,
+                    RedirectStandardInput = true,
+                    StandardOutputEncoding = Encoding.UTF8,
+                    StandardErrorEncoding = Encoding.UTF8,
+                    WorkingDirectory = _exportDir
+                };
                 _runningProcess = Process.Start(info);
-                Task t = WaitForProcessAsync();
+                _ = WaitForProcessAsync();
             }
             finally
             {
@@ -433,8 +437,6 @@ namespace Db2Source
                 {
                     continue;
                 }
-                CheckBox cb = new CheckBox();
-                cb.Tag = sch;
                 TextBlock tb = new TextBlock()
                 {
                     Text = sch.Name,
@@ -443,9 +445,13 @@ namespace Db2Source
                     Margin = new Thickness(0, 0, 2, 0),
                     Padding = new Thickness(0)
                 };
-                cb.Content = tb;
-                cb.IsChecked = !sch.IsHidden;
-                cb.Margin = new Thickness(2);
+                CheckBox cb = new CheckBox()
+                {
+                    Tag = sch,
+                    Content = tb,
+                    IsChecked = !sch.IsHidden,
+                    Margin = new Thickness(2),
+                };
                 Binding b = new Binding("IsChecked")
                 {
                     ElementName = "radioButtonSchema"
@@ -531,7 +537,7 @@ namespace Db2Source
             textBoxPath.Text = System.IO.Path.ChangeExtension(textBoxPath.Text, opt.DefaultExt);
         }
     }
-    public class PgDumpFormatOption: DependencyObject
+    public class PgDumpFormatOption : DependencyObject
     {
         public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(PgDumpFormatOption));
         public static readonly DependencyProperty OptionProperty = DependencyProperty.Register("Option", typeof(string), typeof(PgDumpFormatOption));
