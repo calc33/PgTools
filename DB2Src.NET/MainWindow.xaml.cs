@@ -1073,9 +1073,18 @@ namespace Db2Source
             //win.ShowDialog();
         }
 
-        private void menuItemQueryHistory_Click(object sender, RoutedEventArgs e)
+        private void buttonAddTab_Click(object sender, RoutedEventArgs e)
         {
+            Button button = sender as Button;
+            ContextMenu menu = button.ContextMenu;
+            menu.PlacementTarget = button;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = !menu.IsOpen;
+        }
 
+        private void menuItemAddDatabase_Click(object sender, RoutedEventArgs e)
+        {
+            OpenViewer(CurrentDataSet.Database);
         }
 
         private void window_Closing(object sender, CancelEventArgs e)

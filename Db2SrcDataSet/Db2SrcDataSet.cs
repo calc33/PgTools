@@ -629,6 +629,7 @@ namespace Db2Source
 
         public bool CaseSensitive { get; set; }
         public string CurrentSchema { get; set; }
+        public Database Database { get; set; }
         public string SystemLocale { get; protected set; }
         public string SessionLocale { get; protected set; }
         public Encoding SystemEncoding { get; protected set; }

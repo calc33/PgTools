@@ -265,6 +265,16 @@
                                 <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
                             <DockPanel>
+                                <Button x:Name ="buttonAddTab" DockPanel.Dock="Left" ContentTemplate="{StaticResource ImageAdd10}" BorderThickness="0" Background="Transparent" Click="buttonAddTab_Click">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="menuItemAddDatabase" Header="データベース情報" Click="menuItemAddDatabase_Click"/>
+                                            <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
+                                            <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
+                                            <MenuItem x:Name="menuItemSessionList" Header="セッション一覧" Click="menuItemSessionList_Click"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
                                 <Border DockPanel.Dock="Right" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
                                     <StackPanel Orientation="Horizontal">
                                         <Button x:Name="buttonScrollLeft" ContentTemplate="{StaticResource ImageLeftArrow8}" VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent" Click="buttonScrollLeft_Click" Height="26" VerticalAlignment="Top"/>
@@ -489,10 +499,6 @@
                     <MenuItem Header="前を検索(_P)" InputGestureText="Shift+F3" Command="local:SearchCommands.FindPrevious"/>
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
-                    <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
-                    <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
-                    <MenuItem x:Name="menuItemSessionList" Header="セッション一覧" Click="menuItemSessionList_Click"/>
-                    <MenuItem x:Name="menuItemQueryHistory" Header="クエリ履歴" Click="menuItemQueryHistory_Click"/>
                     <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
                     <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
