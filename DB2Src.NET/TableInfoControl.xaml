@@ -28,7 +28,7 @@
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource OptionMark.Static.Background}"/>
             <Setter Property="BorderBrush" Value="{StaticResource OptionMark.Static.Border}"/>
-            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="Foreground" Value="{StaticResource {x:Static SystemColors.ControlTextBrushKey}}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Template">
                 <Setter.Value>
@@ -111,8 +111,8 @@
                 </Grid>
                 <TextBlock Text="表領域：" Margin="8,0,0,0" VerticalAlignment="Center"/>
                 <Grid>
-                <ComboBox IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                    <ComboBox IsEditable="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.TablespaceNames, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.TablespaceName, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
                 </Grid>
             </StackPanel>
         </StackPanel>
@@ -127,7 +127,7 @@
                 <ToolBar>
                     <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
                     <Separator/>
-                    <CheckBox Grid.Column="4" Margin="2,0" x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click" Style="{DynamicResource CheckBoxShowHiddenStyle}"/>
+                    <CheckBox Grid.Column="4" Margin="2,0" x:Name="checkBoxShowHidden" Content="システム項目を表示" VerticalAlignment="Center" Click="checkBoxShowHidden_Click" Style="{StaticResource CheckBoxShowHiddenStyle}"/>
                 </ToolBar>
             </ToolBarTray>
             <DataGrid x:Name="dataGridColumns" AutoGenerateColumns="False" SizeChanged="dataGridColumns_SizeChanged" SelectionUnit="Cell" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}">

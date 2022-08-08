@@ -26,7 +26,7 @@
                 <Button x:Name="buttonClose" VerticalAlignment="Stretch" BorderThickness="0" Margin="5,0,0,0" Width="20" Height="20" ContentTemplate="{StaticResource ImageRevert14}" Click="buttonClose_Click"/>
             </StackPanel>
             <StackPanel Orientation="Vertical" Margin="0,1">
-                <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{DynamicResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
+                <CheckBox x:Name="checkBoxFoldOption" Content="オプション" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="2" Background="Transparent" Style="{StaticResource CheckBoxStyleHideGroup}" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" IsChecked="True"/>
                 <StackPanel Margin="12,0,0,0">
                     <StackPanel x:Name="stackPanelOptions" Visibility="{Binding IsChecked, ElementName=checkBoxFoldOption, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <CheckBox x:Name="checkBoxWardwrap" Content="単語単位で検索" Margin="1"/>
