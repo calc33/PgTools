@@ -265,7 +265,7 @@
                                 <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
                             <DockPanel>
-                                <Button x:Name ="buttonAddTab" DockPanel.Dock="Left" ContentTemplate="{StaticResource ImageAdd10}" BorderThickness="0" Background="Transparent" Click="buttonAddTab_Click">
+                                <Button x:Name ="buttonAddTab" DockPanel.Dock="Left" ContentTemplate="{StaticResource ImageAdd10}" Margin="4,0" BorderThickness="0" Background="Transparent" Click="buttonAddTab_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem x:Name="menuItemAddDatabase" Header="データベース情報" Click="menuItemAddDatabase_Click"/>
