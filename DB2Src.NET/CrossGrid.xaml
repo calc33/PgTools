@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:Db2Source"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid x:Name="gridMain">
+    <Grid x:Name="gridMain" Grid.IsSharedSizeScope="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition/>
@@ -15,14 +15,14 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer x:Name="scrollViewerColumnHeader" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Auto">
             <Grid x:Name="gridColumnHeader"/>
         </ScrollViewer>
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden">
+        <ScrollViewer x:Name="scrollViewerRowHeader" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Hidden">
             <Grid x:Name="gridRowHeader" />
         </ScrollViewer>
-        <ScrollViewer Grid.Column="1" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <Grid x:Name="gridBody" />
+        <ScrollViewer x:Name="scrollViewerBody" Grid.Column="1" Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ScrollChanged="scrollViewerBody_ScrollChanged">
+            <Grid x:Name="gridBody"/>
         </ScrollViewer>
     </Grid>
 </UserControl>

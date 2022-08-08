@@ -99,58 +99,79 @@ namespace Db2Source
             return 0;
         }
 
+        private static void AddToChildren(AxisEntry target, List<AxisEntry> list, ref int index)
+        {
+            while (index < list.Count)
+            {
+                AxisEntry entry = list[index];
+                if (!target.Values.IsSubtotalOf(entry.Values))
+                {
+                    return;
+                }
+                target.Children.Add(entry);
+                index++;
+                AddToChildren(entry, list, ref index);
+            }
+        }
+
         /// <summary>
-        /// axisesで縦軸もしくは横軸に表示する可能性のある項目一覧を渡し、
+        /// axisesで縦軸や横軸に表示する項目(Axis)の配列を渡し、
         /// 表示用にグループ化したエントリの一覧を生成する
         /// </summary>
-        /// <param name="axises"></param>
+        /// <param name="axises">
+        /// グループ化したい項目(Axis)の配列
+        /// </param>
         /// <returns></returns>
-        public List<AxisEntry>[] GetAxisEntries(Axis[][] axises)
+        public List<AxisEntry> GetAxisEntries(AxisCollection axises)
         {
             UpdateCells();
+            List<AxisEntry> entries = new List<AxisEntry>();
+            Dictionary<AxisValueArray, List<SummaryCell>> dict = new Dictionary<AxisValueArray, List<SummaryCell>>();
+            foreach (SummaryCell cell in _cells.Values)
+            {
+                AxisValueArray subKey = new AxisValueArray(cell.KeyAxis, axises);
+                List<SummaryCell> l;
+                if (!dict.TryGetValue(subKey, out l))
+                {
+                    l = new List<SummaryCell>();
+                    dict.Add(subKey, l);
+                }
+                l.Add(cell);
+            }
+            foreach (KeyValuePair<AxisValueArray, List<SummaryCell>> pair in dict)
+            {
+                AxisEntry entry = new AxisEntry(pair.Key);
+                entry.Cells.AddRange(pair.Value);
+                entries.Add(entry);
+            }
+            entries.Sort(CompareAxisEntry);
+            List<AxisEntry> list = new List<AxisEntry>();
+            int i = 0;
+            while (i < entries.Count)
+            {
+                AxisEntry entry = entries[i];
+                AddToChildren(entry, entries, ref i);
+                list.Add(entry);
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// axisesで縦軸や横軸に表示する項目(Axis)の配列を渡し、
+        /// 表示用にグループ化したエントリの一覧を生成する
+        /// GetAxisEntryでは縦軸のみ、横軸のみの指定だが、
+        /// GetAxisEntriesでは縦軸と横軸を同時指定できる
+        /// </summary>
+        /// <param name="axises">
+        /// </param>
+        /// <returns></returns>
+        public List<AxisEntry>[] GetAxisEntries(AxisCollection[] axises)
+        {
             int n = axises.Length;
             List<AxisEntry>[] lists = new List<AxisEntry>[n];
             for(int i = 0; i < n; i++)
             {
-                List<AxisEntry> entries = new List<AxisEntry>();
-                Dictionary<AxisValueArray, List<SummaryCell>> dict = new Dictionary<AxisValueArray, List<SummaryCell>>();
-                foreach (SummaryCell cell in _cells.Values)
-                {
-                    AxisValueArray subKey = new AxisValueArray(cell.KeyAxis, axises[i]);
-                    List<SummaryCell> l;
-                    if (!dict.TryGetValue(subKey, out l))
-                    {
-                        l = new List<SummaryCell>();
-                        dict.Add(subKey, l);
-                    }
-                    l.Add(cell);
-                }
-                foreach (KeyValuePair<AxisValueArray, List<SummaryCell>> pair in dict)
-                {
-                    AxisEntry entry = new AxisEntry() { Values = pair.Key };
-                    entry.Cells.AddRange(pair.Value);
-                    entries.Add(entry);
-                }
-                entries.Sort(CompareAxisEntry);
-                AxisEntry last = entries[0];
-                AxisEntry[] store = new AxisEntry[last.Values.Count];
-                store[0] = last;
-                //for (int k = 0; k < store.Length; k++)
-                //{
-                //    store[k] = last;
-                //}
-                for (int j = 1; j < entries.Count; j++)
-                {
-                    AxisEntry entry = entries[j];
-                    for (int k = 0; k < store.Length; k++)
-                    {
-                        if (last.Values[k].IsNoValue && !entry.Values[k].IsNoValue)
-                        {
-
-                        }
-                    }
-                }
-                lists[i] = entries;
+                lists[i] = GetAxisEntries(axises[i]);
             }
             return lists;
         }
@@ -283,7 +304,40 @@ namespace Db2Source
             return cell;
         }
 
+        public SummaryCell Find(AxisValueArray values)
+        {
+            if (values == null)
+            {
+                throw new ArgumentNullException("values");
+            }
+            if (Axises.Count != values.Count)
+            {
+                throw new ArgumentException(string.Format("valuesの要素数({0})とAxisの要素数({1})が一致しません", values.Count, Axises.Count));
+            }
+            UpdateCells();
+            SummaryCell cell;
+            if (!_cells.TryGetValue(values, out cell))
+            {
+                return null;
+            }
+            return cell;
+        }
 
+        public SummaryCell Find(params AxisEntry[] entries)
+        {
+            if (entries == null)
+            {
+                throw new ArgumentNullException("entries");
+            }
+            UpdateCells();
+            AxisValueArray key = new AxisValueArray(this, entries);
+            SummaryCell cell;
+            if (!_cells.TryGetValue(key, out cell))
+            {
+                return null;
+            }
+            return cell;
+        }
 
         private Axis[] _axisCandidates = null;
         public Axis[] AxisCandidates

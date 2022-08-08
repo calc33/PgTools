@@ -327,6 +327,9 @@ namespace Db2Source
                 return op;
             }
         }
+        /// <summary>
+        /// 集計グリッドに表示するセル
+        /// </summary>
         public class SummaryCell
         {
             public class ItemCollection : ObservableCollection<object> { }
@@ -334,6 +337,7 @@ namespace Db2Source
             public ItemCollection Items { get; private set; }
             public AxisValueArray KeyAxis { get; internal set; }
             public SummaryOperatorBase[] Summaries { get; internal set; }
+            
 
             public SummaryCell(IList<Axis> axises, AxisValueArray key, IList<SummaryDefinition> summaryDefinitions)
             {

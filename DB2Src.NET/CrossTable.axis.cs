@@ -235,7 +235,15 @@ namespace Db2Source
         public AxisValueCollection Items { get; } = new AxisValueCollection();
         public AxisValue NoValue { get; }
 
-        public bool ShowSubtotal { get; set; }
+        /// <summary>
+        /// 小計表示の有無
+        /// </summary>
+        public bool ShowSubtotal { get; set; } = true;
+
+        /// <summary>
+        /// 上位要素の小計欄中に展開して表示する
+        /// </summary>
+        public bool ExpandInSubtotal { get; set; } = false;
 
         internal Axis(CrossTable owner)
         {
@@ -417,6 +425,23 @@ namespace Db2Source
     {
         private AxisValue[] _array;
 
+        public bool IsSubtotalOf(AxisValueArray value)
+        {
+            for (int i = 0; i < _array.Length; i++)
+            {
+                AxisValue v1 = this[i];
+                AxisValue v2 = value[i];
+                if (v1.IsNoValue && !v2.IsNoValue)
+                {
+                    return true;
+                }
+                if (!Equals(v1, v2))
+                {
+                    return false;
+                }
+            }
+            return false;
+        }
         public AxisValue this[int index]
         {
             get { return _array[index]; }
@@ -465,16 +490,32 @@ namespace Db2Source
             return _array.GetEnumerator();
         }
 
-        internal AxisValueArray(AxisValueArray source, Axis[] axises)
+        internal AxisValueArray(AxisValueArray source, AxisCollection axises)
         {
-            _array = new AxisValue[axises.Length];
-            int n = axises.Length;
+            int n = axises.Count;
+            _array = new AxisValue[n];
             for (int i = 0; i < n; i++)
             {
                 Axis axis = axises[i];
                 if (axis != null)
                 {
                     _array[i] = this[axis.Index];
+                }
+            }
+        }
+
+        internal AxisValueArray(CrossTable table, params AxisEntry[] entries): this(table.Axises)
+        {
+            foreach (AxisEntry entry in entries)
+            {
+                foreach (AxisValue value in entry.Values)
+                {
+                    int i = value.Owner.Index;
+                    if (i == -1)
+                    {
+                        continue;
+                    }
+                    _array[i] = value;
                 }
             }
         }
@@ -562,9 +603,12 @@ namespace Db2Source
         /// <summary>
         /// 小計を表示して子要素を折り畳み表示する場合、子要素がここに格納される
         /// </summary>
-        public AxisEntry[] Children { get; set; }
-        
-        private bool _isFolded;
+        public List<AxisEntry> Children { get; set; } = new List<AxisEntry>();
+        public AxisEntryStatus[] Status { get; private set; }
+        public object[] Contents { get; private set; }
+
+
+        private bool _isFolded = false;
 
         /// <summary>
         /// 子要素を非表示にして小計のみ表示したい場合はtrue
@@ -573,16 +617,40 @@ namespace Db2Source
         {
             get
             {
-                return _isFolded;
+                return _isFolded && IsFoldable;
             }
             set
             {
-                if (_isFolded == value)
+                bool v = value &&  IsFoldable;
+                if (_isFolded == v)
                 {
                     return;
                 }
-                _isFolded = value;
+                _isFolded = v;
                 OnPropertyChanged(new PropertyChangedEventArgs("IsFolded"));
+            }
+        }
+
+        private bool? _isFoldable = null;
+        private void UpdateIsFoldable()
+        {
+            if (_isFoldable.HasValue)
+            {
+                return;
+            }
+            Axis axis = (0 <= Level) ? Values[Level].Owner : null;
+            _isFoldable = (axis != null) ? axis.ShowSubtotal : false;
+        }
+        /// <summary>
+        /// 子要素を畳める場合はtrue、畳めない場合はfalse
+        /// (ShowSubtotal=trueの場合にtrue)
+        /// </summary>
+        public bool IsFoldable
+        {
+            get
+            {
+                UpdateIsFoldable();
+                return _isFoldable.Value;
             }
         }
 
@@ -590,6 +658,65 @@ namespace Db2Source
         private void OnPropertyChanged(PropertyChangedEventArgs e)
         {
             PropertyChanged?.Invoke(this, e);
+        }
+
+        public AxisEntry() { }
+        public AxisEntry(AxisValueArray values)
+        {
+            Values = values;
+            int n = Values.Count;
+            Status = new AxisEntryStatus[n];
+            Contents = new object[n];
+            for (int i = 0; i < n; i++)
+            {
+                if (Values[i].IsNoValue)
+                {
+                    Level = i - 1;
+                    break;
+                }
+            }
+            for (int i = 0; i < n; i++)
+            {
+                if (i < Level)
+                {
+                    Status[i] = AxisEntryStatus.JoinPriorEntry;
+                    Contents[i] = null;
+                }
+                else if (i == Level)
+                {
+                    Status[i] = AxisEntryStatus.Visible;
+                    Contents[i] = Values[i].Value;
+                }
+                else
+                {
+                    Status[i] = AxisEntryStatus.JoinPriorLevel;
+                    Contents[i] = null;
+                }
+            }
+            UpdateIsFoldable();
+        }
+
+        public void MergeSingleChild()
+        {
+            if (Children.Count == 1)
+            {
+                AxisEntry child = Children[0];
+                if (Equals(Values[Level], child.Values[child.Level]))
+                {
+                    Status[child.Level] = AxisEntryStatus.JoinPriorLevel;
+                }
+                else
+                {
+                    Status[child.Level] = AxisEntryStatus.Visible;
+                    Contents[child.Level] = child.Contents[child.Level];
+                }
+                Values = child.Values;
+                Children = child.Children;
+            }
+            foreach (AxisEntry entry in Children)
+            {
+                entry.MergeSingleChild();
+            }
         }
     }
     public class AxisEntryCollection: ObservableCollection<AxisEntry> { }
@@ -608,17 +735,17 @@ namespace Db2Source
         /// </summary>
         Visible,
         /// <summary>
-        /// 直前のエントリーと結合
+        /// 同一エントリーの直前と結合
         /// </summary>
-        JoinPrior,
+        JoinPriorLevel,
         /// <summary>
-        /// 直上のエントリーと結合
+        /// 一つ前のエントリーと結合
         /// </summary>
-        JoinUpper,
-        /// <summary>
-        /// 直前・直上のエントリー両方と結合
-        /// </summary>
-        JoinPriorAndUpper
+        JoinPriorEntry,
+        ///// <summary>
+        ///// 直前・直上のエントリー両方と結合
+        ///// </summary>
+        //JoinPriorEntryAndLevel
     }
     public class VisibleAxisEntryCollection
     {
@@ -708,11 +835,11 @@ namespace Db2Source
             }
             else if (entry.Level < level)
             {
-                return AxisEntryStatus.JoinUpper;
+                return AxisEntryStatus.JoinPriorEntry;
             }
             else //if (level < entry.Level)
             {
-                return AxisEntryStatus.JoinPrior;
+                return AxisEntryStatus.JoinPriorLevel;
             }
         }
     }

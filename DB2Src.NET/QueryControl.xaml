@@ -171,6 +171,21 @@
                     </DataGrid>
                 </DockPanel>
             </TabItem>
+            <TabItem x:Name="tabItemCrossGrid" Header="クロス集計" TabIndex="6" Visibility="Collapsed">
+                <DockPanel>
+                    <Grid DockPanel.Dock="Right">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                            <RowDefinition Height="1*"/>
+                        </Grid.RowDefinitions>
+                        <ListBox Grid.Row="0"/>
+                        <ListBox Grid.Row="1"/>
+                        <ListBox Grid.Row="2"/>
+                    </Grid>
+                    <local:CrossGrid/>
+                </DockPanel>
+            </TabItem>
         </TabControl>
     </Grid>
 </UserControl>
