@@ -1065,6 +1065,7 @@ namespace Db2Source
 
         private void SelectGridCell(DataGrid grid, object row, DataGridColumn column)
         {
+            grid.CommitEdit();
             DataGridCellInfo cell = new DataGridCellInfo(row, column);
             grid.CurrentCell = cell;
             grid.SelectedCells.Clear();
@@ -1247,7 +1248,7 @@ namespace Db2Source
             JoinTables.Remove(join);
         }
 
-        private void buttonSetNull_Click(object sender, RoutedEventArgs e)
+        private void SetNullToCurrentCell()
         {
             DataGridCellInfo cell = dataGridResult.CurrentCell;
             if (!cell.IsValid)
@@ -1265,8 +1266,13 @@ namespace Db2Source
                 return;
             }
             dataGridResult.CommitEdit();
-            //row[col.Index] = null;
-            row[col.Index] = DBNull.Value;
+            dataGridResult.CancelEdit();
+            Dispatcher.InvokeAsync(() => { row[col.Index] = DBNull.Value; });
+        }
+
+        private void buttonSetNull_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.InvokeAsync(SetNullToCurrentCell);
         }
 
         private void ButtonJoinTableColumns_Click(object sender, RoutedEventArgs e)
