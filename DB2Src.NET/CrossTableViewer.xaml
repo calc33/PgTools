@@ -19,6 +19,8 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <ListBox MinWidth="100"/>
+            <ListBox MinWidth="100" Grid.Row="1"/>
+            <ListBox MinWidth="100" Grid.Row="2"/>
         </Grid>
     </Grid>
 </UserControl>
