@@ -243,6 +243,7 @@ namespace Db2Source
         /// </summary>
         public bool IsNullable { get; private set; } = false;
         public bool AllowEmptyString { get; private set; } = true;
+        public bool IsString { get; private set; } = false;
         public bool IsBoolean { get; private set; } = false;
         public bool IsNumeric { get; private set; } = false;
         public bool IsDateTime { get; private set; } = false;
@@ -439,6 +440,7 @@ namespace Db2Source
                 || ft == typeof(int) || ft == typeof(uint) || ft == typeof(long) || ft == typeof(ulong)
                 || ft == typeof(float) || ft == typeof(double) || ft == typeof(decimal);
             AllowEmptyString = ft == typeof(string);
+            IsString = ft == typeof(string);
             IsDateTime = ft == typeof(DateTime);
             IsArray = ft == typeof(Array);
             FieldType = ft;
