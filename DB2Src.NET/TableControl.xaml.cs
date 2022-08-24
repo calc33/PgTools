@@ -1174,6 +1174,7 @@ namespace Db2Source
                     gr.CommitEdit();
                     break;
                 case Key.Enter:
+                case Key.Tab:
                     gr.CommitEdit();
                     break;
             }
