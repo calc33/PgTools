@@ -577,6 +577,7 @@ namespace Db2Source
             _identifier = null;
             _displayName = null;
             _headerDef = null;
+            InvalidateIdentifier();
         }
 
         private void UpdateIdentifier()
@@ -587,9 +588,9 @@ namespace Db2Source
             }
             string id = Name + Parameters.GetInputDataTypeText("(", ",", ")");
             _identifier = id;
-            if (!string.IsNullOrEmpty(Owner))
+            if (!string.IsNullOrEmpty(SchemaName))
             {
-                _fullIdentifier = Owner + "." + _identifier;
+                _fullIdentifier = SchemaName + "." + _identifier;
             }
             else
             {

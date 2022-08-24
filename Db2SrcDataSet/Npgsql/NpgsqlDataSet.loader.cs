@@ -3605,7 +3605,7 @@ namespace Db2Source
                 }
                 _backend.FillProcByOid(oid.Value, connection);
             }
-            StoredFunction ret = StoredFunctions[sch, id];
+            StoredFunction ret = StoredFunctions[id];
             if (ret != function)
             {
                 function.ReplaceTo(ret);
