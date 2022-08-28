@@ -3559,7 +3559,7 @@ namespace Db2Source
                 }
                 _backend.FillSelectableByOid(oid.Value, connection);
             }
-            Selectable ret = Tables[sch, name];
+            Selectable ret = Selectables[sch, name];
             if (ret != selectable)
             {
                 selectable.ReplaceTo(ret);
@@ -3573,7 +3573,7 @@ namespace Db2Source
         }
         internal View RefreshView(View view, NpgsqlConnection connection)
         {
-            return RefreshSelectable(view, 'r', connection) as View;
+            return RefreshSelectable(view, 'v', connection) as View;
         }
         internal ComplexType RefreshComplexType(ComplexType type, NpgsqlConnection connection)
         {
