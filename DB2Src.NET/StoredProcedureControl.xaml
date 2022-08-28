@@ -79,6 +79,8 @@
                 <StackPanel>
                     <ToolBarTray Orientation="Horizontal">
                         <ToolBar>
+                            <Button x:Name="buttonRefreshSchema" Margin="1,2" ToolTip="定義情報を再読込" ContentTemplate="{StaticResource ImageRollback14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False" Click="buttonRefreshSchema_Click"/>
+                            <Separator/>
                             <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False"/>
                             <Separator/>
                             <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>

@@ -563,6 +563,11 @@ namespace Db2Source
             }
             Dispatcher.InvokeAsync(() => { MainWindow.Current.OpenViewer(obj); });
         }
+
+        private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
+        {
+            Target?.Context?.Refresh(Target);
+        }
     }
     public class ParamEditor: DependencyObject
     {

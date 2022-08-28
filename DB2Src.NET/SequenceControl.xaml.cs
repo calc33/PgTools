@@ -235,5 +235,10 @@ namespace Db2Source
                 MainWindow.Current.FilterTreeView(true);
             }
         }
+
+        private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
+        {
+            Target?.Context?.Refresh(Target);
+        }
     }
 }

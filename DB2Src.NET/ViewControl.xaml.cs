@@ -465,5 +465,10 @@ namespace Db2Source
             MenuItem menu = sender as MenuItem;
             DropTarget((bool)menu.Tag);
         }
+
+        private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
+        {
+            Target?.Context?.Refresh(Target);
+        }
     }
 }

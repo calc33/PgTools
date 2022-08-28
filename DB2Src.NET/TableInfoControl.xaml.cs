@@ -254,5 +254,10 @@ namespace Db2Source
             TableControl ctl = App.FindLogicalParent<TableControl>(this);
             ctl?.DropTarget((bool)menu.Tag);
         }
+
+        private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
+        {
+            Target?.Context?.Refresh(Target);
+        }
     }
 }
