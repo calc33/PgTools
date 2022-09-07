@@ -407,6 +407,24 @@ namespace Db2Source
             return win.Target;
         }
 
+        public static string GetExecutableFromPath(string filename)
+        {
+            if (Path.IsPathRooted(filename) && File.Exists(filename))
+            {
+                return filename;
+            }
+            string[] paths = Environment.GetEnvironmentVariable("PATH").Split(';');
+            foreach (string dir in paths)
+            {
+                string path = Path.Combine(dir, filename);
+                if (File.Exists(path))
+                {
+                    return path;
+                }
+            }
+            return null;
+        }
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             InitSettingsFromRegistry();

@@ -883,37 +883,55 @@ namespace Db2Source
             }
         }
 
-        private string GetExecutableFromPath(string filename)
-        {
-            if (System.IO.Path.IsPathRooted(filename) && File.Exists(filename))
-            {
-                return filename;
-            }
-            string[] paths = Environment.GetEnvironmentVariable("PATH").Split(';');
-            foreach (string dir in paths)
-            {
-                string path = System.IO.Path.Combine(dir, filename);
-                if (File.Exists(path))
-                {
-                    return path;
-                }
-            }
-            return null;
-        }
         /// <summary>
         /// MenuItemのTagに格納されているファイル名をフルパスに変換する
         /// </summary>
         /// <param name="menuItem"></param>
-        private void InitExecutableMenuItem(MenuItem menuItem)
+        private void InitExecutableMenuItem(MenuItem menuItem, RoutedEventHandler clickEvent)
         {
-            string s = GetExecutableFromPath(menuItem.Tag.ToString());
-            menuItem.Tag = s;
-            menuItem.IsEnabled = !string.IsNullOrEmpty(s);
+            string exe = menuItem.Tag.ToString();
+            string path = App.GetExecutableFromPath(exe);
+            List<PgsqlInstallation> l = new List<PgsqlInstallation>();
+            foreach (PgsqlInstallation ins in PgsqlInstallation.Installations)
+            {
+                string s = System.IO.Path.Combine(ins.BinDirectory, exe);
+                if (System.IO.File.Exists(s))
+                {
+                    l.Add(ins);
+                }
+            }
+            switch (l.Count)
+            {
+                case 0:
+                    menuItem.Tag = path;
+                    menuItem.IsEnabled = !string.IsNullOrEmpty(path);
+                    break;
+                case 1:
+                    menuItem.Tag = System.IO.Path.Combine(l[0].BinDirectory, exe);
+                    menuItem.IsEnabled = true;
+                    break;
+                default:
+                    foreach (PgsqlInstallation ins in l)
+                    {
+                        string s = System.IO.Path.Combine(ins.BinDirectory, exe);
+                        MenuItem mi = new MenuItem() { Header = ins.Name, Tag = s };
+                        mi.Click += clickEvent;
+                        if (string.Compare(s, path, true) == 0)
+                        {
+                            mi.FontWeight = FontWeights.Bold;
+                        }
+                        menuItem.Items.Add(mi);
+                    }
+                    menuItem.IsEnabled = true;
+                    menuItem.Click -= clickEvent;
+                    break;
+            }
         }
+
         private void InitMenu()
         {
-            InitExecutableMenuItem(menuItemPsql);
-            InitExecutableMenuItem(menuItemPgdump);
+            InitExecutableMenuItem(menuItemPsql, menuItemPsql_Click);
+            //InitExecutableMenuItem(menuItemPgdump, menuItemPgdump_Click);
         }
         private void InitCommandBindings()
         {
@@ -1051,7 +1069,7 @@ namespace Db2Source
 
         private void menuItemPsql_Click(object sender, RoutedEventArgs e)
         {
-            string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
+            string exe = (sender as MenuItem).Tag.ToString();
             if (string.IsNullOrEmpty(exe))
             {
                 return;
@@ -1063,11 +1081,11 @@ namespace Db2Source
 
         private void menuItemPgdump_Click(object sender, RoutedEventArgs e)
         {
-            string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
-            if (string.IsNullOrEmpty(exe))
-            {
-                return;
-            }
+            //string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
+            //if (string.IsNullOrEmpty(exe))
+            //{
+            //    return;
+            //}
             PgDumpOptionWindow win = new PgDumpOptionWindow() { Owner = this, DataSet = CurrentDataSet };
             win.Show();
             //win.ShowDialog();

@@ -23,6 +23,10 @@
     </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
+            <StackPanel Orientation="Horizontal">
+                <!--<TextBlock Text=":" VerticalAlignment="Center"/>-->
+                <ComboBox x:Name="comboBoxPgDump" DisplayMemberPath="Text" SelectedValuePath="Path" MinWidth="200" VerticalAlignment="Center"/>
+            </StackPanel>
             <StackPanel>
                 <GroupBox Header="出力方式" Margin="2,0">
                     <StackPanel>

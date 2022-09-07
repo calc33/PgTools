@@ -26,6 +26,24 @@ namespace Db2Source
     /// </summary>
     public partial class PgDumpOptionWindow : Window
     {
+        private class ComboBoxPathItem
+        {
+            public string Text { get; set; }
+            public string Path { get; set; }
+
+            public ComboBoxPathItem() { }
+
+            public ComboBoxPathItem(PgsqlInstallation installation, string exe)
+            {
+                Path = IO.Path.Combine(installation.BinDirectory, exe);
+                Text = string.Format("{0}({1})", installation.Name, installation.BinDirectory);
+            }
+
+            public override string ToString()
+            {
+                return Text;
+            }
+        }
         private Db2SourceContext _dataSet;
         public Db2SourceContext DataSet
         {
@@ -416,10 +434,42 @@ namespace Db2Source
             {
                 return;
             }
-            string cmd = "pg_dump " + GetCommandLineArgs();
+            string exe = comboBoxPgDump.SelectedValue.ToString();
+            string cmd = exe + " " + GetCommandLineArgs();
             textBoxLog.Clear();
             textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
             textBoxLog.AppendText(cmd + Environment.NewLine);
+        }
+
+        private void InitComboBoxPgDump()
+        {
+            string exe = "pg_dump.exe";
+            string path = App.GetExecutableFromPath(exe);
+            List<ComboBoxPathItem> l = new List<ComboBoxPathItem>();
+            int p = -1;
+            foreach (PgsqlInstallation ins in PgsqlInstallation.Installations)
+            {
+                ComboBoxPathItem item = new ComboBoxPathItem(ins, exe);
+                if (string.Compare(item.Path, path, true) == 0)
+                {
+                    p = l.Count;
+                }
+                l.Add(item);
+            }
+            if (p == -1)
+            {
+                if (string.IsNullOrEmpty(path))
+                {
+                    l.Add(new ComboBoxPathItem() { Text = "pg_dump", Path = exe });
+                }
+                else
+                {
+                    l.Add(new ComboBoxPathItem() { Text = path, Path = path });
+                }
+                p = 0;
+            }
+            comboBoxPgDump.ItemsSource = l;
+            comboBoxPgDump.SelectedIndex = p;
         }
 
         private void UpdateWrapPanelSchemas()
@@ -495,6 +545,7 @@ namespace Db2Source
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            InitComboBoxPgDump();
             UpdateWrapPanelSchemas();
             UpdateButtonExportEnabled();
             UpdateComboBoxEncoding();
