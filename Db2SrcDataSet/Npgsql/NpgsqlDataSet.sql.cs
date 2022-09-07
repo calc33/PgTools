@@ -134,7 +134,11 @@ namespace Db2Source
             l.Add(buf.ToString());
             foreach (Sequence seq in table.Sequences)
             {
-                l.Add(string.Format("{0}alter sequence {1} owner to {2};{3}", spc, seq.EscapedIdentifier(CurrentSchema), table.EscapedIdentifier(CurrentSchema), addNewline ? Environment.NewLine : string.Empty));
+                if (seq.OwnedColumn == null)
+                {
+                    continue;
+                }
+                l.Add(string.Format("{0}alter sequence {1} owned by {2};{3}", spc, seq.EscapedIdentifier(CurrentSchema), seq.OwnedColumn.EscapedIdentifier(CurrentSchema), addNewline ? Environment.NewLine : string.Empty));
             }
 
             return l.ToArray();
