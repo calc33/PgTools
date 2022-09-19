@@ -7,6 +7,8 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -14,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -301,22 +304,49 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void buttonOK_Click(object sender, RoutedEventArgs e)
+        private void ConnectAndCloseAsync()
         {
+            gridLoading.Visibility = Visibility.Visible;
             try
             {
-                Target.Name = Target.GetDefaultName();
-                IDbConnection conn = Target.NewConnection(true);
-                Result = conn;
+                IDbConnection conn = Target.NewConnection(false);
+                Dispatcher disp = Dispatcher;
+                Task task = Task.Run(() =>
+                {
+                    try
+                    {
+                        conn.Open();
+                        disp.InvokeAsync(() =>
+                        {
+                            Result = conn;
+                            gridLoading.Visibility = Visibility.Collapsed;
+                            DialogResult = true;
+                        });
+                    }
+                    catch (Exception t)
+                    {
+                        disp.InvokeAsync(() =>
+                        {
+                            MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            App.LogException(t);
+                            gridLoading.Visibility = Visibility.Collapsed;
+                        });
+                    }
+                });
             }
             catch (Exception t)
             {
                 MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 App.LogException(t);
-                return;
+                gridLoading.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void buttonOK_Click(object sender, RoutedEventArgs e)
+        {
+            Target.Name = Target.GetDefaultName();
             App.Connections.Save(Target);
-            DialogResult = true;
+            Dispatcher.InvokeAsync(ConnectAndCloseAsync);
         }
 
         private void buttonCancel_Click(object sender, RoutedEventArgs e)
@@ -342,13 +372,9 @@ namespace Db2Source
             MessageBox.Show(Properties.Resources.MessageBoxText_Connected, Properties.Resources.MessageBoxCaption_Succeed, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void InitButtonSelectTarget()
+        private void InitTreeViewConnections()
         {
-            ContextMenu menu = buttonSelectTarget.ContextMenu;
-            menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
-            menu.PlacementTarget = buttonSelectTarget;
-            menu.Items.Clear();
-            ConnectionInfoMenu.AddMenuItem(menu.Items, ConnectionList, buttonSelectTargetMenuItem_Click);
+            ConnectionInfoTreeView.AddTreeViewItem(treeViewConnections.Items, ConnectionList/*, buttonSelectTargetMenuItem_Click*/);
         }
 
         private void buttonSelectTargetMenuItem_Click(object sender, RoutedEventArgs e)
@@ -377,7 +403,8 @@ namespace Db2Source
             ConnectionList = l;
             Target = info0;
             UpdateTitleColor();
-            InitButtonSelectTarget();
+            InitTreeViewConnections();
+            UpdateButtonShowConnectionsContentTemplate();
         }
 
         private void UpdateTitleColor()
@@ -408,17 +435,122 @@ namespace Db2Source
             UpdateTitleColor();
         }
 
-        private bool _wasContextMenuOpened = false;
-
-        private void buttonSelectTarget_Click(object sender, RoutedEventArgs e)
+        private bool FilterTreeViewItem(ItemCollection items, string filter)
         {
-            _wasContextMenuOpened = !_wasContextMenuOpened;
-            buttonSelectTarget.ContextMenu.IsOpen = _wasContextMenuOpened;
+            bool hasVisibleItem = false;
+            foreach (object item in items)
+            {
+                TreeViewItem node = item as TreeViewItem;
+                if (node == null)
+                {
+                    continue;
+                }
+                if (node.HasItems)
+                {
+                    if (FilterTreeViewItem(node.Items, filter))
+                    {
+                        node.Visibility = Visibility.Visible;
+                        hasVisibleItem = true;
+                    }
+                    else
+                    {
+                        node.Visibility = Visibility.Collapsed;
+                    }
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(filter) || node.Header.ToString().Contains(filter))
+                    {
+                        node.Visibility = Visibility.Visible;
+                        hasVisibleItem = true;
+                    }
+                    else
+                    {
+                        node.Visibility = Visibility.Collapsed;
+                    }
+                }
+            }
+            return hasVisibleItem;
         }
 
-        private void buttonSelectTarget_ContextMenuClosing(object sender, ContextMenuEventArgs e)
+        private void FilterTreeViewConnections()
         {
-            _wasContextMenuOpened = false;
+            string s = textBoxFilterTreeView.Text;
+            FilterTreeViewItem(treeViewConnections.Items, s);
+        }
+
+        private void textBoxFilterTreeView_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FilterTreeViewConnections();
+        }
+
+        private void textBoxFilterTreeView_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                FilterTreeViewConnections();
+                e.Handled = true;
+            }
+        }
+
+        private void UpdateButtonShowConnectionsContentTemplate()
+        {
+            bool isChecked = buttonShowConnections.IsChecked ?? false;
+            string resName = isChecked ? "ImageLeftArrow8": "ImageRightArrow8";
+            buttonShowConnections.ContentTemplate = buttonShowConnections.FindResource(resName) as DataTemplate;
+        }
+
+        private void buttonShowConnections_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateButtonShowConnectionsContentTemplate();
+        }
+
+        private bool ShowSelectedTreeViewItem(TreeViewItem selectedItem)
+        {
+            if (selectedItem == null)
+            {
+                return false;
+            }
+            ConnectionInfo info = selectedItem.Tag as ConnectionInfo;
+            if (info == null)
+            {
+                return false;
+            }
+            Target = info;
+            return true;
+        }
+
+        private void PerformClickAsync(Button button)
+        {
+            Dispatcher.InvokeAsync(() => {
+                var provider = new ButtonAutomationPeer(button) as IInvokeProvider;
+                provider.Invoke();
+            });
+        }
+
+        private void treeViewConnections_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (treeViewConnections.SelectedItem as TreeViewItem != null)
+            {
+                PerformClickAsync(buttonOK);
+            }
+        }
+
+        private void treeViewConnections_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                if (treeViewConnections.SelectedItem as TreeViewItem != null)
+                {
+                    PerformClickAsync(buttonOK);
+                }
+            }
+        }
+
+        private void treeViewConnections_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            ShowSelectedTreeViewItem(treeViewConnections.SelectedItem as TreeViewItem);
+            e.Handled = true;
         }
     }
 }

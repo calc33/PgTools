@@ -198,12 +198,12 @@
             </DataTemplate>
             <DataTemplate x:Key="ImageLeftArrow8">
                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-                    <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M6,0 L6,8 L0,4 z"/>
+                    <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M7,0 L7,8 L1,4 z"/>
                 </Canvas>
             </DataTemplate>
             <DataTemplate x:Key="ImageRightArrow8">
                 <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" Width="8" Height="8">
-                    <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M0,0 L0,8 L6,4 z"/>
+                    <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M1,0 L1,8 L7,4 z"/>
                 </Canvas>
             </DataTemplate>
             <DataTemplate x:Key="ImageRefresh16">
@@ -1194,6 +1194,14 @@
                 <Setter Property="BorderThickness" Value="0"/>
                 <Setter Property="Padding" Value="0"/>
                 <Setter Property="Background" Value="Transparent"/>
+            </Style>
+            <Style x:Key="DataGridStringTextBoxStyle" TargetType="{x:Type TextBox}">
+                <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                <Setter Property="BorderThickness" Value="0"/>
+                <Setter Property="Padding" Value="0"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="AcceptsReturn" Value="True"/>
+                <Setter Property="TextWrapping" Value="WrapWithOverflow"/>
             </Style>
         </ResourceDictionary>
     </Application.Resources>

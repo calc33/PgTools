@@ -115,7 +115,7 @@
     <Compile Include="ColumnCheckListWindow.xaml.cs">
       <DependentUpon>ColumnCheckListWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConnectionInfoMenu.cs" />
+    <Compile Include="ConnectionInfoTreeView.cs" />
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>

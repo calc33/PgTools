@@ -73,31 +73,13 @@ namespace Db2Source
 
         private void MenuItemOpenDb_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem mi = sender as MenuItem;
-            if (mi == null)
-            {
-                return;
-            }
-            ConnectionInfo info = mi.Tag as ConnectionInfo;
             if (CurrentDataSet != null)
             {
                 string path = Assembly.GetExecutingAssembly().Location;
-                NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
-                if (obj != null)
-                {
-                    string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, obj.DatabaseName, obj.UserName);
-                    Process.Start(path, args);
-                }
-                else
-                {
-                    Process.Start(path);
-                }
+                Process.Start(path);
                 return;
             }
-            if (info == null)
-            {
-                info = NewConnectionInfoFromRegistry();
-            }
+            ConnectionInfo info = NewConnectionInfoFromRegistry();
             NewConnectionWindow win = new NewConnectionWindow() { Owner = this, Target = info };
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
@@ -108,7 +90,6 @@ namespace Db2Source
             Connect(info);
             App.Connections.Merge(info);
             App.Connections.Save();
-            Dispatcher.InvokeAsync(UpdateMenuItemOpenDb);
         }
         private void UpdateTabControlsTarget()
         {
@@ -137,45 +118,6 @@ namespace Db2Source
                     tabControlMain.Items.RemoveAt(i);
                 }
             }
-        }
-
-        private Dictionary<string, MenuItem> _categoryPathToMenuItem;
-
-        private MenuItem GetCategoryMenuItem(string path)
-        {
-            if (string.IsNullOrEmpty(path))
-            {
-                return MenuItemOpenDb;
-            }
-            MenuItem ret;
-            if (_categoryPathToMenuItem.TryGetValue(path, out ret))
-            {
-                return ret;
-            }
-            int p = path.LastIndexOf(ConnectionInfo.CategoryPathSeparatorChar);
-            MenuItem parent = MenuItemOpenDb;
-            if (p != -1)
-            {
-                string dir = path.Substring(0, p);
-                parent = GetCategoryMenuItem(dir);
-            }
-            string node = path.Substring(p + 1);
-            ret = new MenuItem() { Header = node };
-            parent.Items.Add(ret);
-            _categoryPathToMenuItem.Add(path, ret);
-            return ret;
-        }
-
-        private void UpdateMenuItemOpenDb()
-        {
-            MenuItemOpenDb.Items.Clear();
-            ConnectionInfoMenu.AddMenuItem(MenuItemOpenDb.Items, App.Connections, MenuItemOpenDb_Click);
-
-            _categoryPathToMenuItem = new Dictionary<string, MenuItem>();
-            MenuItemOpenDb.Items.Insert(0, new Separator());
-            MenuItem mi = new MenuItem() { Header = (string)Resources["NewConnectionHeader"] };
-            mi.Click += MenuItemOpenDb_Click;
-            MenuItemOpenDb.Items.Insert(0, mi);
         }
 
         private DataGrid FindDataGridRecursive(DependencyObject obj)
@@ -749,8 +691,6 @@ namespace Db2Source
 
         private void window_Initialized(object sender, EventArgs e)
         {
-            UpdateMenuItemOpenDb();
-
             treeViewItemTop.Items.Clear();
 
             MovableTabItem.RegisterSchemaObjectControl(typeof(Table), typeof(TableControl));
@@ -1081,14 +1021,8 @@ namespace Db2Source
 
         private void menuItemPgdump_Click(object sender, RoutedEventArgs e)
         {
-            //string exe = GetExecutableFromPath((sender as MenuItem).Tag.ToString());
-            //if (string.IsNullOrEmpty(exe))
-            //{
-            //    return;
-            //}
             PgDumpOptionWindow win = new PgDumpOptionWindow() { Owner = this, DataSet = CurrentDataSet };
             win.Show();
-            //win.ShowDialog();
         }
 
         private void buttonAddTab_Click(object sender, RoutedEventArgs e)
@@ -1146,7 +1080,6 @@ namespace Db2Source
         {
             EditConnectionListWindow win = new EditConnectionListWindow() { Owner = this };
             win.ShowDialog();
-            UpdateMenuItemOpenDb();
         }
 
         private struct TabIndexRange
