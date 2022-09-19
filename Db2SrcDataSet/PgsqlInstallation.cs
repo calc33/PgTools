@@ -17,12 +17,15 @@ namespace Db2Source
         public string DataDirectory { get; private set; }
         private PgsqlInstallation(RegistryKey key)
         {
-            //Version = key.GetValue("Version").ToString();
-            Version = key.GetValue("CLT_Version").ToString();
-            Name = key.GetValue("Branding").ToString();
-            BaseDirectory = key.GetValue("Base Directory").ToString();
+            Version = key.GetValue("CLT_Version")?.ToString();
+            if (Version == null)
+            {
+                Version = key.GetValue("Version")?.ToString();
+            }
+            Name = key.GetValue("Branding")?.ToString();
+            BaseDirectory = key.GetValue("Base Directory")?.ToString();
             BinDirectory = Path.Combine(BaseDirectory, "bin");
-            DataDirectory = key.GetValue("Data Directory").ToString();
+            DataDirectory = key.GetValue("Data Directory")?.ToString();
         }
         public int CompareTo(object obj)
         {
