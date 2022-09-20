@@ -530,9 +530,11 @@ namespace Db2Source
 
         private void treeViewConnections_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (treeViewConnections.SelectedItem as TreeViewItem != null)
+            TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
+            if (item?.Tag != null)
             {
                 PerformClickAsync(buttonOK);
+                e.Handled = true;
             }
         }
 
@@ -540,9 +542,11 @@ namespace Db2Source
         {
             if (e.Key == Key.Enter)
             {
-                if (treeViewConnections.SelectedItem as TreeViewItem != null)
+                TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
+                if (item?.Tag != null)
                 {
                     PerformClickAsync(buttonOK);
+                    e.Handled = true;
                 }
             }
         }
