@@ -61,6 +61,10 @@ namespace Db2Source
             ReMatchNC = 0x7e2a,     // ~*
             ReUnmatch = 0x217e,     // !~
             ReUnmatchNC = 0x217e2a, // !~*
+            Like = 0x7e7e,          // ~~
+            LikeNC = 0x7e7e2a,      // ~~*
+            NotLike = 0x217e7e,     // !~~
+            NotLikeNC = 0x217e7e2a, // !~~*
             GeoLen = 0x402d40,      // @-@
             GeoCenter = 0x4040,     // @@
             GeoCross = 0x2626,      // &&
