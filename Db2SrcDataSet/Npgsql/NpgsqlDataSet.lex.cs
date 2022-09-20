@@ -268,7 +268,6 @@ namespace Db2Source
                         }
                         p0 = p;
                         char c = Sql[p];
-                        char c2;
                         switch (c)
                         {
                             case '"':
