@@ -962,9 +962,9 @@ namespace Db2Source
             public string owned_schema;
             public string owned_table;
             public string owned_field;
-            public string ftoptions;
+            public string[] ftoptions;
             public string srvname;
-            public string srvoptions;
+            public string[] srvoptions;
             public string fdwname;
 #pragma warning restore 0649
             public PgNamespace Schema;

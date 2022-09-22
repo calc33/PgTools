@@ -21,35 +21,17 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        private static string GetForeignTableOptionSQL(string foreignTableOption)
+        private static string GetForeignTableOptionSQL(string[] foreignTableOption)
         {
-            string opts = foreignTableOption.Trim();
-            if (string.IsNullOrEmpty(opts))
-            {
-                return string.Empty;
-            }
-            if (opts.StartsWith("("))
-            {
-                opts = opts.Remove(0, 1);
-            }
-            if (opts.EndsWith(")"))
-            {
-                opts = opts.Remove(opts.Length - 1);
-            }
-            if (string.IsNullOrEmpty(opts))
-            {
-                return string.Empty;
-            }
-            string[] opt = opts.Split(',');
             List<string> l = new List<string>();
-            foreach (string s in opt)
+            foreach (string s in foreignTableOption)
             {
                 int p = s.IndexOf('=');
                 if (p == -1)
                 {
                     continue;
                 }
-                string k = s.Substring(0, p - 1).Trim();
+                string k = s.Substring(0, p).Trim();
                 string v = s.Substring(p + 1).Trim();
                 l.Add(string.Format("{0} '{1}'", k, v));
             }
@@ -113,7 +95,7 @@ namespace Db2Source
                 if (!string.IsNullOrEmpty(table.ForeignServer))
                 {
                     buf.AppendLine();
-                    buf.Append(indent);
+                    buf.Append(spc);
                     buf.Append("server ");
                     buf.Append(table.ForeignServer);
                 }
@@ -121,7 +103,7 @@ namespace Db2Source
                 if (!string.IsNullOrEmpty(opt))
                 {
                     buf.AppendLine();
-                    buf.Append(indent);
+                    buf.Append(spc);
                     buf.Append("options ");
                     buf.Append(opt);
                 }

@@ -122,7 +122,7 @@ namespace Db2Source
 
         public bool IsForeignTable { get { return _tableKind == Kind.ForeignTable; } }
         public string ForeignServer { get; set; }
-        public string ForeignTableOptions { get; set; }
+        public string[] ForeignTableOptions { get; set; }
         public bool IsPartitioned { get; set; }
 
         public string PartitionBound { get; set; }
