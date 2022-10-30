@@ -193,6 +193,41 @@ namespace Db2Source
             }
             return ret;
         }
+        private delegate object GetProc(NpgsqlDataReader reader, int index);
+        private static Dictionary<Type, GetProc> PrimitiveProcs = new Dictionary<Type, GetProc>()
+        {
+            { typeof(sbyte), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<sbyte>(index); } },
+            { typeof(byte), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<byte>(index); } },
+            { typeof(short), (NpgsqlDataReader reader, int index) => { return reader.GetInt16(index); } },
+            { typeof(ushort), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<ushort>(index); } },
+            { typeof(int), (NpgsqlDataReader reader, int index) => { return reader.GetInt32(index); } },
+            { typeof(uint), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<uint>(index); } },
+            { typeof(long), (NpgsqlDataReader reader, int index) => { return reader.GetInt64(index); } },
+            { typeof(ulong), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<ulong>(index); } },
+            { typeof(bool), (NpgsqlDataReader reader, int index) => { return reader.GetBoolean(index); } },
+            { typeof(char), (NpgsqlDataReader reader, int index) => { return reader.GetChar(index); } },
+            { typeof(string), (NpgsqlDataReader reader, int index) => { return reader.IsDBNull(index) ? null : reader.GetString(index); } },
+            { typeof(float), (NpgsqlDataReader reader, int index) => { return reader.GetFloat(index); } },
+            { typeof(double), (NpgsqlDataReader reader, int index) => { return reader.GetDouble(index); } },
+            { typeof(decimal), (NpgsqlDataReader reader, int index) => { return reader.GetDecimal(index); } },
+        };
+        private static Dictionary<Type, GetProc> ArrayProcs = new Dictionary<Type, GetProc>()
+        {
+            { typeof(sbyte), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<sbyte[]>(index); } },
+            { typeof(byte), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<byte[]>(index); } },
+            { typeof(short), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<short[]>(index); } },
+            { typeof(ushort), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<ushort[]>(index); } },
+            { typeof(int), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<int[]>(index); } },
+            { typeof(uint), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<uint[]>(index); } },
+            { typeof(long), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<long[]>(index); } },
+            { typeof(ulong), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<ulong[]>(index); } },
+            { typeof(bool), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<bool[]>(index); } },
+            { typeof(char), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<char[]>(index); } },
+            { typeof(string), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<string[]>(index); } },
+            { typeof(float), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<float[]>(index); } },
+            { typeof(double), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<double[]>(index); } },
+            { typeof(decimal), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<decimal[]>(index); } },
+        };
         internal static void ReadObject(object target, NpgsqlDataReader reader, FieldInfo[] fields)
         {
             for (int i = 0, n = fields.Length; i < n; i++)
@@ -213,116 +248,38 @@ namespace Db2Source
                     ft = ft.GetGenericArguments()[0];
                 }
 
-                if (ft == typeof(Int16))
+                GetProc proc;
+                if (PrimitiveProcs.TryGetValue(ft, out proc))
                 {
-                    f.SetValue(target, reader.GetFieldValue<Int16>(i));
+                    f.SetValue(target, proc.Invoke(reader, i));
+                    continue;
                 }
-                else if (ft == typeof(Int32))
-                {
-                    f.SetValue(target, reader.GetInt32(i));
-                }
-                else if (ft == typeof(UInt32))
-                {
-
-                    f.SetValue(target, reader.GetFieldValue<UInt32>(i));
-                }
-                else if (ft == typeof(Int64))
-                {
-                    f.SetValue(target, reader.GetInt64(i));
-                }
-                else if (ft == typeof(UInt64))
-                {
-                    f.SetValue(target, reader.GetFieldValue<UInt32>(i));
-                }
-                else if (ft == typeof(bool))
-                {
-                    f.SetValue(target, reader.GetBoolean(i));
-                }
-                else if (ft == typeof(char))
-                {
-                    f.SetValue(target, reader.GetChar(i));
-                }
-                else if (ft == typeof(string))
-                {
-                    if (reader.IsDBNull(i))
-                    {
-                        f.SetValue(target, null);
-                    }
-                    else
-                    {
-                        f.SetValue(target, reader.GetString(i));
-                    }
-                }
-                else if (ft.IsArray)
+                if (ft.IsArray)
                 {
                     Type et = ft.GetElementType();
                     if (reader.IsDBNull(i))
                     {
                         f.SetValue(target, null);
+                        continue;
                     }
-                    else if (et == typeof(byte))
+                    if (ArrayProcs.TryGetValue(et, out proc))
                     {
-                        f.SetValue(target, reader.GetFieldValue<byte[]>(i));
-                    }
-                    else if (et == typeof(sbyte))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<sbyte[]>(i));
-                    }
-                    else if (et == typeof(Int16))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<Int16[]>(i));
-                    }
-                    else if (et == typeof(Int32))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<Int32[]>(i));
-                    }
-                    else if (et == typeof(UInt32))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<UInt32[]>(i));
-                    }
-                    else if (et == typeof(Int64))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<Int64[]>(i));
-                    }
-                    else if (et == typeof(UInt64))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<UInt64[]>(i));
-                    }
-                    else if (et == typeof(bool))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<bool[]>(i));
-                    }
-                    else if (et == typeof(char))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<char[]>(i));
-                    }
-                    else if (et == typeof(string))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<string[]>(i));
+                        f.SetValue(target, proc.Invoke(reader, i));
+                        continue;
                     }
                 }
-                else if (ft.IsSubclassOf(typeof(IList)))
+                if (ft.IsSubclassOf(typeof(IList)))
                 {
                     Type gt = ft.GetGenericTypeDefinition();
-                    if (gt == typeof(Int32))
+                    if (reader.IsDBNull(i))
                     {
-                        f.SetValue(target, reader.GetFieldValue<Int32[]>(i));
+                        f.SetValue(target, null);
+                        continue;
                     }
-                    else if (gt == typeof(Int64))
+                    if (ArrayProcs.TryGetValue(gt, out proc))
                     {
-                        f.SetValue(target, reader.GetFieldValue<Int64[]>(i));
-                    }
-                    else if (gt == typeof(bool))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<bool[]>(i));
-                    }
-                    else if (gt == typeof(char))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<char[]>(i));
-                    }
-                    else if (gt == typeof(string))
-                    {
-                        f.SetValue(target, reader.GetFieldValue<string[]>(i));
+                        f.SetValue(target, proc.Invoke(reader, i));
+                        continue;
                     }
                 }
                 //else
