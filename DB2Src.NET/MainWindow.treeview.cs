@@ -14,6 +14,108 @@ namespace Db2Source
 {
     partial class MainWindow
     {
+        public static readonly DependencyProperty IsCheckableProperty = DependencyProperty.RegisterAttached("IsCheckable", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckablePropertyChanged));
+        public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.RegisterAttached("IsChecked", typeof(bool?), typeof(MainWindow), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckedPropertyChanged));
+
+        public static bool GetIsCheckable(TreeViewItem target)
+        {
+            return (bool)target.GetValue(IsCheckableProperty);
+        }
+
+        public static void SetIsCheckable(TreeViewItem target, bool value)
+        {
+            target.SetValue(IsCheckableProperty, value);
+        }
+
+        private static void IsCheckablePropertyChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
+
+        public static bool? GetIsChecked(TreeViewItem target)
+        {
+            return (bool?)target.GetValue(IsCheckedProperty);
+        }
+
+        public static void SetIsChecked(TreeViewItem target, bool? value)
+        {
+            if (GetIsChecked(target) == value)
+            {
+                return;
+            }
+            target.SetValue(IsCheckedProperty, value);
+        }
+
+        private static void AdjustIsCheckedByChildren(TreeViewItem target)
+        {
+            if (target == null)
+            {
+                return;
+            }
+            if (!GetIsCheckable(target))
+            {
+                return;
+            }
+            try
+            {
+                bool hasChecked = false;
+                bool hasUnchecked = false;
+                foreach (TreeViewItem item in target.Items)
+                {
+                    if (item.Visibility != Visibility.Visible)
+                    {
+                        continue;
+                    }
+                    bool? v = GetIsChecked(item);
+                    hasChecked |= !v.HasValue || v.Value;
+                    hasUnchecked |= !v.HasValue || !v.Value;
+                    if (hasChecked && hasUnchecked)
+                    {
+                        SetIsChecked(target, null);
+                        return;
+                    }
+                }
+                SetIsChecked(target, hasChecked);
+            }
+            finally
+            {
+                AdjustIsCheckedByChildren(target.Parent as TreeViewItem);
+            }
+        }
+        private static void IsCheckedPropertyChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
+        {
+            TreeViewItem target = dp as TreeViewItem;
+            if (target == null)
+            {
+                return;
+            }
+            if (e.NewValue == e.OldValue)
+            {
+                return;
+            }
+            if (!((bool?)e.NewValue).HasValue)
+            {
+                return;
+            }
+            bool v = (bool)e.NewValue;
+            foreach (TreeViewItem item in target.Items)
+            {
+                if (item.Visibility != Visibility.Visible)
+                {
+                    continue;
+                }
+                if (!GetIsCheckable(item))
+                {
+                    continue;
+                }
+                if (GetIsChecked(item) != v)
+                {
+                    SetIsChecked(item, v);
+                }
+            }
+            AdjustIsCheckedByChildren(target.Parent as TreeViewItem);
+        }
+
         //private Dictionary<Tuple<Type, int>, string> groupNodeTypeToStyleName = new Dictionary<Tuple<Type, int>, string>()
         //{
         //    { new Tuple<Type,int>(typeof(Schema),0), "TreeViewItemStyleSchema" },
@@ -44,6 +146,7 @@ namespace Db2Source
             item.Tag = node;
             item.FontWeight = node.IsBold ? FontWeights.Bold : FontWeights.Normal;
             item.Header = node.Name;
+            item.Style = Resources["TreeViewItemStyle"] as Style;
             if (node.IsGrouped)
             {
                 if (node.TargetType == typeof(Schema))
@@ -69,7 +172,7 @@ namespace Db2Source
                     }
                     else
                     {
-                        item.Tag = db;
+                        SetIsCheckable(item, false);
                         item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
                         item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
                         item.ContextMenu = new ContextMenu();
@@ -151,7 +254,7 @@ namespace Db2Source
         }
         private void TreeViewItemOtherDatabase_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Database db = (sender as TreeViewItem).Tag as Database;
+            Database db = ((sender as TreeViewItem).Tag as TreeNode)?.Target as Database;
             if (db == null)
             {
                 return;
@@ -245,6 +348,7 @@ namespace Db2Source
                         {
                             itemGr.Header = string.Format(nodeGr.NameBase, n);
                         }
+                        AdjustIsCheckedByChildren(itemGr);
                     }
                 }
             }
@@ -287,6 +391,10 @@ namespace Db2Source
 
         private void UpdateTreeViewDB()
         {
+            if (CurrentDataSet == null)
+            {
+                return;
+            }
             TreeViewStatusStore store = new TreeViewStatusStore(treeViewDB, treeViewItemTop);
             try
             {

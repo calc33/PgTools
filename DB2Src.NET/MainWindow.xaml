@@ -17,6 +17,7 @@
         <sys:String x:Key="TextBoxFilterTooltipByObject">(名前で絞り込み)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipByColumn">(列名で絞り込み)</sys:String>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
         <Style x:Key="TreeViewItemFocusVisual">
             <Setter Property="Control.Template">
                 <Setter.Value>
@@ -42,7 +43,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Canvas Width="16" Height="16" HorizontalAlignment="Center">
+                <Canvas Grid.Column="0" Width="16" Height="16" HorizontalAlignment="Center">
                     <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}" StrokeThickness="1" Data="M3.5,0.5 L12.5,0.5 L13.5,1.5 L13.5,14.5 L12.5,15.5 L3.5,15.5 L2.5,14.5 L2.5,1.5 z"/>
                     <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}" StrokeThickness="1" Data="M4,3.5 L12,3.5 M4,5.5 L12,5.5 M4,7.5 L12,7.5"/>
                     <Rectangle Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}" Canvas.Left="7" Canvas.Top="11" Width="2" Height="2"/>
@@ -56,7 +57,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Canvas Width="18" Height="16" HorizontalAlignment="Center">
+                <Canvas Grid.Column="0" Width="18" Height="16" HorizontalAlignment="Center">
                     <Path StrokeThickness="1" Stroke="Black" Fill="#FFF0F0F0" Data="M1.5,3 L1.5,11 A6,3,0,0,0,13.5,11 L13.5,3 A6,3,0,0,0,1.5,3"/>
                     <Path StrokeThickness="1" Stroke="Black" Data="M1.5,3 A6,3,0,0,0,13.5,3" />
                     <Path StrokeThickness="0.5" Stroke="#FF202020" Data="M1.5,7 A6,3,0,0,0,13.5,7" />
@@ -70,7 +71,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Canvas Width="34" Height="16" HorizontalAlignment="Center">
+                <Canvas Grid.Column="0" Width="34" Height="16" HorizontalAlignment="Center">
                     <Path StrokeThickness="1" Stroke="Gray" Fill="#FFF0F0F0" Data="M1.5,3 L1.5,11 A6,3,0,0,0,13.5,11 L13.5,3 A6,3,0,0,0,1.5,3"/>
                     <Path StrokeThickness="1" Stroke="Gray" Data="M1.5,3 A6,3,0,0,0,13.5,3" />
                     <Path StrokeThickness="0.5" Stroke="#FFA0A0A0" Data="M1.5,7 A6,3,0,0,0,13.5,7" />
@@ -177,11 +178,11 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="TreeViewItemStyleDB" TargetType="{x:Type TreeViewItem}">
+        <Style x:Key="TreeViewItemStyle" TargetType="{x:Type TreeViewItem}">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
             <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
-            <Setter Property="Padding" Value="1,1,4,2"/>
+            <Setter Property="Padding" Value="1,0,0,0"/>
             <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
             <Setter Property="FocusVisualStyle" Value="{StaticResource TreeViewItemFocusVisual}"/>
             <Setter Property="Template">
@@ -199,7 +200,21 @@
                             </Grid.RowDefinitions>
                             <ToggleButton x:Name="Expander" ClickMode="Press" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource ExpandCollapseToggleStyle}"/>
                             <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
-                                <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Grid.Column="1"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding (local:MainWindow.IsChecked), RelativeSource={RelativeSource AncestorType=TreeViewItem}}" VerticalAlignment="Center">
+                                        <CheckBox.Visibility>
+                                            <MultiBinding Converter="{StaticResource MultiBooleanToVisibilityConverter}">
+                                                <Binding Path="MultipleSelectionMode" RelativeSource="{RelativeSource AncestorType=local:MainWindow}"/>
+                                                <Binding Path="(local:MainWindow.IsCheckable)" RelativeSource="{RelativeSource AncestorType=TreeViewItem}"/>
+                                            </MultiBinding>
+                                        </CheckBox.Visibility>
+                                    </CheckBox>
+                                    <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Grid.Column="1"/>
+                                </Grid>
                             </Border>
                             <ItemsPresenter x:Name="ItemsHost" Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1"/>
                         </Grid>
@@ -347,7 +362,21 @@
                             </Grid.RowDefinitions>
                             <ToggleButton x:Name="Expander" ClickMode="Press" IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}}" Style="{StaticResource ExpandCollapseToggleStyle}"/>
                             <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" Grid.Column="1" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
-                                <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox IsChecked="{Binding (local:MainWindow.IsChecked), RelativeSource={RelativeSource AncestorType=TreeViewItem}}" VerticalAlignment="Center">
+                                        <CheckBox.Visibility>
+                                            <MultiBinding Converter="{StaticResource MultiBooleanToVisibilityConverter}">
+                                                <Binding Path="MultipleSelectionMode" RelativeSource="{RelativeSource AncestorType=local:MainWindow}"/>
+                                                <Binding Path="(local:MainWindow.IsCheckable)" RelativeSource="{RelativeSource AncestorType=TreeViewItem}"/>
+                                            </MultiBinding>
+                                        </CheckBox.Visibility>
+                                    </CheckBox>
+                                    <ContentPresenter x:Name="PART_Header" ContentSource="Header" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Grid.Column="1"/>
+                                </Grid>
                             </Border>
                             <ItemsPresenter x:Name="ItemsHost" Grid.ColumnSpan="2" Grid.Column="1" Grid.Row="1"/>
                         </Grid>
@@ -458,6 +487,68 @@
                 </Trigger>
             </ControlTemplate.Triggers>
         </ControlTemplate>
+        <SolidColorBrush x:Key="ListBorder" Color="#828790"/>
+        <Style x:Key="TreeViewDbStyle" TargetType="{x:Type TreeView}">
+            <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource ListBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TreeView}">
+                        <Border x:Name="Bd" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" SnapsToDevicePixels="true">
+                            <ScrollViewer x:Name="_tv_scrollviewer_" Background="{TemplateBinding Background}" CanContentScroll="false" Focusable="false" HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}" Template="{DynamicResource TreeViewDbScrollViewerControlTemplate}">
+                                <ItemsPresenter/>
+                            </ScrollViewer>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Background" TargetName="Bd" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
+                            </Trigger>
+                            <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
+                                <Setter Property="CanContentScroll" TargetName="_tv_scrollviewer_" Value="true"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="VirtualizingPanel.IsVirtualizing" Value="true">
+                    <Setter Property="ItemsPanel">
+                        <Setter.Value>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel/>
+                            </ItemsPanelTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <ControlTemplate x:Key="TreeViewDbScrollViewerControlTemplate" TargetType="{x:Type ScrollViewer}">
+            <Grid x:Name="Grid" Background="{TemplateBinding Background}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Rectangle x:Name="Corner" Grid.Column="1" Fill="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Grid.Row="1"/>
+                <ScrollContentPresenter x:Name="PART_ScrollContentPresenter" CanContentScroll="{TemplateBinding CanContentScroll}" CanHorizontallyScroll="False" CanVerticallyScroll="False" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Grid.Column="0" Margin="{TemplateBinding Padding}" Grid.Row="0"/>
+                <DockPanel Grid.Column="1">
+                    <Button DockPanel.Dock="Top" ContentTemplate="{StaticResource ImageThreeDots14}" BorderThickness="0" Height="16" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" Click="TreeViewDbContextMenuButton_Click"/>
+                    <ScrollBar x:Name="PART_VerticalScrollBar" AutomationProperties.AutomationId="VerticalScrollBar" Cursor="Arrow" Maximum="{TemplateBinding ScrollableHeight}" Minimum="0" Grid.Row="0" Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}" Value="{Binding VerticalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportHeight}"/>
+                </DockPanel>
+                <ScrollBar x:Name="PART_HorizontalScrollBar" AutomationProperties.AutomationId="HorizontalScrollBar" Cursor="Arrow" Grid.Column="0" Maximum="{TemplateBinding ScrollableWidth}" Minimum="0" Orientation="Horizontal" Grid.Row="1" Visibility="{TemplateBinding ComputedHorizontalScrollBarVisibility}" Value="{Binding HorizontalOffset, Mode=OneWay, RelativeSource={RelativeSource TemplatedParent}}" ViewportSize="{TemplateBinding ViewportWidth}"/>
+            </Grid>
+        </ControlTemplate>
     </Window.Resources>
     <Grid x:Name="gridMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <DockPanel>
@@ -531,21 +622,25 @@
                             </DockPanel>
                         </Border>
                     </StackPanel>
-                    <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True"
+                    <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Style="{DynamicResource TreeViewDbStyle}" ItemContainerStyle="{DynamicResource TreeViewItemStyle}"
                               FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
                         <TreeView.ContextMenu>
-                            <ContextMenu IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
+                            <ContextMenu x:Name="treeViewDbContextMenu" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
                                 <MenuItem Header="新規作成">
                                     <MenuItem x:Name="menuItemNewDatabase" Header="データベース" Click="menuItemNewDatabase_Click"/>
                                     <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>
                                     <MenuItem x:Name="menuItemNewUser" Header="ユーザー" IsEnabled="False"/>
                                 </MenuItem>
+                                <MenuItem x:Name="menuItemMultiSelMode" Header="チェックボックスによる複数選択" IsCheckable="True" IsChecked="False" Click="menuItemMultiSelMode_Click"/>
+                                <MenuItem Header="選択オブジェクトの操作" IsEnabled="{Binding IsChecked, RelativeSource={RelativeSource Mode=PreviousData}}">
+                                    <MenuItem x:Name="menuItemRecordCount" Header="レコード件数取得" Click="menuItemRecordCount_Click"/>
+                                </MenuItem>
                             </ContextMenu>
                         </TreeView.ContextMenu>
-                        <TreeViewItem x:Name="treeViewItemTop"  Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">
+                        <TreeViewItem x:Name="treeViewItemTop" Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">
                             <TreeViewItem.Items>
-                                <TreeViewItem x:Name="TreeViewItemDB"  Header="データベース" HeaderTemplate="{DynamicResource ImageTable}" MouseDoubleClick="TreeViewItem_MouseDoubleClick"/>
+                                <TreeViewItem x:Name="TreeViewItemDB"  Header="データベース" HeaderTemplate="{DynamicResource ImageTable}" MouseDoubleClick="TreeViewItem_MouseDoubleClick" Style="{DynamicResource TreeViewItemStyle}"/>
                             </TreeViewItem.Items>
                         </TreeViewItem>
                     </TreeView>

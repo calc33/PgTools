@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
 using System.IO;
@@ -7,8 +8,9 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Microsoft.Win32;
 
 namespace Db2Source
@@ -67,16 +69,6 @@ namespace Db2Source
                 return attr.TableName.ToUpper();
             }
             return type.Name.ToUpper();
-        }
-        internal static string GetFieldName(PropertyInfo property)
-        {
-            string fld = property.Name;
-            JsonPropertyAttribute attr = property.GetCustomAttribute(typeof(JsonPropertyAttribute)) as JsonPropertyAttribute;
-            if (attr != null && !string.IsNullOrEmpty(attr.PropertyName))
-            {
-                fld = attr.PropertyName;
-            }
-            return fld.ToUpper();
         }
 
         private static readonly byte[] Key = new byte[] {
@@ -203,7 +195,7 @@ namespace Db2Source
 
         private SQLiteCommand GetInsertSqlCommand(SQLiteConnection connection)
         {
-            List<PropertyInfo> flds = new List<PropertyInfo>(GetStoredFields(GetType(), true));
+            List<PropertyInfo> flds = new List<PropertyInfo>(GetStoredFields(GetType(), true, false));
             if (flds.Count == 0)
             {
                 return null;
@@ -219,7 +211,7 @@ namespace Db2Source
                 for (int i = 0; i <= n; i++)
                 {
                     PropertyInfo p = flds[i];
-                    string f = GetFieldName(p);
+                    string f = FieldDefinition.GetFieldName(p);
                     bufF.Append(f);
                     bufV.Append("@");
                     bufV.Append(f);
@@ -305,7 +297,7 @@ namespace Db2Source
                         o = DBNull.Value;
                     }
                 }
-                string f = GetFieldName(p);
+                string f = FieldDefinition.GetFieldName(p);
                 if (o is DBNull)
                 {
                     sql.Append(f);
@@ -351,7 +343,7 @@ namespace Db2Source
             buf.Append("UPDATE ");
             buf.Append(GetTableName());
             buf.AppendLine(" SET");
-            List<PropertyInfo> flds = new List<PropertyInfo>(GetStoredFields(GetType(), true));
+            List<PropertyInfo> flds = new List<PropertyInfo>(GetStoredFields(GetType(), true, true));
             if (flds.Count == 0)
             {
                 return null;
@@ -363,7 +355,7 @@ namespace Db2Source
                 for (int i = 0; i <= n; i++)
                 {
                     PropertyInfo p = flds[i];
-                    string f = GetFieldName(p);
+                    string f = FieldDefinition.GetFieldName(p);
                     buf.Append("  ");
                     buf.Append(f);
                     buf.Append(" = @");
@@ -489,12 +481,17 @@ namespace Db2Source
                 ExecuteInsert(connection);
             }
         }
-        public static PropertyInfo[] GetStoredFields(Type databaseType, bool excludePassword)
+        public static PropertyInfo[] GetStoredFields(Type databaseType, bool excludePassword, bool writable)
         {
             List<PropertyInfo> l = new List<PropertyInfo>();
             foreach (PropertyInfo p in databaseType.GetProperties(BindingFlags.Public | BindingFlags.GetProperty | BindingFlags.Instance))
             {
                 if (p.GetCustomAttribute(typeof(JsonIgnoreAttribute)) != null)
+                {
+                    continue;
+                }
+                ReadOnlyAttribute a = p.GetCustomAttribute(typeof(ReadOnlyAttribute)) as ReadOnlyAttribute;
+                if (writable && a != null && a.IsReadOnly)
                 {
                     continue;
                 }
@@ -506,16 +503,13 @@ namespace Db2Source
             }
             return l.ToArray();
         }
-        public PropertyInfo[] GetStoredFields(bool excludePassword)
-        {
-            return GetStoredFields(GetType(), excludePassword);
-        }
+
         public static PropertyInfo[] PrepareForReader(Type databaseType, SQLiteDataReader reader)
         {
             Dictionary<string, PropertyInfo> nameToProps = new Dictionary<string, PropertyInfo>();
-            foreach (PropertyInfo p in GetStoredFields(databaseType, false))
+            foreach (PropertyInfo p in GetStoredFields(databaseType, false, false))
             {
-                nameToProps.Add(GetFieldName(p), p);
+                nameToProps.Add(FieldDefinition.GetFieldName(p), p);
             }
             List<PropertyInfo> props = new List<PropertyInfo>();
             for (int i = 0; i < reader.FieldCount; i++)
@@ -571,6 +565,22 @@ namespace Db2Source
                 _reading = false;
             }
         }
+
+        public void UpdateLastConnected(SQLiteConnection connection)
+        {
+            LastConnected = DateTime.Now;
+            using (SQLiteCommand cmd = new SQLiteCommand(string.Format("UPDATE {0} SET LASTCONNECTED = @LASTCONNECTED, CONNECTIONCOUNT = COALESCE(CONNECTIONCOUNT, 0) + 1 WHERE ID = @ID", GetTableName()), connection))
+            {
+                cmd.Parameters.Add(new SQLiteParameter("@LASTCONNECTED", LastConnectedSerial));
+                cmd.Parameters.Add(new SQLiteParameter("@ID", Id.Value));
+                cmd.ExecuteNonQuery();
+            }
+            using (SQLiteCommand cmd = new SQLiteCommand(string.Format("SELECT CONNECTIONCOUNT FROM {0} WHERE ID = @ID", GetTableName()), connection))
+            {
+                cmd.Parameters.Add(new SQLiteParameter("@ID", Id.Value));
+                ConnectionCount = Convert.ToInt64(cmd.ExecuteScalar());
+            }
+        }
     }
 
     partial class ConnectionList
@@ -578,7 +588,7 @@ namespace Db2Source
         private static string GetSelectSql(Type databaseType, string condition)
         {
             string tbl = ConnectionInfo.GetTableName(databaseType);
-            PropertyInfo[] flds = ConnectionInfo.GetStoredFields(databaseType, false);
+            PropertyInfo[] flds = ConnectionInfo.GetStoredFields(databaseType, false, false);
             if (flds == null || flds.Length == 0)
             {
                 return null;
@@ -588,7 +598,7 @@ namespace Db2Source
             foreach (PropertyInfo p in flds)
             {
                 buf.Append(", ");
-                buf.Append(ConnectionInfo.GetFieldName(p));
+                buf.Append(FieldDefinition.GetFieldName(p));
             }
             buf.AppendLine();
             buf.Append("FROM ");
@@ -605,14 +615,13 @@ namespace Db2Source
             TableDefinition table = new TableDefinition() { Name = ConnectionInfo.GetTableName(databaseType) };
             List<FieldDefinition> l = new List<FieldDefinition>();
             l.Add(new FieldDefinition("ID", SqliteDbType.Integer) { NotNull = true, AutoIncrement = true });
-            foreach (PropertyInfo p in ConnectionInfo.GetStoredFields(databaseType, false))
+            foreach (PropertyInfo p in ConnectionInfo.GetStoredFields(databaseType, false, false))
             {
                 if (string.Compare(p.Name, "ID", true) == 0)
                 {
                     continue;
                 }
-                string fld = ConnectionInfo.GetFieldName(p);
-                l.Add(new FieldDefinition(fld.ToUpper(), FieldDefinition.GetSqliteDbType(p)));
+                l.Add(new FieldDefinition(p));
             }
             l.Add(new FieldDefinition("LAST_MODIFIED", SqliteDbType.Real));
             table.Columns = l.ToArray();
@@ -635,6 +644,10 @@ namespace Db2Source
             }
             return conn;
         }
+        public SQLiteConnection RequireDatabase()
+        {
+            return RequireDatabase(Path);
+        }
         private List<ConnectionInfo> LoadInternal()
         {
             if (!File.Exists(Path))
@@ -643,7 +656,7 @@ namespace Db2Source
                 return LoadKnownConnections();
             }
             List<ConnectionInfo> l = new List<ConnectionInfo>();
-            using (SQLiteConnection conn = RequireDatabase(Path))
+            using (SQLiteConnection conn = RequireDatabase())
             {
                 foreach (Type t in ConnectionInfoTypes)
                 {
@@ -700,7 +713,7 @@ namespace Db2Source
         }
         private void SaveInternal()
         {
-            using (SQLiteConnection conn = RequireDatabase(Path))
+            using (SQLiteConnection conn = RequireDatabase())
             {
                 foreach (ConnectionInfo info in _list)
                 {
@@ -711,7 +724,7 @@ namespace Db2Source
         private void SaveInternal(ConnectionInfo info)
         {
             bool isNew = !info.Id.HasValue;
-            using (SQLiteConnection conn = RequireDatabase(Path))
+            using (SQLiteConnection conn = RequireDatabase())
             {
                 info.SaveChanges(conn);
             }
@@ -729,7 +742,7 @@ namespace Db2Source
         }
         public void Delete(ConnectionInfo info)
         {
-            using (SQLiteConnection conn = RequireDatabase(Path))
+            using (SQLiteConnection conn = RequireDatabase())
             {
                 info.ExecuteDelete(conn);
             }

@@ -9,9 +9,10 @@ using System.Linq;
 using System.Reflection;
 using System.Security;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Db2Source
 {
@@ -341,7 +342,7 @@ namespace Db2Source
         [InputField("パスワード", 30, true)]
         [JsonIgnore]
         public string Password { get; set; }
-        [JsonProperty(PropertyName = "Password")]
+        [JsonPropertyName("Password")]
         public string CryptedPassword
         {
             get
@@ -462,6 +463,15 @@ namespace Db2Source
         public double? WindowWidth { get; set; }
         public double? WindowHeight { get; set; }
         public bool? IsWindowMaximized { get; set; }
+        [JsonIgnore]
+        public DateTime LastConnected { get; set; } = DateTime.FromOADate(0);
+        [JsonPropertyName("LastConnected")]
+        [ReadOnly(true)]
+        [DefaultValue(0)]
+        public double LastConnectedSerial { get { return LastConnected.ToOADate(); } set { LastConnected = DateTime.FromOADate(value); } }
+        [ReadOnly(true)]
+        [DefaultValue(0)]
+        public long ConnectionCount { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -541,6 +551,11 @@ namespace Db2Source
             WindowWidth = item.WindowWidth;
             WindowHeight = item.WindowHeight;
             IsWindowMaximized = item.IsWindowMaximized;
+            if (LastConnected < item.LastConnected)
+            {
+                LastConnected = item.LastConnected;
+            }
+            ConnectionCount += item.ConnectionCount;
         }
 
         internal protected virtual void Load(Dictionary<string, string> data)

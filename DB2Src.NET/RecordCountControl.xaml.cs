@@ -421,6 +421,33 @@ namespace Db2Source
                 }
             }
         }
+
+        public void AddRange(IEnumerable<Selectable> tables)
+        {
+            Dictionary<NamedObject, bool> schemaDict = new Dictionary<NamedObject, bool>();
+            Dictionary<NamedObject, bool> tableDict = new Dictionary<NamedObject, bool>();
+            foreach (Selectable tbl in tables)
+            {
+                tableDict[tbl] = true;
+                schemaDict[tbl.Schema] = true;
+            }
+            foreach (TreeNode nodeSc in _allEntries)
+            {
+                if (!schemaDict.ContainsKey(nodeSc.Target))
+                {
+                    continue;
+                }
+                foreach (TreeNode nodeTbl in nodeSc.Items)
+                {
+                    if (!tableDict.ContainsKey(nodeTbl.Target))
+                    {
+                        continue;
+                    }
+                    nodeTbl.IsChecked = true;
+                }
+            }
+        }
+
         private void UpdateFilteredEntries()
         {
             _filteredEntries.Clear();
@@ -480,6 +507,7 @@ namespace Db2Source
                 AddCheckedRecordCount(list, subNode);
             }
         }
+
         private void UpdateDataGridTables(bool refresh)
         {
             _updateDataGridTablesTimer.Stop();

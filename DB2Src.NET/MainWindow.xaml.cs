@@ -41,6 +41,7 @@ namespace Db2Source
         public static readonly Type[] ConnectionInfoTypes = new Type[] { typeof(NpgsqlConnectionInfo) };
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow));
         public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow));
+        public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow));
 
         public static MainWindow Current { get; private set; } = null;
         public Db2SourceContext CurrentDataSet
@@ -53,6 +54,12 @@ namespace Db2Source
         {
             get { return (SchemaConnectionStatus)GetValue(ConnectionStatusProperty); }
             set { SetValue(ConnectionStatusProperty, value); }
+        }
+
+        public bool MultipleSelectionMode
+        {
+            get { return (bool)GetValue(MultipleSelectionModeProperty); }
+            set { SetValue(MultipleSelectionModeProperty, value); }
         }
 
         private void SetConnectionStatus(SchemaConnectionStatus value)
@@ -412,6 +419,14 @@ namespace Db2Source
             textBlockLoading.Visibility = (ConnectionStatus == SchemaConnectionStatus.Loading) ? Visibility.Visible : Visibility.Collapsed;
         }
 
+        protected void MultipleSelectionModePropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (menuItemMultiSelMode.IsChecked != MultipleSelectionMode)
+            {
+                menuItemMultiSelMode.IsChecked = MultipleSelectionMode;
+            }
+            Dispatcher.InvokeAsync(UpdateTreeViewDB, DispatcherPriority.Background);
+        }
         private void CurrentDataSet_Log(object sender, LogEventArgs e)
         {
             LogListBoxItem item = new LogListBoxItem()
@@ -438,6 +453,10 @@ namespace Db2Source
                 if (e.Property == ConnectionStatusProperty)
                 {
                     ConnectionStatusPropertyChanged(e);
+                }
+                if (e.Property == MultipleSelectionModeProperty)
+                {
+                    MultipleSelectionModePropertyChanged(e);
                 }
                 base.OnPropertyChanged(e);
             }
@@ -803,8 +822,9 @@ namespace Db2Source
 
         private void SaveConnectionInfo(ConnectionInfo info)
         {
-            App.Connections.Merge(info);
+            info = App.Connections.Merge(info);
             App.Connections.Save();
+            info.UpdateLastConnected(App.Connections.RequireDatabase());
         }
 
         private void Connect(ConnectionInfo info)
@@ -1459,17 +1479,21 @@ namespace Db2Source
         }
 
         private WeakReference<TabItem> _recordCountTabItem;
-        private void menuItemCount_Click(object sender, RoutedEventArgs e)
+
+        private TabItem RequireRecordCountTabItem(bool becomeSelected)
         {
             TabItem item;
             if (_recordCountTabItem != null && _recordCountTabItem.TryGetTarget(out item))
             {
-                if (item.Parent != null)
+                if (item.Parent == null)
                 {
                     tabControlMain.Items.Add(item);
                 }
-                tabControlMain.SelectedItem = item;
-                return;
+                if (becomeSelected)
+                {
+                    tabControlMain.SelectedItem = item;
+                }
+                return item;
             }
 
             RecordCountControl c = new RecordCountControl();
@@ -1477,7 +1501,15 @@ namespace Db2Source
             c.SetBinding(RecordCountControl.DataSetProperty, b);
             item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), c, FindResource("TabItemStyleClosable") as Style);
             _recordCountTabItem = new WeakReference<TabItem>(item);
-            tabControlMain.SelectedItem = item;
+            if (becomeSelected)
+            {
+                tabControlMain.SelectedItem = item;
+            }
+            return item;
+        }
+        private void menuItemCount_Click(object sender, RoutedEventArgs e)
+        {
+            RequireRecordCountTabItem(true);
         }
 
         private static readonly bool[,] TextBoxFilterEnabledMap = new bool[,]
@@ -1504,6 +1536,32 @@ namespace Db2Source
             DelayedFilterTreeView();
         }
 
+        private void GetCheckedIn<T>(List<T> list, TreeViewItem target) where T: SchemaObject
+        {
+            foreach (TreeViewItem item in target.Items)
+            {
+                bool? chk = GetIsCheckable(item) ? GetIsChecked(item) : false;
+                if (chk.HasValue && !chk.Value)
+                {
+                    continue;
+                }
+                TreeNode node = item.Tag as TreeNode;
+                NamedObject obj = node?.Target;
+                if (chk.HasValue && chk.Value && (obj is T))
+                {
+                    list.Add((T)obj);
+                }
+                GetCheckedIn(list, item);
+            }
+        }
+
+        private T[] GetCheckedOnTreeViewDb<T>() where T: SchemaObject
+        {
+            List<T> l = new List<T>();
+            GetCheckedIn(l, treeViewItemTop);
+            return l.ToArray();
+        }
+
         private void menuItemFilterByObjectName_Checked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxFilter();
@@ -1523,6 +1581,42 @@ namespace Db2Source
         {
             UpdateTextBoxFilter();
         }
+
+        private void TreeViewDbContextMenuButton_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu menu = treeViewDB.ContextMenu;
+            menu.PlacementTarget = sender as Button;
+            menu.Placement = PlacementMode.Bottom;
+            menu.IsOpen = true;
+        }
+
+        private void menuItemMultiSelMode_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                bool b = (sender as MenuItem).IsChecked;
+                if (MultipleSelectionMode == b)
+                {
+                    return;
+                }
+                MultipleSelectionMode = b;
+            }, DispatcherPriority.Background);
+        }
+
+        private void menuItemRecordCount_Click(object sender, RoutedEventArgs e)
+        {
+            TabItem item = RequireRecordCountTabItem(true);
+            if (item == null)
+            {
+                return;
+            }
+            RecordCountControl ctrl = item.Content as RecordCountControl;
+            if (ctrl == null)
+            {
+                return;
+            }
+            ctrl.AddRange(GetCheckedOnTreeViewDb<Table>());
+        }
     }
     public class RGBToColorBrushConverter : IValueConverter
     {
@@ -1536,6 +1630,40 @@ namespace Db2Source
         {
             Color c = ((SolidColorBrush)value).Color;
             return new RGB(c.R, c.G, c.B);
+        }
+    }
+    public class MultiBooleanToVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values == null)
+            {
+                return Visibility.Visible;
+            }
+            foreach (object v in values)
+            {
+                if (v is bool)
+                {
+                    if (!(bool)v)
+                    {
+                        return Visibility.Collapsed;
+                    }
+                }
+                if (v is bool?)
+                {
+                    bool? b = (bool?)v;
+                    if (!b.HasValue || !b.Value)
+                    {
+                        return Visibility.Collapsed;
+                    }
+                }
+            }
+            return Visibility.Visible;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

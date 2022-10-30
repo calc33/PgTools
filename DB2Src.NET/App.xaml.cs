@@ -177,6 +177,30 @@ namespace Db2Source
             Current.Shutdown();
         }
 
+        private static int CompareByLastConnected(ConnectionInfo item1, ConnectionInfo item2)
+        {
+            int ret = -item1.LastConnected.CompareTo(item2.LastConnected);
+            if (ret != 0)
+            {
+                return ret;
+            }
+            ret = -item1.ConnectionCount.CompareTo(item2.ConnectionCount);
+            return ret;
+        }
+        private static NpgsqlConnectionInfo FindConnectionInfoByDbName(string dbname)
+        {
+            List<ConnectionInfo> l = new List<ConnectionInfo>(Connections);
+            l.Sort(CompareByLastConnected);
+            foreach (NpgsqlConnectionInfo info in l)
+            {
+                if (info.DatabaseName == dbname)
+                {
+                    return info;
+                }
+            }
+            return null;
+        }
+
         public static void OpenDatabase(Database database)
         {
             if (database == null)
@@ -187,7 +211,11 @@ namespace Db2Source
             {
                 return;
             }
-            NpgsqlConnectionInfo obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            NpgsqlConnectionInfo obj = FindConnectionInfoByDbName(database.Name);
+            if (obj == null)
+            {
+                obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            }
             if (obj == null)
             {
                 return;

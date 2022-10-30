@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Db2Source
@@ -80,6 +83,17 @@ namespace Db2Source
         public bool NotNull { get; set; }
         public string DefaultExpr { get; set; }
 
+        public static string GetFieldName(PropertyInfo property)
+        {
+            string fld = property.Name;
+            JsonPropertyNameAttribute attr = property.GetCustomAttribute<JsonPropertyNameAttribute>();
+            if (attr != null && !string.IsNullOrEmpty(attr.Name))
+            {
+                fld = attr.Name;
+            }
+            return fld.ToUpper();
+        }
+
         public FieldDefinition() { }
         public FieldDefinition(string name, string type)
         {
@@ -90,6 +104,20 @@ namespace Db2Source
         {
             Name = name;
             DbType = type;
+        }
+        public FieldDefinition(PropertyInfo property)
+        {
+            Name = GetFieldName(property);
+            DbType = GetSqliteDbType(property);
+            object v = property.GetCustomAttribute<DefaultValueAttribute>()?.Value;
+            if (v != null)
+            {
+                DefaultExpr = v.ToString();
+                if (property.PropertyType.IsAssignableFrom(typeof(string)))
+                {
+                    DefaultExpr = Db2SourceContext.ToLiteralStr(DefaultExpr);
+                }
+            }
         }
 
         public string GetSQLPart()
