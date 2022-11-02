@@ -170,7 +170,7 @@ namespace Db2Source
             MessageBoxResult ret = MessageBox.Show(this, string.Format((string)Resources["messageConnectDatabase"], textBoxDbName.Text), Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNo, MessageBoxImage.Question);
             if (ret == MessageBoxResult.Yes)
             {
-                App.OpenDatabase(Target);
+                App.OpenDatabase(Target, comboBoxOwner.Text, false);
             }
             DialogResult = true;
         }

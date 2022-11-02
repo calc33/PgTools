@@ -126,6 +126,11 @@ namespace Db2Source
             return Name;
         }
 
+        public virtual ConnectionInfo GetConnectionInfoFor(ConnectionInfo basedOn, string userName)
+        {
+            throw new NotImplementedException();
+        }
+
         private Dictionary<string, object> _attributes = new Dictionary<string, object>();
 
         protected Database _backup;

@@ -201,7 +201,25 @@ namespace Db2Source
             return null;
         }
 
-        public static void OpenDatabase(Database database)
+        public static string GetDefaultLoginUserForDatabase(Database database)
+        {
+            if (database == null)
+            {
+                throw new ArgumentNullException("database");
+            }
+            if (CurrentDataSet == null)
+            {
+                throw new ApplicationException("データベースに未接続のためユーザー情報が取得できません");
+            }
+            NpgsqlConnectionInfo obj = FindConnectionInfoByDbName(database.Name);
+            if (obj != null)
+            {
+                return obj.UserName;
+            }
+            return database.DbaUserName;
+        }
+
+        public static void OpenDatabase(Database database, string userName, bool forceDialog)
         {
             if (database == null)
             {
@@ -211,17 +229,46 @@ namespace Db2Source
             {
                 return;
             }
-            NpgsqlConnectionInfo obj = FindConnectionInfoByDbName(database.Name);
-            if (obj == null)
+            string user = userName;
+            if (string.IsNullOrEmpty(user))
             {
-                obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+                user = GetDefaultLoginUserForDatabase(database);
             }
-            if (obj == null)
+            NpgsqlConnectionInfo obj = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            string args = string.Format("-h {0} -p {1} -d {2}", obj.ServerName, obj.ServerPort, database.Name);
+            if (!string.IsNullOrEmpty(user))
+            {
+                args += " -U " + user;
+            }
+            if (forceDialog)
+            {
+                args += " --connection-dialog";
+            }
+            string path = Assembly.GetExecutingAssembly().Location;
+            Process.Start(path, args);
+        }
+
+        public static void OpenDatabase(NpgsqlConnectionInfo connectionInfo, bool forceDialog)
+        {
+            if (connectionInfo == null)
+            {
+                throw new ArgumentNullException("connectionInfo");
+            }
+            if (CurrentDataSet == null)
             {
                 return;
             }
+            //NpgsqlConnectionInfo info = connectionInfo as NpgsqlConnectionInfo;
+            string args = string.Format("-h {0} -p {1} -d {2}", connectionInfo.ServerName, connectionInfo.ServerPort, connectionInfo.DatabaseName);
+            if (!string.IsNullOrEmpty(connectionInfo.UserName))
+            {
+                args += " -U " + connectionInfo.UserName;
+            }
             string path = Assembly.GetExecutingAssembly().Location;
-            string args = string.Format("-h {0} -p {1} -d {2} -U {3}", obj.ServerName, obj.ServerPort, database.Name, obj.UserName);
+            if (forceDialog)
+            {
+                args += " --connection-dialog";
+            }
             Process.Start(path, args);
         }
 
@@ -243,11 +290,30 @@ namespace Db2Source
             }
         }
 
-        public static bool HasConnectionInfo { get; private set; } = false;
-        public static string Hostname { get; private set; } = "localhost";
-        public static int Port { get; private set; } = 5432;
-        public static string Database { get; private set; } = "postgres";
-        public static string Username { get; private set; } = "postgres";
+        public static readonly string DefaultHostname = "localhost";
+        //public static readonly int DefaultPort = 5432;
+        public static readonly string DefaultDatabase = "postgres";
+        public static readonly string DefaultUsername = "postgres";
+        private static string _hostname;
+        private static int _port = 5432;
+        private static string _database;
+        private static string _username;
+
+        private static bool HasFullyConnectionArgs()
+        {
+            return _hostname != null && _database != null && _username != null;
+        }
+        private static bool HasNoConnectionArgs()
+        {
+            return _hostname == null && _database == null && _username == null;
+        }
+
+        public static bool IsConnectedByArgs { get; private set; } = false;
+        public static string Hostname { get { return _hostname ?? DefaultHostname; } set { _hostname = value; } }
+        public static int Port { get { return _port; } set { _port = value; } }
+        public static string Database { get { return _database ?? DefaultDatabase; } set { _database = value; } }
+        public static string Username { get { return _username ?? DefaultUsername; } set { _username = value; } }
+        public static bool ForceConnectionDialog { get; set; } = false;
         //public static string Password { get; private set; } = null;
         public static string SearchPath { get; private set; } = string.Empty;
         private static bool _showUsage = false;
@@ -272,36 +338,32 @@ namespace Db2Source
                     switch (a)
                     {
                         case "-h":
-                            Hostname = args[++i];
-                            HasConnectionInfo = true;
+                            _hostname = args[++i];
                             break;
                         case "--host":
-                            Hostname = v;
-                            HasConnectionInfo = true;
+                            _hostname = v;
                             break;
                         case "-p":
-                            Port = int.Parse(args[++i]);
-                            HasConnectionInfo = true;
+                            _port = int.Parse(args[++i]);
                             break;
                         case "--port":
-                            Port = int.Parse(v);
-                            HasConnectionInfo = true;
+                            _port = int.Parse(v);
                             break;
                         case "-d":
-                            Database = args[++i];
-                            HasConnectionInfo = true;
+                            _database = args[++i];
                             break;
                         case "--dbname":
-                            Database = v;
-                            HasConnectionInfo = true;
+                            _database = v;
                             break;
                         case "-U":
-                            Username = args[++i];
-                            HasConnectionInfo = true;
+                            _username = args[++i];
                             break;
                         case "--username":
-                            Username = v;
-                            HasConnectionInfo = true;
+                            _username = v;
+                            break;
+                        case "-D":
+                        case "--connection-dialog":
+                            ForceConnectionDialog = true;
                             break;
                         case "-?":
                         case "--help":
@@ -321,7 +383,8 @@ namespace Db2Source
             {
                 ShowUsage();
             }
-            if (!HasConnectionInfo)
+            IsConnectedByArgs = HasFullyConnectionArgs();
+            if (HasNoConnectionArgs())
             {
                 RegistryBinding.Load(RegistryFinder);
             }
@@ -412,19 +475,15 @@ namespace Db2Source
                 UserName = Username
             };
 
-            if (HasConnectionInfo)
+            if (IsConnectedByArgs)
             {
                 if (info.FillStoredPassword(true))
                 {
-                    if (TryConnect(info))
+                    if (!ForceConnectionDialog && TryConnect(info))
                     {
                         return info;
                     }
                 }
-            }
-            else
-            {
-                info = NewConnectionInfoFromRegistry();
             }
             NewConnectionWindow win = new NewConnectionWindow() { Target = info };
             bool? ret = win.ShowDialog();
@@ -460,7 +519,7 @@ namespace Db2Source
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
             MainWindow window = new MainWindow() { StartupConnection = GetStartupConnection() };
-            if (HasConnectionInfo && window.StartupConnection == null)
+            if (HasFullyConnectionArgs() && window.StartupConnection == null)
             {
                 Shutdown();
                 return;

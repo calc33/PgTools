@@ -11,7 +11,8 @@
     <Window.Resources>
         <sys:String x:Key="NewConnectionHeader">新しい接続...</sys:String>
         <sys:String x:Key="TreeViewItemTopHeader">データベース</sys:String>
-        <sys:String x:Key="ConnectDatabaseFormat">{0}に接続</sys:String>
+        <sys:String x:Key="ConnectDatabaseFormat">{0}で接続</sys:String>
+        <sys:String x:Key="ConnectDatabaseNewUser">他のユーザーで接続</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipNone">(絞り込み対象なし)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipBoth">(名前・列名で絞り込み)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipByObject">(名前で絞り込み)</sys:String>

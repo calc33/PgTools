@@ -114,6 +114,25 @@ namespace Db2Source
 
         public PgsqlSettingCollection Settings { get; private set; } = new PgsqlSettingCollection();
 
+        public override ConnectionInfo GetConnectionInfoFor(ConnectionInfo basedOn, string userName)
+        {
+            if (basedOn == null)
+            {
+                throw new ArgumentNullException("basedOn");
+            }
+            NpgsqlConnectionInfo conn = basedOn as NpgsqlConnectionInfo;
+            if (conn == null)
+            {
+                throw new ArgumentException("basedOn must be a kind of NpgsqlConnectionInfo");
+            }
+            return new NpgsqlConnectionInfo()
+            {
+                ServerName = conn.ServerName,
+                ServerPort = conn.ServerPort,
+                DatabaseName = Name,
+                UserName = userName
+            };
+        }
         public override bool HasBackup()
         {
             return _backup != null;

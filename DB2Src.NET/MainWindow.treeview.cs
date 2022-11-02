@@ -176,13 +176,36 @@ namespace Db2Source
                         item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
                         item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
                         item.ContextMenu = new ContextMenu();
-                        MenuItem mi = new MenuItem
+                        string user = App.GetDefaultLoginUserForDatabase(db);
+                        MenuItem mi1 = new MenuItem
                         {
-                            Header = item.Header,
-                            HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"]
+                            Header = user,
+                            Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, user),
+                            HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"],
+                            FontWeight = FontWeights.Bold
                         };
-                        mi.Click += MenuItemOtherDatabase_Click;
-                        item.ContextMenu.Items.Add(mi);
+                        mi1.Click += MenuItemOtherDatabase_Click;
+                        item.ContextMenu.Items.Add(mi1);
+
+                        string dba = db.DbaUserName;
+                        if (dba != user)
+                        {
+                            MenuItem mi2 = new MenuItem
+                            {
+                                Header = dba,
+                                Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, dba),
+                                HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"]
+                            };
+                            mi2.Click += MenuItemOtherDatabase_Click;
+                            item.ContextMenu.Items.Add(mi2);
+                        }
+                        MenuItem mi3 = new MenuItem
+                        {
+                            Header = (string)Resources["ConnectDatabaseNewUser"],
+                            Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, user)
+                        };
+                        mi3.Click += MenuItemOtherDatabaseNoUser_Click;
+                        item.ContextMenu.Items.Add(mi3);
                         item.MouseDoubleClick += TreeViewItemOtherDatabase_MouseDoubleClick;
                     }
                 }
@@ -238,28 +261,48 @@ namespace Db2Source
             OpenViewer(obj);
         }
 
-        private void OpenDatabase(Database database)
-        {
-            App.OpenDatabase(database);
-        }
-
         private void MenuItemOtherDatabase_Click(object sender, RoutedEventArgs e)
         {
-            Database db = (sender as MenuItem).Header as Database;
-            if (db == null)
+            NpgsqlConnectionInfo info = (sender as MenuItem).Tag as NpgsqlConnectionInfo;
+            if (info == null)
             {
                 return;
             }
-            OpenDatabase(db);
+            App.OpenDatabase(info, false);
         }
+
+        private void MenuItemOtherDatabaseNoUser_Click(object sender, RoutedEventArgs e)
+        {
+            NpgsqlConnectionInfo info = (sender as MenuItem).Tag as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            App.OpenDatabase(info, true);
+        }
+
         private void TreeViewItemOtherDatabase_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            Database db = ((sender as TreeViewItem).Tag as TreeNode)?.Target as Database;
-            if (db == null)
+            TreeViewItem item = sender as TreeViewItem;
+            if (item == null)
             {
                 return;
             }
-            OpenDatabase(db);
+            if (item.ContextMenu.Items.Count == 0)
+            {
+                return;
+            }
+            MenuItem defaultItem = item.ContextMenu.Items[0] as MenuItem;
+            if (defaultItem == null)
+            {
+                return;
+            }
+            NpgsqlConnectionInfo info = defaultItem.Tag as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            App.OpenDatabase(info, true);
         }
 
 
