@@ -214,6 +214,14 @@ namespace Db2Source
         {
             return Context.GetDeleteSql(this, where, indent, charPerLine, postfix);
         }
+        public string GetUpsertSql(int indent, int charPerLine, string postfix)
+        {
+            return Context.GetInsertUpdateSql(this, indent, charPerLine, postfix);
+        }
+        public string GetMergeSql(int indent, int charPerLine, string postfix)
+        {
+            return Context.GetMergeSql(this, indent, charPerLine, postfix);
+        }
 
         public string[] GetDropSql(string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {

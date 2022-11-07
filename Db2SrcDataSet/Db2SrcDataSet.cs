@@ -1377,6 +1377,8 @@ namespace Db2Source
         /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
         /// <returns></returns>
         public abstract string GetDeleteSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> keys);
+        public abstract string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix);
+        public abstract string GetMergeSql(Table table, int indent, int charPerLine, string postfix);
 
         /// <summary>
         /// COPY文(PostgreSQL固有SQL文)の宣言部分を生成する

@@ -445,17 +445,15 @@ namespace Db2Source
             return param;
         }
 
-        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix)
+        private void GetInserColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values)
         {
             string spc = new string(' ', indent);
             StringBuilder bufF = new StringBuilder();
             StringBuilder bufP = new StringBuilder();
             bool needComma = false;
             bufF.Append(spc);
-            bufF.Append("  ");
             bufP.Append(spc);
-            bufP.Append("  ");
-            int w = spc.Length + 2;
+            int w = spc.Length;
             foreach (Column c in table.Columns)
             {
                 if (needComma)
@@ -467,11 +465,9 @@ namespace Db2Source
                     {
                         bufF.AppendLine();
                         bufF.Append(spc);
-                        bufF.Append("  ");
                         bufP.AppendLine();
                         bufP.Append(spc);
-                        bufP.Append("  ");
-                        w = spc.Length + 2;
+                        w = spc.Length;
                     }
                     else
                     {
@@ -487,21 +483,112 @@ namespace Db2Source
                 bufP.Append(prm);
                 needComma = true;
             }
+            fields = bufF.ToString();
+            values = bufP.ToString();
+        }
+        private string GetUpdateColumnsByParamsSql(Table table, int indent, KeyConstraint excludeKey)
+        {
+            string spc = new string(' ', indent);
+            Dictionary<string, bool> keys = new Dictionary<string, bool>();
+            if (excludeKey != null)
+            {
+                foreach (string c in excludeKey.Columns)
+                {
+                    keys[c] = true;
+                }
+            }
+
+            StringBuilder buf = new StringBuilder();
+            bool needComma = false;
+            foreach (Column c in table.Columns)
+            {
+                if (keys.ContainsKey(c.Name))
+                {
+                    continue;
+                }
+                if (needComma)
+                {
+                    buf.AppendLine(",");
+                }
+                buf.Append(spc);
+                buf.Append(GetEscapedIdentifier(c.Name, true));
+                buf.Append(" = :");
+                buf.Append(c.Name);
+                needComma = true;
+            }
+            buf.AppendLine();
+            return buf.ToString();
+        }
+
+        private string GetUpdateColumnsBySameColumnSql(Table table, int indent, string prefix, KeyConstraint excludeKey)
+        {
+            string spc = new string(' ', indent);
+            Dictionary<string, bool> keys = new Dictionary<string, bool>();
+            if (excludeKey != null)
+            {
+                foreach (string c in excludeKey.Columns)
+                {
+                    keys[c] = true;
+                }
+            }
+
+            StringBuilder buf = new StringBuilder();
+            bool needComma = false;
+            foreach (Column c in table.Columns)
+            {
+                if (keys.ContainsKey(c.Name))
+                {
+                    continue;
+                }
+                if (needComma)
+                {
+                    buf.AppendLine(",");
+                }
+                string col = GetEscapedIdentifier(c.Name, true);
+                buf.Append(spc);
+                buf.Append(col);
+                buf.Append(" = ");
+                buf.Append(prefix);
+                buf.Append(col);
+                needComma = true;
+            }
+            buf.AppendLine();
+            return buf.ToString();
+        }
+
+        private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool addNewline)
+        {
+            string spc = new string(' ', indent);
+            string flds, prms;
+            GetInserColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
             buf.Append(table.EscapedIdentifier(CurrentSchema));
+            if (!string.IsNullOrEmpty(alias))
+            {
+                buf.Append(" as ");
+                buf.Append(alias);
+            }
             buf.AppendLine(" (");
-            buf.Append(bufF);
+            buf.Append(flds);
             buf.AppendLine();
             buf.Append(spc);
             buf.AppendLine(") values (");
-            buf.Append(bufP);
+            buf.Append(prms);
             buf.AppendLine();
             buf.Append(spc);
             buf.Append(")");
-            buf.AppendLine(postfix);
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
             return buf.ToString();
+        }
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix)
+        {
+            return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, true);
         }
         /// <summary>
         /// データ付でINSERT文を生成する
@@ -556,7 +643,7 @@ namespace Db2Source
                         w++;
                     }
                 }
-                string col = GetEscapedIdentifier(c.Name,  true);
+                string col = GetEscapedIdentifier(c.Name, true);
                 ColumnInfo info = name2col[c.Name];
                 object v = data[info];
                 string val = GetImmediatedStr(info, v);
@@ -584,25 +671,12 @@ namespace Db2Source
         public override string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix)
         {
             string spc = new string(' ', indent);
-            bool needComma = false;
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("update ");
             buf.Append(table.EscapedIdentifier(CurrentSchema));
             buf.AppendLine(" set");
-            foreach (Column c in table.Columns)
-            {
-                if (needComma)
-                {
-                    buf.AppendLine(",");
-                }
-                buf.Append(spc);
-                buf.Append("  ");
-                buf.Append(GetEscapedIdentifier(c.Name, true));
-                buf.Append(" = :");
-                buf.Append(c.Name);
-                needComma = true;
-            }
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 2, null));
             buf.AppendLine();
             buf.Append(spc);
             buf.AppendLine(where);
@@ -680,6 +754,77 @@ namespace Db2Source
         public override string GetDeleteSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> keys)
         {
             throw new NotImplementedException();
+        }
+        public override string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix)
+        {
+            if (table.PrimaryKey == null)
+            {
+                throw new ArgumentException("主キーがありません");
+            }
+            StringBuilder buf = new StringBuilder(GetInsertSql(table, "t", indent, charPerLine, string.Empty, false));
+            buf.Append(" on conflict on constraint ");
+            buf.Append(GetEscapedIdentifier(table.PrimaryKey.Name, true));
+            buf.AppendLine(" do update set ");
+            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 2, "t.", table.PrimaryKey));
+            return buf.ToString();
+        }
+        public override string GetMergeSql(Table table, int indent, int charPerLine, string postfix)
+        {
+            if (table.PrimaryKey == null)
+            {
+                throw new ArgumentException("主キーがありません");
+            }
+            string spc = new string(' ', indent);
+            StringBuilder buf = new StringBuilder();
+            buf.Append(spc);
+            buf.Append("merge into ");
+            buf.Append(table.EscapedIdentifier(CurrentSchema));
+            buf.AppendLine(" as t");
+            buf.Append(spc);
+            string prefix = "using (values (";
+            foreach (string c in table.PrimaryKey.Columns)
+            {
+                buf.Append(prefix);
+                buf.Append(":");
+                buf.Append(c);
+                prefix = ", ";
+            }
+            prefix = ")) as i(";
+            foreach (string c in table.PrimaryKey.Columns)
+            {
+                buf.Append(prefix);
+                buf.Append(GetEscapedIdentifier(c, true));
+                prefix = ", ";
+            }
+            buf.Append(")");
+            prefix = "  on (";
+            foreach (string c in table.PrimaryKey.Columns)
+            {
+                string col = GetEscapedIdentifier(c, true);
+                buf.AppendLine();
+                buf.Append(spc);
+                buf.Append(prefix);
+                buf.Append("t.");
+                buf.Append(col);
+                buf.Append(" = i.");
+                buf.Append(col);
+                prefix = "    and ";
+            }
+            buf.AppendLine(")");
+            buf.Append(spc);
+            buf.AppendLine("when matched then update set");
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 2, table.PrimaryKey));
+            buf.Append(spc);
+            buf.AppendLine("when not matched then insert (");
+            string flds, prms;
+            GetInserColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
+            buf.AppendLine(flds);
+            buf.Append(spc);
+            buf.AppendLine(") values (");
+            buf.AppendLine(prms);
+            buf.Append(spc);
+            buf.AppendLine(")");
+            return buf.ToString();
         }
 
         /// <summary>
