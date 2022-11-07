@@ -874,13 +874,17 @@ namespace Db2Source
                     foreach (PgsqlInstallation ins in l)
                     {
                         string s = System.IO.Path.Combine(ins.BinDirectory, exe);
-                        MenuItem mi = new MenuItem() { Header = ins.Name, Tag = s };
+                        MenuItem mi = new MenuItem() { Header = ins.Name, Tag = s, ToolTip = ins.BinDirectory };
                         mi.Click += clickEvent;
                         if (string.Compare(s, path, true) == 0)
                         {
                             mi.FontWeight = FontWeights.Bold;
+                            menuItem.Items.Insert(0, mi);
                         }
-                        menuItem.Items.Add(mi);
+                        else
+                        {
+                            menuItem.Items.Add(mi);
+                        }
                     }
                     menuItem.IsEnabled = true;
                     menuItem.Click -= clickEvent;
