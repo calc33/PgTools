@@ -1,4 +1,4 @@
-﻿<Window x:Class="Db2Source.ExportSchema"
+﻿<Window x:Name="window" x:Class="Db2Source.ExportSchema"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="スキーマを出力" Height="300" Width="500" WindowStyle="ToolWindow">
+        Title="スキーマ定義のエクスポート" Height="300" Width="500" WindowStyle="ToolWindow" Loaded="window_Loaded">
     <Window.Resources>
         <sys:String x:Key="FolderBrowserDialog_Title">エクスポート先を選択</sys:String>
         <sys:String x:Key="messageDone">出力完了</sys:String>
@@ -28,11 +28,15 @@
                 <TextBox x:Name="textBoxFolder" VerticalAlignment="Center" />
             </DockPanel>
             <TextBlock Text="出力文字コード：" Grid.Row="1" VerticalAlignment="Center"/>
-            <ComboBox x:Name="comboBoxEncoding" MinWidth="100" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,2"/>
+            <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1">
+                <ComboBox x:Name="comboBoxEncoding" MinWidth="100" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,2"/>
+                <TextBlock Text="改行：" VerticalAlignment="Center" Margin="4,2,0,2"/>
+                <ComboBox x:Name="comboBoxNewline" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,2"/>
+            </StackPanel>
         </Grid>
         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Center">
             <Button x:Name="buttonExport" Content="出力" Padding="10,4" MinWidth="75" Margin="6" Click="buttonExport_Click"/>
-            <Button Content="閉じる" Padding="10,4" MinWidth="75" Margin="6" IsCancel="True" Click="Button_Click"/>
+            <Button x:Name="buttonClose" Content="閉じる" Padding="10,4" MinWidth="75" Margin="6" IsCancel="True" Click="buttonClose_Click"/>
         </StackPanel>
         <GroupBox Header="出力するスキーマを選択">
             <WrapPanel x:Name="wrapPanelSchemas">

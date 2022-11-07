@@ -590,7 +590,7 @@
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
                     <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
-                    <MenuItem x:Name="menuItemExportSchema" Header="定義のエクスポート" Click="menuItemExportSchema_Click"/>
+                    <MenuItem x:Name="menuItemExportSchema" Header="スキーマ定義のエクスポート" Click="menuItemExportSchema_Click"/>
                     <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
                     <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
                     <Separator/>
@@ -633,9 +633,10 @@
                                     <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>
                                     <MenuItem x:Name="menuItemNewUser" Header="ユーザー" IsEnabled="False"/>
                                 </MenuItem>
-                                <MenuItem x:Name="menuItemMultiSelMode" Header="チェックボックスによる複数選択" IsCheckable="True" IsChecked="False" Click="menuItemMultiSelMode_Click"/>
+                                <MenuItem x:Name="menuItemMultiSelMode" Header="チェックボックス表示" IsCheckable="True" IsChecked="False" Click="menuItemMultiSelMode_Click"/>
                                 <MenuItem Header="選択オブジェクトの操作" IsEnabled="{Binding IsChecked, RelativeSource={RelativeSource Mode=PreviousData}}">
                                     <MenuItem x:Name="menuItemRecordCount" Header="レコード件数取得" Click="menuItemRecordCount_Click"/>
+                                    <MenuItem x:Name="menuItemExportConcatSchema" Header="スキーマ情報を1つのファイルに出力" Visibility="Collapsed"/>
                                 </MenuItem>
                             </ContextMenu>
                         </TreeView.ContextMenu>

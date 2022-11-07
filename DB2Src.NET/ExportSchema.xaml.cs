@@ -34,6 +34,7 @@ namespace Db2Source
         {
             InitializeComponent();
             InitComboBoxEncoding();
+            InitComboBoxNewline();
         }
 
         private void InitComboBoxEncoding()
@@ -43,6 +44,14 @@ namespace Db2Source
             comboBoxEncoding.Items.Add(new ComboBoxItem() { Content = "Unicode(UCS-2)", Tag = Encoding.Unicode });
             comboBoxEncoding.Items.Add(new ComboBoxItem() { Content = "Unicode(UCS-4)", Tag = Encoding.UTF32 });
             comboBoxEncoding.SelectedIndex = 0;
+        }
+
+        private void InitComboBoxNewline()
+        {
+            comboBoxNewline.Items.Add(new ComboBoxItem() { Content = "CRLF", Tag = NewLineRule.Crlf });
+            comboBoxNewline.Items.Add(new ComboBoxItem() { Content = "LF", Tag = NewLineRule.Lf });
+            comboBoxNewline.Items.Add(new ComboBoxItem() { Content = "CR", Tag = NewLineRule.Cr });
+            comboBoxNewline.SelectedIndex = 0;
         }
 
         //private static int CompareSchemaByName(Schema item1, Schema item2)
@@ -85,6 +94,57 @@ namespace Db2Source
                 wrapPanelSchemas.Children.Add(cb);
             }
         }
+
+        private void SelectComboBoxEncodingByWebName(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            foreach (ComboBoxItem item in comboBoxEncoding.Items)
+            {
+                if ((item.Tag as Encoding).WebName == text)
+                {
+                    comboBoxEncoding.SelectedItem = item;
+                    return;
+                }
+            }
+        }
+        private void LoadSettingsFromConnectionInfo()
+        {
+            NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            string dir = info.ExpSchDirectory;
+            if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+            {
+                dir = null;
+            }
+            if (!string.IsNullOrEmpty(dir))
+            {
+                textBoxFolder.Text = dir;
+            }
+            SelectComboBoxEncodingByWebName(info.ExpSchEncoding);
+        }
+
+        private void SaveSettingsToConnectionInfo()
+        {
+            NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            string dir = textBoxFolder.Text;
+            if (!string.IsNullOrEmpty(dir))
+            {
+                info.ExpSchDirectory = textBoxFolder.Text;
+            }
+            info.ExpSchEncoding = ((comboBoxEncoding.SelectedItem as ComboBoxItem)?.Tag as Encoding)?.WebName;
+            App.Connections.Save();
+        }
+
         private void buttonSelectFolder_Click(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog()
@@ -112,7 +172,9 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
+            Db2SourceContext dataSet = table.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(table, string.Empty, ";", 0, true, true));
+            buffer.AppendLine();
             List<Constraint> list = new List<Constraint>(table.Constraints);
             list.Sort();
             int lastLength = buffer.Length;
@@ -124,13 +186,13 @@ namespace Db2Source
                         // 本体ソース内で出力している
                         break;
                     case ConstraintType.Unique:
-                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, dataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.ForeignKey:
-                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, dataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                     case ConstraintType.Check:
-                        AppendStrArray(buffer, DataSet.GetSQL(c, string.Empty, ";", 0, true, true));
+                        AppendStrArray(buffer, dataSet.GetSQL(c, string.Empty, ";", 0, true, true));
                         break;
                 }
             }
@@ -141,13 +203,13 @@ namespace Db2Source
             lastLength = buffer.Length;
             if (!string.IsNullOrEmpty(table.CommentText))
             {
-                AppendStrArray(buffer, DataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, dataSet.GetSQL(table.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in table.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    AppendStrArray(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendStrArray(buffer, dataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             if (lastLength < buffer.Length)
@@ -157,7 +219,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Trigger t in table.Triggers)
             {
-                AppendStrArray(buffer, DataSet.GetSQL(t, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, dataSet.GetSQL(t, string.Empty, ";", 0, true));
                 buffer.AppendLine();
             }
             if (lastLength < buffer.Length)
@@ -167,7 +229,7 @@ namespace Db2Source
             lastLength = buffer.Length;
             foreach (Index i in table.Indexes)
             {
-                AppendStrArray(buffer, DataSet.GetSQL(i, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, dataSet.GetSQL(i, string.Empty, ";", 0, true));
             }
             if (lastLength < buffer.Length)
             {
@@ -180,16 +242,17 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(view, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = view.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(view, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(view.CommentText))
             {
-                AppendStrArray(buffer, DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, dataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
             }
             foreach (Column c in view.Columns)
             {
                 if (!string.IsNullOrEmpty(c.CommentText))
                 {
-                    AppendStrArray(buffer, DataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
+                    AppendStrArray(buffer, dataSet.GetSQL(c.Comment, string.Empty, ";", 0, true));
                 }
             }
             buffer.AppendLine();
@@ -200,10 +263,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(function, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = function.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(function, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(function.CommentText))
             {
-                AppendStrArray(buffer, DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
+                AppendStrArray(buffer, dataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
             }
         }
         private void ExportSequence(StringBuilder buffer, Sequence sequence)
@@ -212,7 +276,8 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, true));
+            Db2SourceContext dataSet = sequence.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(sequence, string.Empty, ";", 0, true, true, true));
         }
         private void ExportComplexType(StringBuilder buffer, ComplexType type)
         {
@@ -220,7 +285,8 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = type.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportEnumType(StringBuilder buffer, PgsqlEnumType type)
         {
@@ -228,7 +294,8 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = type.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportBasicType(StringBuilder buffer, PgsqlBasicType type)
         {
@@ -236,7 +303,8 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = type.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportRangeType(StringBuilder buffer, PgsqlRangeType type)
         {
@@ -244,14 +312,20 @@ namespace Db2Source
             {
                 return;
             }
-            AppendStrArray(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+            Db2SourceContext dataSet = type.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
-        private async Task ExportAsync(Db2SourceContext dataSet, IEnumerable<Schema> schemas, string baseDir)
+        private async Task ExportAsync(Db2SourceContext dataSet, IEnumerable<string> schemas, string baseDir)
         {
             Dictionary<string, bool> exported = new Dictionary<string, bool>();
             await dataSet.LoadSchemaAsync();
-            foreach (Schema s in schemas) 
+            foreach (string v in schemas) 
             {
+                Schema s = dataSet.Schemas[v];
+                if (s == null)
+                {
+                    continue;
+                }
                 string schemaDir = Path.Combine(baseDir, s.Name);
                 foreach (SchemaObject obj in s.Objects)
                 {
@@ -300,9 +374,9 @@ namespace Db2Source
                         {
                             if (append)
                             {
-                                sw.WriteLine();
+                                sw.Write(dataSet.GetNewLine());
                             }
-                            sw.Write(buf.ToString());
+                            sw.Write(dataSet.NormalizeNewLine(buf));
                         }
                         exported[path] = true;
                     }
@@ -311,7 +385,8 @@ namespace Db2Source
         }
         private void buttonExport_Click(object sender, RoutedEventArgs e)
         {
-            List<Schema> list = new List<Schema>();
+            SaveSettingsToConnectionInfo();
+            List<string> list = new List<string>();
             string baseDir = textBoxFolder.Text;
             foreach (CheckBox cb in wrapPanelSchemas.Children)
             {
@@ -320,17 +395,24 @@ namespace Db2Source
                     continue;
                 }
                 Schema s = cb.Content as Schema;
-                list.Add(s);
+                list.Add(s.Name);
             }
-            Task t = ExportAsync(DataSet, list, baseDir);
+            Db2SourceContext context = DataSet.ConnectionInfo.NewDataSet();
+            context.NewLineRule = (NewLineRule)((comboBoxNewline.SelectedItem as ComboBoxItem)?.Tag ?? NewLineRule.None);
+            Task t = ExportAsync(context, list, baseDir);
             AwaitWindow win = new AwaitWindow() { Owner = this };
             win.WaitTask(t);
             MessageBox.Show(this, (string)Resources["messageDone"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void buttonClose_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            LoadSettingsFromConnectionInfo();
         }
     }
 }
