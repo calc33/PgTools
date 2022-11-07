@@ -545,7 +545,21 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxInsertSql.Text = Target?.GetInsertSql(0, 80, string.Empty);
+            try
+            {
+                if (checkBoxUpsert.IsChecked ?? false)
+                {
+                    textBoxInsertSql.Text = (Target != null) ? Target.GetUpsertSql(0, 80, string.Empty) : string.Empty;
+                }
+                else
+                {
+                    textBoxInsertSql.Text = Target?.GetInsertSql(0, 80, string.Empty);
+                }
+            }
+            catch (Exception t)
+            {
+                textBoxInsertSql.Text = t.Message;
+            }
         }
         private void UpdateTextBoxUpdateSql()
         {
@@ -565,12 +579,29 @@ namespace Db2Source
             textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty) : string.Empty;
         }
 
+        private void UpdateTextBoxMergeSql()
+        {
+            if (textBoxMergeSql == null)
+            {
+                return;
+            }
+            try
+            {
+                textBoxMergeSql.Text = (Target != null) ? Target.GetMergeSql(0, 80, string.Empty) : string.Empty;
+            }
+            catch (Exception t)
+            {
+                textBoxMergeSql.Text = t.Message;
+            }
+        }
+
         private void UpdateTextBoxTemplateSql()
         {
             UpdateTextBoxSelectSql();
             UpdateTextBoxInsertSql();
             UpdateTextBoxUpdateSql();
             UpdateTextBoxDeleteSql();
+            UpdateTextBoxMergeSql();
         }
 
         private bool _fetched = false;
@@ -1304,6 +1335,16 @@ namespace Db2Source
         ~TableControl()
         {
             App.Log("~TableControl");
+        }
+
+        private void checkBoxUpsert_Checked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxInsertSql();
+        }
+
+        private void checkBoxUpsert_Unchecked(object sender, RoutedEventArgs e)
+        {
+            UpdateTextBoxInsertSql();
         }
     }
 
