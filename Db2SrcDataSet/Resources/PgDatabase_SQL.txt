@@ -3,7 +3,7 @@ select
   d.datdba, u.usename as dbaname,
   d."encoding", pg_encoding_to_char(d."encoding") as encoding_char,
   d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
-  d.datconnlimit, d.datlastsysoid, d.datfrozenxid, d.datminmxid,
+  d.datconnlimit, d.datfrozenxid, d.datminmxid,
   d.dattablespace, ts.spcname as dattablespacename,
   version() as version
 from pg_database as d

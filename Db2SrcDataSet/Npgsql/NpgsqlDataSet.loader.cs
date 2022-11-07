@@ -2641,7 +2641,7 @@ namespace Db2Source
             public bool datistemplate;
             public bool datallowconn;
             public int datconnlimit;
-            public uint datlastsysoid;
+            //public uint datlastsysoid;
             public uint datfrozenxid;
             public uint datminmxid;
             public uint dattablespace;
