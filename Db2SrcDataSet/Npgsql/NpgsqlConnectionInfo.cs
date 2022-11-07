@@ -399,6 +399,16 @@ namespace Db2Source
             }
         }
 
+        public string PgDumpDirectory { get; set; }
+        public string PgDumpSchemas { get; set; }
+        public string PgDumpTables { get; set; }
+        public string PgDumpExcludeTables { get; set; }
+        public string PgDumpExcludeTablesData { get; set; }
+        public string PgDumpEncoding { get; set; }
+        public string ExpSchDirectory { get; set; }
+        public string ExpSchEncoding { get; set; }
+        public string ExpTblDirectory { get; set; }
+
         public override string DatabaseType
         {
             get { return DATABASE_TYPE; }

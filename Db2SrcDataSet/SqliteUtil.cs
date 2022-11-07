@@ -196,6 +196,11 @@ namespace Db2Source
                 throw new ArgumentException(string.Format("{0}: {1}型はサポートしていません", property.Name, property.PropertyType.Name));
             }
         }
+
+        public override string ToString()
+        {
+            return string.Format("{0} {1}", Name, GetDbTypeNameByType(DbType));
+        }
     }
 
     public abstract class ConstraintDefinition

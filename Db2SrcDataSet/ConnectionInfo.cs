@@ -463,6 +463,7 @@ namespace Db2Source
         public double? WindowWidth { get; set; }
         public double? WindowHeight { get; set; }
         public bool? IsWindowMaximized { get; set; }
+        public string WorkingDirectory { get; set; }
         [JsonIgnore]
         public DateTime LastConnected { get; set; } = DateTime.FromOADate(0);
         [JsonPropertyName("LastConnected")]
