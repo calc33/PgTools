@@ -421,6 +421,8 @@ namespace Db2Source
                 };
                 _runningProcess = Process.Start(info);
                 _ = WaitForProcessAsync();
+                SaveSettingsToConnectionInfo();
+                SaveSettingsToRegistry();
             }
             finally
             {
@@ -439,6 +441,8 @@ namespace Db2Source
             textBoxLog.Clear();
             textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
             textBoxLog.AppendText(cmd + Environment.NewLine);
+            SaveSettingsToConnectionInfo();
+            SaveSettingsToRegistry();
         }
 
         private void InitComboBoxPgDump()
@@ -538,6 +542,180 @@ namespace Db2Source
             comboBoxEncoding.SelectedValue = string.Empty;
         }
 
+        private RegistryBinding _registryBinding;
+        private void RequireRegistryBindings()
+        {
+            if (_registryBinding != null)
+            {
+                return;
+            }
+            _registryBinding = new RegistryBinding();
+            _registryBinding.Register(window);
+            _registryBinding.Register(window, comboBoxPgDump);
+            _registryBinding.Register(window, comboBoxFormat);
+            _registryBinding.Register(window, checkBoxCompress);
+            _registryBinding.Register(window, comboBoxCompressLevel);
+            _registryBinding.Register(window, textBoxPath);
+            _registryBinding.Register(window, textBoxDir);
+            //_registryBinding.Register(window, radioButtonExportAll);
+            _registryBinding.Register(window, checkBoxClean);
+            _registryBinding.Register(window, checkBoxCreate);
+            _registryBinding.Register(window, radioButtonSchema);
+            //_registryBinding.Register(window, wrapPanelSchemas);
+            //_registryBinding.Register(window, radioButtonTable);
+            //_registryBinding.Register(window, textBoxTables);
+            //_registryBinding.Register(window, radioButtonExcludeTable);
+            //_registryBinding.Register(window, textBoxExcludeTables);
+            //_registryBinding.Register(window, radioButtonExcludeTableData);
+            //_registryBinding.Register(window, textBoxExcludeTablesData);
+            _registryBinding.Register(window, checkBoxFoldOption);
+            _registryBinding.Register(window, checkBoxUseJob);
+            _registryBinding.Register(window, textBoxNumJobs);
+            _registryBinding.Register(window, checkBoxLockTimeout);
+            _registryBinding.Register(window, textBoxLockTimeout);
+            _registryBinding.Register(window, checkBoxBlobs);
+            _registryBinding.Register(window, checkBoxExportOid);
+        }
+        public RegistryBinding RegistryBinding
+        {
+            get
+            {
+                RequireRegistryBindings();
+                return _registryBinding;
+            }
+        }
+
+        private void LoadSettingsFromRegistry()
+        {
+            switch (App.RegistryFinder.GetInt32(GetType().Name, "radioButtonExport", 0))
+            {
+                case 0:
+                    radioButtonExportAll.IsChecked = true;
+                    break;
+                case 1:
+                    radioButtonExportSchema.IsChecked = true;
+                    break;
+                case 2:
+                    radioButtonExportData.IsChecked = true;
+                    break;
+                default:
+                    radioButtonExportAll.IsChecked = true;
+                    break;
+            }
+            RegistryBinding.Load(App.RegistryFinder);
+        }
+        private void SaveSettingsToRegistry()
+        {
+            int index = 0;
+            if (radioButtonExportAll.IsChecked ?? false)
+            {
+                index = 0;
+            }
+            else if (radioButtonExportSchema.IsChecked ?? false)
+            {
+                index = 1;
+            }
+            else if (radioButtonExportData.IsChecked ?? false)
+            {
+                index = 2;
+            }
+            App.RegistryFinder.SetValue(0, GetType().Name, "radioButtonExport", index);
+
+            RegistryBinding.Save(App.RegistryFinder);
+        }
+
+        private string GetCheckedInWrapPanelSchemas()
+        {
+            if (!(radioButtonSchema.IsChecked ?? false))
+            {
+                return string.Empty;
+            }
+            StringBuilder buf = new StringBuilder();
+            string prefix = string.Empty;
+            foreach (UIElement element in wrapPanelSchemas.Children)
+            {
+                CheckBox checkBox = element as CheckBox;
+                if (checkBox == null)
+                {
+                    continue;
+                }
+                buf.Append(prefix);
+                buf.Append(checkBox.Content.ToString());
+                prefix = ",";
+            }
+            return buf.ToString();
+        }
+        private void SetCheckedInWrapPanelSchemas(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                radioButtonSchema.IsChecked = false;
+                return;
+            }
+            Dictionary<string, bool> dict = new Dictionary<string, bool>();
+            foreach (string s in value.Split(','))
+            {
+                dict[s] = true;
+            }
+            foreach (UIElement element in wrapPanelSchemas.Children)
+            {
+                CheckBox checkBox = element as CheckBox;
+                if (checkBox == null)
+                {
+                    continue;
+                }
+                bool chk;
+                if (!dict.TryGetValue(checkBox.Content.ToString(), out chk))
+                {
+                    chk = false;
+                }
+                checkBox.IsChecked = chk;
+            }
+            radioButtonSchema.IsChecked = true;
+        }
+
+        private void LoadSettingsFromConnectionInfo()
+        {
+            NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            textBoxDir.Text = info.PgDumpDirectory;
+            comboBoxEncoding.SelectedValue = info.PgDumpEncoding ?? string.Empty;
+            SetCheckedInWrapPanelSchemas(info.PgDumpSchemas);
+            textBoxTables.Text = info.PgDumpTables;
+            radioButtonTable.IsChecked = !string.IsNullOrEmpty(textBoxTables.Text);
+            textBoxExcludeTables.Text = info.PgDumpExcludeTables;
+            radioButtonExcludeTable.IsChecked = !string.IsNullOrEmpty(textBoxExcludeTables.Text);
+            textBoxExcludeTablesData.Text = info.PgDumpExcludeTablesData;
+            radioButtonExcludeTableData.IsChecked = !string.IsNullOrEmpty(textBoxExcludeTablesData.Text);
+        }
+
+        private void SaveSettingsToConnectionInfo()
+        {
+            NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            string dir = textBoxDir.Text;
+            if (!string.IsNullOrEmpty(dir) && !System.IO.Directory.Exists(dir))
+            {
+                dir = string.Empty;
+            }
+            if (!string.IsNullOrEmpty(dir))
+            {
+                info.PgDumpDirectory = dir;
+            }
+            info.PgDumpSchemas = GetCheckedInWrapPanelSchemas();
+            info.PgDumpEncoding = (string)comboBoxEncoding.SelectedValue;
+            info.PgDumpTables = (radioButtonTable.IsChecked ?? false) ? textBoxTables.Text : string.Empty;
+            info.PgDumpExcludeTables = (radioButtonExcludeTable.IsChecked ?? false) ? textBoxExcludeTables.Text : string.Empty;
+            info.PgDumpExcludeTablesData = (radioButtonExcludeTableData.IsChecked ?? false) ? textBoxExcludeTablesData.Text : string.Empty;
+            App.Connections.Save();
+        }
+
         private void DataSetChanged()
         {
             UpdateComboBoxEncoding();
@@ -549,6 +727,8 @@ namespace Db2Source
             UpdateWrapPanelSchemas();
             UpdateButtonExportEnabled();
             UpdateComboBoxEncoding();
+            LoadSettingsFromRegistry();
+            LoadSettingsFromConnectionInfo();
         }
 
         private void textBoxInput_KeyUp(object sender, KeyEventArgs e)
