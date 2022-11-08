@@ -2647,6 +2647,7 @@ namespace Db2Source
             public uint dattablespace;
             public string dattablespacename;
             public string version;
+            public string version_num;
 #pragma warning restore 0649
             public bool IsCurrent;
             public static string current_database;
@@ -2699,6 +2700,11 @@ namespace Db2Source
 
             public PgsqlDatabase ToDatabase(NpgsqlDataSet context)
             {
+                int v;
+                if (!int.TryParse(version_num, out v))
+                {
+                    v = 0;
+                }
                 PgsqlDatabase ret = new PgsqlDatabase(context, datname)
                 {
                     //Name = datname,
@@ -2709,6 +2715,7 @@ namespace Db2Source
                     DbaUserName = dbaname,
                     IsCurrent = IsCurrent,
                     Version = version,
+                    VersionNum = new int[] { v / 10000, v % 10000 },
                     IsTemplate = datistemplate
                 };
                 return ret;

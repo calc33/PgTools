@@ -2003,7 +2003,14 @@ namespace Db2Source
                     b.Converter = new ColumnInfoConverter(info);
                     c.Binding = b;
                     c.ElementStyle = Application.Current.Resources["DataGridTextBlockStyle"] as Style;
-                    c.EditingElementStyle = Application.Current.Resources["DataGridTextBoxStyle"] as Style;
+                    if (info.IsString)
+                    {
+                        c.EditingElementStyle = Application.Current.Resources["DataGridStringTextBoxStyle"] as Style;
+                    }
+                    else
+                    {
+                        c.EditingElementStyle = Application.Current.Resources["DataGridTextBoxStyle"] as Style;
+                    }
                     if (info.IsDateTime && string.IsNullOrEmpty(b.StringFormat))
                     {
                         b.StringFormat = Db2SourceContext.DateTimeFormat;

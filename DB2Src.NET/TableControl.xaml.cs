@@ -585,9 +585,12 @@ namespace Db2Source
             {
                 return;
             }
+            // MERGE文はPostgreSQL15以降の機能
+            bool enabled = (Target != null && 15 <= Target.Context.Database.VersionNum[0]);
+            tabItemMergeSql.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
             try
             {
-                textBoxMergeSql.Text = (Target != null) ? Target.GetMergeSql(0, 80, string.Empty) : string.Empty;
+                textBoxMergeSql.Text = enabled ? Target.GetMergeSql(0, 80, string.Empty) : string.Empty;
             }
             catch (Exception t)
             {

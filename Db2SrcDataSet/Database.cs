@@ -14,6 +14,7 @@ namespace Db2Source
         private string _defaultTablespace;
         private ConnectionInfo _connectionInfo;
         private string _version;
+        private int[] _versionNum;
         private bool _isCurrent;
         public string DbaUserName
         {
@@ -97,6 +98,20 @@ namespace Db2Source
                 }
                 _version = value;
                 OnPropertyChanged("Version");
+            }
+        }
+
+        public int[] VersionNum
+        {
+            get { return _versionNum; }
+            set
+            {
+                if (_versionNum == value)
+                {
+                    return;
+                }
+                _versionNum = value;
+                OnPropertyChanged("VersionNum");
             }
         }
 

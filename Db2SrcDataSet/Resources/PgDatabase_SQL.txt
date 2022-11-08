@@ -5,7 +5,7 @@ select
   d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
   d.datconnlimit, d.datfrozenxid, d.datminmxid,
   d.dattablespace, ts.spcname as dattablespacename,
-  version() as version
+  version() as version, current_setting('server_version_num') as version_num
 from pg_database as d
   left outer join pg_user u on (d.datdba = u.usesysid)
   left outer join pg_tablespace ts on (d.dattablespace = ts.oid)
