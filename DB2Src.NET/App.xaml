@@ -278,6 +278,12 @@
                     <Path x:Name="pathLine" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1"  Data="M7,3 L7,7 L10,10"/>
                 </Canvas>
             </DataTemplate>
+            <DataTemplate x:Key="ImageError14">
+                <Canvas Width="14" Height="14">
+                    <Ellipse Stroke="White" Fill="Red" StrokeThickness="1" Width="14" Height="14"/>
+                    <Path Stroke="White" StrokeThickness="2" Data="M4,4 L10,10 M4,10 L10,4"/>
+                </Canvas>
+            </DataTemplate>
             <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
             <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
             <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>
@@ -1069,7 +1075,7 @@
                     </Grid.ColumnDefinitions>
                     <Button ContentTemplate="{StaticResource ImageRollback12}" BorderThickness="0" Background="Transparent" ToolTip="変更を元に戻す" IsEnabled="{Binding HasChanges}" Click="RevertColumnButton_Click" Style="{DynamicResource RevertButtonStyle}" Visibility="{Binding Converter={StaticResource HideNewItemPlaceHolderConverter}, Mode=OneWay}"/>
                     <CheckBox Grid.Column="1" IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}"/>
-                    <Label Grid.Column="2" ToolTip="{Binding ErrorMessage}">
+                    <Label Grid.Column="2" ToolTip="{Binding ErrorMessage}" ContentTemplate="{StaticResource ImageError14}">
                         <Label.Style>
                             <Style TargetType="{x:Type Label}">
                                 <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
@@ -1097,10 +1103,6 @@
                                 </Setter>
                             </Style>
                         </Label.Style>
-                        <Canvas Width="14" Height="14">
-                            <Ellipse Stroke="White" Fill="Red" StrokeThickness="1" Width="14" Height="14"/>
-                            <Path Stroke="White" StrokeThickness="2" Data="M4,4 L10,10 M4,10 L10,4"/>
-                        </Canvas>
                     </Label>
                 </Grid>
             </DataTemplate>

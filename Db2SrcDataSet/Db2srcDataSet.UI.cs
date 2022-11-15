@@ -258,13 +258,24 @@ namespace Db2Source
         public string StringFormat { get; set; }
         //public IValueConverter Converter { get; set; }
         public int Index { get; private set; }
-        public object ParseValue(string value, out bool valid)
+        public object ParseValue(string value, bool ignoreNotNull, out bool valid)
         {
             valid = true;
             if (value == null)
             {
+                valid = ignoreNotNull || !IsNotNull;
                 return null;
             }
+            if (IsString)
+            {
+                return value;
+            }
+            if (value == string.Empty)
+            {
+                valid = ignoreNotNull || !IsNotNull;
+                return null;
+            }
+
             Type refType = FieldType.MakeByRefType();
             MethodInfo mi = FieldType.GetMethod("TryParse", new Type[] { typeof(string), refType });
             if (mi != null)
@@ -278,17 +289,15 @@ namespace Db2Source
                         valid = false;
                         return null;
                     }
-                    return args[1];
+                    object v = args[1];
+                    valid = ignoreNotNull || !IsNotNull || (v != null);
+                    return v;
                 }
                 catch
                 {
                     valid = false;
                     return null;
                 }
-            }
-            if (FieldType == typeof(string) || FieldType.IsSubclassOf(typeof(string)))
-            {
-                return value;
             }
             throw new ArgumentException("value");
         }
@@ -303,7 +312,7 @@ namespace Db2Source
             if (value is string)
             {
                 bool valid;
-                ret = ParseValue((string)value, out valid);
+                ret = ParseValue((string)value, true, out valid);
             }
             if (ret == null)
             {

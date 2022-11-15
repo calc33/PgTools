@@ -108,7 +108,7 @@ namespace Db2Source
                     try
                     {
                         bool valid;
-                        cell.Data = col.ParseValue(cell.Text, out valid);
+                        cell.Data = col.ParseValue(cell.Text, false, out valid);
                         cell.IsValid = valid;
                     }
                     catch
@@ -336,7 +336,7 @@ namespace Db2Source
             for (int i = 0; i < n; i++)
             {
                 bool valid;
-                ret[i] = fields[0].ParseValue(data[i], out valid);
+                ret[i] = fields[0].ParseValue(data[i], false, out valid);
                 if (!valid)
                 {
                     ret[i] = new ValidationResult(false, data[i]);
