@@ -713,7 +713,7 @@ namespace Db2Source
             info.PgDumpTables = (radioButtonTable.IsChecked ?? false) ? textBoxTables.Text : string.Empty;
             info.PgDumpExcludeTables = (radioButtonExcludeTable.IsChecked ?? false) ? textBoxExcludeTables.Text : string.Empty;
             info.PgDumpExcludeTablesData = (radioButtonExcludeTableData.IsChecked ?? false) ? textBoxExcludeTablesData.Text : string.Empty;
-            App.Connections.Save();
+            App.Connections.Save(info);
         }
 
         private void DataSetChanged()

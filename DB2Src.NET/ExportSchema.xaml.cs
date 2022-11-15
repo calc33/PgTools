@@ -142,7 +142,7 @@ namespace Db2Source
                 info.ExpSchDirectory = textBoxFolder.Text;
             }
             info.ExpSchEncoding = ((comboBoxEncoding.SelectedItem as ComboBoxItem)?.Tag as Encoding)?.WebName;
-            App.Connections.Save();
+            App.Connections.Save(info);
         }
 
         private void buttonSelectFolder_Click(object sender, RoutedEventArgs e)

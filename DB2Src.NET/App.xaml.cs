@@ -474,7 +474,7 @@ namespace Db2Source
                 DatabaseName = Database,
                 UserName = Username
             };
-
+            info = Connections.Merge(info);
             if (IsConnectedByArgs)
             {
                 if (info.FillStoredPassword(true))

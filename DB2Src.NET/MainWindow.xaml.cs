@@ -95,8 +95,6 @@ namespace Db2Source
             }
             info = win.Target;
             Connect(info);
-            App.Connections.Merge(info);
-            App.Connections.Save();
         }
         private void UpdateTabControlsTarget()
         {
@@ -267,7 +265,7 @@ namespace Db2Source
             info.WindowHeight = Height;
             info.IsWindowMaximized = (WindowState == WindowState.Maximized);
             App.Connections.Merge(info);
-            App.Connections.Save();
+            App.Connections.Save(info);
         }
 
 
@@ -279,6 +277,7 @@ namespace Db2Source
             Resources["WindowBackground"] = GetBackgroundColor();
             RegistryBinding binding = App.NewRegistryBinding(_dataSetTemp.ConnectionInfo);
             binding.Save(App.RegistryFinder);
+            //CurrentDataSet.MergeConnectionInfo(App.Connections);
         }
 
         private void CurrentDataSet_SchemaLoaded(object sender, EventArgs e)
@@ -823,12 +822,13 @@ namespace Db2Source
         private void SaveConnectionInfo(ConnectionInfo info)
         {
             info = App.Connections.Merge(info);
-            App.Connections.Save();
+            App.Connections.Save(info);
             info.UpdateLastConnected(App.Connections.RequireDatabase());
         }
 
         private void Connect(ConnectionInfo info)
         {
+            info = App.Connections.Merge(info);
             Db2SourceContext ds = info.NewDataSet();
             ds.SchemaLoaded += CurrentDataSet_SchemaLoaded;
             ConnectionStatus = SchemaConnectionStatus.Connecting;

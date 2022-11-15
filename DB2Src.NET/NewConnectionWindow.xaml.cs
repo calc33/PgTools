@@ -345,6 +345,7 @@ namespace Db2Source
         private void buttonOK_Click(object sender, RoutedEventArgs e)
         {
             Target.Name = Target.GetDefaultName();
+            Target = App.Connections.Merge(Target);
             App.Connections.Save(Target);
             Dispatcher.InvokeAsync(ConnectAndCloseAsync);
         }
