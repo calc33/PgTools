@@ -1052,7 +1052,7 @@ namespace Db2Source
         private void buttonAddTab_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
-            ContextMenu menu = button.ContextMenu;
+            ContextMenu menu = FindResource("contextMenuTab") as ContextMenu;
             menu.PlacementTarget = button;
             menu.Placement = PlacementMode.Bottom;
             menu.IsOpen = !menu.IsOpen;

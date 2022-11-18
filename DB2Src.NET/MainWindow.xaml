@@ -257,6 +257,13 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <ContextMenu x:Key="contextMenuTab">
+            <!-- menuItemTabsと内容を合わせる -->
+            <MenuItem Header="データベース情報(_D)" Click="menuItemAddDatabase_Click"/>
+            <MenuItem Header="新規クエリ(_Q)" Click="menuItemAddQuery_Click"/>
+            <MenuItem Header="レコード件数一覧(_C)" Click="menuItemCount_Click"/>
+            <MenuItem Header="セッション一覧(_S)" Click="menuItemSessionList_Click"/>
+        </ContextMenu>
         <Style x:Key="TabControlStyleSingleLine" TargetType="{x:Type TabControl}">
             <Setter Property="Padding" Value="2"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -281,16 +288,7 @@
                                 <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
                             </Border>
                             <DockPanel>
-                                <Button x:Name ="buttonAddTab" DockPanel.Dock="Left" ContentTemplate="{StaticResource ImageAdd10}" Margin="4,0" BorderThickness="0" Background="Transparent" Click="buttonAddTab_Click">
-                                    <Button.ContextMenu>
-                                        <ContextMenu>
-                                            <MenuItem x:Name="menuItemAddDatabase" Header="データベース情報" Click="menuItemAddDatabase_Click"/>
-                                            <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ" Click="menuItemAddQuery_Click"/>
-                                            <MenuItem x:Name="menuItemCount" Header="レコード件数一覧" Click="menuItemCount_Click"/>
-                                            <MenuItem x:Name="menuItemSessionList" Header="セッション一覧" Click="menuItemSessionList_Click"/>
-                                        </ContextMenu>
-                                    </Button.ContextMenu>
-                                </Button>
+                                <Button x:Name ="buttonAddTab" DockPanel.Dock="Left" ContentTemplate="{StaticResource ImageAdd10}" Margin="4,0" BorderThickness="0" Background="Transparent" Click="buttonAddTab_Click"/>
                                 <Border DockPanel.Dock="Right" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
                                     <StackPanel Orientation="Horizontal">
                                         <Button x:Name="buttonScrollLeft" ContentTemplate="{StaticResource ImageLeftArrow8}" VerticalContentAlignment="Center" BorderThickness="0" Background="Transparent" Click="buttonScrollLeft_Click" Height="26" VerticalAlignment="Top"/>
@@ -589,10 +587,17 @@
                     <MenuItem Header="前を検索(_P)" InputGestureText="Shift+F3" Command="local:SearchCommands.FindPrevious"/>
                 </MenuItem>
                 <MenuItem x:Name="menuItemTools" Header="ツール(_T)">
-                    <MenuItem x:Name="menuItemLogWindow" Header="SQL実行ログ" IsCheckable="True" IsChecked="False"/>
-                    <MenuItem x:Name="menuItemExportSchema" Header="スキーマ定義のエクスポート" Click="menuItemExportSchema_Click"/>
-                    <MenuItem x:Name="menuItemPsql" Header="psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
-                    <MenuItem x:Name="menuItemPgdump" Header="pg__dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
+                    <MenuItem x:Name="menuItemTabs" Header="タブ(_T)">
+                        <!-- contextMenuTabと内容を合わせる -->
+                        <MenuItem x:Name="menuItemAddDatabase" Header="データベース情報(_D)" Click="menuItemAddDatabase_Click"/>
+                        <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ(_Q)" Click="menuItemAddQuery_Click"/>
+                        <MenuItem x:Name="menuItemCount" Header="レコード件数一覧(_C)" Click="menuItemCount_Click"/>
+                        <MenuItem x:Name="menuItemSessionList" Header="セッション一覧(_S)" Click="menuItemSessionList_Click"/>
+                    </MenuItem>
+                    <MenuItem x:Name="menuItemLogWindow" Header="_SQL実行ログ" IsCheckable="True" IsChecked="False"/>
+                    <MenuItem x:Name="menuItemExportSchema" Header="スキーマ定義のエクスポート(_X)" Click="menuItemExportSchema_Click"/>
+                    <MenuItem x:Name="menuItemPsql" Header="_psqlを起動" Click="menuItemPsql_Click" Tag="psql.exe"/>
+                    <MenuItem x:Name="menuItemPgdump" Header="pg___dumpを起動" Click="menuItemPgdump_Click" Tag="pg_dump.exe"/>
                     <Separator/>
                     <MenuItem x:Name="menuItemOption" Header="オプション(_O)" Click="menuItemOption_Click"/>
                 </MenuItem>
