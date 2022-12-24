@@ -546,7 +546,10 @@ namespace Db2Source
 
         public virtual void Merge(ConnectionInfo item)
         {
-            Password = item.Password;
+            if (!string.IsNullOrEmpty(item.Password))
+            {
+                Password = item.Password;
+            }
             WindowLeft = item.WindowLeft;
             WindowTop = item.WindowTop;
             WindowWidth = item.WindowWidth;
