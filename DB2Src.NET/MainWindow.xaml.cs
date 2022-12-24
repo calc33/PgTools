@@ -565,8 +565,8 @@ namespace Db2Source
                 parent.IsExpanded = true;
             }
             BecomeExpanded(treeView, parent);
-
         }
+
         private static TreeViewItem GetNextVisibleItem(TreeViewItem parent, int index)
         {
             for (int i = index; i < parent.Items.Count; i++)
@@ -580,13 +580,13 @@ namespace Db2Source
             return null;
         }
 
-        private static TreeViewItem GetNextTreeViewItem(TreeViewItem item, bool ignoreChildren)
+        private static TreeViewItem GetNextTreeViewItem(TreeViewItem item, bool ignoreChildren = false)
         {
             if (item == null)
             {
                 return null;
             }
-            if (item.Items.Count != 0 && !ignoreChildren)
+            if (item.Items.Count != 0 && item.IsExpanded && !ignoreChildren)
             {
                 TreeViewItem ret = GetNextVisibleItem(item, 0);
                 if (ret != null)
@@ -617,6 +617,10 @@ namespace Db2Source
             if (item.Visibility != Visibility.Visible)
             {
                 return null;
+            }
+            if (!item.IsExpanded)
+            {
+                return item;
             }
             TreeViewItem tail = GetPreviousVisibleItem(item, item.Items.Count - 1);
             if (tail == null)
@@ -656,49 +660,97 @@ namespace Db2Source
             {
                 return GetTailItem(obj);
             }
-            return GetPreviousTreeViewItem(parent);
+            return parent;
         }
 
         private void textBoxFilter_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             TreeViewItem sel = treeViewDB.SelectedItem as TreeViewItem;
-            if (sel == null)
-            {
-                sel = treeViewDB.Items[0] as TreeViewItem;
-            }
+            int n;
             switch (e.Key)
             {
                 case Key.Up:
+                    if (sel == null)
+                    {
+                        sel = treeViewDB.Items[0] as TreeViewItem;
+                    }
                     sel = GetPreviousTreeViewItem(sel);
                     if (sel != null)
                     {
-                        BecomeExpanded(treeViewDB, sel);
-                        (new TreeViewItemAutomationPeer(sel) as System.Windows.Automation.Provider.IScrollItemProvider).ScrollIntoView();
+                        (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
                         sel.IsSelected = true;
                     }
                     e.Handled = true;
                     break;
                 case Key.Down:
-                    sel = GetNextTreeViewItem(sel, false);
+                    if (sel == null)
+                    {
+                        sel = treeViewDB.Items[0] as TreeViewItem;
+                    }
+                    sel = GetNextTreeViewItem(sel);
                     if (sel != null)
                     {
-                        BecomeExpanded(treeViewDB, sel);
-                        (new TreeViewItemAutomationPeer(sel) as System.Windows.Automation.Provider.IScrollItemProvider).ScrollIntoView();
+                        (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
                         sel.IsSelected = true;
                     }
                     e.Handled = true;
                     break;
+                case Key.Left:
+                    if (sel == null)
+                    {
+                        break;
+                    }
+                    if (textBoxFilter.SelectionStart != 0 || textBoxFilter.SelectionLength != 0)
+                    {
+                        break;
+                    }
+                    if (sel.IsExpanded)
+                    {
+                        sel.IsExpanded = false;
+                    }
+                    else
+                    {
+                        sel = sel.Parent as TreeViewItem;
+                        if (sel != null)
+                        {
+                            (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
+                            sel.IsSelected = true;
+                        }
+                    }
+                    e.Handled = true;
+                    break;
+                case Key.Right:
+                    if (sel == null)
+                    {
+                        break;
+                    }
+                    if (textBoxFilter.SelectionStart < textBoxFilter.Text.Length)
+                    {
+                        break;
+                    }
+                    if (sel.HasItems)
+                    {
+                        sel.IsExpanded = true;
+                    }
+                    e.Handled = true;
+                    break;
+                //case Key.PageUp:
+                //case Key.PageDown:
+                //    treeViewDB.RaiseEvent(e);
+                //    e.Handled = true;
+                //    break;
             }
         }
 
         private void textBoxFilter_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            switch (e.Key)
             {
-                //FilterTreeView(false);
-                OpenViewerFromTreeViewDBSelection();
-                e.Handled = true;
-
+                case Key.Enter:
+                    Dispatcher.InvokeAsync(() => { FilterTreeView(false); });
+                    OpenViewerFromTreeViewDBSelection();
+                    e.Handled = true;
+                    break;
             }
         }
 

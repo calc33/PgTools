@@ -325,12 +325,20 @@ namespace Db2Source
             FilterTreeView(true);
         }
 
-        private string _treeViewFilterText;
-        public void FilterTreeView(bool force)
+        private string GetCurrentTreeViewFilterText()
         {
             bool filterByName = menuItemFilterByObjectName.IsChecked;
             bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
-            string txt = (filterByName || filterByColumnName) ? textBoxFilter.Text : string.Empty;
+            return (filterByName || filterByColumnName) ? textBoxFilter.Text : string.Empty;
+        }
+
+        private string _treeViewFilterText;
+        public void FilterTreeView(bool force)
+        {
+            _filterTreeViewTimer.Stop();
+            bool filterByName = menuItemFilterByObjectName.IsChecked;
+            bool filterByColumnName = menuItemFilterByColumnName.IsChecked;
+            string txt = GetCurrentTreeViewFilterText();
             if (!force && _treeViewFilterText == txt)
             {
                 return;
@@ -424,8 +432,11 @@ namespace Db2Source
             }
             _filterTreeViewTimer.Stop();
             _filterTreeViewExecTime = DateTime.MaxValue;
-            FilterTreeView(true);
-
+            string txt = GetCurrentTreeViewFilterText();
+            if (!string.IsNullOrEmpty(txt))
+            {
+                FilterTreeView(false);
+            }
         }
 
         private void DelayedFilterTreeView()
