@@ -2612,7 +2612,7 @@ namespace Db2Source
                         }
                         p.ValueType = t;
                         string v;
-                        if (ArgDefaults.TryGetValue(i + 1, out v))
+                        if (ArgDefaults.TryGetValue(p.Index, out v))
                         {
                             p.DefaultValue = v;
                         }

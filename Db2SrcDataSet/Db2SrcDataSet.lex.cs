@@ -18,6 +18,52 @@ namespace Db2Source
             return _sql.Substring(startToken.StartPos, endToken.EndPos - startToken.StartPos + 1);
         }
 
+        private int FindTokenIndex(int characterPosition, int startIndex, int endIndex)
+        {
+            if (endIndex < startIndex)
+            {
+                return -1;
+            }
+            int i = startIndex;
+            Token token = Tokens[i];
+            if (characterPosition  < token.StartPos)
+            {
+                return startIndex - 1;
+            }
+            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
+            {
+                return i;
+            }
+            i = endIndex;
+            token = Tokens[i];
+            if (token.EndPos < characterPosition)
+            {
+                return endIndex + 1;
+            }
+            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
+            {
+                return i;
+            }
+            i = (startIndex + endIndex) / 2;
+            token = Tokens[i];
+            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
+            {
+                return i;
+            }
+            if (characterPosition < token.StartPos)
+            {
+                return FindTokenIndex(characterPosition, startIndex + 1, i - 1);
+            }
+            else
+            {
+                return FindTokenIndex(characterPosition, i + 1, endIndex - 1);
+            }
+        }
+        public int GetTokenIndexAt(int characterPosition)
+        {
+            return FindTokenIndex(characterPosition, 0, Tokens.Length - 1);
+        }
+
         public TokenizedSQL(string sql)
         {
             _sql = sql;
