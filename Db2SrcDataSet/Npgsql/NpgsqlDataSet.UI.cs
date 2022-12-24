@@ -124,12 +124,16 @@ namespace Db2Source
             nodeDb.Target = Database;
             nodeDb.Children = top.ToArray();
             lDb.Add(nodeDb);
+            TreeNode nodeOtherDbs = new TreeNode("その他のデータベース", "その他のデータベース{0}", typeof(Database), 0, false, false);
+            List<TreeNode> lOtherDb = new List<TreeNode>();
             foreach (Database db in OtherDatabases)
             {
                 nodeDb = new TreeNode(db.Name, db.Name, typeof(Database), 0, false, false);
                 nodeDb.Target = db;
-                lDb.Add(nodeDb);
+                lOtherDb.Add(nodeDb);
             }
+            nodeOtherDbs.Children = lOtherDb.ToArray();
+            lDb.Add(nodeOtherDbs);
             return lDb.ToArray();
         }
         public override Tuple<int, int> GetErrorPosition(Exception t, string sql, int offset)

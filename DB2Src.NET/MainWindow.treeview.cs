@@ -164,7 +164,13 @@ namespace Db2Source
                 else if (node.TargetType == typeof(Database))
                 {
                     Database db = node.Target as Database;
-                    if (db.IsCurrent)
+                    if (db == null)
+                    {
+                        SetIsCheckable(item, false);
+                        item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
+                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                    }
+                    else if (db.IsCurrent)
                     {
                         item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
                         //item.MouseDoubleClick += TreeViewItemDatabase_MouseDoubleClick;
