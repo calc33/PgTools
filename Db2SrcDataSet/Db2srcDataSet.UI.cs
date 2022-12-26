@@ -188,7 +188,7 @@ namespace Db2Source
             }
             if (GetType() != target.GetType())
             {
-                throw new ArgumentException();
+                throw new ArgumentException(string.Format("({0}){1} cannot replace to ({2}){3}", GetType().Name, Identifier, target.GetType().Name, target.Identifier));
             }
             if (target.Control == null && Control != null)
             {
