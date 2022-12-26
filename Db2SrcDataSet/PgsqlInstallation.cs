@@ -58,19 +58,30 @@ namespace Db2Source
 
         private static PgsqlInstallation[] InitInstallations()
         {
-            List<PgsqlInstallation> l = new List<PgsqlInstallation>();
-            using (RegistryKey root = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\PostgreSQL\Installations"))
+            RegistryKey root = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\PostgreSQL\Installations");
+            if (root == null)
             {
-                foreach (string key in root.GetSubKeyNames())
+                return new PgsqlInstallation[0];
+            }
+            try
+            {
+                List<PgsqlInstallation> l = new List<PgsqlInstallation>();
                 {
-                    using (RegistryKey reg = root.OpenSubKey(key))
+                    foreach (string key in root.GetSubKeyNames())
                     {
-                        l.Add(new PgsqlInstallation(reg));
+                        using (RegistryKey reg = root.OpenSubKey(key))
+                        {
+                            l.Add(new PgsqlInstallation(reg));
+                        }
                     }
                 }
+                l.Sort();
+                return l.ToArray();
             }
-            l.Sort();
-            return l.ToArray();
+            finally
+            {
+                root.Dispose();
+            }
         }
 
         /// <summary>
