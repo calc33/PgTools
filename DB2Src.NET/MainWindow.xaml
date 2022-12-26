@@ -624,7 +624,7 @@
                                         <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
-                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus"/>
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" PreviewKeyUp="textBoxFilter_PreviewKeyUp"/>
                             </DockPanel>
                         </Border>
                     </StackPanel>

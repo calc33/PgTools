@@ -666,7 +666,7 @@ namespace Db2Source
         private void textBoxFilter_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             TreeViewItem sel = treeViewDB.SelectedItem as TreeViewItem;
-            int n;
+            KeyEventArgs e2;
             switch (e.Key)
             {
                 case Key.Up:
@@ -734,11 +734,36 @@ namespace Db2Source
                     }
                     e.Handled = true;
                     break;
-                //case Key.PageUp:
-                //case Key.PageDown:
-                //    treeViewDB.RaiseEvent(e);
-                //    e.Handled = true;
-                //    break;
+                case Key.PageUp:
+                case Key.PageDown:
+                    treeViewDB.RaiseEvent(e);
+                    e2 = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key)
+                    {
+                        RoutedEvent = KeyDownEvent
+                    };
+                    treeViewDB.RaiseEvent(e2);
+                    e.Handled = e2.Handled;
+                    textBoxFilter.Focus();
+                    break;
+            }
+        }
+
+        private void textBoxFilter_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            TreeViewItem sel = treeViewDB.SelectedItem as TreeViewItem;
+            KeyEventArgs e2;
+            switch (e.Key)
+            {
+                case Key.PageUp:
+                case Key.PageDown:
+                    treeViewDB.RaiseEvent(e);
+                    e2 = new KeyEventArgs(e.KeyboardDevice, e.InputSource, e.Timestamp, e.Key)
+                    {
+                        RoutedEvent = KeyUpEvent
+                    };
+                    treeViewDB.RaiseEvent(e2);
+                    e.Handled = e2.Handled;
+                    break;
             }
         }
 
