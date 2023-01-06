@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="データの貼り付け" Height="450" Width="800" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LayoutUpdated="window_LayoutUpdated">
+        Title="データの貼り付け" Height="450" Width="800" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LocationChanged="window_LocationChanged">
     <Window.Resources>
         <local:DataGridCellToCellConverter x:Key="DataGridCellToCellConverter"/>
         <SolidColorBrush x:Key="ErrorTextBrush" Color="Red"/>

@@ -148,6 +148,12 @@ namespace Db2Source
         {
             InitDataGridConnections();
             //InitButtonAddContextMenu();
+            WindowLocator.AdjustMaxSizeToScreen(this);
+        }
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void buttonAdd_Click(object sender, RoutedEventArgs e)

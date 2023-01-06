@@ -269,5 +269,15 @@ namespace Db2Source
                 textBoxFilter.Focus();
             }
         }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
+        }
+
+        private void window_LocationChanged(object sender, EventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
+        }
     }
 }

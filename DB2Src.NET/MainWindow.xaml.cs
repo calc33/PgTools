@@ -1020,6 +1020,12 @@ namespace Db2Source
             InitCommandBindings();
             UpdateTextBoxFilter();
             Dispatcher.InvokeAsync(StartConnection, DispatcherPriority.ApplicationIdle);
+            WindowLocator.AdjustMaxSizeToScreen(this);
+        }
+
+        private void window_LocationChanged(object sender, EventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void CopyTableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

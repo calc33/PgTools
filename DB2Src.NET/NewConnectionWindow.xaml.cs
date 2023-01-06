@@ -68,6 +68,7 @@ namespace Db2Source
             }
             return attr1.Order.CompareTo(attr2.Order);
         }
+
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue == e.OldValue)
@@ -406,6 +407,19 @@ namespace Db2Source
             UpdateTitleColor();
             InitTreeViewConnections();
             UpdateButtonShowConnectionsContentTemplate();
+        }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
+            MinHeight = StackPanelMain.DesiredSize.Height + ActualHeight - (Content as Grid).ActualHeight;
+            Height = ActualHeight;
+            SizeToContent = SizeToContent.Width;
+        }
+
+        private void window_LocationChanged(object sender, EventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void UpdateTitleColor()

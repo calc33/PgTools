@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged">
+        Title="" WindowStyle="None" SizeToContent="WidthAndHeight" Deactivated="window_Deactivated" KeyDown="window_KeyDown" IsVisibleChanged="window_IsVisibleChanged" Loaded="window_Loaded" LocationChanged="window_LocationChanged">
     <DockPanel>
         <TextBox x:Name="textBoxFilter" ToolTip="(項目名で絞り込み)" DockPanel.Dock="Top" TextChanged="textBoxFilter_TextChanged" BorderThickness="1,1,1,0" PreviewKeyDown="textBoxFilter_PreviewKeyDown"/>
         <ListBox x:Name="listBoxColumns" ItemsSource="{Binding TabControl.Items, ElementName=window}" DisplayMemberPath="Header.Text" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" />

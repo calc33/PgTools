@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="window_Loaded">
+        Title="データベースを新規作成" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LocationChanged="window_LocationChanged">
     <Window.Resources>
         <local2:NameValue x:Key="NameValue"/>
         <local:StrArayToTextConverter x:Key="StrArayToTextConverter"/>

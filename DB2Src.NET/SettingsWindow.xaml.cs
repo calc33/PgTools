@@ -42,7 +42,13 @@ namespace Db2Source
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            WindowLocator.AdjustMaxSizeToScreen(this);
             dataGridColumnFontButton.CellTemplate = Resources["FontButtonTemplate"] as DataTemplate;
+        }
+
+        private void Window_LocationChanged(object sender, EventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void buttonOK_Click(object sender, RoutedEventArgs e)

@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed">
+        Title="DB2Source.NET" Height="600" Width="800" Initialized="window_Initialized" Loaded="window_Loaded" Closing="window_Closing" Closed="window_Closed" LocationChanged="window_LocationChanged">
     <Window.Resources>
         <sys:String x:Key="NewConnectionHeader">新しい接続...</sys:String>
         <sys:String x:Key="TreeViewItemTopHeader">データベース</sys:String>

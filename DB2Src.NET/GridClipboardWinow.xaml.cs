@@ -96,15 +96,9 @@ namespace Db2Source
             DialogResult = false;
         }
 
-        private Size _maxSize;
-        private bool _maxSizeInitialized = false;
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            Rect r = WindowLocator.GetWorkingAreaOf(this);
-            _maxSize = r.Size;
-            _maxSizeInitialized = true;
-            MaxWidth = _maxSize.Width / 2;
-            MaxHeight = _maxSize.Height * 2 / 3;
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -112,15 +106,9 @@ namespace Db2Source
             DialogResult = true;
         }
 
-        private void window_LayoutUpdated(object sender, EventArgs e)
+        private void window_LocationChanged(object sender, EventArgs e)
         {
-            if (_maxSizeInitialized && SizeToContent != SizeToContent.Manual)
-            {
-                SizeToContent = SizeToContent.Manual;
-                Rect r = WindowLocator.GetWorkingAreaOf(this);
-                MaxWidth = r.Width;
-                MaxHeight = r.Height;
-            }
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
     }
     public class DataGridCellToCellConverter : IValueConverter

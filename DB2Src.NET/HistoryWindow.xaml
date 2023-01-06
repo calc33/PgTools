@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="クエリ実行履歴検索" Height="450" Width="800" WindowStyle="ToolWindow" Loaded="window_Loaded">
+        Title="クエリ実行履歴検索" Height="450" Width="800" WindowStyle="ToolWindow" Loaded="window_Loaded" LocationChanged="window_LocationChanged">
     <Window.Resources>
         <local:TimestampTextConverter x:Key="TimestampTextConverter"/>
         <local:DateRangeKindItem x:Key="DateRangeKindItem"/>

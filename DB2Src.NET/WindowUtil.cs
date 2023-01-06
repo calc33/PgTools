@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using WinForm = System.Windows.Forms;
 
 namespace Db2Source
 {
@@ -63,12 +64,33 @@ namespace Db2Source
             new WindowLocator(target, window, location);
         }
 
+        private static Size GetMaxWindowSize(Window window)
+        {
+            Point p = window.PointToScreen(new Point(window.Width / 2, window.Height / 2));
+            WinForm.Screen screen = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
+            Point p1 = window.PointFromScreen(new Point(screen.WorkingArea.Left, screen.WorkingArea.Top));
+            Point p2 = window.PointFromScreen(new Point(screen.WorkingArea.Right, screen.WorkingArea.Bottom));
+            return new Size(Math.Abs(p2.X - p1.X), Math.Abs(p2.Y - p1.Y));
+        }
+
+        public static void AdjustMaxSizeToScreen(Window window)
+        {
+            if (!window.IsVisible)
+            {
+                return;
+            }
+            Size s = GetMaxWindowSize(window);
+            window.MaxWidth = s.Width;
+            window.MaxHeight = s.Height;
+        }
+
         public static Rect GetWorkingAreaOf(FrameworkElement element)
         {
             Point p = element.PointToScreen(new Point());
-            System.Windows.Forms.Screen sc = System.Windows.Forms.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
+            WinForm.Screen sc = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
             return new Rect(sc.WorkingArea.X, sc.WorkingArea.Y, sc.WorkingArea.Width, sc.WorkingArea.Height);
         }
+
         private static readonly Dictionary<NearbyLocation, NearbyLocation[]> NearbyLocationCandidates = new Dictionary<NearbyLocation, NearbyLocation[]>()
         {
             { NearbyLocation.DownLeft, new NearbyLocation[] { NearbyLocation.DownRight, NearbyLocation.UpLeft, NearbyLocation.UpRight } },

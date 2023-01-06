@@ -8,7 +8,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="設定" Height="300" Width="427.811" Loaded="Window_Loaded" WindowStartupLocation="CenterOwner">
+        Title="設定" Height="300" Width="427.811" Loaded="Window_Loaded" WindowStartupLocation="CenterOwner" LocationChanged="Window_LocationChanged">
     <Window.Resources>
         <Style x:Key="FontTextBlockStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="Margin" Value="2,0"/>

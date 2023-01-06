@@ -10,7 +10,7 @@
         Title="新規データベース接続" Height="Auto" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled"
         WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" Background="White"
         HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-        Initialized="window_Initialized">
+        Initialized="window_Initialized" LocationChanged="window_LocationChanged" Loaded="window_Loaded">
     <Window.Resources>
         <sys:String x:Key="checkBoxTextShowPassword">パスワードを表示</sys:String>
         <!--<local:TreeViewConnectionSelector x:Key="TreeViewConnectionSelector"/>-->
@@ -91,14 +91,14 @@
                 <Button x:Name="buttonCancel" Grid.Column="2" Margin="5" Padding="5" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
             </local:EquallyStackPanel>
         </StackPanel>
-        <DockPanel Grid.Column="1" Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}">
+        <DockPanel x:Name="dockPanelConnections" Grid.Column="1" Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}">
             <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TextBox.Static.Border}" BorderThickness="1">
                 <DockPanel>
                     <Button DockPanel.Dock="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageSearch12}"/>
                     <TextBox x:Name="textBoxFilterTreeView" BorderThickness="0" TextChanged="textBoxFilterTreeView_TextChanged" PreviewKeyDown="textBoxFilterTreeView_PreviewKeyDown"/>
                 </DockPanel>
             </Border>
-            <TreeView x:Name="treeViewConnections" MinWidth="200" MaxWidth="500" MouseDoubleClick="treeViewConnections_MouseDoubleClick" KeyDown="treeViewConnections_KeyDown" SelectedItemChanged="treeViewConnections_SelectedItemChanged"/>
+            <TreeView x:Name="treeViewConnections" MinWidth="200" MouseDoubleClick="treeViewConnections_MouseDoubleClick" KeyDown="treeViewConnections_KeyDown" SelectedItemChanged="treeViewConnections_SelectedItemChanged"/>
         </DockPanel>
         <Grid x:Name="gridLoading" Grid.ColumnSpan="2" Background="#7FFFFFFF" Visibility="Collapsed">
             <TextBlock x:Name="textBlockConnecting" Text="データベースに接続中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>

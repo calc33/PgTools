@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="ダンプを出力" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded">
+        Title="ダンプを出力" Width="800" ShowInTaskbar="False" Loaded="Window_Loaded" LocationChanged="window_LocationChanged">
     <Window.Resources>
         <sys:String x:Key="FolderBrowserDialog_Title">出力先フォルダを選択</sys:String>
         <sys:String x:Key="messageNoFormat">出力方式を指定してください</sys:String>

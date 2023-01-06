@@ -7,7 +7,7 @@
         xmlns:System="clr-namespace:System;assembly=mscorlib" x:Name="window" x:Class="Db2Source.ColumnCheckListWindow"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="項目を選択" Height="450" Width="246" ShowInTaskbar="False" WindowStyle="None" SizeToContent="WidthAndHeight">
+        Title="項目を選択" Height="450" Width="246" ShowInTaskbar="False" WindowStyle="None" SizeToContent="WidthAndHeight" Loaded="window_Loaded">
     <Window.Resources>
         <Style x:Key="ListBoxItemStyle1" TargetType="{x:Type ListBoxItem}">
             <Setter Property="SnapsToDevicePixels" Value="True"/>

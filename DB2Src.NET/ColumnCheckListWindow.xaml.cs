@@ -103,17 +103,6 @@ namespace Db2Source
             Target.VisibleColumns = l.ToArray();
         }
 
-
-        private void OnTablePropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            UpdateColumns();
-        }
-
-        private void OnVisibleColumnsPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            UpdateColumns();
-        }
-
         protected override void OnClosed(EventArgs e)
         {
             CommitVisibleColumns();
@@ -152,6 +141,11 @@ namespace Db2Source
                 }
                 e.Handled = true;
             }
+        }
+
+        private void window_Loaded(object sender, RoutedEventArgs e)
+        {
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
     }
 
