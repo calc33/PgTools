@@ -116,11 +116,13 @@ namespace Db2Source
             _location = location;
             _window = window;
             _window.LayoutUpdated += Window_LayoutUpdated;
+            _window.Loaded += Window_Loaded;
             Rect r = GetWindowPlacement(false);
             _window.WindowStartupLocation = WindowStartupLocation.Manual;
             _window.Left = r.X;
             _window.Top = r.Y;
         }
+
         internal WindowLocator(FrameworkElement target, Window window, NearbyLocation location)
         {
             _placement = new Rect(target.PointToScreen(new Point()), target.PointToScreen(new Point(target.ActualWidth, target.ActualHeight)));
@@ -128,6 +130,7 @@ namespace Db2Source
             _location = location;
             _window = window;
             _window.LayoutUpdated += Window_LayoutUpdated;
+            _window.Loaded += Window_Loaded;
             Rect r = GetWindowPlacement(false);
             _window.WindowStartupLocation = WindowStartupLocation.Manual;
             _window.Left = r.X;
@@ -137,6 +140,7 @@ namespace Db2Source
         private void Dispose()
         {
             _window.LayoutUpdated -= Window_LayoutUpdated;
+            _window.Loaded -= Window_Loaded;
             _window = null;
         }
 
@@ -226,8 +230,13 @@ namespace Db2Source
             Rect r = GetWindowPlacement(true);
             _window.Left = r.X;
             _window.Top = r.Y;
-            Dispose();
         }
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // ウィンドウの初期化処理が終わったらWindowLocatorは解放
+            _window.Dispatcher.InvokeAsync(Dispose, DispatcherPriority.ApplicationIdle);
+        }
+
         //private static readonly Thickness ResizeDelta = new Thickness(10, 0, 15, 0);
     }
 
