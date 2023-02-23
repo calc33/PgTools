@@ -310,12 +310,14 @@ namespace Db2Source
             gridLoading.Visibility = Visibility.Visible;
             try
             {
-                IDbConnection conn = Target.NewConnection(false);
                 Dispatcher disp = Dispatcher;
-                Task task = Task.Run(() =>
+                ConnectionInfo target = Target;
+                _ = Task.Run(() =>
                 {
+                    IDbConnection conn = null;
                     try
                     {
+                        conn = target.NewConnection(false);
                         conn.Open();
                         disp.InvokeAsync(() =>
                         {
@@ -326,6 +328,7 @@ namespace Db2Source
                     }
                     catch (Exception t)
                     {
+                        conn?.Dispose();
                         disp.InvokeAsync(() =>
                         {
                             MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
