@@ -70,7 +70,9 @@ namespace Db2Source
             WinForm.Screen screen = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
             Point p1 = window.PointFromScreen(new Point(screen.WorkingArea.Left, screen.WorkingArea.Top));
             Point p2 = window.PointFromScreen(new Point(screen.WorkingArea.Right, screen.WorkingArea.Bottom));
-            return new Size(Math.Abs(p2.X - p1.X), Math.Abs(p2.Y - p1.Y));
+            FrameworkElement content = window.Content as FrameworkElement;
+            Point delta = new Point(window.ActualWidth - content.ActualWidth, window.ActualHeight - content.ActualHeight);
+            return new Size(Math.Abs(p2.X - p1.X) + delta.X, Math.Abs(p2.Y - p1.Y) + delta.Y);
         }
 
         public static void AdjustMaxSizeToScreen(Window window)
