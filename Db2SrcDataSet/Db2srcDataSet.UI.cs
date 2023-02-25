@@ -116,13 +116,6 @@ namespace Db2Source
         public abstract Tuple<int, int> GetErrorPosition(Exception t, string sql, int offset);
 
         /// <summary>
-        /// SQLの文字位置を指定し、そこにある単語を文字位置範囲で返す
-        /// </summary>
-        /// <param name="sql">テキストボックスに記載しているSQL</param>
-        /// <param name="position">テキストボックス上のキャレットの位置</param>
-        /// <returns>単語の取得に成功した場合(開始位置, 単語の長さ)、失敗した場合はnullを返す。</returns>
-        public abstract Tuple<int, int> GetWordAt(string sql, int position);
-        /// <summary>
         /// 例外のダイアログ出力用メッセージを取得
         /// </summary>
         /// <param name="t"></param>

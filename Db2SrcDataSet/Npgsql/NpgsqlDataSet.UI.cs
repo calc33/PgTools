@@ -179,16 +179,6 @@ namespace Db2Source
             }
             return new Tuple<int, int>(p0 - offset, p - p0);
         }
-        public override Tuple<int, int> GetWordAt(string sql, int position)
-        {
-            TokenizedPgsql tsql = new TokenizedPgsql(sql, position);
-            PgsqlToken sel = (PgsqlToken)tsql.Selected;
-            if (sel == null)
-            {
-                return null;
-            }
-            return new Tuple<int, int>(sel.StartPos, sel.EndPos - sel.StartPos + 1);
-        }
         private static string GetExceptionMessage(Npgsql.PostgresException t)
         {
             StringBuilder buf = new StringBuilder();

@@ -1349,6 +1349,31 @@ namespace Db2Source
         {
             UpdateTextBoxInsertSql();
         }
+
+        private CompleteFields _fieldsDropDown = null;
+        private void ShowFieldsDropDown()
+        {
+            if (_fieldsDropDown != null)
+            {
+                return;
+            }
+            _fieldsDropDown = CompleteFields.Start(Target, textBoxCondition);
+            _fieldsDropDown.Closed += FieldsDropDown_Closed;
+        }
+
+        private void FieldsDropDown_Closed(object sender, EventArgs e)
+        {
+            _fieldsDropDown = null;
+        }
+
+        private void textBoxCondition_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space && (e.KeyboardDevice.Modifiers & ModifierKeys.Control) != 0)
+            {
+                ShowFieldsDropDown();
+                e.Handled = true;
+            }
+        }
     }
 
     public class NotNullTextConverter: IValueConverter

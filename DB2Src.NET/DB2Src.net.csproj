@@ -112,6 +112,9 @@
     <Compile Include="ColumnCheckListWindow.xaml.cs">
       <DependentUpon>ColumnCheckListWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CompleteFields.xaml.cs">
+      <DependentUpon>CompleteFields.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConnectionInfoTreeView.cs" />
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
@@ -266,6 +269,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ColumnCheckListWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CompleteFields.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

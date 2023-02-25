@@ -2225,8 +2225,8 @@ namespace Db2Source
                 }
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
                 {
-                    ProcedureSchema = Procedure.Schema?.nspname,
-                    ProcedureName = Procedure.GetIdentifier(false),
+                    ProcedureSchema = Procedure?.Schema?.nspname,
+                    ProcedureName = Procedure?.GetIdentifier(false),
                     Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
                 };
 

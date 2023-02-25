@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
+    public enum GapAlignment
+    {
+        Before,
+        After
+    }
     public class TokenizedSQL
     {
         private readonly string _sql;
@@ -59,9 +64,34 @@ namespace Db2Source
                 return FindTokenIndex(characterPosition, i + 1, endIndex - 1);
             }
         }
-        public int GetTokenIndexAt(int characterPosition)
+
+        /// <summary>
+        /// 文字位置からトークン位置を返す
+        /// 文字位置がトークンの間にある場合はgapAlignmentによってどちらを返すか決める
+        /// </summary>
+        /// <param name="characterPosition"></param>
+        /// <param name="gapAlignment"></param>
+        /// <returns></returns>
+        public int GetTokenIndexAt(int characterPosition, GapAlignment gapAlignment)
         {
-            return FindTokenIndex(characterPosition, 0, Tokens.Length - 1);
+            int p = FindTokenIndex(characterPosition, 0, Tokens.Length - 1);
+            if (p < 0 || Tokens.Length <= p)
+            {
+                return p;
+            }
+            switch (gapAlignment)
+            {
+                case GapAlignment.After:
+                    break;
+                case GapAlignment.Before:
+                    Token token = Tokens[p];
+                    if (token.StartPos == characterPosition)
+                    {
+                        p--;
+                    }
+                    break;
+            }
+            return p;
         }
 
         public TokenizedSQL(string sql)
@@ -95,25 +125,30 @@ namespace Db2Source
         public bool IsReservedWord { get; set; }
         public int StartPos { get; private set; }
         public int EndPos { get; private set; }
+        public Token[] Children { get; private set; }
+        public Token Parent { get; private set; }
         private string _value = null;
+
+        public string GetValue()
+        {
+            if (_owner == null)
+            {
+                return string.Empty;
+            }
+            if (EndPos < StartPos)
+            {
+                return string.Empty;
+            }
+            return _owner.Sql.Substring(StartPos, EndPos - StartPos + 1);
+        }
+
         protected internal void UpdateValue()
         {
             if (_value != null)
             {
                 return;
             }
-            if (_owner == null)
-            {
-                _value = string.Empty;
-                return;
-            }
-            if (EndPos < StartPos)
-            {
-                _value = string.Empty;
-                return;
-            }
-            _value = _owner.Sql.Substring(StartPos, EndPos - StartPos + 1);
-            return;
+            _value = GetValue();
         }
         protected internal void InvalidateValue()
         {
@@ -127,6 +162,7 @@ namespace Db2Source
                 return _value;
             }
         }
+
         protected internal Token(TokenizedSQL owner, int start, int current)
         {
             _owner = owner;
