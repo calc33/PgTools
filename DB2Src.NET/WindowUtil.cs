@@ -86,6 +86,16 @@ namespace Db2Source
             window.MaxHeight = s.Height;
         }
 
+        public static void AdjustMaxHeightToScreen(Window window)
+        {
+            if (!window.IsVisible)
+            {
+                return;
+            }
+            Size s = GetMaxWindowSize(window);
+            window.MaxHeight = s.Height;
+        }
+
         public static Rect GetWorkingAreaOf(FrameworkElement element)
         {
             Point p = element.PointToScreen(new Point());

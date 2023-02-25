@@ -723,7 +723,7 @@ namespace Db2Source
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
             InitComboBoxPgDump();
             UpdateWrapPanelSchemas();
             UpdateButtonExportEnabled();
@@ -734,7 +734,7 @@ namespace Db2Source
 
         private void window_LocationChanged(object sender, EventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
         }
 
         private void textBoxInput_KeyUp(object sender, KeyEventArgs e)

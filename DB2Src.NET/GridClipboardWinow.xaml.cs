@@ -98,7 +98,7 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -108,7 +108,7 @@ namespace Db2Source
 
         private void window_LocationChanged(object sender, EventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
         }
     }
     public class DataGridCellToCellConverter : IValueConverter

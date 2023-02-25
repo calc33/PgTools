@@ -145,7 +145,7 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
         }
     }
 

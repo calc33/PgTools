@@ -224,7 +224,7 @@ namespace Db2Source
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
             //dataGridTextColumnValue.ElementStyle = Resources["ValueTextBlockStyle"] as Style;
             //dataGridTextColumnValue.EditingElementStyle = Resources["ValueTextBoxStyle"] as Style;
             dataGridTextColumnColumnName.CellStyle = Resources["DataGridCellColumnNameStyle"] as Style;
@@ -233,7 +233,7 @@ namespace Db2Source
 
         private void Window_LocationChanged(object sender, EventArgs e)
         {
-            WindowLocator.AdjustMaxSizeToScreen(this);
+            WindowLocator.AdjustMaxHeightToScreen(this);
         }
     }
 
