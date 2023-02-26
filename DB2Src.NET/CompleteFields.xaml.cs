@@ -349,7 +349,6 @@ namespace Db2Source
 
         private void window_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            string s;
             switch (e.Key)
             {
                 case Key.Tab:
