@@ -17,13 +17,12 @@ namespace Db2Source
     /// <summary>
     /// CompleteFields.xaml の相互作用ロジック
     /// </summary>
-    public partial class CompleteFields : Window
+    public partial class CompleteFieldWindow : Window
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFields));
-        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFields));
-        //public static readonly DependencyProperty StartPositionProperty = DependencyProperty.Register("StartPosition", typeof(int), typeof(CompleteFields));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow));
+        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFieldWindow));
 
-        public static CompleteFields Start(Selectable target, TextBox textBox)
+        public static CompleteFieldWindow Start(Selectable target, TextBox textBox)
         {
             if (target == null)
             {
@@ -33,11 +32,10 @@ namespace Db2Source
             {
                 return null;
             }
-            CompleteFields window = new CompleteFields()
+            CompleteFieldWindow window = new CompleteFieldWindow()
             {
                 Target = target,
                 TextBox = textBox,
-                //StartPosition = textBox.SelectionStart,
                 Owner = GetWindow(textBox),
             };
             window.InitStartPosition();
@@ -55,10 +53,6 @@ namespace Db2Source
             Db2SourceContext context = Target.Context;
             TokenizedSQL tokens = context.Tokenize(TextBox.Text);
             int p = tokens.GetTokenIndexAt(TextBox.SelectionStart, GapAlignment.Before);
-            if (tokens.Tokens.Length <= p)
-            {
-                p = tokens.Tokens.Length - 1;
-            }
             if (0 <= p && p < tokens.Tokens.Length)
             {
                 Token t = tokens.Tokens[p];
@@ -101,7 +95,7 @@ namespace Db2Source
             set { SetValue(TextBoxProperty, value); }
         }
 
-        public int StartPosition { get; set; }
+        public int StartPosition { get; private set; }
         public int CurrentPosition {
             get
             {
@@ -121,11 +115,6 @@ namespace Db2Source
                 TextBox.Select(value, 0);
             }
         }
-        //public int StartPosition
-        //{
-        //    get { return (int)GetValue(StartPositionProperty); }
-        //    set { SetValue(StartPositionProperty, value); }
-        //}
 
         private string[] _fieldNamesBase;
 
@@ -153,6 +142,23 @@ namespace Db2Source
                 if (TextBox == null)
                 {
                     return;
+                }
+                Db2SourceContext context = Target.Context;
+                TokenizedSQL tokens = context.Tokenize(TextBox.Text);
+                if (TextBox.SelectionStart < StartPosition)
+                {
+                    CancelInput();
+                    return;
+                }
+                if (StartPosition < TextBox.SelectionStart)
+                {
+                    int p0 = tokens.GetTokenIndexAt(StartPosition, GapAlignment.After);
+                    int p1 = tokens.GetTokenIndexAt(TextBox.SelectionStart, GapAlignment.Before);
+                    if (p0 != p1)
+                    {
+                        CancelInput();
+                        return;
+                    }
                 }
                 List<string> l = new List<string>();
                 string lastSel = (string)listBoxFields.SelectedItem;
@@ -266,9 +272,19 @@ namespace Db2Source
             base.OnPropertyChanged(e);
         }
 
-        public CompleteFields()
+        public CompleteFieldWindow()
         {
             InitializeComponent();
+        }
+
+        public void Dispose()
+        {
+            if (IsVisible)
+            {
+                Dispatcher.InvokeAsync(Close);
+            }
+            TextBox = null;
+            Target = null;
         }
 
         private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -284,6 +300,10 @@ namespace Db2Source
                     CancelInput();
                     e.Handled = true;
                     Dispatcher.InvokeAsync(Close);
+                    return;
+                case Key.Space:
+                    CommitInput();
+                    //e.Handled = false;
                     return;
                 //case Key.Left:
                 //case Key.Right:
@@ -334,18 +354,8 @@ namespace Db2Source
             {
                 case Key.Tab:
                 case Key.Enter:
-                    s = (string)listBoxFields.SelectedItem;
-                    if (string.IsNullOrEmpty(s))
-                    {
-                        e.Handled = true;
-                        return;
-                    }
-                    if (TextBox != null)
-                    {
-                        TextBox.SelectedText = s;
-                    }
+                    CommitInput();
                     e.Handled = true;
-                    Dispatcher.InvokeAsync(Close);
                     return;
                 case Key.Escape:
                     e.Handled = true;
@@ -440,6 +450,61 @@ namespace Db2Source
         private void listBoxFields_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
             CommitInput();
+        }
+    }
+
+    public class CompleteFieldController
+    {
+        private Selectable _target;
+        public Selectable Target
+        {
+            get { return _target; }
+            set
+            {
+                _target = value;
+                DropDownWindow = null;
+            }
+        }
+        public TextBox TextBox { get; }
+        public CompleteFieldWindow DropDownWindow { get; private set; }
+
+        public CompleteFieldController(Selectable target, TextBox textBox)
+        {
+            Target = target;
+            TextBox = textBox;
+            TextBox.PreviewKeyDown += TextBox_PreviewKeyDown;
+        }
+
+        private void DisposeDropDownWindow()
+        {
+            if (DropDownWindow == null)
+            {
+                return;
+            }
+        }
+
+        private void ShowFieldsDropDown()
+        {
+            if (DropDownWindow != null)
+            {
+                return;
+            }
+            DropDownWindow = CompleteFieldWindow.Start(Target, TextBox);
+            DropDownWindow.Closed += DropDownWindow_Closed;
+        }
+
+        private void DropDownWindow_Closed(object sender, EventArgs e)
+        {
+            DropDownWindow = null;
+        }
+
+        private void TextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Space && (e.KeyboardDevice.Modifiers & ModifierKeys.Control) != 0)
+            {
+                ShowFieldsDropDown();
+                e.Handled = true;
+            }
         }
     }
 }

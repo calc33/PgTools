@@ -250,8 +250,7 @@
                     </DockPanel>
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                         <TextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"
-                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}" PreviewKeyDown="textBoxCondition_PreviewKeyDown"
-                                 />
+                                 FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
                     </Grid>
                 </DockPanel>

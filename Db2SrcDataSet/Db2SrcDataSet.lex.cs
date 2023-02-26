@@ -75,7 +75,7 @@ namespace Db2Source
         public int GetTokenIndexAt(int characterPosition, GapAlignment gapAlignment)
         {
             int p = FindTokenIndex(characterPosition, 0, Tokens.Length - 1);
-            if (p < 0 || Tokens.Length <= p)
+            if (p < 0 || Tokens.Length < p)
             {
                 return p;
             }
@@ -84,8 +84,7 @@ namespace Db2Source
                 case GapAlignment.After:
                     break;
                 case GapAlignment.Before:
-                    Token token = Tokens[p];
-                    if (token.StartPos == characterPosition)
+                    if (p == Tokens.Length || (0 < p && Tokens[p].StartPos == characterPosition))
                     {
                         p--;
                     }

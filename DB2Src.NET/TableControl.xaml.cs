@@ -213,6 +213,8 @@ namespace Db2Source
         //    }
         //}
 
+        private CompleteFieldController _dropDownController;
+
         public TableControl()
         {
             InitializeComponent();
@@ -236,6 +238,7 @@ namespace Db2Source
                 sortFields.Target = Target;
                 //dataGridReferTo.ItemsSource = Target.ReferTo;
                 //dataGridReferedBy.ItemsSource = Target.ReferFrom;
+                _dropDownController.Target = Target;
                 UpdateTextBoxSource();
                 UpdateTextBoxTemplateSql();
                 UpdateHiddenLevelDisplayItems();
@@ -778,6 +781,7 @@ namespace Db2Source
             b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
             textBoxCondition.CommandBindings.Add(b);
             VisibleLevel = HiddenLevel.Hidden;
+            _dropDownController = new CompleteFieldController(Target, textBoxCondition);
         }
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -1348,31 +1352,6 @@ namespace Db2Source
         private void checkBoxUpsert_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxInsertSql();
-        }
-
-        private CompleteFields _fieldsDropDown = null;
-        private void ShowFieldsDropDown()
-        {
-            if (_fieldsDropDown != null)
-            {
-                return;
-            }
-            _fieldsDropDown = CompleteFields.Start(Target, textBoxCondition);
-            _fieldsDropDown.Closed += FieldsDropDown_Closed;
-        }
-
-        private void FieldsDropDown_Closed(object sender, EventArgs e)
-        {
-            _fieldsDropDown = null;
-        }
-
-        private void textBoxCondition_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Space && (e.KeyboardDevice.Modifiers & ModifierKeys.Control) != 0)
-            {
-                ShowFieldsDropDown();
-                e.Handled = true;
-            }
         }
     }
 
