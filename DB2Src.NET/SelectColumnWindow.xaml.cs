@@ -260,6 +260,18 @@ namespace Db2Source
             UpdateFilter();
         }
 
+        private void ToggleSelection()
+        {
+            if (listBoxColumns.SelectedItem == null)
+            {
+                return;
+            }
+            Visibility value = (listBoxColumns.SelectedItem as DataGridColumn).Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            foreach (DataGridColumn column in listBoxColumns.SelectedItems)
+            {
+                column.Visibility = value;
+            }
+        }
         private void ExecuteArrowKey(KeyEventArgs e)
         {
             switch (e.Key)
@@ -287,6 +299,10 @@ namespace Db2Source
                     CancelSelection();
                     e.Handled = true;
                     break;
+                case Key.Space:
+                    ToggleSelection();
+                    e.Handled = true;
+                    break;
             }
         }
 
@@ -298,6 +314,17 @@ namespace Db2Source
         private void window_KeyDown(object sender, KeyEventArgs e)
         {
             ExecuteArrowKey(e);
+        }
+
+        private void listBoxColumns_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Space:
+                    ToggleSelection();
+                    e.Handled = true;
+                    break;
+            }
         }
 
         private void window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -514,6 +541,16 @@ namespace Db2Source
             MovingItemContainer = c as ListBoxItem;
         }
         #endregion
+
+        private void menuItemSelectAll_Click(object sender, RoutedEventArgs e)
+        {
+            listBoxColumns.SelectAll();
+        }
+
+        private void menuItemDeselectAll_Click(object sender, RoutedEventArgs e)
+        {
+            listBoxColumns.SelectedItem = null;
+        }
     }
     public class VisibilityToBooleanConverter : IValueConverter
     {

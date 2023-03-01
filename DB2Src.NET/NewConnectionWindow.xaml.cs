@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
@@ -53,6 +54,8 @@ namespace Db2Source
         //public ConnectionInfo NewConnectionInfo { get; set; }
 
         public IDbConnection Result { get; private set; }
+
+        private TreeViewFilterKeyEventController _treeViewFilterController;
 
         private static int ComparePropertyByInputFieldAttr(PropertyInfo item1, PropertyInfo item2)
         {
@@ -414,6 +417,7 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
+            _treeViewFilterController = new TreeViewFilterKeyEventController(treeViewConnections, textBoxFilterTreeView);
             WindowLocator.AdjustMaxHeightToScreen(this);
             MinHeight = StackPanelMain.DesiredSize.Height + ActualHeight - (Content as Grid).ActualHeight;
             Height = ActualHeight;
@@ -469,6 +473,10 @@ namespace Db2Source
                     {
                         node.Visibility = Visibility.Visible;
                         hasVisibleItem = true;
+                        if (!string.IsNullOrEmpty(filter))
+                        {
+                            node.IsExpanded = true;
+                        }
                     }
                     else
                     {
@@ -504,10 +512,26 @@ namespace Db2Source
 
         private void textBoxFilterTreeView_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            switch (e.Key)
+            {
+                case Key.Enter:
+                    //FilterTreeViewConnections();
+                    PerformClickAsync(buttonOK);
+                    e.Handled = true;
+                    break;
+            }
+        }
+
+        private void treeViewConnections_KeyDown(object sender, KeyEventArgs e)
+        {
             if (e.Key == Key.Enter)
             {
-                FilterTreeViewConnections();
-                e.Handled = true;
+                TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
+                if (item?.Tag != null)
+                {
+                    PerformClickAsync(buttonOK);
+                    e.Handled = true;
+                }
             }
         }
 
@@ -553,19 +577,6 @@ namespace Db2Source
             {
                 PerformClickAsync(buttonOK);
                 e.Handled = true;
-            }
-        }
-
-        private void treeViewConnections_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
-                if (item?.Tag != null)
-                {
-                    PerformClickAsync(buttonOK);
-                    e.Handled = true;
-                }
             }
         }
 

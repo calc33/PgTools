@@ -102,6 +102,9 @@ namespace Db2Source
                 SetValue(DataGridResultMaxHeightProperty, value);
             }
         }
+
+        private CompleteFieldController _dropDownController;
+
         public ViewControl()
         {
             InitializeComponent();
@@ -110,6 +113,7 @@ namespace Db2Source
         private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             dataGridColumns.ItemsSource = Target?.Columns;
+            _dropDownController.Target = Target;
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
             Dispatcher.InvokeAsync(Fetch);
@@ -335,6 +339,7 @@ namespace Db2Source
         {
             DataGridControllerResult = new DataGridController();
             DataGridControllerResult.Grid = dataGridResult;
+            _dropDownController = new CompleteFieldController(Target, textBoxCondition);
         }
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)

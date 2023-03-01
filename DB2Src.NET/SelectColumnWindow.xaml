@@ -19,7 +19,7 @@
                 <TextBlock Grid.Column="1" Text="{Binding Header}" VerticalAlignment="Center" Margin="2,0,0,0"/>
             </Grid>
         </DataTemplate>
-        <Style x:Key="ListBoxItemStyle1" TargetType="{x:Type ListBoxItem}">
+        <Style TargetType="{x:Type ListBoxItem}">
             <Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Padding" Value="4,1"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
@@ -111,7 +111,7 @@
     </Window.Resources>
     <DockPanel>
         <TextBox x:Name="textBoxFilter" ToolTip="(項目名で絞り込み)" DockPanel.Dock="Top" TextChanged="textBoxFilter_TextChanged" BorderThickness="1,1,1,0" PreviewKeyDown="textBoxFilter_PreviewKeyDown"/>
-        <!--<ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" PreviewMouseDown="listBoxColumns_PreviewMouseDown"/>-->
-        <ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}"/>
+        <!--<ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}"PreviewMouseDown="listBoxColumns_PreviewMouseDown"/>-->
+        <ListBox x:Name="listBoxColumns" ItemsSource="{Binding Grid.Columns, ElementName=window}" MinHeight="100" MinWidth="140" MaxHeight="400" MouseDoubleClick="listBoxColumns_MouseDoubleClick" ItemTemplate="{DynamicResource ColumnItemTemplate}" PreviewKeyDown="listBoxColumns_PreviewKeyDown" SelectionMode="Extended"/>
     </DockPanel>
 </Window>

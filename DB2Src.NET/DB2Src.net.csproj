@@ -246,6 +246,7 @@
     <Compile Include="TablespaceListControl.xaml.cs">
       <DependentUpon>TablespaceListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TreeViewUtil.cs" />
     <Compile Include="TriggerControl.xaml.cs">
       <DependentUpon>TriggerControl.xaml</DependentUpon>
     </Compile>

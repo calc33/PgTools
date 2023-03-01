@@ -69,6 +69,7 @@ namespace Db2Source
 
         private int _queryControlIndex = 1;
 
+        private TreeViewFilterKeyEventController _treeViewFilterController;
         public MainWindow()
         {
             InitializeComponent();
@@ -553,116 +554,6 @@ namespace Db2Source
             DelayedFilterTreeView();
         }
 
-        private static void BecomeExpanded(TreeView treeView, TreeViewItem item)
-        {
-            TreeViewItem parent = item.Parent as TreeViewItem;
-            if (parent == null)
-            {
-                return;
-            }
-            if (!parent.IsExpanded)
-            {
-                parent.IsExpanded = true;
-            }
-            BecomeExpanded(treeView, parent);
-        }
-
-        private static TreeViewItem GetNextVisibleItem(TreeViewItem parent, int index)
-        {
-            for (int i = index; i < parent.Items.Count; i++)
-            {
-                TreeViewItem item = parent.Items[i] as TreeViewItem;
-                if (item.Visibility == Visibility.Visible)
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
-
-        private static TreeViewItem GetNextTreeViewItem(TreeViewItem item, bool ignoreChildren = false)
-        {
-            if (item == null)
-            {
-                return null;
-            }
-            if (item.Items.Count != 0 && item.IsExpanded && !ignoreChildren)
-            {
-                TreeViewItem ret = GetNextVisibleItem(item, 0);
-                if (ret != null)
-                {
-                    return ret;
-                }
-            }
-            TreeViewItem parent = item.Parent as TreeViewItem;
-            if (parent == null)
-            {
-                return null;
-            }
-            int p = parent.Items.IndexOf(item);
-            TreeViewItem obj = GetNextVisibleItem(parent, p + 1);
-            if (obj != null)
-            {
-                return obj;
-            }
-            return GetNextTreeViewItem(parent, true);
-        }
-
-        private static TreeViewItem GetTailItem(TreeViewItem item)
-        {
-            if (item == null)
-            {
-                return null;
-            }
-            if (item.Visibility != Visibility.Visible)
-            {
-                return null;
-            }
-            if (!item.IsExpanded)
-            {
-                return item;
-            }
-            TreeViewItem tail = GetPreviousVisibleItem(item, item.Items.Count - 1);
-            if (tail == null)
-            {
-                return item;
-            }
-            tail = GetTailItem(tail);
-            return tail ?? item;
-        }
-
-        private static TreeViewItem GetPreviousVisibleItem(TreeViewItem parent, int index)
-        {
-            for (int i = index; 0 <= i; i--)
-            {
-                TreeViewItem item = parent.Items[i] as TreeViewItem;
-                if (item.Visibility == Visibility.Visible)
-                {
-                    return item;
-                }
-            }
-            return null;
-        }
-        private static TreeViewItem GetPreviousTreeViewItem(TreeViewItem item)
-        {
-            if (item == null)
-            {
-                return null;
-            }
-            TreeViewItem parent = item.Parent as TreeViewItem;
-            if (parent == null)
-            {
-                return item;
-            }
-            int p = parent.Items.IndexOf(item);
-            TreeViewItem obj = GetPreviousVisibleItem(parent, p - 1);
-            if (obj != null)
-            {
-                return GetTailItem(obj);
-            }
-            return parent;
-        }
-
         private void textBoxFilter_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             TreeViewItem sel = treeViewDB.SelectedItem as TreeViewItem;
@@ -670,65 +561,34 @@ namespace Db2Source
             switch (e.Key)
             {
                 case Key.Up:
-                    if (sel == null)
-                    {
-                        sel = treeViewDB.Items[0] as TreeViewItem;
-                    }
-                    sel = GetPreviousTreeViewItem(sel);
-                    if (sel != null)
-                    {
-                        (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
-                        sel.IsSelected = true;
-                    }
+                    TreeViewUtil.SelectPreviousSiblingTreeViewItem(treeViewDB);
                     e.Handled = true;
                     break;
                 case Key.Down:
-                    if (sel == null)
-                    {
-                        sel = treeViewDB.Items[0] as TreeViewItem;
-                    }
-                    sel = GetNextTreeViewItem(sel);
-                    if (sel != null)
-                    {
-                        (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
-                        sel.IsSelected = true;
-                    }
+                    TreeViewUtil.SelectNextSiblingTreeViewItem(treeViewDB);
                     e.Handled = true;
                     break;
                 case Key.Left:
-                    if (sel == null)
-                    {
-                        break;
-                    }
                     if (textBoxFilter.SelectionStart != 0 || textBoxFilter.SelectionLength != 0)
                     {
                         break;
                     }
-                    if (sel.IsExpanded)
+                    if (sel != null && sel.IsExpanded)
                     {
                         sel.IsExpanded = false;
                     }
                     else
                     {
-                        sel = sel.Parent as TreeViewItem;
-                        if (sel != null)
-                        {
-                            (new TreeViewItemAutomationPeer(sel) as IScrollItemProvider).ScrollIntoView();
-                            sel.IsSelected = true;
-                        }
+                        TreeViewUtil.SelectParentTreeViewItem(treeViewDB);
                     }
                     e.Handled = true;
                     break;
                 case Key.Right:
-                    if (sel == null)
-                    {
-                        break;
-                    }
                     if (textBoxFilter.SelectionStart < textBoxFilter.Text.Length)
                     {
                         break;
                     }
-                    if (sel.HasItems)
+                    if (sel != null && sel.HasItems)
                     {
                         sel.IsExpanded = true;
                     }
@@ -1016,6 +876,7 @@ namespace Db2Source
         }
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
+            _treeViewFilterController = new TreeViewFilterKeyEventController(treeViewDB, textBoxFilter);
             InitMenu();
             InitCommandBindings();
             UpdateTextBoxFilter();
