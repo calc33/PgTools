@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,86 +12,102 @@ namespace Db2Source
         Before,
         After
     }
-    public class TokenizedSQL
+
+    public class TokenizedSQL: IEnumerable<Token>
     {
         private readonly string _sql;
         public string Sql { get { return _sql; } }
-        public Token[] Tokens { get; protected set; }
-        public Token Selected { get; set; }
 
         public virtual string Extract(Token startToken, Token endToken)
         {
             return _sql.Substring(startToken.StartPos, endToken.EndPos - startToken.StartPos + 1);
         }
 
-        private int FindTokenIndex(int characterPosition, int startIndex, int endIndex)
+        public Token QueryTokenByPosition(int position, GapAlignment alignment)
         {
-            if (endIndex < startIndex)
+            foreach (Token t in this)
             {
-                return -1;
+                if (t.IsHit(position, alignment) <= 0)
+                {
+                    return t;
+                }
             }
-            int i = startIndex;
-            Token token = Tokens[i];
-            if (characterPosition  < token.StartPos)
-            {
-                return startIndex - 1;
-            }
-            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
-            {
-                return i;
-            }
-            i = endIndex;
-            token = Tokens[i];
-            if (token.EndPos < characterPosition)
-            {
-                return endIndex + 1;
-            }
-            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
-            {
-                return i;
-            }
-            i = (startIndex + endIndex) / 2;
-            token = Tokens[i];
-            if (token.StartPos <= characterPosition && characterPosition <= token.EndPos)
-            {
-                return i;
-            }
-            if (characterPosition < token.StartPos)
-            {
-                return FindTokenIndex(characterPosition, startIndex + 1, i - 1);
-            }
-            else
-            {
-                return FindTokenIndex(characterPosition, i + 1, endIndex - 1);
-            }
+            return null;
         }
 
-        /// <summary>
-        /// 文字位置からトークン位置を返す
-        /// 文字位置がトークンの間にある場合はgapAlignmentによってどちらを返すか決める
-        /// </summary>
-        /// <param name="characterPosition"></param>
-        /// <param name="gapAlignment"></param>
-        /// <returns></returns>
-        public int GetTokenIndexAt(int characterPosition, GapAlignment gapAlignment)
+        public Token[] QueryTokenByPosition(int[] positions, GapAlignment alignment)
         {
-            int p = FindTokenIndex(characterPosition, 0, Tokens.Length - 1);
-            if (p < 0 || Tokens.Length < p)
+            if (positions == null)
             {
-                return p;
+                throw new ArgumentNullException("positions");
             }
-            switch (gapAlignment)
+            int n = positions.Length;
+            int nFound = 0;
+            Token[] ret = new Token[n];
+            foreach (Token t in this)
             {
-                case GapAlignment.After:
-                    break;
-                case GapAlignment.Before:
-                    if (p == Tokens.Length || (0 < p && Tokens[p].StartPos == characterPosition))
+                for (int i = 0; i < n; i++)
+                {
+                    if (ret[i] == null && t.IsHit(positions[i], alignment) <= 0)
                     {
-                        p--;
+                        ret[i] = t;
+                        nFound++;
+                        if (n <= nFound)
+                        {
+                            break;
+                        }
                     }
-                    break;
+                }
             }
-            return p;
+            return ret;
+        }
+        public Token[] QueryTokenByPosition(int[] positions, GapAlignment[] alignments)
+        {
+            if (positions == null)
+            {
+                throw new ArgumentNullException("positions");
+            }
+            if (alignments == null)
+            {
+                throw new ArgumentNullException("alignments");
+            }
+            int n = positions.Length;
+            if (alignments.Length != n)
+            {
+                throw new ArgumentException("positionとalignmentの要素数が異なります");
+            }
+            int nFound = 0;
+            Token[] ret = new Token[n];
+            foreach (Token t in this)
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    if (ret[i] == null && t.IsHit(positions[i], alignments[i]) <= 0)
+                    {
+                        ret[i] = t;
+                    }
+                    nFound++;
+                    if (n <= nFound)
+                    {
+                        break;
+                    }
+                }
+            }
+            return ret;
+        }
+
+        protected virtual IEnumerator<Token> GetEnumeratorCore()
+        {
+            throw new NotImplementedException();
+        }
+        public IEnumerator<Token> GetEnumerator()
+        {
+            return GetEnumeratorCore();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumeratorCore();
         }
 
         public TokenizedSQL(string sql)
@@ -124,7 +141,7 @@ namespace Db2Source
         public bool IsReservedWord { get; set; }
         public int StartPos { get; private set; }
         public int EndPos { get; private set; }
-        public Token[] Children { get; private set; }
+        public TokenizedSQL Child { get; internal set; }
         public Token Parent { get; private set; }
         private string _value = null;
 
@@ -159,6 +176,26 @@ namespace Db2Source
             {
                 UpdateValue();
                 return _value;
+            }
+        }
+
+        /// <summary>
+        /// positionで指定した文字にこのトークンがある場合は0を返す
+        /// トークンの境界にある場合はalignmentでどちらに割り当てるか決める
+        /// </summary>
+        /// <param name="position">SQL文中の文字位置</param>
+        /// <param name="alignment">positionがトークンの境界の場合、どちらに寄せるかを決定する</param>
+        /// <returns></returns>
+        public int IsHit(int position, GapAlignment alignment)
+        {
+            switch (alignment)
+            {
+                case GapAlignment.After:
+                    return (StartPos <= position && position < EndPos + 1) ? 0 : position.CompareTo(StartPos);
+                case GapAlignment.Before:
+                    return (StartPos < position && position <= EndPos + 1) ? 0 : position.CompareTo(EndPos);
+                default:
+                    throw new NotImplementedException();
             }
         }
 

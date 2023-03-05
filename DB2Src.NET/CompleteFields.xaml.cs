@@ -49,38 +49,15 @@ namespace Db2Source
 
         private void InitStartPosition()
         {
-            int textStart = TextBox.SelectionStart;
+            int selStart = TextBox.SelectionStart;
             Db2SourceContext context = Target.Context;
-            TokenizedSQL tokens = context.Tokenize(TextBox.Text);
-            int p = tokens.GetTokenIndexAt(TextBox.SelectionStart, GapAlignment.Before);
-            if (0 <= p && p < tokens.Tokens.Length)
+            TokenizedSQL tsql = context.Tokenize(TextBox.Text);
+            Token tSel = tsql.QueryTokenByPosition(selStart, GapAlignment.Before);
+            if (tSel != null && tSel.Kind == TokenKind.Identifier)
             {
-                Token t = tokens.Tokens[p];
-                while (t.Kind == TokenKind.DefBody)
-                {
-                    context.Tokenize(t.Value);
-                }
-                switch (t.Kind)
-                {
-                    case TokenKind.Comment:
-                    case TokenKind.Literal:
-                    case TokenKind.Numeric:
-                    case TokenKind.Semicolon:
-                    case TokenKind.Operator:
-                        if (TextBox.SelectionLength != 0 || t.StartPos < TextBox.SelectionStart && TextBox.SelectionStart < t.EndPos)
-                        {
-                            return;
-                        }
-                        break;
-                    case TokenKind.Space:
-                    case TokenKind.NewLine:
-                        break;
-                    case TokenKind.Identifier:
-                        textStart = t.StartPos;
-                        break;
-                }
+                selStart = tSel.StartPos;
             }
-            StartPosition = textStart;
+            StartPosition = selStart;
         }
 
         public Selectable Target
@@ -143,18 +120,19 @@ namespace Db2Source
                 {
                     return;
                 }
-                Db2SourceContext context = Target.Context;
-                TokenizedSQL tokens = context.Tokenize(TextBox.Text);
-                if (TextBox.SelectionStart < StartPosition)
+                int pSel0 = StartPosition;
+                int pSel1 = TextBox.SelectionStart;
+                if (pSel1 < pSel0)
                 {
                     CancelInput();
                     return;
                 }
-                if (StartPosition < TextBox.SelectionStart)
+                if (pSel0 < pSel1)
                 {
-                    int p0 = tokens.GetTokenIndexAt(StartPosition, GapAlignment.After);
-                    int p1 = tokens.GetTokenIndexAt(TextBox.SelectionStart, GapAlignment.Before);
-                    if (p0 != p1)
+                    Db2SourceContext context = Target.Context;
+                    TokenizedSQL tsql = context.Tokenize(TextBox.Text);
+                    Token[] tokens = tsql.QueryTokenByPosition(new int[] { pSel0, pSel1 }, new GapAlignment[] { GapAlignment.After, GapAlignment.Before });
+                    if (tokens[0] != tokens[1])
                     {
                         CancelInput();
                         return;

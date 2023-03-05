@@ -153,7 +153,7 @@ namespace Db2Source
             bool wasColon = false;
             int seq = 1;
             Dictionary<string, int> pdict = new Dictionary<string, int>();
-            foreach (PgsqlToken token in tsql.Tokens)
+            foreach (PgsqlToken token in tsql)
             {
                 if (wasColon && token.Kind == TokenKind.Identifier)
                 {

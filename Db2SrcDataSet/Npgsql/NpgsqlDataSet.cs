@@ -158,17 +158,14 @@ namespace Db2Source
             List<string> l = new List<string>();
             Dictionary<string, bool> dict = new Dictionary<string, bool>();
             TokenizedPgsql tsql = new TokenizedPgsql(sql);
-            int n = tsql.Tokens.Length;
-            for (int i = 0; i < n; i++)
+            IEnumerator<Token> enumerator = tsql.GetEnumerator();
+            do
             {
-                PgsqlToken t = (PgsqlToken)tsql.Tokens[i];
-                if (t.ID == TokenID.Colon)
+                while (enumerator.MoveNext() && enumerator.Current != null && ((PgsqlToken)enumerator.Current).ID != TokenID.Colon) ;
+
+                if (enumerator.MoveNext() && enumerator.Current.Kind == TokenKind.Identifier)
                 {
-                    i++;
-                    t = (PgsqlToken)tsql.Tokens[i];
-                    PgsqlToken t0 = t;
-                    for (; i < n && ((PgsqlToken)tsql.Tokens[i]).ID == TokenID.Identifier; t = (PgsqlToken)tsql.Tokens[i++]) ;
-                    string p = DequoteIdentifier(tsql.Extract(t0, t));
+                    string p = DequoteIdentifier(enumerator.Current.Value);
                     if (!dict.ContainsKey(p))
                     {
                         l.Add(p);
@@ -176,6 +173,7 @@ namespace Db2Source
                     }
                 }
             }
+            while (enumerator.Current != null);
             return l;
         }
 

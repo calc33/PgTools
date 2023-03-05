@@ -2270,7 +2270,7 @@ namespace Db2Source
                 TokenizedPgsql sql = new TokenizedPgsql(triggerdef);
                 StringBuilder buf = new StringBuilder();
                 bool inWhen = false;
-                foreach (PgsqlToken tk in sql.Tokens)
+                foreach (PgsqlToken tk in sql)
                 {
                     if (tk.ID == TokenID.Identifier) {
                         if (string.Equals(tk.Value, "when", StringComparison.CurrentCultureIgnoreCase))
