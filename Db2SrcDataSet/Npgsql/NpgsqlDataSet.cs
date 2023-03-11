@@ -3,6 +3,7 @@ using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -588,6 +589,7 @@ namespace Db2Source
         {
             return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, true);
         }
+
         /// <summary>
         /// データ付でINSERT文を生成する
         /// </summary>
@@ -675,7 +677,6 @@ namespace Db2Source
             buf.Append(table.EscapedIdentifier(CurrentSchema));
             buf.AppendLine(" set");
             buf.Append(GetUpdateColumnsByParamsSql(table, indent + 2, null));
-            buf.AppendLine();
             buf.Append(spc);
             buf.AppendLine(where);
             buf.AppendLine(postfix);

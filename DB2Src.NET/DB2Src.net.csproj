@@ -228,6 +228,7 @@
     <Compile Include="SortFieldListControl.xaml.cs">
       <DependentUpon>SortFieldListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SQLTextBox.cs" />
     <Compile Include="StoredProcedureControl.xaml.cs">
       <DependentUpon>StoredProcedureControl.xaml</DependentUpon>
     </Compile>

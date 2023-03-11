@@ -16,7 +16,17 @@ namespace Db2Source
     public class TokenizedSQL: IEnumerable<Token>
     {
         private readonly string _sql;
+        private readonly int _offset;
+        private readonly int _startPosition;
+        /// <summary>
+        /// 字句解析の対象となるSQL文
+        /// </summary>
         public string Sql { get { return _sql; } }
+        public int Offset { get { return _offset; } }
+        /// <summary>
+        /// 字句解析を開始する文字位置
+        /// </summary>
+        public int StartPosition { get { return _startPosition; } }
 
         public virtual string Extract(Token startToken, Token endToken)
         {
@@ -113,11 +123,21 @@ namespace Db2Source
         public TokenizedSQL(string sql)
         {
             _sql = sql;
+            _offset = 0;
+            _startPosition = 0;
         }
-        //public TokenizedSQL(string sql, int selectedPos)
-        //{
-        //    _sql = sql;
-        //}
+        public TokenizedSQL(string sql, int startPosition)
+        {
+            _sql = sql;
+            _offset = 0;
+            _startPosition = startPosition;
+        }
+        public TokenizedSQL(string sql, int offset, int startPosition)
+        {
+            _sql = sql;
+            _offset = offset;
+            _startPosition = startPosition;
+        }
     }
 
     public enum TokenKind
@@ -141,6 +161,8 @@ namespace Db2Source
         public bool IsReservedWord { get; set; }
         public int StartPos { get; private set; }
         public int EndPos { get; private set; }
+        public int Line { get; private set; }
+        public int Column { get; private set; }
         public TokenizedSQL Child { get; internal set; }
         public Token Parent { get; private set; }
         private string _value = null;
@@ -199,26 +221,26 @@ namespace Db2Source
             }
         }
 
-        protected internal Token(TokenizedSQL owner, int start, int current)
-        {
-            _owner = owner;
-            StartPos = start;
-            EndPos = current - 1;
-        }
-        protected internal Token(TokenizedSQL owner, TokenKind kind, int start, int current)
+        protected internal Token(TokenizedSQL owner, TokenKind kind, int start, int current, int line, ref int column)
         {
             _owner = owner;
             Kind = kind;
             StartPos = start;
             EndPos = current - 1;
+            Line = line;
+            Column = column;
+            column += current - start;
         }
-        protected internal Token(TokenizedSQL owner, TokenKind kind, int identifier, int start, int current)
+        protected internal Token(TokenizedSQL owner, TokenKind kind, int identifier, int start, int current, int line, ref int column)
         {
             _owner = owner;
             Kind = kind;
             ID = identifier;
             StartPos = start;
             EndPos = current - 1;
+            Line = line;
+            Column = column;
+            column += current - start;
         }
         protected internal void Joint(Token token)
         {

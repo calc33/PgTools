@@ -22,6 +22,11 @@ namespace Db2Source
         public string SQL { get; set; }
         public string[] ParameterNames { get; set; }
         public bool IsExecutable { get; set; }
+
+        public override string ToString()
+        {
+            return SQL;
+        }
     }
 
     public class SQLParts: IEnumerable<SQLPart>
