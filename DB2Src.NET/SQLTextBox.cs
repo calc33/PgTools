@@ -264,6 +264,20 @@ namespace Db2Source
             return null;
         }
 
+        private void ExtractTokenRecursive(List<Token> list, TokenizedSQL tokens)
+        {
+            foreach (Token token in tokens)
+            {
+                if (token.DefBody != null)
+                {
+                    ExtractTokenRecursive(list, token.DefBody);
+                }
+                else
+                {
+                    list.Add(token);
+                }
+            }
+        }
         private void UpdateDecoration()
         {
             if (DataSet == null)
@@ -274,10 +288,11 @@ namespace Db2Source
             {
                 return;
             }
-            Token[] tokens = DataSet.Tokenize(_plainText).ToArray();
-            for (int i = tokens.Length - 1; 0 <= i; i--)
+            List<Token> l = new List<Token>();
+            ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
+            for (int i = l.Count - 1; 0 <= i; i--)
             {
-                Token token = tokens[i];
+                Token token = l[i];
                 switch (token.Kind)
                 {
                     case TokenKind.Comment:

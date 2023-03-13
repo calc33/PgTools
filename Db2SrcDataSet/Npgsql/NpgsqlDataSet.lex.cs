@@ -95,6 +95,8 @@ namespace Db2Source
             // Virtual TokenID
             Expr = 0x45585052,      // Expression(EXPR)
             Stmt = 0x53544d54,      // Statement(STMT)
+            DefStart = 0x44454642,  // DefBody start(DEFB)
+            DefEnd = 0x44454645,    // DefBody end(DEFE)
         }
         public class PgsqlToken: Token
         {
@@ -401,7 +403,8 @@ namespace Db2Source
                             }
                             token = new PgsqlToken(this, TokenKind.DefBody, TokenID.DefBody, p0, p, line, ref column);
                             string[] defBody = ExtractDefBody(token.GetValue());
-                            token.Child = new TokenizedPgsql(defBody[1]);
+                            token.DefDelimiter = defBody[0];
+                            token.DefBody = new TokenizedPlPgsql(token, defBody);
                             return token;
                         case '!':
                             token = TryGetNextToken(Sql, TokenKind.Operator, "!=", ref p, ref line, ref column)
@@ -455,7 +458,7 @@ namespace Db2Source
                 return null;
             }
 
-            private string[] ExtractDefBody(string sql)
+            internal string[] ExtractDefBody(string sql)
             {
                 if (string.IsNullOrEmpty(sql))
                 {
@@ -492,17 +495,32 @@ namespace Db2Source
 
             public TokenizedPgsql(string sql) : base(sql) { }
 
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="sql">字句解析する対象のSQL</param>
+            /// <param name="startPosition">途中から字句解析を開始したい場合に開始位置(先頭は0)を指定する。
+            /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
             public TokenizedPgsql(string sql, int startPosition) : base(sql, startPosition) { }
 
-            private class PgsqlTokenEnumerator : IEnumerator<Token>
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="sql">字句解析する対象のSQL</param>
+            /// <param name="offset">sqlがあるSQLの一部を指定した場合(select文のwhere句のみ渡した場合等)、全体のSQL文の何文字目から開始しているのかを指定する(先頭から始まっている場合0)</param>
+            /// <param name="startPosition">途中から字句解析を開始したい場合に開始位置(先頭は0)を指定する。
+            /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
+            public TokenizedPgsql(string sql, int offset, int startPosition) : base(sql, offset, startPosition) { }
+
+            internal class PgsqlTokenEnumerator : IEnumerator<Token>
             {
-                TokenizedPgsql _owner;
-                private int _start;
-                private PgsqlToken _current;
-                private int _position;
-                private int _line;
-                private int _pos;
-                public Token Current { get { return _current; } }
+                protected TokenizedPgsql _owner;
+                protected int _start;
+                protected PgsqlToken _current;
+                protected int _position;
+                protected int _line;
+                protected int _column;
+                public virtual Token Current { get { return _current; } }
 
                 object IEnumerator.Current { get { return _current; } }
 
@@ -510,17 +528,17 @@ namespace Db2Source
                 {
                 }
 
-                public bool MoveNext()
+                public virtual bool MoveNext()
                 {
-                    _current = _owner.GetNextToken(ref _position, ref _line, ref _pos);
+                    _current = _owner.GetNextToken(ref _position, ref _line, ref _column);
                     return _current != null;
                 }
 
-                public void Reset()
+                public virtual void Reset()
                 {
                     _position = _start;
                     _line = 0;
-                    _pos = 0;
+                    _column = 0;
                     _current = null;
                 }
                 internal PgsqlTokenEnumerator(TokenizedPgsql owner, int startPosition)
@@ -529,13 +547,92 @@ namespace Db2Source
                     _start = startPosition;
                     _position = _start;
                     _line = 0;
-                    _pos = 0;
+                    _column = 0;
                     _current = null;
                 }
             }
             protected override IEnumerator<Token> GetEnumeratorCore()
             {
                 return new PgsqlTokenEnumerator(this, StartPosition);
+            }
+        }
+
+        internal class TokenizedPlPgsql: TokenizedPgsql
+        {
+            protected string _startDelimiter;
+            protected string _endDelimiter;
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="sql">字句解析する対象のSQL</param>
+            /// <param name="offset">sqlがあるSQLの一部を指定した場合(select文のwhere句のみ渡した場合等)、全体のSQL文の何文字目から開始しているのかを指定する(先頭から始まっている場合0)</param>
+            /// <param name="startPosition">途中から字句解析を開始したい場合に開始位置(先頭は0)を指定する。
+            /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
+            internal TokenizedPlPgsql(PgsqlToken token, string[] defBody) : base(defBody[1], token.StartPos + defBody[0].Length, 0)
+            {
+                //int p0 = token.StartPos;
+                //int p = p0 + defBody[0].Length;
+                //_startDelimiter = new PgsqlToken(this, TokenKind.DefDelimiter, TokenID.DefStart, p0, p, token.Line, )
+                _startDelimiter = defBody[0];
+                _endDelimiter = defBody[2];
+            }
+
+            protected override IEnumerator<Token> GetEnumeratorCore()
+            {
+                return new PlPgsqlTokenEnumerator(this, StartPosition);
+            }
+
+            internal class PlPgsqlTokenEnumerator : PgsqlTokenEnumerator, IEnumerator<Token>
+            {
+                private int _defStart;
+                private int _stage;
+                public new Token Current { get { return _current; } }
+
+                object IEnumerator.Current { get { return _current; } }
+
+                //public void Dispose()
+                //{
+                //    throw new NotImplementedException();
+                //}
+
+                public override bool MoveNext()
+                {
+                    int p;
+                    bool ret;
+                    switch (_stage)
+                    {
+                        case -1:
+                            _stage++;
+                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, _defStart, _start, _line, ref _column);
+                            return true;
+                        case 0:
+                        case 1:
+                            _stage = 1;
+                            ret = base.MoveNext();
+                            _current = (PgsqlToken)base.Current;
+                            if (!ret)
+                            {
+                                p = _position + ((TokenizedPlPgsql)_owner)._endDelimiter.Length;
+                                _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefEnd, _position, p, _line, ref _column);
+                                _position = p;
+                                _stage++;
+                            }
+                            return true;
+                        case 2:
+                            return false;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                }
+
+                public override void Reset()
+                {
+                    base.Reset();
+                    _stage = -1;
+                }
+                internal PlPgsqlTokenEnumerator(TokenizedPgsql owner, int startPosition): base (owner, startPosition)
+                {
+                }
             }
         }
 

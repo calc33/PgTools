@@ -126,12 +126,27 @@ namespace Db2Source
             _offset = 0;
             _startPosition = 0;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sql">字句解析する対象のSQL</param>
+        /// <param name="startPosition">途中から字句解析を開始したい場合に開始位置(先頭は0)を指定する。
+        /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
         public TokenizedSQL(string sql, int startPosition)
         {
             _sql = sql;
             _offset = 0;
             _startPosition = startPosition;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sql">字句解析する対象のSQL</param>
+        /// <param name="offset">sqlがあるSQLの一部を指定した場合(select文のwhere句のみ渡した場合等)、全体のSQL文の何文字目から開始しているのかを指定する(先頭から始まっている場合0)</param>
+        /// <param name="startPosition">途中から字句解析を開始したい場合に開始位置(先頭は0)を指定する。
+        /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
         public TokenizedSQL(string sql, int offset, int startPosition)
         {
             _sql = sql;
@@ -150,7 +165,8 @@ namespace Db2Source
         Comment,
         Operator,
         Semicolon,
-        DefBody
+        DefBody,
+        DefDelimiter,
     }
     public class Token
     {
@@ -163,7 +179,8 @@ namespace Db2Source
         public int EndPos { get; private set; }
         public int Line { get; private set; }
         public int Column { get; private set; }
-        public TokenizedSQL Child { get; internal set; }
+        public TokenizedSQL DefBody { get; internal set; }
+        public string DefDelimiter { get; internal set; }
         public Token Parent { get; private set; }
         private string _value = null;
 
@@ -177,7 +194,7 @@ namespace Db2Source
             {
                 return string.Empty;
             }
-            return _owner.Sql.Substring(StartPos, EndPos - StartPos + 1);
+            return _owner.Sql.Substring(StartPos - Owner.Offset, EndPos - StartPos + 1);
         }
 
         protected internal void UpdateValue()
@@ -225,8 +242,8 @@ namespace Db2Source
         {
             _owner = owner;
             Kind = kind;
-            StartPos = start;
-            EndPos = current - 1;
+            StartPos = start + owner.Offset;
+            EndPos = current - 1 + owner.Offset;
             Line = line;
             Column = column;
             column += current - start;
@@ -236,8 +253,8 @@ namespace Db2Source
             _owner = owner;
             Kind = kind;
             ID = identifier;
-            StartPos = start;
-            EndPos = current - 1;
+            StartPos = start + owner.Offset;
+            EndPos = current - 1 + owner.Offset;
             Line = line;
             Column = column;
             column += current - start;
