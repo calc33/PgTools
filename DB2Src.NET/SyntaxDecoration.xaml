@@ -1,0 +1,51 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Db2Source">
+    <local:SyntaxDecorationCollection x:Key="SyntaxDecorationSettings">
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Identifier" TokenId="{x:Null}" IsReservedWord="True" Text="予約語" Legend="select"/>
+            </local:SyntaxDecorationSetting.Key>
+            <local:SyntaxDecorationSetting.Value>
+                <local:SyntaxDecoration Foreground="Purple"/>
+            </local:SyntaxDecorationSetting.Value>
+        </local:SyntaxDecorationSetting>
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Identifier" TokenId="{x:Null}" IsReservedWord="False" Text="識別子" Legend="field"/>
+            </local:SyntaxDecorationSetting.Key>
+            <local:SyntaxDecorationSetting.Value>
+                <local:SyntaxDecoration />
+            </local:SyntaxDecorationSetting.Value>
+        </local:SyntaxDecorationSetting>
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Comment" TokenId="{x:Null}" IsReservedWord="{x:Null}" Text="コメント" Legend="// comment"/>
+            </local:SyntaxDecorationSetting.Key>
+            <local:SyntaxDecorationSetting.Value>
+                <local:SyntaxDecoration Foreground="Green"/>
+            </local:SyntaxDecorationSetting.Value>
+        </local:SyntaxDecorationSetting>
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Literal" TokenId="{x:Null}" IsReservedWord="{x:Null}" Text="文字列" Legend="'abc'"/>
+            </local:SyntaxDecorationSetting.Key>
+            <local:SyntaxDecorationSetting.Value>
+                <local:SyntaxDecoration Foreground="Blue"/>
+            </local:SyntaxDecorationSetting.Value>
+        </local:SyntaxDecorationSetting>
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Numeric" TokenId="{x:Null}" IsReservedWord="{x:Null}" Text="数値" Legend="123"/>
+            </local:SyntaxDecorationSetting.Key>
+        </local:SyntaxDecorationSetting>
+        <local:SyntaxDecorationSetting>
+            <local:SyntaxDecorationSetting.Key>
+                <local:SyntaxSettingKey Kind="Operator" TokenId="{x:Null}" IsReservedWord="{x:Null}" Text="演算子" Legend="+-*/"/>
+            </local:SyntaxDecorationSetting.Key>
+            <local:SyntaxDecorationSetting.Value>
+                <local:SyntaxDecoration Foreground="Magenta"/>
+            </local:SyntaxDecorationSetting.Value>
+        </local:SyntaxDecorationSetting>
+    </local:SyntaxDecorationCollection>
+</ResourceDictionary>

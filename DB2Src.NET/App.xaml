@@ -9,6 +9,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="FontPack.xaml"/>
+                <ResourceDictionary Source="SyntaxDecoration.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <!-- Application Preferences -->
             <sys:Object x:Key="DBNull"/>

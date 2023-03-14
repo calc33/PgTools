@@ -126,6 +126,7 @@
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="CsvUtil.cs" />
+    <Compile Include="SyntaxDecoration.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
     <Compile Include="EditPgsqlSetting.xaml.cs">
@@ -283,6 +284,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CrossTableViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SyntaxDecoration.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

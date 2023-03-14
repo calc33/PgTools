@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,49 +12,50 @@ namespace Db2Source
 {
     partial class NpgsqlDataSet
     {
-        public enum TokenID: int
+        [TypeConverter(typeof(TokenIdConverter))]
+        public enum TokenID: uint
         {
-            Identifier = 0x41,  // A
-            Numeric = 0x30,     // 0
-            Space = 0x20,       // SPC
-            Comment = 0x2f2a,   // /*
-            Factorial = 0x21,   // ! 階乗
-            //DoubleQuote = 0x22,// "
-            BinaryXor = 0x23,   // #
-            DefBody = 0x24,     // $
-            Percent = 0x25,     // %
-            BinaryAnd = 0x26,   // &
-            Literal = 0x27,     // '
-            ParenthesesL = 0x28,// (
-            ParenthesesR = 0x29,// )
-            Asterisk = 0x2a,    // *
-            Plus = 0x2b,        // +
-            Comma = 0x2c,       // ,
-            Minus = 0x2d,       // -
-            Period = 0x2e,      // .
-            Slash = 0x2f,       // /
-            Colon = 0x3a,       // :
-            Semicolon = 0x3b,   // ;
-            Less = 0x3c,        // <
-            Equal = 0x3d,       // =
-            Greater = 0x3e,     // >
-            Question = 0x3f,    // ?
-            Abs = 0x40,         // @
-            BracketL = 0x5b,    // [
-            Escape = 0x5c,      // \
-            BracketR = 0x5d,    // ]
-            Accent = 0x5e,      // ^
-            Underline = 0x5f,   // _
-            BraceL = 0x7b,      // {
-            BinaryOr = 0x7c,    // |
-            BraceR = 0x7d,      // }
-            BinaryNot = 0x7e,   // ~
+            Identifier = 0x41,      // A
+            Numeric = 0x30,         // 0
+            Space = 0x20,           // SPC
+            Comment = 0x2f2a,       // /*
+            Factorial = 0x21,       // ! 階乗
+            //DoubleQuote = 0x22,     // "
+            BinaryXor = 0x23,       // #
+            DefBody = 0x24,         // $
+            Percent = 0x25,         // %
+            BinaryAnd = 0x26,       // &
+            Literal = 0x27,         // '
+            ParenthesesL = 0x28,    // (
+            ParenthesesR = 0x29,    // )
+            Asterisk = 0x2a,        // *
+            Plus = 0x2b,            // +
+            Comma = 0x2c,           // ,
+            Minus = 0x2d,           // -
+            Period = 0x2e,          // .
+            Slash = 0x2f,           // /
+            Colon = 0x3a,           // :
+            Semicolon = 0x3b,       // ;
+            Less = 0x3c,            // <
+            Equal = 0x3d,           // =
+            Greater = 0x3e,         // >
+            Question = 0x3f,        // ?
+            Abs = 0x40,             // @
+            BracketL = 0x5b,        // [
+            Escape = 0x5c,          // \
+            BracketR = 0x5d,        // ]
+            Accent = 0x5e,          // ^
+            Underline = 0x5f,       // _
+            BraceL = 0x7b,          // {
+            BinaryOr = 0x7c,        // |
+            BraceR = 0x7d,          // }
+            BinaryNot = 0x7e,       // ~
             LessEq = 0x3c3d,        // <=
             GreaterEq = 0x3e3d,     // >=
             ShiftL = 0x3c3c,        // <<
             ShiftR = 0x3e3e,        // >>
-            ContainsL = 0x3c3c3d,    // <<=
-            ContainsR = 0x3e3e3d,    // >>=
+            ContainsL = 0x3c3c3d,   // <<=
+            ContainsR = 0x3e3e3d,   // >>=
             Contains = 0x2626,      // &&
             FactorialPre = 0x2121,  // !!
             Join = 0x7c7c,          // ||
@@ -98,6 +101,88 @@ namespace Db2Source
             DefStart = 0x44454642,  // DefBody start(DEFB)
             DefEnd = 0x44454645,    // DefBody end(DEFE)
         }
+        public class TokenIdConverter : TypeConverter
+        {
+            private static uint BytesToUint(byte[] bytes)
+            {
+                if (bytes == null || bytes.Length == 0)
+                {
+                    return 0;
+                }
+                uint v = 0;
+                foreach (byte b in bytes)
+                {
+                    v <<= 8;
+                    v |= b;
+                }
+                return v;
+            }
+
+            private static byte[] UintToBytes(uint value)
+            {
+                List<byte> bytes = new List<byte>(4);
+                for (uint v = value; v != 0; v >>= 8)
+                {
+                    bytes.Add((byte)(v & 0xff));
+                }
+                bytes.Reverse();
+                return bytes.ToArray();
+            }
+
+            public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+            {
+                return sourceType == typeof(string);
+            }
+
+            public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
+            {
+                return destinationType == typeof(string);
+            }
+
+            public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+            {
+                if (value == null)
+                {
+                    return (TokenID)0;
+                }
+                if (!(value is string))
+                {
+                    throw new ArgumentException("value must be string", "value");
+                }
+                string s = (string)value;
+                if (string.IsNullOrEmpty(s))
+                {
+                    return (TokenID)0;
+                }
+                byte[] b = Encoding.UTF8.GetBytes(s);
+                if (4 < b.Length)
+                {
+                    throw new ArgumentOutOfRangeException("value");
+                }
+                return (TokenID)BytesToUint(b);
+            }
+
+            public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
+            {
+                if (value == null)
+                {
+                    return null;
+                }
+                TokenID v = (TokenID)value;
+                return Encoding.UTF8.GetString(UintToBytes((uint)v));
+            }
+
+            public override bool GetStandardValuesSupported(ITypeDescriptorContext context)
+            {
+                return true;
+            }
+
+            public override StandardValuesCollection GetStandardValues(ITypeDescriptorContext context)
+            {
+                return new StandardValuesCollection(Enum.GetValues(typeof(TokenID)));
+            }
+        }
+
         public class PgsqlToken: Token
         {
             public new TokenID ID
@@ -584,7 +669,6 @@ namespace Db2Source
 
             internal class PlPgsqlTokenEnumerator : PgsqlTokenEnumerator, IEnumerator<Token>
             {
-                private int _defStart;
                 private int _stage;
                 public new Token Current { get { return _current; } }
 
@@ -603,7 +687,7 @@ namespace Db2Source
                     {
                         case -1:
                             _stage++;
-                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, _defStart, _start, _line, ref _column);
+                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, 0, _start, _line, ref _column);
                             return true;
                         case 0:
                         case 1:

@@ -15,7 +15,10 @@ namespace Db2Source
     {
         public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(SQLTextBox));
         public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(SQLTextBox));
-        
+        public static readonly DependencyProperty SyntaxDecorationsProperty = DependencyProperty.Register("SyntaxDecorations", typeof(SyntaxDecorationCollection), typeof(SQLTextBox));
+
+        public static SyntaxDecorationCollection DefaultDecolations;
+
         public Db2SourceContext DataSet
         {
             get { return (Db2SourceContext)GetValue(DataSetProperty); }
@@ -32,6 +35,12 @@ namespace Db2Source
             set { SetValue(TextProperty, value); }
         }
 
+        public SyntaxDecorationCollection SyntaxDecorations
+        {
+            get { return (SyntaxDecorationCollection)GetValue(SyntaxDecorationsProperty); }
+            set { SetValue(SyntaxDecorationsProperty, value); }
+        }
+
         public SQLTextBox()
         {
             Block.SetLineHeight(this, 1.0);
@@ -40,6 +49,7 @@ namespace Db2Source
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, Copy_Executed));
             //CommandBindings.Add(new CommandBinding(ApplicationCommands.Delete, Delete_Executed, Delete_CanExecute));
             CommandBindings.Add(new CommandBinding(ApplicationCommands.Paste, Paste_Executed, Paste_CanExecute));
+            SyntaxDecorations = DefaultDecolations;
         }
 
         private void Delete_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -103,42 +113,6 @@ namespace Db2Source
             e.Handled = true;
         }
 
-        private void ApplyDecoratoin(Token token, FontFamily family, double? size, FontWeight? weight, FontStyle? style, Brush foreground, TextDecorationCollection decorations)
-        {
-            TextPointer pStart = ToTextPointer(token.StartPos, 0);
-            TextPointer pEnd = ToTextPointer(token.EndPos, 1);
-            if (pStart == null || pEnd == null)
-            {
-                return;
-            }
-            TextRange range = new TextRange(pStart, pEnd);
-            range.ClearAllProperties();
-            if (family != null)
-            {
-                range.ApplyPropertyValue(FontFamilyProperty, family);
-            }
-            if (size.HasValue)
-            {
-                range.ApplyPropertyValue(FontSizeProperty, size.Value);
-            }
-            if (weight.HasValue)
-            {
-                range.ApplyPropertyValue(FontWeightProperty, weight.Value);
-            }
-            if (style.HasValue)
-            {
-                range.ApplyPropertyValue(FontStyleProperty, style.Value);
-            }
-            if (foreground != null)
-            {
-                range.ApplyPropertyValue(ForegroundProperty, foreground);
-            }
-            if (decorations != null)
-            {
-                range.ApplyPropertyValue(Inline.TextDecorationsProperty, decorations);
-            }
-        }
-
         private int FindRunIndexRecursive(int charactorPosition, int start, int end)
         {
             if (end < start)
@@ -182,7 +156,7 @@ namespace Db2Source
             return _textPosToInline.Values[i];
         }
 
-        private TextPointer ToTextPointer(int charactorPosition, int delta)
+        public TextPointer ToTextPointer(int charactorPosition, int delta)
         {
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
             if (i == -1)
@@ -284,6 +258,10 @@ namespace Db2Source
             {
                 return;
             }
+            if (SyntaxDecorations == null)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(_plainText))
             {
                 return;
@@ -293,25 +271,7 @@ namespace Db2Source
             for (int i = l.Count - 1; 0 <= i; i--)
             {
                 Token token = l[i];
-                switch (token.Kind)
-                {
-                    case TokenKind.Comment:
-                        ApplyDecoratoin(token, null, null, null, null, Brushes.Green, null);
-                        break;
-                    case TokenKind.Identifier:
-                        if (token.IsReservedWord)
-                        {
-                            ApplyDecoratoin(token, null, null, FontWeights.Bold, null, null, null);
-                        }
-                        else
-                        {
-                            ApplyDecoratoin(token, null, null, null, null, null, null);
-                        }
-                        break;
-                    default:
-                        ApplyDecoratoin(token, null, null, null, null, null, null);
-                        break;
-                }
+                SyntaxDecorations.ApplyTo(this, token);
             }
         }
 
