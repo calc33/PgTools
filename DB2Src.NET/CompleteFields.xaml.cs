@@ -20,9 +20,9 @@ namespace Db2Source
     public partial class CompleteFieldWindow : Window
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow));
-        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFieldWindow));
+        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(SQLTextBox), typeof(CompleteFieldWindow));
 
-        public static CompleteFieldWindow Start(Selectable target, TextBox textBox)
+        public static CompleteFieldWindow Start(Selectable target, SQLTextBox textBox)
         {
             if (target == null)
             {
@@ -39,7 +39,7 @@ namespace Db2Source
                 Owner = GetWindow(textBox),
             };
             window.InitStartPosition();
-            Rect rect = textBox.GetRectFromCharacterIndex(window.StartPosition);
+            Rect rect = textBox.ToTextPointer(window.StartPosition, 0).GetCharacterRect(LogicalDirection.Forward);
             WindowLocator.LocateNearby(textBox, rect, window, NearbyLocation.DownLeft);
             Rect area = WindowLocator.GetWorkingAreaOf(textBox);
             window.MaxHeight = Math.Min(window.MaxHeight, area.Bottom - rect.Bottom);
@@ -66,9 +66,9 @@ namespace Db2Source
             set { SetValue(TargetProperty, value); }
         }
 
-        public TextBox TextBox
+        public SQLTextBox TextBox
         {
-            get { return (TextBox)GetValue(TextBoxProperty); }
+            get { return (SQLTextBox)GetValue(TextBoxProperty); }
             set { SetValue(TextBoxProperty, value); }
         }
 
@@ -80,7 +80,7 @@ namespace Db2Source
                 {
                     return StartPosition;
                 }
-                return TextBox.SelectionStart + TextBox.SelectionLength;
+                return TextBox.ToCharacterPosition(TextBox.Selection.End);
             }
             set
             {
@@ -140,7 +140,7 @@ namespace Db2Source
                 }
                 List<string> l = new List<string>();
                 string lastSel = (string)listBoxFields.SelectedItem;
-                string selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionStart + TextBox.SelectionLength, TextBox.Text.Length) - StartPosition);
+                string selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionEnd, TextBox.Text.Length) - StartPosition);
                 foreach (string s in _fieldNamesBase)
                 {
                     if (string.IsNullOrEmpty(selText) || s.StartsWith(selText, StringComparison.CurrentCultureIgnoreCase))
@@ -178,9 +178,9 @@ namespace Db2Source
             {
                 return;
             }
-            TextBox.Select(StartPosition, TextBox.SelectionStart + TextBox.SelectionLength - StartPosition);
+            TextBox.Select(StartPosition, TextBox.SelectionEnd - StartPosition);
             TextBox.SelectedText = s;
-            TextBox.Select(TextBox.SelectionStart + TextBox.SelectionLength, 0);
+            TextBox.Select(TextBox.SelectionEnd, 0);
         }
 
         private void CancelInput()
@@ -419,7 +419,7 @@ namespace Db2Source
             Dispatcher.InvokeAsync(() =>
             {
                 TextBox.SelectedText = e.Text;
-                TextBox.Select(TextBox.SelectionStart + TextBox.SelectionLength, 0);
+                TextBox.Select(TextBox.SelectionEnd, 0);
                 TextBox.Focus();
             });
         }
@@ -442,10 +442,10 @@ namespace Db2Source
                 DropDownWindow = null;
             }
         }
-        public TextBox TextBox { get; }
+        public SQLTextBox TextBox { get; }
         public CompleteFieldWindow DropDownWindow { get; private set; }
 
-        public CompleteFieldController(Selectable target, TextBox textBox)
+        public CompleteFieldController(Selectable target, SQLTextBox textBox)
         {
             Target = target;
             TextBox = textBox;

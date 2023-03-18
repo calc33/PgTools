@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,84 @@ namespace Db2Source
 {
     public class SQLTextBox : RichTextBox
     {
+        public class TokenCollection : IReadOnlyCollection<Token>
+        {
+            private Token[] _tokens;
+
+            public Token this[int index] { get { return _tokens[index]; } }
+
+            public int Count { get { return _tokens.Length; } }
+
+            private int FindTokenIndexRecursive(int charactoerPosition, GapAlignment alignment, int start, int end)
+            {
+                if (end < start)
+                {
+                    return -1;
+                }
+                int hit = this[start].IsHit(charactoerPosition, alignment);
+                if (hit <= 0)
+                {
+                    return start;
+                }
+                hit = this[end].IsHit(charactoerPosition, alignment);
+                if (0 <= hit)
+                {
+                    return end;
+                }
+                int i = (start + end) / 2;
+                hit = this[i].IsHit(charactoerPosition, alignment);
+                if (hit == 0)
+                {
+                    return i;
+                }
+                if (hit < 0)
+                {
+                    return FindTokenIndexRecursive(charactoerPosition, alignment, start + 1, i - 1);
+                }
+                return FindTokenIndexRecursive(charactoerPosition, alignment, i + 1, end - 1);
+            }
+
+            public int GetTokenIndexAtPosition(int charactoerPosition, GapAlignment alignment)
+            {
+                return FindTokenIndexRecursive(charactoerPosition, alignment, 0, Count - 1);
+            }
+
+            public Token GetTokenAtPosition(int charactoerPosition, GapAlignment alignment)
+            {
+                int i = FindTokenIndexRecursive(charactoerPosition, alignment, 0, Count - 1);
+                if (i == -1)
+                {
+                    return null;
+                }
+                i = Math.Min(i, Count - 1);
+                return this[i];
+            }
+
+            public void ApplySyntaxDecoration(SQLTextBox textBox)
+            {
+                for (int i = _tokens.Length - 1; 0 <= i; i--)
+                {
+                    Token token = _tokens[i];
+                    textBox.SyntaxDecorations.ApplyTo(textBox, token);
+                }
+                textBox.InvalidateTextPosToInline();
+            }
+
+            public IEnumerator<Token> GetEnumerator()
+            {
+                return ((IEnumerable<Token>)_tokens).GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _tokens.GetEnumerator();
+            }
+
+            internal TokenCollection(IEnumerable<Token> tokens)
+            {
+                _tokens = tokens.ToArray();
+            }
+        }
         public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(SQLTextBox));
         public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(SQLTextBox));
         public static readonly DependencyProperty SyntaxDecorationsProperty = DependencyProperty.Register("SyntaxDecorations", typeof(SyntaxDecorationCollection), typeof(SQLTextBox));
@@ -27,12 +106,74 @@ namespace Db2Source
 
         private string _plainText;
         private SortedList<int, Inline> _textPosToInline = null;
+        private Dictionary<Inline, int> _inlineToTextPos = null;
         private List<int> _lineStartPos = null;
+
+        public TokenCollection Tokens { get; private set; }
+
+        private SortedList<int, Inline> TextPosToInline
+        {
+            get
+            {
+                UpdateTextPosToInline();
+                return _textPosToInline;
+            }
+        }
+        private Dictionary<Inline, int> InlineToTextPos
+        {
+            get
+            {
+                UpdateTextPosToInline();
+                return _inlineToTextPos;
+            }
+        }
+        private List<int> LineStartPos
+        {
+            get
+            {
+                UpdateTextPosToInline();
+                return _lineStartPos;
+            }
+        }
+
         private bool _plainTextUpdating = false;
         public string Text
         {
             get { return (string)GetValue(TextProperty); }
             set { SetValue(TextProperty, value); }
+        }
+
+        public string SelectedText
+        {
+            get
+            {
+                return Selection.Text;
+            }
+            set
+            {
+                Selection.Text = value;
+            }
+        }
+        public int SelectionStart
+        {
+            get
+            {
+                return ToCharacterPosition(Selection.Start);
+            }
+        }
+        public int SelectionEnd
+        {
+            get
+            {
+                return ToCharacterPosition(Selection.End);
+            }
+        }
+        public int SelectionLength
+        {
+            get
+            {
+                return SelectionEnd - SelectionStart;
+            }
         }
 
         public SyntaxDecorationCollection SyntaxDecorations
@@ -123,6 +264,7 @@ namespace Db2Source
             {
                 return start;
             }
+            UpdateTextPosToInline();
             if (_textPosToInline.Keys[end] <= charactorPosition)
             {
                 return end;
@@ -148,6 +290,7 @@ namespace Db2Source
 
         private Inline ToInline(int charactorPosition, int delta)
         {
+            UpdateTextPosToInline();
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
             if (i == -1)
             {
@@ -158,6 +301,7 @@ namespace Db2Source
 
         public TextPointer ToTextPointer(int charactorPosition, int delta)
         {
+            UpdateTextPosToInline();
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
             if (i == -1)
             {
@@ -172,6 +316,27 @@ namespace Db2Source
             return found.ContentStart;
         }
 
+        public int ToCharacterPosition(TextPointer pointer)
+        {
+            UpdateTextPosToInline();
+            Inline inline = pointer.Parent as Inline;
+            if (inline == null)
+            {
+                return -1;
+            }
+            int p;
+            if (!_inlineToTextPos.TryGetValue(inline, out p))
+            {
+                return -1;
+            }
+            if (inline is Run)
+            {
+                Run run = (Run)inline;
+                p += run.ContentStart.GetOffsetToPosition(pointer);
+            }
+            return p;
+        }
+
         private int FindLineRecursive(int charactorPosition, int start, int end)
         {
             if (end < start)
@@ -182,6 +347,7 @@ namespace Db2Source
             {
                 return start;
             }
+            UpdateTextPosToInline();
             if (_lineStartPos[end] <= charactorPosition)
             {
                 return end;
@@ -252,6 +418,55 @@ namespace Db2Source
                 }
             }
         }
+
+        private void UpdateTextPosToInline()
+        {
+            //if (_textPosToInline != null && _inlineToTextPos != null && _lineStartPos != null)
+            if (_textPosToInline != null)
+            {
+                return;
+            }
+            _textPosToInline = new SortedList<int, Inline>();
+            _inlineToTextPos = new Dictionary<Inline, int>();
+            _lineStartPos = new List<int>();
+            bool needNewLine = false;
+            int n = 0;
+            int newLineLength = Environment.NewLine.Length;
+            _lineStartPos.Add(0);
+            foreach (Paragraph block in Document.Blocks)
+            {
+                foreach (Inline inline in block.Inlines)
+                {
+                    if (needNewLine)
+                    {
+                        n += newLineLength;
+                        _lineStartPos.Add(n);
+                    }
+                    _inlineToTextPos[inline] = n;
+                    if (inline is Run)
+                    {
+                        Run run = (Run)inline;
+                        _textPosToInline[n] = run;
+                        n += run.Text?.Length ?? 0;
+                    }
+                    else if (inline is LineBreak)
+                    {
+                        _textPosToInline[n] = inline;
+                        n += newLineLength;
+                        _lineStartPos.Add(n);
+                    }
+                    needNewLine = (inline.NextInline == null);
+                }
+            }
+        }
+
+        private void InvalidateTextPosToInline()
+        {
+            _textPosToInline = null;
+            _inlineToTextPos = null;
+            _lineStartPos = null;
+        }
+
         private void UpdateDecoration()
         {
             if (DataSet == null)
@@ -268,11 +483,8 @@ namespace Db2Source
             }
             List<Token> l = new List<Token>();
             ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
-            for (int i = l.Count - 1; 0 <= i; i--)
-            {
-                Token token = l[i];
-                SyntaxDecorations.ApplyTo(this, token);
-            }
+            Tokens = new TokenCollection(l);
+            Tokens.ApplySyntaxDecoration(this);
         }
 
         private void UpdatePlainText()
@@ -284,11 +496,8 @@ namespace Db2Source
             _plainTextUpdating = true;
             try
             {
-                _textPosToInline = new SortedList<int, Inline>();
-                _lineStartPos = new List<int>();
                 StringBuilder buf = new StringBuilder();
                 bool needNewLine = false;
-                _lineStartPos.Add(0);
                 foreach (Paragraph block in Document.Blocks)
                 {
                     foreach (Inline inline in block.Inlines)
@@ -296,19 +505,15 @@ namespace Db2Source
                         if (needNewLine)
                         {
                             buf.AppendLine();
-                            _lineStartPos.Add(buf.Length);
                         }
                         if (inline is Run)
                         {
                             Run run = (Run)inline;
-                            _textPosToInline[buf.Length] = run;
                             buf.Append(run.Text);
                         }
                         else if (inline is LineBreak)
                         {
-                            _textPosToInline[buf.Length] = inline;
                             buf.AppendLine();
-                            _lineStartPos.Add(buf.Length);
                         }
                         needNewLine = (inline.NextInline == null);
                     }
@@ -327,6 +532,76 @@ namespace Db2Source
                 _plainTextUpdating = false;
             }
         }
+
+        //private void SelectWordByToken(MouseButtonEventArgs e)
+        //{
+        //    if (e.ClickCount == 1)
+        //    {
+        //        return;
+        //    }
+        //    if (Tokens == null)
+        //    {
+        //        return;
+        //    }
+        //    TextPointer pointer = GetPositionFromPoint(e.GetPosition(this), true);
+        //    int p = ToCharacterPosition(pointer);
+        //    Token token = Tokens.GetTokenAtPosition(p, GapAlignment.Before);
+        //    if (token == null)
+        //    {
+        //        return;
+        //    }
+        //    if (token.Kind != TokenKind.Identifier)
+        //    {
+        //        return;
+        //    }
+        //    if (3 < e.ClickCount)
+        //    {
+        //        return;
+        //    }
+        //    if (Keyboard.Modifiers != ModifierKeys.None)
+        //    {
+        //        return;
+        //    }
+        //    bool isQuoted = token.Value.StartsWith("\"");
+        //    if (!isQuoted && e.ClickCount == 3)
+        //    {
+        //        return;
+        //    }
+        //    // TextBoxの標準動作をさせたい場合はここまででreturn
+        //    bool inQuote = isQuoted && e.ClickCount == 2;
+        //    TextPointer start = ToTextPointer(token.StartPos, inQuote ? 1 : 0);
+        //    TextPointer end = ToTextPointer(token.EndPos, inQuote ? 0 : 1);
+        //    if (start == null || end == null)
+        //    {
+        //        return;
+        //    }
+        //    Selection.Select(start, end);
+        //    e.Handled = true;
+        //}
+
+        //protected override void OnPreviewMouseDown(MouseButtonEventArgs e)
+        //{
+        //    if (e.ChangedButton == MouseButton.Left)
+        //    {
+        //        SelectWordByToken(e);
+        //    }
+        //    if (!e.Handled)
+        //    {
+        //        base.OnPreviewMouseDown(e);
+        //    }
+        //}
+
+        //protected override void OnMouseDown(MouseButtonEventArgs e)
+        //{
+        //    if (e.ChangedButton == MouseButton.Left)
+        //    {
+        //        SelectWordByToken(e);
+        //    }
+        //    if (!e.Handled)
+        //    {
+        //        base.OnMouseDown(e);
+        //    }
+        //}
 
         protected override void OnTextChanged(TextChangedEventArgs e)
         {
@@ -373,6 +648,7 @@ namespace Db2Source
         }
         public int GetLineIndexFromCharacterIndex(int charIndex)
         {
+            UpdateTextPosToInline();
             if (charIndex < _lineStartPos[0])
             {
                 return -1;
@@ -387,6 +663,7 @@ namespace Db2Source
 
         public void ScrollToLine(int lineIndex)
         {
+            UpdateTextPosToInline();
             int l = Math.Max(0, Math.Min(lineIndex, _lineStartPos.Count - 1));
             if (l <= 0)
             {
@@ -415,7 +692,14 @@ namespace Db2Source
             }
         }
 
-        public void ScrollIntoTextPoint(TextPointer start, TextPointer end)
+        /// <summary>
+        /// startとendの間にある文字列の表示範囲を返す
+        /// startからendまでの間に折り返しや改行がある場合は先頭行のみの表示範囲を返す
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <returns></returns>
+        public Rect GetCharacterRect(TextPointer start, TextPointer end)
         {
             ScrollViewer sv = FindFirstVisualChild<ScrollViewer>(this);
             Rect rect = start.GetCharacterRect(LogicalDirection.Forward);
@@ -429,6 +713,13 @@ namespace Db2Source
             {
                 rect.Width = rect1.Right - rect.Left;
             }
+            return rect;
+        }
+
+        public void ScrollIntoTextPoint(TextPointer start, TextPointer end)
+        {
+            Rect rect = GetCharacterRect(start, end);
+            ScrollViewer sv = FindFirstVisualChild<ScrollViewer>(this);
             FrameworkElement content = sv.Content as FrameworkElement;
             double w = content.ActualWidth;
             double h = content.ActualHeight;

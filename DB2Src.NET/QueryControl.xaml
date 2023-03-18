@@ -40,7 +40,7 @@
                 <Grid>
                     <local:SQLTextBox x:Name="textBoxSql" DataSet="{Binding CurrentDataSet, ElementName=userControl}" VerticalScrollBarVisibility="Visible" TabIndex="0" AcceptsReturn="True" ToolTip="(SQLを入力してください)" HorizontalScrollBarVisibility="Auto"
                              FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
-                    <local:SearchTextBoxControl x:Name="searchTextBoxSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSql}" FontFamily="Yu Gothic UI"/>
+                    <local:SearchSQLTextBoxControl x:Name="searchTextBoxSql" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSql}" FontFamily="Yu Gothic UI"/>
                 </Grid>
                 <GridSplitter x:Name="splitterParameters" Grid.Column="1" Width="4" HorizontalAlignment="Left"/>
                 <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" DockPanel.Dock="Right" Grid.Column="1" Margin="4,0,0,0">

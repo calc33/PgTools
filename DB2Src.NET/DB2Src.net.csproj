@@ -126,6 +126,9 @@
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="CsvUtil.cs" />
+    <Compile Include="SearchSQLTextBoxControl.xaml.cs">
+      <DependentUpon>SearchSQLTextBoxControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SyntaxDecoration.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
@@ -286,6 +289,10 @@
     <Page Include="CrossTableViewer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SearchSQLTextBoxControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="SyntaxDecoration.xaml">
       <SubType>Designer</SubType>

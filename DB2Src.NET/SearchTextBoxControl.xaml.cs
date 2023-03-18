@@ -50,6 +50,11 @@ namespace Db2Source
             }
         }
 
+        private void Find_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
         private bool _needFocusTextBoxSearch = false;
         private void Find_Executed(object sender, RoutedEventArgs e)
         {
@@ -144,9 +149,9 @@ namespace Db2Source
             {
                 return;
             }
-            textBox.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, Find_Executed));
-            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, FindNext_Executed));
-            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindPrevious, FindPrevious_Executed));
+            textBox.CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, Find_Executed, Find_CanExecute));
+            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, FindNext_Executed, Find_CanExecute));
+            textBox.CommandBindings.Add(new CommandBinding(SearchCommands.FindPrevious, FindPrevious_Executed, Find_CanExecute));
             textBox.IsInactiveSelectionHighlightEnabled = true;
             textBox.PreviewMouseWheel += TextBox_PreviewMouseWheel;
             textBox.PreviewMouseDown += TextBox_PreviewMouseDown;
