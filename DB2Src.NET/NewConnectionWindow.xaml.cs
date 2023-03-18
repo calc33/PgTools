@@ -334,7 +334,7 @@ namespace Db2Source
                         conn?.Dispose();
                         disp.InvokeAsync(() =>
                         {
-                            MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                            MessageBox.Show(App.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                             App.LogException(t);
                             gridLoading.Visibility = Visibility.Collapsed;
                         });
@@ -343,7 +343,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(App.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 App.LogException(t);
                 gridLoading.Visibility = Visibility.Collapsed;
             }
@@ -372,7 +372,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(t.Message, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(App.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     App.LogException(t);
                     return;
                 }

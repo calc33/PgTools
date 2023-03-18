@@ -139,6 +139,17 @@ namespace Db2Source
             Logger.Default.Log(message + Environment.NewLine + t.ToString());
         }
 
+        public static string GetExceptionMessage(Exception t)
+        {
+            StringBuilder buf = new StringBuilder(t.Message);
+            for (Exception ex = t.InnerException; ex != null; ex = ex.InnerException)
+            {
+                buf.AppendLine();
+                buf.Append(ex.Message);
+            }
+            return buf.ToString();
+        }
+
         private static object _threadExceptionsLock = new object();
         private static List<Exception> _threadExceptions = new List<Exception>();
         public static RegistryFinder RegistryFinder { get; private set; } = new RegistryFinder();
