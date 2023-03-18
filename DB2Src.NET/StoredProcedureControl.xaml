@@ -133,7 +133,7 @@
                 </StackPanel>
                 <Grid>
                     <local:SQLTextBox x:Name="textBoxSource" DataSet="{Binding Path=Target.Context, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
-                    <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
+                    <local:SearchSQLTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>
         </TabItem>
