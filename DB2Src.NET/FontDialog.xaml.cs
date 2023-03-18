@@ -23,6 +23,7 @@ namespace Db2Source
     public partial class FontDialog : Window
     {
         public static readonly DependencyProperty FontFamiliesProperty = DependencyProperty.Register("FontFamilies", typeof(FontFamily[]), typeof(FontDialog));
+        public static readonly DependencyProperty TypefacesProperty = DependencyProperty.Register("Typefaces", typeof(FamilyTypeface[]), typeof(FontDialog));
         public static readonly DependencyProperty FontProperty = DependencyProperty.Register("Font", typeof(FontPack), typeof(FontDialog));
         
         public FontDialog()
@@ -44,6 +45,12 @@ namespace Db2Source
             }
         }
         
+        public FamilyTypeface[] Typefaces
+        {
+            get { return (FamilyTypeface[])GetValue(TypefacesProperty); }
+            set { SetValue(TypefacesProperty, value); }
+        }
+
         public FontPack Font
         {
             get
@@ -79,6 +86,28 @@ namespace Db2Source
             return null;
         }
 
+        private static readonly FamilyTypeface[] EmptyTypefaces = new FamilyTypeface[0];
+        private void UpdateTypelaces()
+        {
+            FontFamily selected = listBoxFontFamily.SelectedItem as FontFamily;
+            if (selected == null)
+            {
+                Typefaces = EmptyTypefaces;
+                return;
+            }
+            FamilyTypeface last = null;
+            List<FamilyTypeface> l = new List<FamilyTypeface>();
+            foreach (FamilyTypeface typeface in selected.FamilyTypefaces)
+            {
+                if (last != null && !typeface.Equals(last))
+                {
+                    l.Add(typeface);
+                }
+                last = typeface;
+            }
+            Typefaces = l.ToArray();
+        }
+
         private FamilyTypeface GetDefaultTypeface()
         {
             FontFamily sel = listBoxFontFamily.SelectedItem as FontFamily;
@@ -96,6 +125,7 @@ namespace Db2Source
 
         private void listBoxFontFamily_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            UpdateTypelaces();
             listBoxTypefaces.SelectedItem = GetDefaultTypeface();
         }
 

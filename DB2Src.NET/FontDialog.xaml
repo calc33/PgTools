@@ -50,7 +50,7 @@
                 あいう
             </TextBlock>
         </Border>
-        <ListBox x:Name="listBoxTypefaces" Grid.Row="1" Grid.Column="1" Margin="2" ItemsSource="{Binding SelectedItem.FamilyTypefaces, ElementName=listBoxFontFamily}" ItemTemplate="{DynamicResource FontTypefaceTemplate}" MinWidth="140" SelectionChanged="listBoxTypefaces_SelectionChanged"/>
+        <ListBox x:Name="listBoxTypefaces" Grid.Row="1" Grid.Column="1" Margin="2" ItemsSource="{Binding Typefaces, ElementName=window}" ItemTemplate="{DynamicResource FontTypefaceTemplate}" MinWidth="140" SelectionChanged="listBoxTypefaces_SelectionChanged"/>
         <DockPanel Grid.Row="1" Grid.Column="2" >
             <TextBox x:Name="textBoxSize" DockPanel.Dock="Top" TextAlignment="Right" Text="{Binding Font.FontSize, ElementName=window, Mode=TwoWay}" Margin="2"/>
             <ListBox x:Name="listBoxSize" SelectedItem="{Binding Font.FontSize, ElementName=window, Mode=TwoWay}" Margin="2">
