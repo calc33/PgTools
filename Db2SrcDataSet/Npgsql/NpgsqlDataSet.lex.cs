@@ -196,13 +196,13 @@ namespace Db2Source
                     base.ID = (int)value;
                 }
             }
-            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, TokenID identifier, int start, int current, int line, ref int column) : base(owner, kind, (int)identifier, start, current, line, ref column)
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, TokenID identifier, int start, int current, ref int line, ref int column) : base(owner, kind, (int)identifier, start, current, ref line, ref column)
             {
                 IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
 
-            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char identifier, int start, int current, int line, ref int column)
-                :base(owner, kind, start, current, line, ref column)
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char identifier, int start, int current, ref int line, ref int column)
+                :base(owner, kind, start, current, ref line, ref column)
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(new char[] { identifier }, 0, 1);
                 int v = 0;
@@ -214,8 +214,8 @@ namespace Db2Source
                 IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
 
-            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char[] ids, int start, int current, int line, ref int column)
-                : base(owner, kind, start, current, line, ref column)
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, char[] ids, int start, int current, ref int line, ref int column)
+                : base(owner, kind, start, current, ref line, ref column)
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(ids);
                 int v = 0;
@@ -227,8 +227,8 @@ namespace Db2Source
                 IsReservedWord = (Kind == TokenKind.Identifier) && IsReservedWord(Value);
             }
 
-            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, string ids, int start, int current, int line, ref int column)
-                : base(owner, kind, start, current, line, ref column)
+            internal PgsqlToken(TokenizedPgsql owner, TokenKind kind, string ids, int start, int current, ref int line, ref int column)
+                : base(owner, kind, start, current, ref line, ref column)
             {
                 byte[] bytes = Encoding.ASCII.GetBytes(ids);
                 int v = 0;
@@ -308,7 +308,13 @@ namespace Db2Source
                 }
                 column += i;
                 position += i;
-                return new PgsqlToken(this, kind, token, position, p, line, ref column);
+                return new PgsqlToken(this, kind, token, position, p, ref line, ref column);
+            }
+
+            private static bool IsSpace(string value, int index)
+            {
+                char c = value[index];
+                return char.IsWhiteSpace(c) && c != '\r' && c != '\n';
             }
 
             /// <summary>
@@ -329,21 +335,13 @@ namespace Db2Source
                 while (p < n)
                 {
                     int p0 = p;
-                    bool isNewLine = false;
-                    while (p < n && char.IsWhiteSpace(Sql, p))
+                    while (p < n && IsSpace(Sql, p))
                     {
-                        char sp = Sql[p];
-                        if (sp == '\u0010' || sp == '\u0013')
-                        {
-                            isNewLine = true;
-                        }
                         p++;
                     }
                     if (p0 < p)
                     {
-                        var ret = new PgsqlToken(this, isNewLine ? TokenKind.NewLine : TokenKind.Space, TokenID.Space, p0, p, line, ref column);
-                        line++;
-                        column = 0;
+                        var ret = new PgsqlToken(this, TokenKind.Space, TokenID.Space, p0, p, ref line, ref column);
                         return ret;
                     }
                     if (!(p < n))
@@ -369,7 +367,7 @@ namespace Db2Source
                                     p++;
                                 }
                             }
-                            return new PgsqlToken(this, TokenKind.Identifier, TokenID.Identifier, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Identifier, TokenID.Identifier, p0, p, ref line, ref column);
                         case '\'':
                             while (p < n && Sql[p] == '\'')
                             {
@@ -385,7 +383,7 @@ namespace Db2Source
                                     p++;
                                 }
                             }
-                            return new PgsqlToken(this, TokenKind.Literal, TokenID.Literal, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Literal, TokenID.Literal, p0, p, ref line, ref column);
                         case '(':
                         case ')':
                         case '*':
@@ -399,7 +397,7 @@ namespace Db2Source
                         case '%':
                         case '&':
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case ':':
                             token = TryGetNextToken(Sql, TokenKind.Operator, "::", ref p, ref line, ref column);
                             if (token != null)
@@ -407,10 +405,10 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case ';':
                             p++;
-                            return new PgsqlToken(this, TokenKind.Semicolon, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Semicolon, c, p0, p, ref line, ref column);
                         case '<':
                             token = TryGetNextToken(Sql, TokenKind.Operator, "<=", ref p, ref line, ref column)
                                 ?? TryGetNextToken(Sql, TokenKind.Operator, "<<", ref p, ref line, ref column)
@@ -420,7 +418,7 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '>':
                             token = TryGetNextToken(Sql, TokenKind.Operator, ">=", ref p, ref line, ref column)
                                 ?? TryGetNextToken(Sql, TokenKind.Operator, ">>", ref p, ref line, ref column);
@@ -429,7 +427,7 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '~':
                             token = TryGetNextToken(Sql, TokenKind.Operator, "~*", ref p, ref line, ref column)
                                 ?? TryGetNextToken(Sql, TokenKind.Operator, "~~*", ref p, ref line, ref column)
@@ -439,7 +437,7 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '/':
                             if (SqlCh(p + 1) == '*')
                             {
@@ -453,10 +451,10 @@ namespace Db2Source
                                         break;
                                     }
                                 }
-                                return new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p, line, ref column);
+                                return new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p, ref line, ref column);
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '-':
                             if (SqlCh(p + 1) == '-')
                             {
@@ -469,10 +467,10 @@ namespace Db2Source
                                 {
                                     p++;
                                 }
-                                return new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p, line, ref column);
+                                return new PgsqlToken(this, TokenKind.Comment, TokenID.Comment, p0, p, ref line, ref column);
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '$':
                             p0 = p;
                             for (p++; p < n && Sql[p] != '$'; p++) ;
@@ -486,7 +484,7 @@ namespace Db2Source
                                     break;
                                 }
                             }
-                            token = new PgsqlToken(this, TokenKind.DefBody, TokenID.DefBody, p0, p, line, ref column);
+                            token = new PgsqlToken(this, TokenKind.DefBody, TokenID.DefBody, p0, p, ref line, ref column);
                             string[] defBody = ExtractDefBody(token.GetValue());
                             token.DefDelimiter = defBody[0];
                             token.DefBody = new TokenizedPlPgsql(token, defBody);
@@ -503,7 +501,7 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '|':
                             token = TryGetNextToken(Sql, TokenKind.Operator, "||/", ref p, ref line, ref column)
                                 ?? TryGetNextToken(Sql, TokenKind.Operator, "||", ref p, ref line, ref column)
@@ -513,7 +511,7 @@ namespace Db2Source
                                 return token;
                             }
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
                         case '?':
                         case '@':
                         case '\\':
@@ -523,12 +521,22 @@ namespace Db2Source
                         case '{':
                         case '}':
                             p++;
-                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Operator, c, p0, p, ref line, ref column);
+                        case '\n':
+                            p++;
+                            return new PgsqlToken(this, TokenKind.NewLine, TokenID.Space, p0, p, ref line, ref column);
+                        case '\r':
+                            p++;
+                            if (SqlCh(p) == '\n')
+                            {
+                                p++;
+                            }
+                            return new PgsqlToken(this, TokenKind.NewLine, TokenID.Space, p0, p, ref line, ref column);
                         default:
                             if (char.IsDigit(Sql, p))
                             {
                                 for (p++; p < n && (char.IsNumber(Sql, p) || Sql[p] == '.'); p++) ;
-                                return new PgsqlToken(this, TokenKind.Numeric, '0', p0, p, line, ref column);
+                                return new PgsqlToken(this, TokenKind.Numeric, '0', p0, p, ref line, ref column);
                             }
                             for (p++; p < n && !char.IsWhiteSpace(Sql, p) && !TokenizedPgsql.IdentifierEndChars.ContainsKey(Sql[p]); p++)
                             {
@@ -537,7 +545,7 @@ namespace Db2Source
                                     p++;
                                 }
                             }
-                            return new PgsqlToken(this, TokenKind.Identifier, 'A', p0, p, line, ref column);
+                            return new PgsqlToken(this, TokenKind.Identifier, 'A', p0, p, ref line, ref column);
                     }
                 }
                 return null;
@@ -687,7 +695,7 @@ namespace Db2Source
                     {
                         case -1:
                             _stage++;
-                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, 0, _start, _line, ref _column);
+                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, 0, _start, ref _line, ref _column);
                             return true;
                         case 0:
                         case 1:
@@ -697,7 +705,7 @@ namespace Db2Source
                             if (!ret)
                             {
                                 p = _position + ((TokenizedPlPgsql)_owner)._endDelimiter.Length;
-                                _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefEnd, _position, p, _line, ref _column);
+                                _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefEnd, _position, p, ref _line, ref _column);
                                 _position = p;
                                 _stage++;
                             }

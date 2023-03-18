@@ -224,7 +224,7 @@ namespace Db2Source
         /// </summary>
         /// <param name="position">SQL文中の文字位置</param>
         /// <param name="alignment">positionがトークンの境界の場合、どちらに寄せるかを決定する</param>
-        /// <returns></returns>
+        /// <returns>positionで指定した位置がこのトークン内なら0、このトークンより前なら負数、このトークンより後なら正数を返す</returns>
         public int IsHit(int position, GapAlignment alignment)
         {
             switch (alignment)
@@ -238,7 +238,7 @@ namespace Db2Source
             }
         }
 
-        protected internal Token(TokenizedSQL owner, TokenKind kind, int start, int current, int line, ref int column)
+        protected internal Token(TokenizedSQL owner, TokenKind kind, int start, int current, ref int line, ref int column)
         {
             _owner = owner;
             Kind = kind;
@@ -246,9 +246,17 @@ namespace Db2Source
             EndPos = current - 1 + owner.Offset;
             Line = line;
             Column = column;
-            column += current - start;
+            if (kind == TokenKind.NewLine)
+            {
+                line++;
+                column = 0;
+            }
+            else
+            {
+                column += current - start;
+            }
         }
-        protected internal Token(TokenizedSQL owner, TokenKind kind, int identifier, int start, int current, int line, ref int column)
+        protected internal Token(TokenizedSQL owner, TokenKind kind, int identifier, int start, int current, ref int line, ref int column)
         {
             _owner = owner;
             Kind = kind;
@@ -257,7 +265,15 @@ namespace Db2Source
             EndPos = current - 1 + owner.Offset;
             Line = line;
             Column = column;
-            column += current - start;
+            if (kind == TokenKind.NewLine)
+            {
+                line++;
+                column = 0;
+            }
+            else
+            {
+                column += current - start;
+            }
         }
         protected internal void Joint(Token token)
         {
