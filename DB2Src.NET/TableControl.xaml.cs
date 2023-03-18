@@ -561,7 +561,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                textBoxInsertSql.Text = t.Message;
+                textBoxInsertSql.Text = t.ToString();
             }
         }
         private void UpdateTextBoxUpdateSql()
@@ -597,7 +597,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                textBoxMergeSql.Text = t.Message;
+                textBoxMergeSql.Text = t.ToString();
             }
         }
 
