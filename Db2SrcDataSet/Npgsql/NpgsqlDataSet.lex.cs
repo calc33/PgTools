@@ -297,7 +297,8 @@ namespace Db2Source
                 {
                     return null;
                 }
-                int p = position;
+                int p0 = position;
+                int p = p0;
                 int i = 0;
                 for (; i < token.Length; i++, p++)
                 {
@@ -308,7 +309,7 @@ namespace Db2Source
                 }
                 column += i;
                 position += i;
-                return new PgsqlToken(this, kind, token, position, p, ref line, ref column);
+                return new PgsqlToken(this, kind, token, p0, p, ref line, ref column);
             }
 
             private static bool IsSpace(string value, int index)
