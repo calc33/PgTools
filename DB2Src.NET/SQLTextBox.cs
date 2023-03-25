@@ -354,7 +354,6 @@ namespace Db2Source
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
             if (i == -1)
             {
-                //return null;
                 return Document.ContentStart;
             }
             Inline found = _textPosToInline.Values[i];
@@ -375,7 +374,7 @@ namespace Db2Source
                 return -1;
             }
             int p;
-            if (!InlineToTextPos.TryGetValue(inline, out p))
+            if (!_inlineToTextPos.TryGetValue(inline, out p))
             {
                 return -1;
             }
