@@ -99,7 +99,7 @@ namespace Db2Source
         {
             if (Target == null)
             {
-                _fieldNamesBase = new string[0];
+                _fieldNamesBase = StrUtil.EmptyStringArray;
                 return;
             }
             List<string> l = new List<string>();
