@@ -207,13 +207,14 @@ namespace Db2Source
         {
             DataSet = Target?.Context as NpgsqlDataSet;
             UpdateComboBoxSettingCategory();
-            dataGridInfo.ItemsSource = new Database[] { Target };
+            dataGridInfo.ItemsSource = Target != null ? new Database[] { Target } : Database.EmptyArray;
             UpdateDataGridSetting();
         }
 
         private void OnUsersPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
         }
+
         private void OnTablespacesPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
         }
