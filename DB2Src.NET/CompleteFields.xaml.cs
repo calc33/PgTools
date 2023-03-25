@@ -140,7 +140,11 @@ namespace Db2Source
                 }
                 List<string> l = new List<string>();
                 string lastSel = (string)listBoxFields.SelectedItem;
-                string selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionEnd, TextBox.Text.Length) - StartPosition);
+                string selText = string.Empty;
+                if (!string.IsNullOrEmpty(TextBox.Text))
+                {
+                    selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionEnd, TextBox.Text.Length) - StartPosition);
+                }
                 foreach (string s in _fieldNamesBase)
                 {
                     if (string.IsNullOrEmpty(selText) || s.StartsWith(selText, StringComparison.CurrentCultureIgnoreCase))
@@ -188,7 +192,7 @@ namespace Db2Source
             Dispatcher.InvokeAsync(Close);
         }
 
-        private void Unlink(TextBox textBox)
+        private void Unlink(SQLTextBox textBox)
         {
             if (textBox == null)
             {
@@ -201,7 +205,7 @@ namespace Db2Source
             textBox.TextInput -= TextBox_TextInput;
         }
 
-        private void Link(TextBox textBox)
+        private void Link(SQLTextBox textBox)
         {
             if (textBox == null)
             {
@@ -226,8 +230,8 @@ namespace Db2Source
         {
             if (e.NewValue != e.OldValue)
             {
-                Unlink((TextBox)e.OldValue);
-                Link((TextBox)e.NewValue);
+                Unlink((SQLTextBox)e.OldValue);
+                Link((SQLTextBox)e.NewValue);
             }
             DelayedUpdateListBoxFields();
         }
