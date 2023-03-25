@@ -93,7 +93,7 @@ namespace Db2Source
             }
             using (IDbConnection conn = dataSet.NewConnection(true))
             {
-                using (IDbCommand cmd = dataSet.GetSqlCommand(refTbl.GetSelectSQL(string.Empty, buf.ToString(), string.Empty, null, HiddenLevel.Visible), null, conn))
+                using (IDbCommand cmd = dataSet.GetSqlCommand(refTbl.GetSelectSQL(string.Empty, buf.ToString(), string.Empty, null, HiddenLevel.Visible, 80), null, conn))
                 {
                     foreach (ColumnInfo col in cols)
                     {
