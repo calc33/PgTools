@@ -193,6 +193,44 @@ namespace Db2Source
             }
         }
 
+        public void Apply(Run run, bool clearBeforeApply)
+        {
+            if (clearBeforeApply)
+            {
+                run.ClearValue(Control.FontFamilyProperty);
+                run.ClearValue(Control.FontSizeProperty);
+                run.ClearValue(Control.FontWeightProperty);
+                run.ClearValue(Control.FontStyleProperty);
+                run.ClearValue(Control.ForegroundProperty);
+                run.ClearValue(Inline.TextDecorationsProperty);
+            }
+            if (Family != null)
+            {
+                run.FontFamily = Family;
+            }
+            if (Size.HasValue)
+            {
+                run.FontSize = Size.Value;
+            }
+            if (Weight.HasValue)
+            {
+                run.FontWeight = Weight.Value;
+            }
+            if (Style.HasValue)
+            {
+                run.FontStyle = Style.Value;
+            }
+            if (Foreground != null)
+            {
+                run.Foreground = Foreground;
+            }
+            if (Decorations != null)
+            {
+                run.TextDecorations.Add(Decorations);
+            }
+        }
+
+
         public override string ToString()
         {
             List<string> l = new List<string>();

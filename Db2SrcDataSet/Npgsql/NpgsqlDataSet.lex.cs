@@ -653,8 +653,8 @@ namespace Db2Source
 
         internal class TokenizedPlPgsql: TokenizedPgsql
         {
-            protected string _startDelimiter;
-            protected string _endDelimiter;
+            public Token Parent { get; private set; }
+            protected int[] _delimiterPos;
             /// <summary>
             /// 
             /// </summary>
@@ -664,11 +664,12 @@ namespace Db2Source
             /// 開始位置がトークンの正しく切れ目であることを前提にしており、切れ目でなかった場合の動作は保証しない。</param>
             internal TokenizedPlPgsql(PgsqlToken token, string[] defBody) : base(defBody[1], token.StartPos + defBody[0].Length, 0)
             {
-                //int p0 = token.StartPos;
-                //int p = p0 + defBody[0].Length;
-                //_startDelimiter = new PgsqlToken(this, TokenKind.DefDelimiter, TokenID.DefStart, p0, p, token.Line, )
-                _startDelimiter = defBody[0];
-                _endDelimiter = defBody[2];
+                Parent = token;
+                _delimiterPos = new int[4];
+                _delimiterPos[0] = token.StartPos;
+                _delimiterPos[1] = _delimiterPos[0] + defBody[0].Length;
+                _delimiterPos[2] = _delimiterPos[1] + defBody[1].Length;
+                _delimiterPos[3] = _delimiterPos[2] + defBody[2].Length;
             }
 
             protected override IEnumerator<Token> GetEnumeratorCore()
@@ -678,7 +679,7 @@ namespace Db2Source
 
             internal class PlPgsqlTokenEnumerator : PgsqlTokenEnumerator, IEnumerator<Token>
             {
-                private int _stage;
+                private int _stage = -1;
                 public new Token Current { get { return _current; } }
 
                 object IEnumerator.Current { get { return _current; } }
@@ -690,13 +691,19 @@ namespace Db2Source
 
                 public override bool MoveNext()
                 {
-                    int p;
                     bool ret;
+                    TokenizedPlPgsql owner;
+                    TokenizedPgsql parentOwner;
+                    int p0, p1;
                     switch (_stage)
                     {
                         case -1:
                             _stage++;
-                            _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefStart, 0, _start, ref _line, ref _column);
+                            owner = (TokenizedPlPgsql)_owner;
+                            parentOwner = owner.Parent.Owner as TokenizedPgsql;
+                            p0 = owner._delimiterPos[0];
+                            p1 = owner._delimiterPos[1];
+                            _current = new PgsqlToken(parentOwner, TokenKind.DefDelimiter, TokenID.DefStart, p0, p1, ref _line, ref _column);
                             return true;
                         case 0:
                         case 1:
@@ -705,9 +712,11 @@ namespace Db2Source
                             _current = (PgsqlToken)base.Current;
                             if (!ret)
                             {
-                                p = _position + ((TokenizedPlPgsql)_owner)._endDelimiter.Length;
-                                _current = new PgsqlToken(_owner, TokenKind.DefDelimiter, TokenID.DefEnd, _position, p, ref _line, ref _column);
-                                _position = p;
+                                owner = (TokenizedPlPgsql)_owner;
+                                parentOwner = owner.Parent.Owner as TokenizedPgsql;
+                                p0 = owner._delimiterPos[2];
+                                p1 = owner._delimiterPos[3];
+                                _current = new PgsqlToken(parentOwner, TokenKind.DefDelimiter, TokenID.DefEnd, p0, p1, ref _line, ref _column);
                                 _stage++;
                             }
                             return true;
@@ -880,7 +889,7 @@ namespace Db2Source
             IEnumerator<Token> enumerator = tsql.GetEnumerator();
             if (!enumerator.MoveNext())
             {
-                return new SQLParts() { Items = new SQLPart[0], ParameterNames = new string[0] };
+                return new SQLParts() { Items = SQLPart.EmptyArray, ParameterNames = StrUtil.EmptyStringArray };
             }
             List<SQLPart> lSql = new List<SQLPart>();
             List<string> lParamAll = new List<string>();
