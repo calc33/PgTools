@@ -77,6 +77,55 @@ namespace Db2Source
                 textBox.InvalidateTextPosToInline();
             }
 
+            private static string[] SplitByNewLine(string value)
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    return new string[0];
+                }
+                List<string> lines = new List<string>();
+                bool wasCr = false;
+                int i0 = 0;
+                for (int i = 0, n = value.Length; i < n; i++)
+                {
+                    char c = value[i];
+                    switch (c)
+                    {
+                        case '\n':
+                            if (!wasCr)
+                            {
+                                lines.Add(value.Substring(i0, i - i0));
+                            }
+                            break;
+                        case '\r':
+                            lines.Add(value.Substring(i0, i - i0));
+                            break;
+                    }
+                    wasCr = c == '\r';
+                }
+                return lines.ToArray();
+            }
+
+            public void BuildDocument(SQLTextBox textBox)
+            {
+                textBox.Document.Blocks.Clear();
+                Paragraph block = new Paragraph();
+                textBox.Document.Blocks.Add(block);
+                foreach (Token token in _tokens)
+                {
+                    if (token.Kind == TokenKind.NewLine)
+                    {
+                        block.Inlines.Add(new LineBreak());
+                    }
+                    else
+                    {
+                        Run run = new Run(token.Value);
+                        textBox.SyntaxDecorations[token]?.Value?.Apply(run, true);
+                        block.Inlines.Add(run);
+                    }
+                }
+            }
+
             public IEnumerator<Token> GetEnumerator()
             {
                 return ((IEnumerable<Token>)_tokens).GetEnumerator();
@@ -305,7 +354,8 @@ namespace Db2Source
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
             if (i == -1)
             {
-                return null;
+                //return null;
+                return Document.ContentStart;
             }
             Inline found = _textPosToInline.Values[i];
             if (found is Run)
@@ -325,7 +375,7 @@ namespace Db2Source
                 return -1;
             }
             int p;
-            if (!_inlineToTextPos.TryGetValue(inline, out p))
+            if (!InlineToTextPos.TryGetValue(inline, out p))
             {
                 return -1;
             }
@@ -373,11 +423,35 @@ namespace Db2Source
 
         private void ApplyPlainText()
         {
-            SelectAll();
-            Selection.Text = _plainText;
-            UpdateDecoration();
-            TextPointer p0 = Document.ContentStart;
-            Selection.Select(p0, p0);
+            if (_plainTextUpdating)
+            {
+                return;
+            }
+            _plainTextUpdating = true;
+            try
+            {
+                if (DataSet == null)
+                {
+                    Document.Blocks.Clear();
+                    if (!string.IsNullOrEmpty(_plainText))
+                    {
+                        Document.Blocks.Add(new Paragraph(new Run(_plainText)));
+                    }
+                }
+                else
+                {
+                    List<Token> l = new List<Token>();
+                    ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
+                    Tokens = new TokenCollection(l);
+                    Tokens.BuildDocument(this);
+                }
+                TextPointer p0 = Document.ContentStart;
+                Selection.Select(p0, p0);
+            }
+            finally
+            {
+                _plainTextUpdating = false;
+            }
         }
 
         private static T FindFirstVisualChild<T>(DependencyObject item) where T : DependencyObject
@@ -421,7 +495,6 @@ namespace Db2Source
 
         private void UpdateTextPosToInline()
         {
-            //if (_textPosToInline != null && _inlineToTextPos != null && _lineStartPos != null)
             if (_textPosToInline != null)
             {
                 return;
@@ -525,6 +598,7 @@ namespace Db2Source
                 }
                 _plainText = s;
                 UpdateDecoration();
+                InvalidateTextPosToInline();
                 Text = _plainText;
             }
             finally
