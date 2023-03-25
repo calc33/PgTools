@@ -250,7 +250,7 @@ namespace Db2Source
         {
             if (e.PropertyName == "Alias")
             {
-                UpdateTextBoxSelectSql();
+                DelayedUpdateTextBoxSelectSql();
             }
         }
 
@@ -276,7 +276,7 @@ namespace Db2Source
         private void JoinTables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             UpdateListBoxJoinTable();
-            UpdateTextBoxSelectSql();
+            DelayedUpdateTextBoxSelectSql();
         }
 
         private void VisibleLevelPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -516,6 +516,7 @@ namespace Db2Source
 
         private void UpdateTextBoxSelectSql()
         {
+            _textBoxSelectSqlUpdating = false;
             if (textBoxSelectSql == null)
             {
                 return;
@@ -531,7 +532,19 @@ namespace Db2Source
             }
             string alias = JoinTables[0].Alias;
             string where = Target.GetKeyConditionSQL(alias, string.Empty, 0);
-            textBoxSelectSql.Text = JoinTables.GetSelectSQL(where, string.Empty, null);
+            DateTime t0 = DateTime.Now;
+            string sql = JoinTables.GetSelectSQL(where, string.Empty, null);
+            textBoxSelectSql.Text = sql;
+        }
+
+        private bool _textBoxSelectSqlUpdating;
+        private void DelayedUpdateTextBoxSelectSql()
+        {
+            if (!_textBoxSelectSqlUpdating)
+            {
+                Dispatcher.InvokeAsync(UpdateTextBoxSelectSql);
+                _textBoxSelectSqlUpdating = true;
+            }
         }
 
         private void UpdateListBoxJoinTable()
@@ -603,7 +616,7 @@ namespace Db2Source
 
         private void UpdateTextBoxTemplateSql()
         {
-            UpdateTextBoxSelectSql();
+            DelayedUpdateTextBoxSelectSql();
             UpdateTextBoxInsertSql();
             UpdateTextBoxUpdateSql();
             UpdateTextBoxDeleteSql();
@@ -662,7 +675,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 80);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection(true))
@@ -1266,7 +1279,7 @@ namespace Db2Source
 
         private void TextBoxAlias_LostFocus(object sender, RoutedEventArgs e)
         {
-            UpdateTextBoxSelectSql();
+            //DelayedUpdateTextBoxSelectSql();
         }
 
         private void TextBoxAlias_KeyDown(object sender, KeyEventArgs e)
@@ -1336,7 +1349,7 @@ namespace Db2Source
 
         private void ColumnCheckListWindow_Closed(object sender, EventArgs e)
         {
-            UpdateTextBoxSelectSql();
+            DelayedUpdateTextBoxSelectSql();
         }
 
         ~TableControl()
