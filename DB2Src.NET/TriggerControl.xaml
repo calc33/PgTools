@@ -47,6 +47,7 @@
                 <local:TimingItem Value="Unknown" Text=""/>
                 <local:TimingItem Value="Before" Text="Before"/>
                 <local:TimingItem Value="After" Text="After"/>
+                <local:TimingItem Value="InsteadOf" Text="Instead of"/>
             </ComboBox.Items>
         </ComboBox>
         <StackPanel Orientation="Horizontal" Grid.Column="2" Grid.Row="1" VerticalAlignment="Center">

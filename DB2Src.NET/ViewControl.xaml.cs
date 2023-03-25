@@ -243,7 +243,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible);
+            textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, 80);
         }
 
         public void Fetch(string condition)
@@ -275,7 +275,7 @@ namespace Db2Source
                 limit = l;
             }
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 80);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection(true))
@@ -474,6 +474,19 @@ namespace Db2Source
         private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
         {
             Target?.Context?.Refresh(Target);
+        }
+
+        private void dataGridTrigger_LayoutUpdated(object sender, EventArgs e)
+        {
+            if (Target == null || Target.Triggers.Count == 0)
+            {
+                return;
+            }
+            if (listBoxTrigger.SelectedItem != null)
+            {
+                return;
+            }
+            listBoxTrigger.SelectedItem = Target.Triggers[0];
         }
     }
 }
