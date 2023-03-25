@@ -16,6 +16,7 @@ namespace Db2Source
     /// </summary>
     public class Axis
     {
+        public static readonly Axis[] EmptyArray = new Axis[0];
         /// <summary>
         /// 小計を表現する際に小計の対象項目以外にはNoAxisValueをセットする
         /// </summary>

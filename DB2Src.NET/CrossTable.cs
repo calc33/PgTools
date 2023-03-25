@@ -234,7 +234,7 @@ namespace Db2Source
         {
             if (ItemType == null)
             {
-                _axisCandidates = new Axis[0];
+                _axisCandidates = Axis.EmptyArray;
                 return;
             }
             PropertyInfo[] props = ItemType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -260,7 +260,7 @@ namespace Db2Source
                 }
                 if (ItemsSource == null)
                 {
-                    _axisCandidates = new Axis[0];
+                    _axisCandidates = Axis.EmptyArray;
                     return;
                 }
                 if (ItemsSource is RowCollection)

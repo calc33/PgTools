@@ -9,6 +9,7 @@ namespace Db2Source
 {
     public partial class Database: SchemaObject
     {
+        public static readonly Database[] EmptyArray = new Database[0];
         private string _dbaUserName;
         private string _encoding;
         private string _defaultTablespace;

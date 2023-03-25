@@ -2010,7 +2010,7 @@ namespace Db2Source
                         return new string[] { TargetType.typname };
                     }
                 }
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
 
             public Comment ToComment(NpgsqlDataSet context)

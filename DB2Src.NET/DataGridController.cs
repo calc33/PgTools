@@ -1630,7 +1630,7 @@ namespace Db2Source
             get
             {
                 UpdateKeyFields();
-                return _keyFields ?? (new ColumnInfo[0]);
+                return _keyFields ?? ColumnInfo.EmptyArray;
             }
         }
         public RowCollection Rows
@@ -1750,7 +1750,7 @@ namespace Db2Source
         }
         public DataGridController()
         {
-            Fields = new ColumnInfo[0];
+            Fields = ColumnInfo.EmptyArray;
             Rows = new RowCollection(this);
         }
 

@@ -93,7 +93,7 @@ namespace Db2Source
         {
             if (value == null)
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             if (value == string.Empty)
             {

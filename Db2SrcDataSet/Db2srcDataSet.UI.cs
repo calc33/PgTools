@@ -228,6 +228,7 @@ namespace Db2Source
     public class ColumnInfo
     {
         public static readonly ColumnInfo Stub = new ColumnInfo();
+        public static readonly ColumnInfo[] EmptyArray = new ColumnInfo[0];
         public string Name { get; private set; }
         public HiddenLevel HiddenLevel { get; set; } = HiddenLevel.Visible;
         public bool IsNotNull { get; set; }

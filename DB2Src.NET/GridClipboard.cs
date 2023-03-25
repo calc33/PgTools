@@ -440,6 +440,8 @@ namespace Db2Source
             return lRet.ToArray();
         }
 
+        private static readonly int[] EmptyIntArray = new int[0];
+
         private void InitExplicitFields()
         {
             _explicitFields = new ColumnInfo[ColumnCount];
@@ -459,7 +461,7 @@ namespace Db2Source
             }
             if (!HasExplicitHeader)
             {
-                _explicitFields = new ColumnInfo[0];
+                _explicitFields = ColumnInfo.EmptyArray;
             }
             _useExplicitHeader = HasExplicitHeader;
             _explicitKeyFields = Controller.KeyFields;
@@ -476,8 +478,8 @@ namespace Db2Source
             }
             if (!_isExplicitKeyEnabled)
             {
-                _explicitKeyFields = new ColumnInfo[0];
-                _explicitKeyIndexes = new int[0];
+                _explicitKeyFields = ColumnInfo.EmptyArray;
+                _explicitKeyIndexes = EmptyIntArray;
             }
             _mergeByKey = CanMergeByKey;
         }
@@ -517,8 +519,8 @@ namespace Db2Source
             }
             if (!_isImplicitKeyEnabled)
             {
-                _implicitKeyFields = new ColumnInfo[0];
-                _implicitKeyIndexes = new int[0];
+                _implicitKeyFields = ColumnInfo.EmptyArray;
+                _implicitKeyIndexes = EmptyIntArray;
             }
         }
 
