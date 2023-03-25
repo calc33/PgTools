@@ -1196,11 +1196,15 @@ namespace Db2Source
                 return (_backup != null) && !ContentEquals(_backup);
             }
         }
-        public string GetColumnsSQL(string alias, IEnumerable<Column> columns)
+        public string GetColumnsSQL(string alias, IEnumerable<Column> columns, int charPerLine)
         {
             StringBuilder buf = new StringBuilder();
-            string delim = "  ";
+            string indent = "  ";
+            int nIndent = Db2SourceContext.GetCharWidth(indent);
+            string delim = indent;
+            int nDelim = Db2SourceContext.GetCharWidth(delim);
             int w = 0;
+            bool isFirst = true;
             string a = string.IsNullOrEmpty(alias) ? string.Empty : alias + ".";
             foreach (Column c in columns)
             {
@@ -1209,32 +1213,34 @@ namespace Db2Source
                     continue;
                 }
                 buf.Append(delim);
-                w += delim.Length;
-                if (80 <= w)
+                w += nDelim;
+                string s = a + c.EscapedName;
+                int wCol = Db2SourceContext.GetCharWidth(s);
+                if (charPerLine <= w + wCol && !isFirst)
                 {
                     buf.AppendLine();
-                    buf.Append("  ");
-                    w = 2;
+                    buf.Append(indent);
+                    w = nIndent;
                 }
-                buf.Append(a);
-                string s = c.EscapedName;
                 buf.Append(s);
-                w += s.Length;
+                w += wCol;
                 delim = ", ";
+                nDelim = 2;
+                isFirst = false;
             }
             return buf.ToString();
         }
 
-        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel)
+        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel, int charPerLine)
         {
-            return GetColumnsSQL(alias, Columns.GetVisibleColumns(visibleLevel));
+            return GetColumnsSQL(alias, Columns.GetVisibleColumns(visibleLevel), charPerLine);
         }
 
-        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int charPerLine)
         {
             StringBuilder buf = new StringBuilder();
             buf.AppendLine("select");
-            buf.AppendLine(GetColumnsSQL(alias, visibleLevel));
+            buf.AppendLine(GetColumnsSQL(alias, visibleLevel, charPerLine));
             buf.Append("from ");
             buf.Append(EscapedIdentifier(null));
             if (!string.IsNullOrEmpty(alias))
@@ -1263,11 +1269,11 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, int charPerLine)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, charPerLine);
         }
-        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int charPerLine)
         {
             StringBuilder bufW = new StringBuilder();
             bool needIndent = false;
@@ -1280,17 +1286,17 @@ namespace Db2Source
                 bufW.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(alias, bufW.ToString(), orderBy, limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, bufW.ToString(), orderBy, limit, visibleLevel, out whereOffset, charPerLine);
         }
-        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, int charPerLine)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, charPerLine);
         }
-        public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int charPerLine)
         {
-            return GetSelectSQL(alias, where, StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel);
+            return GetSelectSQL(alias, where, StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, charPerLine);
         }
-        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int charPerLine)
         {
             StringBuilder bufW = new StringBuilder();
             bool needIndent = false;
@@ -1303,11 +1309,11 @@ namespace Db2Source
                 bufW.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, out whereOffset);
+            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, out whereOffset, charPerLine);
         }
-        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int charPerLine)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, charPerLine);
         }
 
         public long GetRecordCount(IDbConnection connection)

@@ -205,9 +205,9 @@ namespace Db2Source
             OnPropertyChanged("SelectableForeignKeys");
         }
 
-        public string GetFieldsSQL(int indent)
+        public string GetFieldsSQL(int indent, int charPerLine)
         {
-            return Table.GetColumnsSQL(Alias, VisibleColumns);
+            return Table.GetColumnsSQL(Alias, VisibleColumns, charPerLine);
         }
         private static readonly Dictionary<JoinKind, string> JoinKindToSQL = new Dictionary<JoinKind, string>()
         {
@@ -334,7 +334,7 @@ namespace Db2Source
             string prefix = string.Empty;
             foreach (JoinTable t in Items)
             {
-                string s = t.GetFieldsSQL(2);
+                string s = t.GetFieldsSQL(2, 80);
                 if (string.IsNullOrEmpty(s))
                 {
                     continue;

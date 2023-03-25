@@ -18,6 +18,7 @@ namespace Db2Source
     }
     public class SQLPart
     {
+        public static readonly SQLPart[] EmptyArray = new SQLPart[0];
         public int Offset { get; set; }
         public string SQL { get; set; }
         public string[] ParameterNames { get; set; }
@@ -362,6 +363,39 @@ namespace Db2Source
         public static string[] ParseTimeFormats { get; set; } = new string[] { "H:m:s", "H:m" };
         public static string ParseDateTimeFormat { get; set; } = "yyyy/M/d H:m:s";
         public static string[] ParseDateTimeFormats { get; set; } = new string[] { "yyyy/M/d H:m:s", "yyyy/M/d H:m", "yyyy/M/d" };
+
+        private static int GetCharWidthInternal(string s, ref int index)
+        {
+            char c1 = s[index++];
+            if (char.IsHighSurrogate(c1))
+            {
+                if (index <= s.Length)
+                {
+                    return 1;
+                }
+                char c2 = s[index++];
+                if (('\uD840' <= c1 && c1 < '\uD869' && char.IsLowSurrogate(c2)) || (c1 == '\uD869' && '\uDC00' <= c2 && c2 <= '\uDEDF'))
+                {
+                    return 2;
+                }
+            }
+            if ('\u3000' <= c1 && c1 <= '\u4DBF' || '\u4E00' <= c1 && c1 <= '\u9FCF' || '\uF900' <= c1 && c1 <= '\uFAFF' || '\uFF00' <= c1 && c1 <= '\uFF5F')
+            {
+                return 2;
+            }
+            return 1;
+        }
+        public static int GetCharWidth(string s)
+        {
+            int i = 0;
+            int n = s.Length;
+            int l = 0;
+            while (i < n)
+            {
+                l += GetCharWidthInternal(s, ref i);
+            }
+            return l;
+        }
 
         private SettingCollection InitSettings()
         {

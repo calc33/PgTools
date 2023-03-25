@@ -108,6 +108,7 @@ namespace Db2Source
             }
             return !PgSqlIdentifierRegex[strict].IsMatch(value) || IsReservedWord(value);
         }
+
         public override bool NeedQuotedIdentifier(string value, bool strict)
         {
             return NeedQuotedPgsqlIdentifier(value, strict);
@@ -444,7 +445,7 @@ namespace Db2Source
             return param;
         }
 
-        private void GetInserColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values)
+        private void GetInsertColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values)
         {
             string spc = new string(' ', indent);
             StringBuilder bufF = new StringBuilder();
@@ -453,14 +454,18 @@ namespace Db2Source
             bufF.Append(spc);
             bufP.Append(spc);
             int w = spc.Length;
+            bool isFirst = true;
             foreach (Column c in table.Columns)
             {
+                string col = GetEscapedIdentifier(c.Name, true);
+                string prm = ":" + c.Name;
+                int wColumn = Math.Max(GetCharWidth(col), GetCharWidth(prm));
                 if (needComma)
                 {
                     bufF.Append(',');
                     bufP.Append(',');
                     w++;
-                    if (charPerLine <= w)
+                    if (charPerLine <= w + wColumn && !isFirst)
                     {
                         bufF.AppendLine();
                         bufF.Append(spc);
@@ -475,12 +480,11 @@ namespace Db2Source
                         w++;
                     }
                 }
-                string col = GetEscapedIdentifier(c.Name, true);
-                string prm = ":" + c.Name;
-                w += Math.Max(col.Length, prm.Length);
+                w += wColumn;
                 bufF.Append(col);
                 bufP.Append(prm);
                 needComma = true;
+                isFirst = false;
             }
             fields = bufF.ToString();
             values = bufP.ToString();
@@ -559,7 +563,7 @@ namespace Db2Source
         {
             string spc = new string(' ', indent);
             string flds, prms;
-            GetInserColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
@@ -647,7 +651,7 @@ namespace Db2Source
                 ColumnInfo info = name2col[c.Name];
                 object v = data[info];
                 string val = GetImmediatedStr(info, v);
-                w += Math.Max(col.Length, val.Length);
+                w += Math.Max(GetCharWidth(col), GetCharWidth(val));
                 bufF.Append(col);
                 bufP.Append(val);
                 needComma = true;
@@ -816,7 +820,7 @@ namespace Db2Source
             buf.Append(spc);
             buf.AppendLine("when not matched then insert (");
             string flds, prms;
-            GetInserColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
             buf.AppendLine(flds);
             buf.Append(spc);
             buf.AppendLine(") values (");
