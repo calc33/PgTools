@@ -38,9 +38,9 @@ namespace Db2Source
 
     public class ValueTextCollection: IList<ValueText>, IList
     {
-        private List<ValueText> _list = new List<ValueText>();
+        private readonly List<ValueText> _list = new List<ValueText>();
         private Dictionary<object, ValueText> _valueToValueText;
-        private object _valueToValueTextLock = new object();
+        private readonly object _valueToValueTextLock = new object();
         private void InvalidateValueToValueText()
         {
             lock (_valueToValueTextLock)
@@ -469,7 +469,7 @@ namespace Db2Source
 
     public class SettingCollection: IList<ISetting>, IList
     {
-        private List<ISetting> _list = new List<ISetting>();
+        private readonly List<ISetting> _list = new List<ISetting>();
 
         public ISetting this[int index]
         {

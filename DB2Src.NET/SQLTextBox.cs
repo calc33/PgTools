@@ -16,7 +16,7 @@ namespace Db2Source
     {
         public class TokenCollection : IReadOnlyCollection<Token>
         {
-            private Token[] _tokens;
+            private readonly Token[] _tokens;
 
             public Token this[int index] { get { return _tokens[index]; } }
 
@@ -77,34 +77,6 @@ namespace Db2Source
                 textBox.InvalidateTextPosToInline();
             }
 
-            private static string[] SplitByNewLine(string value)
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    return new string[0];
-                }
-                List<string> lines = new List<string>();
-                bool wasCr = false;
-                int i0 = 0;
-                for (int i = 0, n = value.Length; i < n; i++)
-                {
-                    char c = value[i];
-                    switch (c)
-                    {
-                        case '\n':
-                            if (!wasCr)
-                            {
-                                lines.Add(value.Substring(i0, i - i0));
-                            }
-                            break;
-                        case '\r':
-                            lines.Add(value.Substring(i0, i - i0));
-                            break;
-                    }
-                    wasCr = c == '\r';
-                }
-                return lines.ToArray();
-            }
 
             public void BuildDocument(SQLTextBox textBox)
             {
@@ -159,31 +131,6 @@ namespace Db2Source
         private List<int> _lineStartPos = null;
 
         public TokenCollection Tokens { get; private set; }
-
-        private SortedList<int, Inline> TextPosToInline
-        {
-            get
-            {
-                UpdateTextPosToInline();
-                return _textPosToInline;
-            }
-        }
-        private Dictionary<Inline, int> InlineToTextPos
-        {
-            get
-            {
-                UpdateTextPosToInline();
-                return _inlineToTextPos;
-            }
-        }
-        private List<int> LineStartPos
-        {
-            get
-            {
-                UpdateTextPosToInline();
-                return _lineStartPos;
-            }
-        }
 
         private bool _plainTextUpdating = false;
         public string Text
@@ -337,7 +284,7 @@ namespace Db2Source
             }
         }
 
-        private Inline ToInline(int charactorPosition, int delta)
+        private Inline ToInline(int charactorPosition)
         {
             UpdateTextPosToInline();
             int i = FindRunIndexRecursive(charactorPosition, 0, _textPosToInline.Count - 1);
@@ -748,8 +695,8 @@ namespace Db2Source
                 ScrollToEnd();
                 return;
             }
-            Rect rect = ToInline(_lineStartPos[l], 0).ContentStart.GetCharacterRect(LogicalDirection.Forward);
-            Rect rect2 = ToInline(_lineStartPos[l + 1], 0).ContentStart.GetCharacterRect(LogicalDirection.Forward);
+            Rect rect = ToInline(_lineStartPos[l]).ContentStart.GetCharacterRect(LogicalDirection.Forward);
+            Rect rect2 = ToInline(_lineStartPos[l + 1]).ContentStart.GetCharacterRect(LogicalDirection.Forward);
             rect.Height = rect2.Top - rect.Top;
             ScrollViewer sv = FindFirstVisualChild<ScrollViewer>(this);
             double h = (sv.Content as FrameworkElement).ActualHeight;

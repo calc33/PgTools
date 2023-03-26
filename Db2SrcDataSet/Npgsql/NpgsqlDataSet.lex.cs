@@ -330,7 +330,6 @@ namespace Db2Source
                     p = 0;
                     return null;
                 }
-                List<PgsqlToken> tokens = new List<PgsqlToken>();
                 int n = Sql.Length;
                 PgsqlToken token;
                 while (p < n)
