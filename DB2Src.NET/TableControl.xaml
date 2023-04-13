@@ -249,7 +249,7 @@
                         <local:SortFieldListControl x:Name="sortFields" VerticalContentAlignment="Top" Margin="0,2" Target="{Binding Target, ElementName=userControl}" Height="Auto" TabIndex="2"/>
                     </DockPanel>
                     <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
-                        <local:SQLTextBox x:Name="textBoxCondition" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"
+                        <local:SQLTextBox x:Name="textBoxCondition" DataSet="{Binding Target.Context, ElementName=userControl}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" AcceptsReturn="True" ToolTip="(検索条件を入力してください)" TabIndex="0" IsInactiveSelectionHighlightEnabled="True"
                                  FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
                         <local:SearchSQLTextBoxControl x:Name="searchTextBoxCondition" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxCondition}" FontFamily="Yu Gothic UI"/>
                     </Grid>

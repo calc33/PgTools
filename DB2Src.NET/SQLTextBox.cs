@@ -2,13 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -69,6 +72,7 @@ namespace Db2Source
 
             public void ApplySyntaxDecoration(SQLTextBox textBox)
             {
+                textBox.InvalidateTextPosToInline();
                 for (int i = _tokens.Length - 1; 0 <= i; i--)
                 {
                     Token token = _tokens[i];
@@ -201,9 +205,52 @@ namespace Db2Source
             e.Handled = true;
         }
 
+        private const int CLIPBRD_E_CANT_OPEN = -2147221040; // 0x800401D0
+        private static readonly TimeSpan ClipboardTimeout = new TimeSpan(0, 0, 3);  // 3秒
+        private static void SetTextToClipboard(string text)
+        {
+            DateTime timeout = DateTime.Now + ClipboardTimeout;
+            while (true)
+            {
+                try
+                {
+                    Clipboard.SetText(text);
+                    break;
+                }
+                catch (COMException t) when (t.HResult == CLIPBRD_E_CANT_OPEN && DateTime.Now < timeout)
+                {
+                    Clipboard.Clear();
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
+        private static string GetTextFromClipboard()
+        {
+            DateTime timeout = DateTime.Now + ClipboardTimeout;
+            while (true)
+            {
+                try
+                {
+                    return Clipboard.GetText();
+                }
+                catch (COMException t) when (t.HResult == CLIPBRD_E_CANT_OPEN && DateTime.Now < timeout)
+                {
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
         private void Copy_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Clipboard.SetText(Selection.Text);
+            try
+            {
+                SetTextToClipboard(Selection.Text);
+            }
+            catch (Exception t)
+            {
+                Logger.Default.Log(string.Format("Copy failed: {0}", t.ToString()));
+            }
             e.Handled = true;
         }
 
@@ -215,8 +262,14 @@ namespace Db2Source
 
         private void Cut_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            Clipboard.SetText(Selection.Text);
-            Selection.Text = string.Empty;
+            try
+            {
+                SetTextToClipboard(Selection.Text);
+            }
+            catch (Exception t)
+            {
+                Logger.Default.Log(string.Format("Cut failed: {0}", t.ToString()));
+            }
             e.Handled = true;
         }
 
@@ -228,10 +281,17 @@ namespace Db2Source
 
         private void Paste_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            string text = Clipboard.GetText();
-            Selection.Text = text;
-            TextPointer newEnd = Selection.End;
-            Selection.Select(newEnd, newEnd);
+            try
+            {
+                string text = GetTextFromClipboard();
+                Selection.Text = text;
+                TextPointer newEnd = Selection.End;
+                Selection.Select(newEnd, newEnd);
+            }
+            catch (Exception t)
+            {
+                Logger.Default.Log(string.Format("Paste failed: {0}", t.ToString()));
+            }
             e.Handled = true;
         }
 
@@ -488,6 +548,7 @@ namespace Db2Source
 
         private void UpdateDecoration()
         {
+            StopDecorationTimer();
             if (DataSet == null)
             {
                 return;
@@ -504,6 +565,64 @@ namespace Db2Source
             ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
             Tokens = new TokenCollection(l);
             Tokens.ApplySyntaxDecoration(this);
+        }
+
+        private DispatcherTimer _decorationTimer = null;
+        private DateTime _updateDecorationExecTime = DateTime.MaxValue;
+
+        private void RequireDecorationTimer()
+        {
+            if (_decorationTimer != null)
+            {
+                return;
+            }
+            _decorationTimer = new DispatcherTimer();
+            _decorationTimer.Tick += DecorationTimer_Tick;
+            _decorationTimer.Interval = new TimeSpan(0, 0, 0, 0, 100);
+            StopDecorationTimer();
+        }
+
+        private void DecorationTimer_Tick(object sender, EventArgs e)
+        {
+            if (DateTime.Now < _updateDecorationExecTime)
+            {
+                return;
+            }
+            _decorationTimer.Stop();
+            _updateDecorationExecTime = DateTime.MaxValue;
+            UpdateDecoration();
+        }
+
+        private void StopDecorationTimer()
+        {
+            if (_decorationTimer == null)
+            {
+                return;
+            }
+            if (_decorationTimer.IsEnabled)
+            {
+                _decorationTimer.Stop();
+            }
+            _updateDecorationExecTime = DateTime.MaxValue;
+        }
+
+        private void PostponeUpdateDecoration()
+        {
+            RequireDecorationTimer();
+            if (_decorationTimer.IsEnabled)
+            {
+                _updateDecorationExecTime = DateTime.Now.AddSeconds(0.3);
+            }
+        }
+
+        private void DelayedUpdateDecoration()
+        {
+            RequireDecorationTimer();
+            _updateDecorationExecTime = DateTime.Now.AddSeconds(0.3);
+            if (!_decorationTimer.IsEnabled)
+            {
+                _decorationTimer.Start();
+            }
         }
 
         private void UpdatePlainText()
@@ -537,14 +656,12 @@ namespace Db2Source
                         needNewLine = (inline.NextInline == null);
                     }
                 }
-                string s = buf.ToString();
-                if (_plainText == s)
+                _plainText = buf.ToString();
+                DelayedUpdateDecoration();
+                if (Text == _plainText)
                 {
                     return;
                 }
-                _plainText = s;
-                UpdateDecoration();
-                InvalidateTextPosToInline();
                 Text = _plainText;
             }
             finally
@@ -623,10 +740,30 @@ namespace Db2Source
         //    }
         //}
 
+        private Tuple<int, int> _lastSelection;
+
+        protected override void OnSelectionChanged(RoutedEventArgs e)
+        {
+            base.OnSelectionChanged(e);
+            _lastSelection = new Tuple<int, int>(ToCharacterPosition(Selection.Start), ToCharacterPosition(Selection.End));
+        }
+
         protected override void OnTextChanged(TextChangedEventArgs e)
         {
             UpdatePlainText();
             base.OnTextChanged(e);
+        }
+
+        protected override void OnTextInput(TextCompositionEventArgs e)
+        {
+            UpdatePlainText();
+            base.OnTextInput(e);
+        }
+
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            PostponeUpdateDecoration();
+            base.OnPreviewKeyDown(e);
         }
 
         private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -635,7 +772,7 @@ namespace Db2Source
             {
                 return;
             }
-            UpdateDecoration();
+            DelayedUpdateDecoration();
         }
         private void OnTextPropertyChanged(DependencyPropertyChangedEventArgs e)
         {

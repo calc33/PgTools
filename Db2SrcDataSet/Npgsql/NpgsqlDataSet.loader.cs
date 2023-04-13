@@ -3633,6 +3633,10 @@ namespace Db2Source
 
         public override SchemaObject Refresh(SchemaObject obj, IDbConnection connection)
         {
+            if (obj == null)
+            {
+                return null;
+            }
             NpgsqlConnection conn = connection as NpgsqlConnection;
             if (obj is Table)
             {
@@ -3655,7 +3659,7 @@ namespace Db2Source
                 return obj;
                 //return RefreshDatabase((PgsqlDatabase)obj, conn);
             }
-            throw new NotImplementedException();
+            throw new NotImplementedException(string.Format("{0} is not suppoted.", obj.GetType().FullName));
             //return obj;
         }
     }

@@ -96,15 +96,33 @@ namespace Db2Source
 
         public void ApplyTo(SQLTextBox textBox, Token token)
         {
-            TextPointer pStart = textBox.ToTextPointer(token.StartPos, 0);
-            TextPointer pEnd = textBox.ToTextPointer(token.EndPos, 1);
-            if (pStart == null || pEnd == null)
+            try
             {
-                return;
+                TextPointer pStart = textBox.ToTextPointer(token.StartPos, 0);
+                TextPointer pEnd = textBox.ToTextPointer(token.EndPos, 1);
+                if (pStart == null || pEnd == null)
+                {
+                    return;
+                }
+                TextRange range;
+                try
+                {
+                    range = new TextRange(pStart, pEnd);
+                }
+                catch (ArgumentException t)
+                {
+                    Logger.Default.Log(string.Format("ApplyTo(textBox, {0}({1})) failed create range. retry: {2}", token.ToString(), token.StartPos, t.ToString()));
+                    pEnd = textBox.ToTextPointer(token.EndPos, 0);
+                    range = new TextRange(pStart, pEnd);
+                }
+                SyntaxDecorationSetting setting = this[token];
+                setting?.Value?.Apply(range, true);
             }
-            TextRange range = new TextRange(pStart, pEnd);
-            SyntaxDecorationSetting setting = this[token];
-            setting?.Value?.Apply(range, true);
+            catch (Exception t)
+            {
+                Logger.Default.Log(string.Format("ApplyTo(textBox, {0}({1})) failed: {2}", token.ToString(), token.StartPos, t.ToString()));
+                MessageBox.Show(App.Current.MainWindow, t.ToString(), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
     public struct SyntaxSettingKey
