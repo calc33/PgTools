@@ -121,7 +121,7 @@ namespace Db2Source
             catch (Exception t)
             {
                 Logger.Default.Log(string.Format("ApplyTo(textBox, {0}({1})) failed: {2}", token.ToString(), token.StartPos, t.ToString()));
-                MessageBox.Show(App.Current.MainWindow, t.ToString(), "エラー", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(App.Current.MainWindow, t.ToString(), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

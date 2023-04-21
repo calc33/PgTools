@@ -3659,7 +3659,7 @@ namespace Db2Source
                 return obj;
                 //return RefreshDatabase((PgsqlDatabase)obj, conn);
             }
-            throw new NotImplementedException(string.Format("{0} is not suppoted.", obj.GetType().FullName));
+            throw new NotImplementedException(string.Format("{0} {1} is not supported.", obj.GetType().FullName, obj.FullName));
             //return obj;
         }
     }
