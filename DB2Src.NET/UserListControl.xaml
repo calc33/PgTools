@@ -10,10 +10,12 @@
     d:DesignHeight="450" d:DesignWidth="800" Loaded="userControl_Loaded">
     <UserControl.Resources>
         <sys:String x:Key="messageDropUser">ユーザー"{0}"を削除します。削除しすると元に戻せません。よろしいですか?</sys:String>
+        <sys:String x:Key="messageConfirmNoPassword">パスワードが空ですがこのまま続行しますか?</sys:String>
+        <sys:String x:Key="messagePasswordIsChanged">パスワードを変更しました</sys:String>
     </UserControl.Resources>
     <DockPanel>
         <DockPanel DockPanel.Dock="Left">
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
                 <Button x:Name="buttonAddUser" Margin="2" Padding="2" ContentTemplate="{StaticResource ImageAdd14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" ToolTip="ユーザーを追加" Click="buttonAddUser_Click"/>
             </StackPanel>
             <ListBox x:Name="listBoxUsers" MinWidth="100" ItemsSource="{Binding Users, ElementName=userControl}" SelectedItem="{Binding Current, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" LayoutUpdated="listBoxUsers_LayoutUpdated"/>
@@ -32,9 +34,11 @@
                     <Button x:Name="buttonRevert" ContentTemplate="{StaticResource ImageRevert14}" ToolTip="取り消し" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevert_Click"/>
                     <Separator/>
                     <Button x:Name="buttonDropUser" ContentTemplate="{StaticResource ImageDelete14}" ToolTip="表領域を削除" Click="buttonDropUser_Click" IsEnabled="{Binding Target, ElementName=userControl, Converter={StaticResource NotNullToBooleanConverter}}"/>
+                    <Separator/>
+                    <Button x:Name="buttonPassword" ContentTemplate="{StaticResource ImageLock14}" ToolTip="パスワードを変更" Click="buttonPassword_Click" IsEnabled="{Binding Target, ElementName=userControl, Converter={StaticResource NotNullToBooleanConverter}}"/>
                 </ToolBar>
             </StackPanel>
-            <local:PgsqlUserControl Target="{Binding Target, ElementName=userControl}" Grid.Row="1" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
+            <local:PgsqlUserControl x:Name="pgsqlUserControl" Target="{Binding Target, ElementName=userControl}" Grid.Row="1" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         </Grid>
     </DockPanel>
 </UserControl>

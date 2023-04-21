@@ -200,7 +200,7 @@ namespace Db2Source
         {
             PgsqlUser newItem = new PgsqlUser(null);
             Users.Add(newItem);
-            Dispatcher.InvokeAsync(() => { listBoxUsers.SelectedItem = newItem; }, DispatcherPriority.ApplicationIdle);
+            Dispatcher.InvokeAsync(() => { listBoxUsers.SelectedItem = newItem; IsEditing = true; }, DispatcherPriority.ApplicationIdle);
         }
 
         private void buttonApply_Click(object sender, RoutedEventArgs e)
@@ -247,6 +247,54 @@ namespace Db2Source
         private void userControl_Loaded(object sender, RoutedEventArgs e)
         {
             UpdateUsers();
+        }
+
+        private void buttonPassword_Click(object sender, RoutedEventArgs e)
+        {
+            ChangePasswordWindow window = new ChangePasswordWindow()
+            {
+                Owner = Window.GetWindow(this)
+            };
+            WindowLocator.LocateNearby(buttonPassword, window, NearbyLocation.DownLeft);
+            window.Executed += ChangePasswordWindow_Executed;
+            window.ShowDialog();
+        }
+
+        private void ChangePasswordWindow_Executed(object sender, QueryResultEventArgs e)
+        {
+            ChangePasswordWindow window = sender as ChangePasswordWindow;
+            if (window == null)
+            {
+                return;
+            }
+            if (string.IsNullOrEmpty(window.Password1))
+            {
+                MessageBoxResult ret = MessageBox.Show(window, (string)Resources["messageConfirmNoPassword"], Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    e.IsFailed = true;
+                    return;
+                }
+            }
+            try
+            {
+                MainWindow.Current.CurrentDataSet.ChangeUserPassword(Current, window.Password1, null, null);
+            }
+            catch(Exception t)
+            {
+                StringBuilder buf = new StringBuilder(t.Message);
+                Exception ex = t;
+                while (ex.InnerException != null)
+                {
+                    ex = ex.InnerException;
+                    buf.AppendLine();
+                    buf.Append(ex.Message);
+                }
+                MessageBox.Show(window, buf.ToString(), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                e.IsFailed = true;
+                return;
+            }
+            MessageBox.Show(window, (string)Resources["messagePasswordIsChanged"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

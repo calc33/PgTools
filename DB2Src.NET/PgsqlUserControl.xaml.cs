@@ -105,6 +105,11 @@ namespace Db2Source
             Dispatcher.InvokeAsync(UpdateGrantText);
         }
 
+        private void UpdateIsNew()
+        {
+            IsNew = Target != null && Target.Oid == 0;
+        }
+
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue == e.NewValue)
@@ -119,11 +124,13 @@ namespace Db2Source
             {
                 ((PgsqlUser)e.NewValue).PropertyChanged += Target_PropertyChanged;
             }
+            UpdateIsNew();
             DelayedUpdateGrantText();
         }
 
         private void Target_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
+            UpdateIsNew();
             DelayedUpdateGrantText();
         }
 

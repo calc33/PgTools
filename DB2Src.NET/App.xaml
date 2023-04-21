@@ -285,6 +285,29 @@
                     <Path Stroke="White" StrokeThickness="2" Data="M4,4 L10,10 M4,10 L10,4"/>
                 </Canvas>
             </DataTemplate>
+            <DataTemplate x:Key="ImageLock14">
+                <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
+                    <Path x:Name="bodyBase" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="0" Data="M1,6 C1,4 1,4 3,4 L11,4 C13,4 13,4 13,6 L13,12 C13,14 13,14 11,14 L3,14 C1,14 1,14 1,12z"/>
+                    <Ellipse x:Name="keyHall1" Fill="White" StrokeThickness="0" Width="4" Height="4" Canvas.Left="5" Canvas.Top="6"/>
+                    <Rectangle x:Name="keyHall2" Fill="White" StrokeThickness="0" Width="2" Height="3" Canvas.Left="6" Canvas.Top="8"/>
+                    <Path x:Name="latch" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M4,4 C4,0 10,0 10,4"/>
+                </Canvas>
+            </DataTemplate>
+            <DataTemplate x:Key="ImageHiddenPass14">
+                <Canvas Width="14" Height="14" SnapsToDevicePixels="True" ClipToBounds="False">
+                    <Path x:Name="eyeLine" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M0,7 C3,2 10,2 13,7 C10,12 3,12 0,7z"/>
+                    <Ellipse x:Name="eye1" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Width="8" Height="8" Canvas.Left="3" Canvas.Top="3"/>
+                    <Ellipse x:Name="eye2" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="0" Width="4" Height="4" Canvas.Left="5" Canvas.Top="5"/>
+                    <Line x:Name="strikeThrogh1" Stroke="Red" StrokeThickness="1" X1="2" Y1="12" X2="12" Y2="2" Visibility="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                    <Line x:Name="strikeThrogh2" Stroke="Red" StrokeThickness="1" X1="2" Y1="2" X2="12" Y2="12" Visibility="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=ToggleButton}, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                </Canvas>
+            </DataTemplate>
+            <DataTemplate x:Key="ImageVisiblePass14">
+                <Canvas Width="14" Height="14" SnapsToDevicePixels="True" ClipToBounds="False">
+                    <Path x:Name="eyeLine" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M0,7 C3,2 10,2 13,7 C10,12 3,12 0,7z"/>
+                    <Ellipse x:Name="eye" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Width="8" Height="8" Canvas.Left="3" Canvas.Top="3"/>
+                </Canvas>
+            </DataTemplate>
             <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
             <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
             <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>

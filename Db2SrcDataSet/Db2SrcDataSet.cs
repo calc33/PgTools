@@ -975,6 +975,8 @@ namespace Db2Source
         public abstract string GetClientEncoding();
         public abstract string[] GetEncodings();
 
+        public abstract void ChangeUserPassword(User user, string password, DateTime? expiration, EventHandler<LogEventArgs> logEvent);
+
         public static Type GetCommonType(object a, object b)
         {
             if (a == null && b == null)

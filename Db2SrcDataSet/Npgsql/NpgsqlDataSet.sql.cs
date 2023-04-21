@@ -1594,5 +1594,23 @@ namespace Db2Source
             return _encodings;
         }
 
+        public override void ChangeUserPassword(User user, string password, DateTime? expiration, EventHandler<LogEventArgs> logEvent)
+        {
+            string pass = string.IsNullOrEmpty(password) ? "null" : ToLiteralStr(password);
+            string sql = string.Format("alter role {0} with password {1}", user.Name, pass);
+            if (expiration.HasValue)
+            {
+                DateTime dt = expiration.Value;
+                if (dt == DateTime.MaxValue)
+                {
+                    sql += " valid until 'infinity'";
+                }
+                else
+                {
+                    sql += string.Format(" valid until '{0:yyyy-MM-dd HH:mm:ss}'", dt);
+                }
+            }
+            ExecSql(sql, logEvent);
+        }
     }
 }
