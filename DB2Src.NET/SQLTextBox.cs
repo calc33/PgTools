@@ -546,6 +546,7 @@ namespace Db2Source
             _lineStartPos = null;
         }
 
+        private bool _inUpdateDecoration = false;
         private void UpdateDecoration()
         {
             StopDecorationTimer();
@@ -561,10 +562,18 @@ namespace Db2Source
             {
                 return;
             }
-            List<Token> l = new List<Token>();
-            ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
-            Tokens = new TokenCollection(l);
-            Tokens.ApplySyntaxDecoration(this);
+            _inUpdateDecoration = true;
+            try
+            {
+                List<Token> l = new List<Token>();
+                ExtractTokenRecursive(l, DataSet.Tokenize(_plainText));
+                Tokens = new TokenCollection(l);
+                Tokens.ApplySyntaxDecoration(this);
+            }
+            finally
+            {
+                _inUpdateDecoration = false;
+            }
         }
 
         private DispatcherTimer _decorationTimer = null;
@@ -617,6 +626,10 @@ namespace Db2Source
 
         private void DelayedUpdateDecoration()
         {
+            if (_inUpdateDecoration)
+            {
+                return;
+            }
             RequireDecorationTimer();
             _updateDecorationExecTime = DateTime.Now.AddSeconds(0.3);
             if (!_decorationTimer.IsEnabled)
