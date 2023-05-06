@@ -20,7 +20,8 @@ namespace Db2Source
     /// </summary>
     public partial class SortFieldListControl: UserControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(SortFieldListControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(SortFieldListControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+
         public Selectable Target
         {
             get
@@ -41,6 +42,7 @@ namespace Db2Source
             }
             SetColumns((Target as Table).PrimaryKey?.Columns);
         }
+
         private void UpdateSortFieldControls()
         {
             foreach (SortFieldControl c in stackPanelMain.Children)
@@ -48,19 +50,18 @@ namespace Db2Source
                 c.Columns = Target?.Columns;
             }
         }
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateSortFieldControls();
             InitColumns();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SortFieldListControl)?.OnTargetPropertyChanged(e);
         }
+
         internal SortFieldControl AddNewFieldControl(Column column, Order order)
         {
             SortFieldControl c = new SortFieldControl();

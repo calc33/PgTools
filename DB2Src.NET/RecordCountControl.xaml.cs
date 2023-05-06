@@ -81,8 +81,8 @@ namespace Db2Source
 
         public class TreeNode : DependencyObject, IComparable
         {
-            public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TreeNode));
-            public static readonly DependencyProperty IsExpandedProperty = DependencyProperty.Register("IsExpanded", typeof(bool), typeof(TreeNode));
+            public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TreeNode), new PropertyMetadata(new PropertyChangedCallback(OnIsCheckedPropertyChanged)));
+            public static readonly DependencyProperty IsExpandedProperty = DependencyProperty.Register("IsExpanded", typeof(bool), typeof(TreeNode), new PropertyMetadata(new PropertyChangedCallback(OnIsExpandedPropertyChanged)));
             public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(NamedObject), typeof(TreeNode));
             public static readonly DependencyProperty RecordCountProperty = DependencyProperty.Register("RecordCount", typeof(TableRecordCount), typeof(TreeNode));
 
@@ -214,12 +214,17 @@ namespace Db2Source
 
             public int Level { get; internal set; }
 
-            private void IsExpandedPropertyChanged(DependencyPropertyChangedEventArgs e)
+            private void OnIsExpandedPropertyChanged(DependencyPropertyChangedEventArgs e)
             {
                 Owner?.UpdateListBoxTables();
             }
 
-            private void IsCheckedPropertyChanged(DependencyPropertyChangedEventArgs e)
+            private static void OnIsExpandedPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+            {
+                (target as TreeNode)?.OnIsExpandedPropertyChanged(e);
+            }
+
+            private void OnIsCheckedPropertyChanged(DependencyPropertyChangedEventArgs e)
             {
                 if (Owner == null)
                 {
@@ -240,17 +245,9 @@ namespace Db2Source
                 }
             }
 
-            protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+            private static void OnIsCheckedPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
             {
-                if (e.Property == IsExpandedProperty)
-                {
-                    IsExpandedPropertyChanged(e);
-                }
-                if (e.Property == IsCheckedProperty)
-                {
-                    IsCheckedPropertyChanged(e);
-                }
-                base.OnPropertyChanged(e);
+                (target as TreeNode)?.OnIsCheckedPropertyChanged(e);
             }
 
             public int CompareTo(object obj)
@@ -270,7 +267,7 @@ namespace Db2Source
 
         internal bool IsCheckedUpdating;
 
-        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(RecordCountControl));
+        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(RecordCountControl), new PropertyMetadata(new PropertyChangedCallback(OnDataSetPropertyChanged)));
 
         public Db2SourceContext DataSet
         {
@@ -289,14 +286,9 @@ namespace Db2Source
             UpdateItems();
         }
 
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnDataSetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == DataSetProperty)
-            {
-                OnDataSetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as RecordCountControl)?.OnDataSetPropertyChanged(e);
         }
 
         public RecordCountControl()

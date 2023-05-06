@@ -25,8 +25,8 @@ namespace Db2Source
     /// </summary>
     public partial class ChangePasswordWindow : Window
     {
-        public static readonly DependencyProperty Password1Property = DependencyProperty.Register("Password1", typeof(string), typeof(ChangePasswordWindow));
-        public static readonly DependencyProperty Password2Property = DependencyProperty.Register("Password2", typeof(string), typeof(ChangePasswordWindow));
+        public static readonly DependencyProperty Password1Property = DependencyProperty.Register("Password1", typeof(string), typeof(ChangePasswordWindow), new PropertyMetadata(new PropertyChangedCallback(OnPassword1PropertyChanged)));
+        public static readonly DependencyProperty Password2Property = DependencyProperty.Register("Password2", typeof(string), typeof(ChangePasswordWindow), new PropertyMetadata(new PropertyChangedCallback(OnPassword2PropertyChanged)));
         public static readonly DependencyProperty IsPasswordMatchedProperty = DependencyProperty.Register("IsPasswordMatched", typeof(bool), typeof(ChangePasswordWindow));
 
         public string Password1
@@ -68,6 +68,11 @@ namespace Db2Source
             UpdateIsPasswordMatched();
         }
 
+        private static void OnPassword1PropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ChangePasswordWindow)?.OnPassword1PropertyChanged(e);
+        }
+
         private void OnPassword2PropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (passwordBox2.Password != Password2)
@@ -77,17 +82,9 @@ namespace Db2Source
             UpdateIsPasswordMatched();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnPassword2PropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == Password1Property)
-            {
-                OnPassword1PropertyChanged(e);
-            }
-            if (e.Property == Password2Property)
-            {
-                OnPassword2PropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ChangePasswordWindow)?.OnPassword2PropertyChanged(e);
         }
 
         private void passwordBox1_PasswordChanged(object sender, RoutedEventArgs e)

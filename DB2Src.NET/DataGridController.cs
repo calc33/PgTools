@@ -156,10 +156,10 @@ namespace Db2Source
     }
     public class CellInfo: DependencyObject
     {
-        public static readonly DependencyProperty CellProperty = DependencyProperty.Register("Cell", typeof(DataGridCell), typeof(CellInfo));
-        public static readonly DependencyProperty ItemProperty = DependencyProperty.Register("Item", typeof(object), typeof(CellInfo));
-        public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(CellInfo));
-        public static readonly DependencyProperty IndexProperty = DependencyProperty.Register("Index", typeof(int), typeof(CellInfo));
+        public static readonly DependencyProperty CellProperty = DependencyProperty.Register("Cell", typeof(DataGridCell), typeof(CellInfo), new PropertyMetadata(new PropertyChangedCallback(OnCellPropertyChanged)));
+        public static readonly DependencyProperty ItemProperty = DependencyProperty.Register("Item", typeof(object), typeof(CellInfo), new PropertyMetadata(new PropertyChangedCallback(OnItemPropertyChanged)));
+        public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(CellInfo), new PropertyMetadata(new PropertyChangedCallback(OnColumnPropertyChanged)));
+        public static readonly DependencyProperty IndexProperty = DependencyProperty.Register("Index", typeof(int), typeof(CellInfo), new PropertyMetadata(new PropertyChangedCallback(OnIndexPropertyChanged)));
         public static readonly DependencyProperty DataProperty = DependencyProperty.Register("Data", typeof(object), typeof(CellInfo));
         public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(CellInfo));
         public static readonly DependencyProperty IsFaultProperty = DependencyProperty.Register("IsFault", typeof(bool), typeof(CellInfo));
@@ -396,7 +396,7 @@ namespace Db2Source
             }
         }
 
-        private void ItemPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnItemPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue == e.NewValue)
             {
@@ -414,7 +414,13 @@ namespace Db2Source
             }
             UpdateData();
         }
-        private void ColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnItemPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CellInfo).OnItemPropertyChanged(e);
+        }
+
+        private void OnColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue == e.NewValue)
             {
@@ -423,7 +429,12 @@ namespace Db2Source
             UpdateData();
         }
 
-        private void IndexPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnColumnPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CellInfo).OnColumnPropertyChanged(e);
+        }
+
+        private void OnIndexPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.OldValue == e.NewValue)
             {
@@ -432,31 +443,22 @@ namespace Db2Source
             InvalidateIndexPropertyName();
             UpdateData();
         }
-        private void CellPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnIndexPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CellInfo).OnIndexPropertyChanged(e);
+        }
+
+        private void OnCellPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             DataGridCell cell = e.NewValue as DataGridCell;
             _grid = App.FindVisualParent<DataGrid>(cell);
             UpdateData();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnCellPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ItemProperty)
-            {
-                ItemPropertyChanged(e);
-            }
-            if (e.Property == ColumnProperty)
-            {
-                ColumnPropertyChanged(e);
-            }
-            if (e.Property == IndexProperty)
-            {
-                IndexPropertyChanged(e);
-            }
-            if (e.Property == CellProperty)
-            {
-                CellPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as CellInfo).OnCellPropertyChanged(e);
         }
     }
 
@@ -1202,14 +1204,14 @@ namespace Db2Source
 
     public class DataGridController: DependencyObject, IChangeSet
     {
-        public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(DataGridController));
-        public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(DataGridController));
-        public static readonly DependencyProperty SearchTextProperty = DependencyProperty.Register("SearchText", typeof(string), typeof(DataGridController));
-        public static readonly DependencyProperty IgnoreCaseProperty = DependencyProperty.Register("IgnoreCase", typeof(bool), typeof(DataGridController));
-        public static readonly DependencyProperty WordwrapProperty = DependencyProperty.Register("Wordwrap", typeof(bool), typeof(DataGridController));
-        public static readonly DependencyProperty UseRegexProperty = DependencyProperty.Register("UseRegex", typeof(bool), typeof(DataGridController));
-        public static readonly DependencyProperty UseSearchColumnProperty = DependencyProperty.Register("UseSearchColumn", typeof(bool), typeof(DataGridController));
-        public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController));
+        public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnGridPropertyChanged)));
+        public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnIsModifiedPropertyChanged)));
+        public static readonly DependencyProperty SearchTextProperty = DependencyProperty.Register("SearchText", typeof(string), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnSearchTextPropertyChanged)));
+        public static readonly DependencyProperty IgnoreCaseProperty = DependencyProperty.Register("IgnoreCase", typeof(bool), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnIgnoreCasePropertyChanged)));
+        public static readonly DependencyProperty WordwrapProperty = DependencyProperty.Register("Wordwrap", typeof(bool), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnWordwrapPropertyChanged)));
+        public static readonly DependencyProperty UseRegexProperty = DependencyProperty.Register("UseRegex", typeof(bool), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnUseRegexPropertyChanged)));
+        public static readonly DependencyProperty UseSearchColumnProperty = DependencyProperty.Register("UseSearchColumn", typeof(bool), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnUseSearchColumnPropertyChanged)));
+        public static readonly DependencyProperty SearchColumnProperty = DependencyProperty.Register("SearchColumn", typeof(DataGridColumn), typeof(DataGridController), new PropertyMetadata(new PropertyChangedCallback(OnSearchColumnPropertyChanged)));
         public static readonly DependencyProperty RowsProperty = DependencyProperty.Register("Rows", typeof(RowCollection), typeof(DataGridController));
         public static readonly DependencyProperty HasErrorProperty = DependencyProperty.Register("HasError", typeof(bool), typeof(DataGridController));
 
@@ -1443,71 +1445,81 @@ namespace Db2Source
             GridPropertyChanged?.Invoke(this, e);
         }
 
+        private static void OnGridPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnGridPropertyChanged(e);
+        }
+
         public void OnIsModifiedPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
 
         }
+
+        private static void OnIsModifiedPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnIsModifiedPropertyChanged(e);
+        }
+
         public void OnSearchTextPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateSearchEnd();
         }
+
+        private static void OnSearchTextPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnSearchTextPropertyChanged(e);
+        }
+
         public void OnIgnoreCasePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
 
         }
+
+        private static void OnIgnoreCasePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnIgnoreCasePropertyChanged(e);
+        }
+
         public void OnWordwrapPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateMatchTextProc();
         }
+
+        private static void OnWordwrapPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnWordwrapPropertyChanged(e);
+        }
+
         public void OnUseRegexPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateMatchTextProc();
         }
+
+        private static void OnUseRegexPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnUseRegexPropertyChanged(e);
+        }
+
         public void OnUseSearchColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateMatchTextProc();
         }
+
+        private static void OnUseSearchColumnPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DataGridController).OnUseSearchColumnPropertyChanged(e);
+        }
+
         public void OnSearchColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateMatchTextProc();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnSearchColumnPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == GridProperty)
-            {
-                OnGridPropertyChanged(e);
-            }
-            if (e.Property == IsModifiedProperty)
-            {
-                OnIsModifiedPropertyChanged(e);
-            }
-            if (e.Property == SearchTextProperty)
-            {
-                OnSearchTextPropertyChanged(e);
-            }
-            if (e.Property == IgnoreCaseProperty)
-            {
-                OnIgnoreCasePropertyChanged(e);
-            }
-            if (e.Property == WordwrapProperty)
-            {
-                OnWordwrapPropertyChanged(e);
-            }
-            if (e.Property == UseRegexProperty)
-            {
-                OnUseRegexPropertyChanged(e);
-            }
-            if (e.Property == UseSearchColumnProperty)
-            {
-                OnUseSearchColumnPropertyChanged(e);
-            }
-            if (e.Property == SearchColumnProperty)
-            {
-                OnSearchColumnPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as DataGridController).OnSearchColumnPropertyChanged(e);
         }
+
         public event EventHandler<CellValueChangedEventArgs> CellValueChanged;
         protected internal void OnCellValueChanged(CellValueChangedEventArgs e)
         {

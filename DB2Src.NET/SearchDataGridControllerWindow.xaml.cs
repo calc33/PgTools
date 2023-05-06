@@ -20,7 +20,7 @@ namespace Db2Source
     /// </summary>
     public partial class SearchDataGridControllerWindow: Window
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(DataGridController), typeof(SearchDataGridControllerWindow));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(DataGridController), typeof(SearchDataGridControllerWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         //private DataGridController _target;
         //private int _startRow = -1;
         //private int _startCol = -1;
@@ -67,13 +67,9 @@ namespace Db2Source
             UpdateComboBoxColumn();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SearchDataGridControllerWindow).OnTargetPropertyChanged(e);
         }
 
         public SearchDataGridControllerWindow()

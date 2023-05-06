@@ -20,7 +20,7 @@ namespace Db2Source
     /// </summary>
     public partial class PgsqlUserControl : UserControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlUser), typeof(PgsqlUserControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlUser), typeof(PgsqlUserControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register("IsReadOnly", typeof(bool), typeof(PgsqlUserControl));
         public static readonly DependencyProperty IsNewProperty = DependencyProperty.Register("IsNew", typeof(bool), typeof(PgsqlUserControl));
         public static readonly DependencyProperty GrantTextProperty = DependencyProperty.Register("GrantText", typeof(string), typeof(PgsqlUserControl));
@@ -128,19 +128,15 @@ namespace Db2Source
             DelayedUpdateGrantText();
         }
 
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as PgsqlUserControl)?.OnTargetPropertyChanged(e);
+        }
+
         private void Target_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             UpdateIsNew();
             DelayedUpdateGrantText();
-        }
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
         }
 
         public PgsqlUserControl()

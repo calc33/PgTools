@@ -13,7 +13,7 @@ namespace Db2Source
 {
     public partial class CrossTable: DependencyObject
     {
-        public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(IEnumerable), typeof(CrossTable));
+        public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(IEnumerable), typeof(CrossTable), new PropertyMetadata(new PropertyChangedCallback(OnItemsSourcePropertyChanged)));
 
         private SortedList<AxisValueArray, SummaryCell> _cells = null;
         private object _recordsLock = new object();
@@ -360,19 +360,15 @@ namespace Db2Source
             set { SetValue(ItemsSourceProperty, value); }
         }
 
-        private void ItemsSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnItemsSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             InvalidateAxisCandidates();
             InvalidateCells();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnItemsSourcePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ItemsSourceProperty)
-            {
-                ItemsSourcePropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as CrossTable)?.OnItemsSourcePropertyChanged(e);
         }
 
         public CrossTable()

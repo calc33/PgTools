@@ -23,11 +23,11 @@ namespace Db2Source
     /// </summary>
     public partial class CrossGrid : UserControl
     {
-        public static readonly DependencyProperty RowAxisesProperty = DependencyProperty.Register("RowAxises", typeof(AxisCollection), typeof(CrossGrid));
-        public static readonly DependencyProperty ColumnAxisesProperty = DependencyProperty.Register("ColumnAxises", typeof(AxisCollection), typeof(CrossGrid));
-        public static readonly DependencyProperty FilterAxisesProperty = DependencyProperty.Register("FilterAxises", typeof(AxisCollection), typeof(CrossGrid));
+        public static readonly DependencyProperty RowAxisesProperty = DependencyProperty.Register("RowAxises", typeof(AxisCollection), typeof(CrossGrid), new PropertyMetadata(new PropertyChangedCallback(OnRowAxisesPropertyChanged)));
+        public static readonly DependencyProperty ColumnAxisesProperty = DependencyProperty.Register("ColumnAxises", typeof(AxisCollection), typeof(CrossGrid), new PropertyMetadata(new PropertyChangedCallback(OnColumnAxisesPropertyChanged)));
+        public static readonly DependencyProperty FilterAxisesProperty = DependencyProperty.Register("FilterAxises", typeof(AxisCollection), typeof(CrossGrid), new PropertyMetadata(new PropertyChangedCallback(OnFilterAxisesPropertyChanged)));
         //public static readonly DependencyProperty AnimationAxisesProperty = DependencyProperty.Register("AnimationAxises", typeof(AxisCollection), typeof(CrossGrid));
-        public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(CrossTable), typeof(CrossGrid));
+        public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(CrossTable), typeof(CrossGrid), new PropertyMetadata(new PropertyChangedCallback(OnItemsSourcePropertyChanged)));
         public static readonly DependencyProperty SummaryOrientationProperty = DependencyProperty.Register("SummaryOrientation", typeof(Orientation), typeof(CrossGrid));
 
         private CrossTable _table;
@@ -363,34 +363,44 @@ namespace Db2Source
             Dispatcher.InvokeAsync(UpdateAxisSource, DispatcherPriority.Normal);
         }
 
-        private void ItemsSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            DelayedUpdateAxisSource();
-        }
-        private void RowAxisesPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            DelayedUpdateAxisSource();
-        }
-        private void ColumnAxisesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnItemsSourcePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             DelayedUpdateAxisSource();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnItemsSourcePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ItemsSourceProperty)
-            {
-                ItemsSourcePropertyChanged(e);
-            }
-            if (e.Property == RowAxisesProperty)
-            {
-                RowAxisesPropertyChanged(e);
-            }
-            if (e.Property == ColumnAxisesProperty)
-            {
-                ColumnAxisesPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as CrossGrid)?.OnItemsSourcePropertyChanged(e);
+        }
+
+        private void OnRowAxisesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DelayedUpdateAxisSource();
+        }
+
+        private static void OnRowAxisesPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CrossGrid)?.OnRowAxisesPropertyChanged(e);
+        }
+
+        private void OnColumnAxisesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DelayedUpdateAxisSource();
+        }
+
+        private static void OnColumnAxisesPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CrossGrid)?.OnColumnAxisesPropertyChanged(e);
+        }
+
+        private void OnFilterAxisesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            DelayedUpdateAxisSource();
+        }
+
+        private static void OnFilterAxisesPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as CrossGrid)?.OnFilterAxisesPropertyChanged(e);
         }
 
         private void scrollViewerBody_ScrollChanged(object sender, ScrollChangedEventArgs e)

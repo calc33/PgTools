@@ -24,7 +24,7 @@ namespace Db2Source
     /// </summary>
     public partial class ViewControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(View), typeof(ViewControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(View), typeof(ViewControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(ViewControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(ViewControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(ViewControl));
@@ -110,7 +110,7 @@ namespace Db2Source
             InitializeComponent();
         }
 
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             dataGridColumns.ItemsSource = Target?.Columns;
             _dropDownController.Target = Target;
@@ -119,13 +119,9 @@ namespace Db2Source
             Dispatcher.InvokeAsync(Fetch);
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ViewControl)?.OnTargetPropertyChanged(e);
         }
 
         private void UpdateTextBlockWarningLimit()

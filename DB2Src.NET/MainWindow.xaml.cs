@@ -39,9 +39,9 @@ namespace Db2Source
     {
         private string TitleBase;
         public static readonly Type[] ConnectionInfoTypes = new Type[] { typeof(NpgsqlConnectionInfo) };
-        public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow));
-        public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow));
-        public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow));
+        public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnCurrentDataSetPropertyChanged)));
+        public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnConnectionStatusPropertyChanged)));
+        public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnMultipleSelectionModePropertyChanged)));
 
         public static MainWindow Current { get; private set; } = null;
         public Db2SourceContext CurrentDataSet
@@ -400,7 +400,7 @@ namespace Db2Source
             OpenViewer(obj);
         }
 
-        protected void CurrentDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        protected void OnCurrentDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (CurrentDataSet == null)
             {
@@ -412,14 +412,23 @@ namespace Db2Source
             //CurrentDataSet.SchemaLoaded += CurrentDataSet_SchemaLoaded;
         }
 
-        protected void ConnectionStatusPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnCurrentDataSetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as MainWindow)?.OnCurrentDataSetPropertyChanged(e);
+        }
+
+        protected void OnConnectionStatusPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             gridLoading.Visibility = (ConnectionStatus != SchemaConnectionStatus.Done) ? Visibility.Visible : Visibility.Collapsed;
             textBlockConnecting.Visibility = (ConnectionStatus == SchemaConnectionStatus.Connecting) ? Visibility.Visible : Visibility.Collapsed;
             textBlockLoading.Visibility = (ConnectionStatus == SchemaConnectionStatus.Loading) ? Visibility.Visible : Visibility.Collapsed;
         }
+        private static void OnConnectionStatusPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as MainWindow)?.OnConnectionStatusPropertyChanged(e);
+        }
 
-        protected void MultipleSelectionModePropertyChanged(DependencyPropertyChangedEventArgs e)
+        protected void OnMultipleSelectionModePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (menuItemMultiSelMode.IsChecked != MultipleSelectionMode)
             {
@@ -427,6 +436,12 @@ namespace Db2Source
             }
             Dispatcher.InvokeAsync(UpdateTreeViewDB, DispatcherPriority.Background);
         }
+
+        private static void OnMultipleSelectionModePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as MainWindow)?.OnMultipleSelectionModePropertyChanged(e);
+        }
+
         private void CurrentDataSet_Log(object sender, LogEventArgs e)
         {
             LogListBoxItem item = new LogListBoxItem()
@@ -446,18 +461,6 @@ namespace Db2Source
         {
             try
             {
-                if (e.Property == CurrentDataSetProperty)
-                {
-                    CurrentDataSetPropertyChanged(e);
-                }
-                if (e.Property == ConnectionStatusProperty)
-                {
-                    ConnectionStatusPropertyChanged(e);
-                }
-                if (e.Property == MultipleSelectionModeProperty)
-                {
-                    MultipleSelectionModePropertyChanged(e);
-                }
                 base.OnPropertyChanged(e);
             }
             catch (Exception t)

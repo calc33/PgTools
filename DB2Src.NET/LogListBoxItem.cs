@@ -13,10 +13,10 @@ namespace Db2Source
 {
     public class LogListBoxItem: ListBoxItem
     {
-        public static readonly DependencyProperty TimeProperty = DependencyProperty.Register("Time", typeof(DateTime), typeof(LogListBoxItem));
-        public static readonly DependencyProperty StatusProperty = DependencyProperty.Register("Status", typeof(LogStatus), typeof(LogListBoxItem));
-        public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(LogListBoxItem));
-        public static readonly DependencyProperty QueryProperty = DependencyProperty.Register("Query", typeof(QueryHistory.Query), typeof(LogListBoxItem));
+        public static readonly DependencyProperty TimeProperty = DependencyProperty.Register("Time", typeof(DateTime), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnTimePropertyChanged)));
+        public static readonly DependencyProperty StatusProperty = DependencyProperty.Register("Status", typeof(LogStatus), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnStatusPropertyChanged)));
+        public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnMessagePropertyChanged)));
+        public static readonly DependencyProperty QueryProperty = DependencyProperty.Register("Query", typeof(QueryHistory.Query), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnQueryPropertyChanged)));
         public static readonly DependencyProperty ErrorPositionProperty = DependencyProperty.Register("ErrorPosition", typeof(Tuple<int,int>), typeof(LogListBoxItem));
         public static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
         private static readonly Dictionary<LogStatus, Brush> LogStatusToBrush = new Dictionary<LogStatus, Brush>()
@@ -86,11 +86,18 @@ namespace Db2Source
                 SetValue(ErrorPositionProperty, value);
             }
         }
-        private void TimePropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private void OnTimePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             textBlockTime.Text = Time.ToString("HH:mm:ss.fff ");
         }
-        private void StatusPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnTimePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as LogListBoxItem)?.OnTimePropertyChanged(e);
+        }
+
+        private void OnStatusPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Brush b;
             if (!LogStatusToBrush.TryGetValue(Status, out b))
@@ -99,38 +106,31 @@ namespace Db2Source
             }
             textBlockText.Foreground = b;
         }
-        private void TextPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnStatusPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as LogListBoxItem)?.OnStatusPropertyChanged(e);
+        }
+
+        private void OnMessagePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             textBlockText.Text = Message.TrimEnd();
         }
-        private void QueryPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnMessagePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as LogListBoxItem)?.OnMessagePropertyChanged(e);
+        }
+
+        private void OnQueryPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             buttonRedo.Visibility = (Query == null) ? Visibility.Collapsed : Visibility.Visible;
             ToolTip = Query?.SqlText;
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnQueryPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TimeProperty)
-            {
-                TimePropertyChanged(e);
-            }
-            if (e.Property == MessageProperty)
-            {
-                TextPropertyChanged(e);
-            }
-            if (e.Property == StatusProperty)
-            {
-                StatusPropertyChanged(e);
-            }
-            //if (e.Property == SqlProperty)
-            //{
-            //    SqlPropertyChanged(e);
-            //}
-            if (e.Property == QueryProperty)
-            {
-                QueryPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as LogListBoxItem)?.OnQueryPropertyChanged(e);
         }
 
         private TextBlock textBlockTime;

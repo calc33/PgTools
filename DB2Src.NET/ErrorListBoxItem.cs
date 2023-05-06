@@ -13,7 +13,7 @@ namespace Db2Source
 {
     public class ErrorListBoxItem: ListBoxItem
     {
-        public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(ErrorListBoxItem));
+        public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(ErrorListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnMessagePropertyChanged)));
         public static readonly DependencyProperty ErrorPositionProperty = DependencyProperty.Register("ErrorPosition", typeof(Tuple<int, int>), typeof(ErrorListBoxItem));
         public static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
         private static readonly Dictionary<LogStatus, Brush> LogStatusToBrush = new Dictionary<LogStatus, Brush>()
@@ -49,17 +49,14 @@ namespace Db2Source
                 SetValue(ErrorPositionProperty, value);
             }
         }
-        private void TextPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnMessagePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             textBlockText.Text = Message.TrimEnd();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnMessagePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == MessageProperty)
-            {
-                TextPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ErrorListBoxItem)?.OnMessagePropertyChanged(e);
         }
 
         private TextBlock textBlockText;

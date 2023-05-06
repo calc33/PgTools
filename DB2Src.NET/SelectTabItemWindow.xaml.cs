@@ -21,7 +21,7 @@ namespace Db2Source
     /// </summary>
     public partial class SelectTabItemWindow: Window
     {
-        public static readonly DependencyProperty TabControlProperty = DependencyProperty.Register("TabControl", typeof(TabControl), typeof(SelectTabItemWindow));
+        public static readonly DependencyProperty TabControlProperty = DependencyProperty.Register("TabControl", typeof(TabControl), typeof(SelectTabItemWindow), new PropertyMetadata(new PropertyChangedCallback(OnTabControlPropertyChanged)));
         public static readonly DependencyProperty SelectedTabItemProperty = DependencyProperty.Register("SelectedTabItem", typeof(TabItem), typeof(SelectTabItemWindow));
         public SelectTabItemWindow()
         {
@@ -175,18 +175,15 @@ namespace Db2Source
             listBoxColumns.SelectedItem = sel;
         }
 
-        private void GridPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTabControlPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateWidth();
             UpdateFilter();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnTabControlPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TabControlProperty)
-            {
-                GridPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SelectTabItemWindow)?.OnTabControlPropertyChanged(e);
         }
 
         private void CommitSelection()

@@ -24,11 +24,7 @@ namespace Db2Source
         internal class Evaluator : FrameworkElement
         {
             public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(Evaluator));
-            protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-            {
-                   
-                base.OnPropertyChanged(e);
-            }
+
             public string Text
             {
                 get
@@ -334,7 +330,7 @@ namespace Db2Source
             }
         }
 
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(DataGrid), typeof(SearchDataGridWindow));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(DataGrid), typeof(SearchDataGridWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty SearchTextProperty = DependencyProperty.Register("SearchText", typeof(string), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty IgnoreCaseProperty = DependencyProperty.Register("IgnoreCase", typeof(bool), typeof(SearchDataGridWindow));
         public static readonly DependencyProperty WordwrapProperty = DependencyProperty.Register("Wordwrap", typeof(bool), typeof(SearchDataGridWindow));
@@ -424,13 +420,9 @@ namespace Db2Source
             _displayColumns.Sort(CompareDataGridColumnByDisplayIndex);
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SearchDataGridWindow).OnTargetPropertyChanged(e);
         }
 
         private DataGridCellInfo FirstCell()

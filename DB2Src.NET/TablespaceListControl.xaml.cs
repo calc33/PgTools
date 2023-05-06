@@ -23,8 +23,8 @@ namespace Db2Source
     public partial class TablespaceListControl : UserControl
     {
         public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(TablespaceListControl));
-        public static readonly DependencyProperty CurrentProperty = DependencyProperty.Register("Current", typeof(PgsqlTablespace), typeof(TablespaceListControl));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlTablespace), typeof(TablespaceListControl));
+        public static readonly DependencyProperty CurrentProperty = DependencyProperty.Register("Current", typeof(PgsqlTablespace), typeof(TablespaceListControl), new PropertyMetadata(new PropertyChangedCallback(OnCurrentPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlTablespace), typeof(TablespaceListControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         //public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(TableSpaceListControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(TablespaceListControl));
 
@@ -138,21 +138,18 @@ namespace Db2Source
             Revert();
         }
 
-        //private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
-        //{
-        //}
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnCurrentPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            //if (e.Property == TargetProperty)
-            //{
-            //    OnTargetPropertyChanged(e);
-            //}
-            if (e.Property == CurrentProperty)
-            {
-                OnCurrentPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as TablespaceListControl)?.OnCurrentPropertyChanged(e);
+        }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+        }
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as TablespaceListControl)?.OnTargetPropertyChanged(e);
         }
 
         public TablespaceListControl()

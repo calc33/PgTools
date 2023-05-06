@@ -23,8 +23,8 @@ namespace Db2Source
     {
         //public static readonly DependencyProperty ColorProperty = DependencyProperty.Register("Color", typeof(Color), typeof(ColorPickerControl));
         //public static readonly DependencyProperty ColorBrushProperty = DependencyProperty.Register("ColorBrush", typeof(SolidColorBrush), typeof(ColorPickerControl));
-        public static readonly DependencyProperty RGBProperty = DependencyProperty.Register("RGB", typeof(Color), typeof(ColorPickerControl));
-        public static readonly DependencyProperty HSVProperty = DependencyProperty.Register("HSV", typeof(Color), typeof(ColorPickerControl));
+        public static readonly DependencyProperty RGBProperty = DependencyProperty.Register("RGB", typeof(Color), typeof(ColorPickerControl), new PropertyMetadata(new PropertyChangedCallback(OnRGBPropertyChanged)));
+        public static readonly DependencyProperty HSVProperty = DependencyProperty.Register("HSV", typeof(Color), typeof(ColorPickerControl), new PropertyMetadata(new PropertyChangedCallback(OnHSVPropertyChanged)));
         public static readonly DependencyProperty RedProperty = DependencyProperty.Register("Red", typeof(byte), typeof(ColorPickerControl));
         public static readonly DependencyProperty GreenProperty = DependencyProperty.Register("Green", typeof(byte), typeof(ColorPickerControl));
         public static readonly DependencyProperty BlueProperty = DependencyProperty.Register("Blue", typeof(byte), typeof(ColorPickerControl));
@@ -141,14 +141,20 @@ namespace Db2Source
             }
         }
 
-        private void RGBPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnRGBPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (tabControlMain.SelectedItem == tabItemRGB)
             {
                 HSV = RGB;
             }
         }
-        private void HSVPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnRGBPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ColorPickerControl).OnRGBPropertyChanged(e);
+        }
+
+        private void OnHSVPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (tabControlMain.SelectedItem == tabItemHSV)
             {
@@ -156,17 +162,9 @@ namespace Db2Source
             }
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnHSVPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == RGBProperty)
-            {
-                RGBPropertyChanged(e);
-            }
-            if (e.Property == HSVProperty)
-            {
-                HSVPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ColorPickerControl).OnHSVPropertyChanged(e);
         }
 
         public ColorPickerControl()

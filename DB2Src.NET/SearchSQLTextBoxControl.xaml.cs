@@ -23,7 +23,7 @@ namespace Db2Source
     /// </summary>
     public partial class SearchSQLTextBoxControl: UserControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(SQLTextBox), typeof(SearchSQLTextBoxControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(SQLTextBox), typeof(SearchSQLTextBoxControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         private static readonly RotateTransform _rotate90 = new RotateTransform(90);
         public RotateTransform Rotate90 { get { return _rotate90; } }
         private static Dictionary<SQLTextBox, SearchSQLTextBoxControl> _textBoxToSearchTextBoxControl = new Dictionary<SQLTextBox, SearchSQLTextBoxControl>();
@@ -206,14 +206,11 @@ namespace Db2Source
             }
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SearchSQLTextBoxControl).OnTargetPropertyChanged(e);
         }
+
         protected override void OnVisualParentChanged(DependencyObject oldParent)
         {
             //FrameworkElement elem = Parent as FrameworkElement;

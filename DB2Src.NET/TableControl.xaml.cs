@@ -76,11 +76,11 @@ namespace Db2Source
     /// </summary>
     public partial class TableControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableControl));
-        public static readonly DependencyProperty JoinTablesProperty = DependencyProperty.Register("JoinTables", typeof(JoinTableCollection), typeof(TableControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty JoinTablesProperty = DependencyProperty.Register("JoinTables", typeof(JoinTableCollection), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnJoinTablesPropertyChanged)));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(TableControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(TableControl));
-        public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl));
+        public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnVisibleLevelPropertyChanged)));
         //public static readonly DependencyProperty SelectedTriggerProperty = DependencyProperty.Register("SelectedTrigger", typeof(Trigger), typeof(TableControl));
 
         private HiddenLevelDisplayItem[] HiddenLevelItems = new HiddenLevelDisplayItem[0];
@@ -221,7 +221,7 @@ namespace Db2Source
             JoinTables = new JoinTableCollection();
         }
         
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Dispatcher.InvokeAsync(() =>
             {
@@ -245,6 +245,10 @@ namespace Db2Source
                 Fetch();
             });
         }
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as TableControl)?.OnTargetPropertyChanged(e);
+        }
 
         private void JoinTable_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -254,7 +258,7 @@ namespace Db2Source
             }
         }
 
-        private void JoinTablesPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnJoinTablesPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             JoinTableCollection l = (e.OldValue as JoinTableCollection);
             if (l != null)
@@ -269,9 +273,11 @@ namespace Db2Source
             }
         }
 
-        private void SelectedTriggerPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnJoinTablesPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
+            (target as TableControl)?.OnJoinTablesPropertyChanged(e);
         }
+
 
         private void JoinTables_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -279,7 +285,7 @@ namespace Db2Source
             DelayedUpdateTextBoxSelectSql();
         }
 
-        private void VisibleLevelPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnVisibleLevelPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue == e.OldValue)
             {
@@ -288,21 +294,9 @@ namespace Db2Source
             TryRefetch();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnVisibleLevelPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            if (e.Property == JoinTablesProperty)
-            {
-                JoinTablesPropertyChanged(e);
-            }
-            if (e.Property == VisibleLevelProperty)
-            {
-                VisibleLevelPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as TableControl)?.OnVisibleLevelPropertyChanged(e);
         }
 
         private void UpdateTextBlockWarningLimit()

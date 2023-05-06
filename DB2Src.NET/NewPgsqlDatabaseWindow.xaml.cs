@@ -21,8 +21,8 @@ namespace Db2Source
     /// </summary>
     public partial class NewPgsqlDatabaseWindow : Window
     {
-        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(NpgsqlDataSet), typeof(NewPgsqlDatabaseWindow));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlDatabase), typeof(NewPgsqlDatabaseWindow));
+        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(NpgsqlDataSet), typeof(NewPgsqlDatabaseWindow), new PropertyMetadata(new PropertyChangedCallback(OnDataSetPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlDatabase), typeof(NewPgsqlDatabaseWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
 
 
         public NpgsqlDataSet DataSet
@@ -40,28 +40,18 @@ namespace Db2Source
         private void InitDisplay()
         {
             comboBoxEncoding.ItemsSource = DataSet.GetEncodings();
-            DisplayItem[] tablespaces = DisplayItem.ToDisplayItemArray(DataSet.Tablespaces, "(無指定)", new PgsqlTablespace(null), "新規表領域");
-            DisplayItem[] users = DisplayItem.ToDisplayItemArray(DataSet.Users, null, new PgsqlUser(null) { }, "新規ユーザー");
+            PgsqlTablespace tsNew = new PgsqlTablespace(null);
+            tsNew.PropertyChanged += Target_PropertyChanged;
+            DisplayItem[] tablespaces = DisplayItem.ToDisplayItemArray(DataSet.Tablespaces, "(無指定)", tsNew, "新規表領域");
+            PgsqlUser userNew = new PgsqlUser(null);
+            userNew.PropertyChanged += Target_PropertyChanged;
+             DisplayItem[] users = DisplayItem.ToDisplayItemArray(DataSet.Users, null, userNew, "新規ユーザー");
             comboBoxTablespace.ItemsSource = tablespaces;
             tablespaceControl.UserItems = users;
             comboBoxOwner.ItemsSource = users;
             PgsqlDatabase tmpl = DataSet.DatabaseTemplates[0];
             Target = (tmpl != null) ? new PgsqlDatabase(tmpl) { Name = null } : new PgsqlDatabase(null, null);
-            Target.PropertyChanged += Target_PropertyChanged;
-            foreach (DisplayItem item in tablespaces)
-            {
-                if (item.IsNew)
-                {
-                    item.Item.PropertyChanged += Target_PropertyChanged;
-                }
-            }
-            foreach (DisplayItem item in users)
-            {
-                if (item.IsNew)
-                {
-                    item.Item.PropertyChanged += Target_PropertyChanged;
-                }
-            }
+            //Target.PropertyChanged += Target_PropertyChanged;
         }
 
         //private bool _isUpdateTextBoxSqlPosted;
@@ -115,18 +105,31 @@ namespace Db2Source
             //Dispatcher.InvokeAsync(UpdateTextBoxSql);
         }
 
-        private void DataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Dispatcher.InvokeAsync(InitDisplay);
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnDataSetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == DataSetProperty)
+            (target as NewPgsqlDatabaseWindow)?.OnDataSetPropertyChanged(e);
+        }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.OldValue is PgsqlDatabase dbOld)
             {
-                DataSetPropertyChanged(e);
+                dbOld.PropertyChanged -= Target_PropertyChanged;
             }
-            base.OnPropertyChanged(e);
+            if (e.NewValue is PgsqlDatabase dbNew)
+            {
+                dbNew.PropertyChanged += Target_PropertyChanged;
+            }
+        }
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as NewPgsqlDatabaseWindow)?.OnTargetPropertyChanged(e);
         }
 
         public NewPgsqlDatabaseWindow()

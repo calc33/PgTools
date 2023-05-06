@@ -27,7 +27,7 @@ namespace Db2Source
     /// </summary>
     public partial class StoredProcedureControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl));
@@ -169,7 +169,7 @@ namespace Db2Source
             }
         }
 
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Dispatcher.InvokeAsync(() =>
             {
@@ -181,13 +181,9 @@ namespace Db2Source
             });
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as StoredProcedureControl)?.OnTargetPropertyChanged(e);
         }
 
         private void UpdateDataGridParameters()
@@ -571,10 +567,10 @@ namespace Db2Source
     }
     public class ParamEditor: DependencyObject
     {
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(string), typeof(ParamEditor));
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(string), typeof(ParamEditor), new PropertyMetadata(new PropertyChangedCallback(OnValuePropertyChanged)));
         public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParamEditor));
         public static readonly DependencyProperty StringFormatProperty = DependencyProperty.Register("StringFormat", typeof(string), typeof(ParamEditor));
-        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(ParamEditor));
+        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(ParamEditor), new PropertyMetadata(new PropertyChangedCallback(OnIsNullPropertyChanged)));
         public static readonly DependencyProperty NewValueProperty = DependencyProperty.Register("NewValue", typeof(string), typeof(ParamEditor));
         private Parameter _parameter;
         private IDbDataParameter _dbParameter;
@@ -714,7 +710,7 @@ namespace Db2Source
             set { SetValue(NewValueProperty, value); }
         }
 
-        private void ValuePropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnValuePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (!string.IsNullOrEmpty(Value) && IsNull)
             {
@@ -722,7 +718,12 @@ namespace Db2Source
             }
         }
 
-        private void IsNullPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParamEditor)?.OnValuePropertyChanged(e);
+        }
+
+        private void OnIsNullPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (IsNull && !string.IsNullOrEmpty(Value))
             {
@@ -730,18 +731,11 @@ namespace Db2Source
             }
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnIsNullPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ValueProperty)
-            {
-                ValuePropertyChanged(e);
-            }
-            if (e.Property == IsNullProperty)
-            {
-                IsNullPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ParamEditor)?.OnIsNullPropertyChanged(e);
         }
+
         //public ParamEditor() { }
         public ParamEditor(Parameter param)
         {

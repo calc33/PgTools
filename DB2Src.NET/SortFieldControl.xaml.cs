@@ -20,8 +20,8 @@ namespace Db2Source
     /// </summary>
     public partial class SortFieldControl: UserControl
     {
-        public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register("Columns", typeof(ColumnCollection), typeof(SortFieldControl));
-        public static readonly DependencyProperty SelectedFieldProperty = DependencyProperty.Register("SelectedField", typeof(Column), typeof(SortFieldControl));
+        public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register("Columns", typeof(ColumnCollection), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnColumnsPropertyChanged)));
+        public static readonly DependencyProperty SelectedFieldProperty = DependencyProperty.Register("SelectedField", typeof(Column), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnSelectedFieldPropertyChanged)));
 
         public ColumnCollection Columns
         {
@@ -119,7 +119,7 @@ namespace Db2Source
             }
         }
 
-        private void SelectedFieldPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnSelectedFieldPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (SelectedField != null)
             {
@@ -134,22 +134,22 @@ namespace Db2Source
                 UpdateComboBoxField();
             }
         }
-        private void ColumnsPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnSelectedFieldPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as SortFieldControl)?.OnSelectedFieldPropertyChanged(e);
+        }
+
+        private void OnColumnsPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateComboBoxField();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnColumnsPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ColumnsProperty)
-            {
-                ColumnsPropertyChanged(e);
-            }
-            if (e.Property == SelectedFieldProperty)
-            {
-                SelectedFieldPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SortFieldControl)?.OnColumnsPropertyChanged(e);
         }
+
         public SortFieldControl()
         {
             InitializeComponent();

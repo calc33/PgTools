@@ -20,7 +20,7 @@ namespace Db2Source
     /// </summary>
     public partial class EditPgsqlSetting : Window
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlSetting), typeof(EditPgsqlSetting));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlSetting), typeof(EditPgsqlSetting), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty SettingWidthProperty = DependencyProperty.Register("SettingWidth", typeof(double), typeof(EditPgsqlSetting));
         //public static readonly DependencyProperty EnumValuesProperty = DependencyProperty.Register("EnumValues", typeof(string[]), typeof(EditPgsqlSetting));
         public PgsqlSetting Target
@@ -106,13 +106,10 @@ namespace Db2Source
                 Dispatcher.InvokeAsync(()=> { textBoxSetting.Focus(); textBoxSetting.SelectAll(); });
             }
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as EditPgsqlSetting)?.OnTargetPropertyChanged(e);
         }
 
         public EditPgsqlSetting()

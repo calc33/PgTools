@@ -22,9 +22,9 @@ namespace Db2Source
     /// </summary>
     public partial class RecordViewerWindow : Window
     {
-        public static readonly DependencyProperty TableProperty = DependencyProperty.Register("Table", typeof(Table), typeof(RecordViewerWindow));
-        public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(RecordViewerWindow));
-        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(Row), typeof(RecordViewerWindow));
+        public static readonly DependencyProperty TableProperty = DependencyProperty.Register("Table", typeof(Table), typeof(RecordViewerWindow), new PropertyMetadata(new PropertyChangedCallback(OnTablePropertyChanged)));
+        public static readonly DependencyProperty ColumnProperty = DependencyProperty.Register("Column", typeof(ColumnInfo), typeof(RecordViewerWindow), new PropertyMetadata(new PropertyChangedCallback(OnColumnPropertyChanged)));
+        public static readonly DependencyProperty RowProperty = DependencyProperty.Register("Row", typeof(Row), typeof(RecordViewerWindow), new PropertyMetadata(new PropertyChangedCallback(OnRowPropertyChanged)));
         public RecordViewerWindow()
         {
             InitializeComponent();
@@ -197,29 +197,30 @@ namespace Db2Source
         {
             DelayedUpdateGrid();
         }
+
+        private static void OnTablePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as RecordViewerWindow)?.OnTablePropertyChanged(e);
+        }
+
         private void OnColumnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             DelayedUpdateGrid();
         }
+
+        private static void OnColumnPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as RecordViewerWindow)?.OnColumnPropertyChanged(e);
+        }
+
         private void OnRowPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             DelayedUpdateGrid();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnRowPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            base.OnPropertyChanged(e);
-            if (e.Property == TableProperty)
-            {
-                OnTablePropertyChanged(e);
-            }
-            if (e.Property == ColumnProperty)
-            {
-                OnColumnPropertyChanged(e);
-            }
-            if (e.Property == RowProperty)
-            {
-                OnRowPropertyChanged(e);
-            }
+            (target as RecordViewerWindow)?.OnRowPropertyChanged(e);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)

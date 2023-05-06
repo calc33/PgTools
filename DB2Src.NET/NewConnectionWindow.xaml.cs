@@ -27,7 +27,7 @@ namespace Db2Source
     public partial class NewConnectionWindow: Window
     {
         public static DependencyProperty ConnectionListProperty = DependencyProperty.Register("ConnectionList", typeof(List<ConnectionInfo>), typeof(NewConnectionWindow));
-        public static DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ConnectionInfo), typeof(NewConnectionWindow));
+        public static DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ConnectionInfo), typeof(NewConnectionWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public List<ConnectionInfo> ConnectionList
         {
             get
@@ -227,6 +227,11 @@ namespace Db2Source
             StackPanelMain.UpdateLayout();
         }
 
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as NewConnectionWindow)?.OnTargetPropertyChanged(e);
+        }
+
         private void TextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             UpdateTitleColor();
@@ -292,15 +297,6 @@ namespace Db2Source
             }
             Target.Password = pb.Password;
             UpdateCheckBoxPasswordEnabled(tb);
-        }
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
         }
 
         public NewConnectionWindow()

@@ -25,7 +25,7 @@ namespace Db2Source
     /// </summary>
     public partial class ComplexTypeControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ComplexType), typeof(ComplexTypeControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(ComplexType), typeof(ComplexTypeControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(ComplexTypeControl));
 
         public ComplexType Target
@@ -94,19 +94,16 @@ namespace Db2Source
             }
             dataGridColumns.ItemsSource = Target?.Columns?.AllColumns;
         }
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateDataGridColumns();
             UpdateTextBoxSource();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as ComplexTypeControl)?.OnTargetPropertyChanged(e);
         }
 
         private static bool IsChecked(CheckBox checkBox)

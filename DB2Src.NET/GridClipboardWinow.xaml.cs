@@ -20,7 +20,7 @@ namespace Db2Source
     /// </summary>
     public partial class GridClipboardWindow : Window
     {
-        public static readonly DependencyProperty ClipboardProperty = DependencyProperty.Register("Clipboard", typeof(GridClipboard), typeof(GridClipboardWindow));
+        public static readonly DependencyProperty ClipboardProperty = DependencyProperty.Register("Clipboard", typeof(GridClipboard), typeof(GridClipboardWindow), new PropertyMetadata(new PropertyChangedCallback(OnClipboardPropertyChanged)));
         public static readonly DependencyProperty CellInfoProperty = DependencyProperty.RegisterAttached("CellInfo", typeof(GridClipboard.Cell), typeof(GridClipboardWindow));
 
         public static GridClipboard.Cell GetCellInfo(DependencyObject obj)
@@ -77,13 +77,9 @@ namespace Db2Source
             UpdateDataGridClipboardData();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnClipboardPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == ClipboardProperty)
-            {
-                OnClipboardPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as GridClipboardWindow)?.OnClipboardPropertyChanged(e);
         }
 
         private void checkBoxContainsHeader_Checked(object sender, RoutedEventArgs e)

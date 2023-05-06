@@ -23,8 +23,8 @@ namespace Db2Source
     public partial class UserListControl : UserControl
     {
         public static readonly DependencyProperty UsersProperty = DependencyProperty.Register("Users", typeof(ObservableCollection<User>), typeof(UserListControl));
-        public static readonly DependencyProperty CurrentProperty = DependencyProperty.Register("Current", typeof(PgsqlUser), typeof(UserListControl));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlUser), typeof(UserListControl));
+        public static readonly DependencyProperty CurrentProperty = DependencyProperty.Register("Current", typeof(PgsqlUser), typeof(UserListControl), new PropertyMetadata(new PropertyChangedCallback(OnCurrentPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlUser), typeof(UserListControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         //public static readonly DependencyProperty IsModifiedProperty = DependencyProperty.Register("IsModified", typeof(bool), typeof(UserListControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(UserListControl));
 
@@ -140,21 +140,18 @@ namespace Db2Source
             Revert();
         }
 
-        //private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
-        //{
-        //}
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnCurrentPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            //if (e.Property == TargetProperty)
-            //{
-            //    OnTargetPropertyChanged(e);
-            //}
-            if (e.Property == CurrentProperty)
-            {
-                OnCurrentPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as UserListControl)?.OnCurrentPropertyChanged(e);
+        }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+        }
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as UserListControl)?.OnTargetPropertyChanged(e);
         }
 
         public UserListControl()

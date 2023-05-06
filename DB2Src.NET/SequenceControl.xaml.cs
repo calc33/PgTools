@@ -22,7 +22,7 @@ namespace Db2Source
     /// </summary>
     public partial class SequenceControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Sequence), typeof(SequenceControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Sequence), typeof(SequenceControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(SequenceControl));
 
         public Sequence Target
@@ -77,18 +77,14 @@ namespace Db2Source
             }
         }
 
-        private void TargetChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateTextBoxSource();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SequenceControl)?.OnTargetPropertyChanged(e);
         }
 
         public SequenceControl()

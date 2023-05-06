@@ -21,8 +21,8 @@ namespace Db2Source
     /// </summary>
     public partial class TriggerControl : UserControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Trigger), typeof(TriggerControl));
-        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(TriggerControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Trigger), typeof(TriggerControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(TriggerControl), new PropertyMetadata(new PropertyChangedCallback(OnIsEditingPropertyChanged)));
 
         public Trigger Target
         {
@@ -48,7 +48,7 @@ namespace Db2Source
             }
         }
 
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Trigger t = Target;
             checkBoxInsertTrigger.IsChecked = (t != null) && ((t.Event & TriggerEvent.Insert) != 0);
@@ -69,7 +69,13 @@ namespace Db2Source
                 textBoxTriggerBodySQL.Text = string.Empty;
             }
         }
-        private void IsEditingPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as TriggerControl)?.OnTargetPropertyChanged(e);
+        }
+
+        private void OnIsEditingPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (IsEditing)
             {
@@ -77,17 +83,9 @@ namespace Db2Source
             }
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnIsEditingPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            if (e.Property == IsEditingProperty)
-            {
-                IsEditingPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as TriggerControl)?.OnIsEditingPropertyChanged(e);
         }
 
         private void buttonApplyTrigger_Click(object sender, RoutedEventArgs e)

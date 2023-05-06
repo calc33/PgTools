@@ -22,7 +22,7 @@ namespace Db2Source
     /// </summary>
     public partial class SelectColumnWindow: Window
     {
-        public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(SelectColumnWindow));
+        public static readonly DependencyProperty GridProperty = DependencyProperty.Register("Grid", typeof(DataGrid), typeof(SelectColumnWindow), new PropertyMetadata(new PropertyChangedCallback(OnGridPropertyChanged)));
         public static readonly DependencyProperty SelectedColumnProperty = DependencyProperty.Register("SelectedColumn", typeof(DataGridColumn), typeof(SelectColumnWindow));
 
         public static readonly DependencyProperty IsMovingProperty = DependencyProperty.RegisterAttached("IsMoving", typeof(bool), typeof(SelectColumnWindow));
@@ -214,18 +214,15 @@ namespace Db2Source
             listBoxColumns.SelectedItem = sel;
         }
 
-        private void GridPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnGridPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateWidth();
             UpdateFilter();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+
+        private static void OnGridPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == GridProperty)
-            {
-                GridPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SelectColumnWindow)?.OnGridPropertyChanged(e);
         }
 
         private void CommitSelection()

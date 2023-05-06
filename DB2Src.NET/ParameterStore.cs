@@ -191,11 +191,11 @@ namespace Db2Source
     }
     public class ParameterStore: DependencyObject, IDataParameter, ICloneable
     {
-        public static readonly DependencyProperty DbTypeProperty = DependencyProperty.Register("DbType", typeof(DbType), typeof(ParameterStore));
-        public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register("Direction", typeof(ParameterDirection), typeof(ParameterStore));
-        public static readonly DependencyProperty ParameterNameProperty = DependencyProperty.Register("ParameterName", typeof(string), typeof(ParameterStore));
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(object), typeof(ParameterStore));
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(ParameterStore));
+        public static readonly DependencyProperty DbTypeProperty = DependencyProperty.Register("DbType", typeof(DbType), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnDbTypePropertyChanged)));
+        public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register("Direction", typeof(ParameterDirection), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnDirectionPropertyChanged)));
+        public static readonly DependencyProperty ParameterNameProperty = DependencyProperty.Register("ParameterName", typeof(string), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnParameterNamePropertyChanged)));
+        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(object), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnValuePropertyChanged)));
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnTextPropertyChanged)));
         public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParameterStore));
 
         public static ParameterStoreCollection AllParameters = new ParameterStoreCollection();
@@ -347,6 +347,11 @@ namespace Db2Source
             }
         }
 
+        private static void OnDbTypePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParameterStore)?.OnDbTypePropertyChanged(e);
+        }
+
         private void InvalidateDbTypeInfo()
         {
             _dbTypeInfo = null;
@@ -382,6 +387,12 @@ namespace Db2Source
             }
         }
 
+        private static void OnDirectionPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParameterStore)?.OnDirectionPropertyChanged(e);
+        }
+
+
         public bool IsNullable
         {
             get { return _isNullable; }
@@ -404,34 +415,14 @@ namespace Db2Source
 
         public event EventHandler<DependencyPropertyChangedEventArgs> ParameterNameChange;
 
-        protected void OnParameterNamePropertyChange(DependencyPropertyChangedEventArgs e)
+        protected void OnParameterNamePropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             ParameterNameChange?.Invoke(this, e);
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnParameterNamePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            base.OnPropertyChanged(e);
-            if (e.Property == DbTypeProperty)
-            {
-                OnDbTypePropertyChanged(e);
-            }
-            if (e.Property == DirectionProperty)
-            {
-                OnDirectionPropertyChanged(e);
-            }
-            if (e.Property == ParameterNameProperty)
-            {
-                OnParameterNamePropertyChange(e);
-            }
-            if (e.Property == TextProperty)
-            {
-                OnTextPropertyChange(e);
-            }
-            if (e.Property == ValueProperty)
-            {
-                OnValuePropertyChanged(e);
-            }
+            (target as ParameterStore)?.OnParameterNamePropertyChanged(e);
         }
 
         public string SourceColumn
@@ -485,6 +476,12 @@ namespace Db2Source
             }
             ValueChanged?.Invoke(this, e);
         }
+
+        private static void OnValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParameterStore)?.OnValuePropertyChanged(e);
+        }
+
         public string Text
         {
             get { return (string)GetValue(TextProperty); }
@@ -498,7 +495,7 @@ namespace Db2Source
             }
         }
         public event EventHandler<DependencyPropertyChangedEventArgs> TextChanged;
-        private void OnTextPropertyChange(DependencyPropertyChangedEventArgs e)
+        private void OnTextPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (DbTypeInfo == null)
             {
@@ -521,6 +518,12 @@ namespace Db2Source
             }
             TextChanged?.Invoke(this, e);
         }
+
+        private static void OnTextPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParameterStore)?.OnTextPropertyChanged(e);
+        }
+
         private void SetIsError(bool value)
         {
             SetValue(IsErrorProperty, value);

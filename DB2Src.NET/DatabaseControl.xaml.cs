@@ -22,10 +22,10 @@ namespace Db2Source
     /// </summary>
     public partial class DatabaseControl : UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(NpgsqlDataSet), typeof(DatabaseControl));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlDatabase), typeof(DatabaseControl));
-        public static readonly DependencyProperty UsersProperty = DependencyProperty.Register("Users", typeof(ObservableCollection<User>), typeof(DatabaseControl));
-        public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(DatabaseControl));
+        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(NpgsqlDataSet), typeof(DatabaseControl), new PropertyMetadata(new PropertyChangedCallback(OnDataSetPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlDatabase), typeof(DatabaseControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty UsersProperty = DependencyProperty.Register("Users", typeof(ObservableCollection<User>), typeof(DatabaseControl), new PropertyMetadata(new PropertyChangedCallback(OnUsersPropertyChanged)));
+        public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(DatabaseControl), new PropertyMetadata(new PropertyChangedCallback(OnTablespacesPropertyChanged)));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(DatabaseControl));
         public static readonly DependencyProperty CurrentUserProperty = DependencyProperty.Register("CurrentUser", typeof(PgsqlUser), typeof(DatabaseControl));
         public NpgsqlDataSet DataSet
@@ -170,6 +170,12 @@ namespace Db2Source
             Tablespaces = new ObservableCollection<Tablespace>(DataSet.Tablespaces);
             CurrentUser = DataSet.Users[DataSet.ConnectionInfo.UserName] as PgsqlUser;
         }
+
+        private static void OnDataSetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DatabaseControl)?.OnDataSetPropertyChanged(e);
+        }
+
         private void UpdateComboBoxSettingCategory()
         {
             List<string> strs = new List<string>();
@@ -211,33 +217,27 @@ namespace Db2Source
             UpdateDataGridSetting();
         }
 
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DatabaseControl)?.OnTargetPropertyChanged(e);
+        }
+
         private void OnUsersPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
+        }
+
+        private static void OnUsersPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as DatabaseControl)?.OnUsersPropertyChanged(e);
         }
 
         private void OnTablespacesPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTablespacesPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == DataSetProperty)
-            {
-                OnDataSetPropertyChanged(e);
-            }
-            if (e.Property == TargetProperty)
-            {
-                OnTargetPropertyChanged(e);
-            }
-            if (e.Property == UsersProperty)
-            {
-                OnUsersPropertyChanged(e);
-            }
-            if (e.Property == TablespacesProperty)
-            {
-                OnTablespacesPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as DatabaseControl)?.OnTablespacesPropertyChanged(e);
         }
 
         public void OnTabClosing(object sender, ref bool cancel)

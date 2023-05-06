@@ -117,8 +117,8 @@ namespace Db2Source
                 _tokens = tokens.ToArray();
             }
         }
-        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(SQLTextBox));
-        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(SQLTextBox));
+        public static readonly DependencyProperty DataSetProperty = DependencyProperty.Register("DataSet", typeof(Db2SourceContext), typeof(SQLTextBox), new PropertyMetadata(new PropertyChangedCallback(OnDataSetPropertyChanged)));
+        public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(SQLTextBox), new PropertyMetadata(new PropertyChangedCallback(OnTextPropertyChanged)));
         public static readonly DependencyProperty SyntaxDecorationsProperty = DependencyProperty.Register("SyntaxDecorations", typeof(SyntaxDecorationCollection), typeof(SQLTextBox));
 
         public static SyntaxDecorationCollection DefaultDecolations;
@@ -787,6 +787,12 @@ namespace Db2Source
             }
             DelayedUpdateDecoration();
         }
+
+        private static void OnDataSetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as SQLTextBox)?.OnDataSetPropertyChanged(e);
+        }
+
         private void OnTextPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (_plainTextUpdating || _plainText == (string)e.NewValue)
@@ -796,19 +802,11 @@ namespace Db2Source
             _plainText = (string)e.NewValue;
             ApplyPlainText();
         }
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTextPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == DataSetProperty)
-            {
-                OnDataSetPropertyChanged(e);
-            }
-            if (e.Property == TextProperty)
-            {
-                OnTextPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as SQLTextBox)?.OnTextPropertyChanged(e);
         }
+
 
         public void Select(int start, int length)
         {
