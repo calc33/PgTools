@@ -100,25 +100,62 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AwaitWindow.xaml.cs">
+    <Compile Include="Converter\DataGridCellToCellConverter.cs" />
+    <Compile Include="Converter\ForeignKeyRuleConverter.cs" />
+    <Compile Include="Converter\HeaderBackgroundConverter.cs" />
+    <Compile Include="Converter\HeaderFontWeightConverter.cs" />
+    <Compile Include="Converter\IsErrorBrushConverter.cs" />
+    <Compile Include="Converter\JoinKindToVisibilityConverter.cs" />
+    <Compile Include="Converter\JoinTableCandidatesCountToEnabledConverter.cs" />
+    <Compile Include="Converter\LevelWidthConverter.cs" />
+    <Compile Include="Converter\MultiBooleanToVisibilityConverter.cs" />
+    <Compile Include="Converter\NotNullTextConverter.cs" />
+    <Compile Include="Converter\PgsqlColumnArrayToTextConverter.cs" />
+    <Compile Include="Converter\RefButtonVisibilityConverter.cs" />
+    <Compile Include="Converter\TimestampTextConverter.cs" />
+    <Compile Include="Converter\TypeToHorizontalAlignementConverter.cs" />
+    <Compile Include="Converter\VisibilityToBooleanConverter.cs" />
+    <Compile Include="Dialog\AwaitWindow.xaml.cs">
       <DependentUpon>AwaitWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ChangePasswordWindow.xaml.cs">
+    <Compile Include="Dialog\ChangePasswordWindow.xaml.cs">
       <DependentUpon>ChangePasswordWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ColorPickerControl.xaml.cs">
+    <Compile Include="Dialog\ColorPickerControl.xaml.cs">
       <DependentUpon>ColorPickerControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ColorPickerWindow.xaml.cs">
+    <Compile Include="Dialog\ColorPickerWindow.xaml.cs">
       <DependentUpon>ColorPickerWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ColumnCheckListWindow.xaml.cs">
+    <Compile Include="Dialog\ColumnCheckListWindow.xaml.cs">
       <DependentUpon>ColumnCheckListWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="CompleteFields.xaml.cs">
       <DependentUpon>CompleteFields.xaml</DependentUpon>
     </Compile>
     <Compile Include="ConnectionInfoTreeView.cs" />
+    <Compile Include="Converter\BrightnessSliderBrushConverter.cs" />
+    <Compile Include="Converter\ColorToBrushConverter.cs" />
+    <Compile Include="Converter\ColumnInfoConverter.cs" />
+    <Compile Include="Converter\DataGridCellToCellInfoConverter.cs" />
+    <Compile Include="Converter\FamilyTypefaceConverter.cs" />
+    <Compile Include="Converter\FontFamilyConverter.cs" />
+    <Compile Include="Converter\HasErrorToVisibilityConverter.cs" />
+    <Compile Include="Converter\HideNewItemPlaceHolderConverter.cs" />
+    <Compile Include="Converter\HSBToColorConverter.cs" />
+    <Compile Include="Converter\HueSliderBrushConverter.cs" />
+    <Compile Include="Converter\InvertBooleanConverter.cs" />
+    <Compile Include="Converter\InvertBooleanToVisibilityConverter.cs" />
+    <Compile Include="Converter\IsEnabledToColorConverter.cs" />
+    <Compile Include="Converter\ItemsSourceToColumnFilterButtonVisibilityConverter.cs" />
+    <Compile Include="Converter\NotNullOrEmptyToBooleanConverter.cs" />
+    <Compile Include="Converter\NotNullToBooleanConverter.cs" />
+    <Compile Include="Converter\NullableIntConverter.cs" />
+    <Compile Include="Converter\RGBToBrushConverter.cs" />
+    <Compile Include="Converter\RGBToColorConverter.cs" />
+    <Compile Include="Converter\RowVisibleConverter.cs" />
+    <Compile Include="Converter\SatulationSliderBrushConverter.cs" />
+    <Compile Include="Converter\StrArayToTextConverter.cs" />
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>
@@ -129,7 +166,7 @@
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="CsvUtil.cs" />
-    <Compile Include="SearchSQLTextBoxControl.xaml.cs">
+    <Compile Include="Dialog\SearchSQLTextBoxControl.xaml.cs">
       <DependentUpon>SearchSQLTextBoxControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="SyntaxDecoration.cs" />
@@ -138,7 +175,7 @@
     <Compile Include="EditPgsqlSetting.xaml.cs">
       <DependentUpon>EditPgsqlSetting.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FontDialog.xaml.cs">
+    <Compile Include="Dialog\FontDialog.xaml.cs">
       <DependentUpon>FontDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="FontPack.cs" />
@@ -164,7 +201,7 @@
     </Compile>
     <Compile Include="DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
-    <Compile Include="EditConnectionListWindow.xaml.cs">
+    <Compile Include="Dialog\EditConnectionListWindow.xaml.cs">
       <DependentUpon>EditConnectionListWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="EnumTypeControl.xaml.cs">
@@ -205,28 +242,28 @@
     <Compile Include="RegUtil.cs" />
     <Compile Include="RegUtil.win32.cs" />
     <Compile Include="RegUtil.wpf.cs" />
-    <Compile Include="SearchDataGridControllerWindow.xaml.cs">
+    <Compile Include="Dialog\SearchDataGridControllerWindow.xaml.cs">
       <DependentUpon>SearchDataGridControllerWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SearchDataGridWindow.xaml.cs">
+    <Compile Include="Dialog\SearchDataGridWindow.xaml.cs">
       <DependentUpon>SearchDataGridWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SearchTextDirectionDropDown.xaml.cs">
+    <Compile Include="Dialog\SearchTextDirectionDropDown.xaml.cs">
       <DependentUpon>SearchTextDirectionDropDown.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SelectColumnWindow.xaml.cs">
+    <Compile Include="Dialog\SelectColumnWindow.xaml.cs">
       <DependentUpon>SelectColumnWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SelectRefConstraintWindow.xaml.cs">
+    <Compile Include="Dialog\SelectRefConstraintWindow.xaml.cs">
       <DependentUpon>SelectRefConstraintWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SelectTabItemWindow.xaml.cs">
+    <Compile Include="Dialog\SelectTabItemWindow.xaml.cs">
       <DependentUpon>SelectTabItemWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SequenceControl.xaml.cs">
       <DependentUpon>SequenceControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SettingsWindow.xaml.cs">
+    <Compile Include="Dialog\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="SortFieldControl.xaml.cs">
@@ -245,7 +282,7 @@
     <Compile Include="TableControl.xaml.cs">
       <DependentUpon>TableControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SearchTextBoxControl.xaml.cs">
+    <Compile Include="Dialog\SearchTextBoxControl.xaml.cs">
       <DependentUpon>SearchTextBoxControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="TableInfoControl.xaml.cs">
@@ -265,23 +302,23 @@
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="WindowUtil.cs" />
-    <Page Include="AwaitWindow.xaml">
+    <Page Include="Dialog\AwaitWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ChangePasswordWindow.xaml">
+    <Page Include="Dialog\ChangePasswordWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ColorPickerControl.xaml">
+    <Page Include="Dialog\ColorPickerControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ColorPickerWindow.xaml">
+    <Page Include="Dialog\ColorPickerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ColumnCheckListWindow.xaml">
+    <Page Include="Dialog\ColumnCheckListWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -297,7 +334,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchSQLTextBoxControl.xaml">
+    <Page Include="Dialog\SearchSQLTextBoxControl.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -313,7 +350,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FontDialog.xaml">
+    <Page Include="Dialog\FontDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -341,7 +378,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EditConnectionListWindow.xaml">
+    <Page Include="Dialog\EditConnectionListWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -393,27 +430,27 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchDataGridControllerWindow.xaml">
+    <Page Include="Dialog\SearchDataGridControllerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchDataGridWindow.xaml">
+    <Page Include="Dialog\SearchDataGridWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchTextDirectionDropDown.xaml">
+    <Page Include="Dialog\SearchTextDirectionDropDown.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SelectColumnWindow.xaml">
+    <Page Include="Dialog\SelectColumnWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SelectRefConstraintWindow.xaml">
+    <Page Include="Dialog\SelectRefConstraintWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SelectTabItemWindow.xaml">
+    <Page Include="Dialog\SelectTabItemWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -421,7 +458,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SettingsWindow.xaml">
+    <Page Include="Dialog\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -445,7 +482,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="SearchTextBoxControl.xaml">
+    <Page Include="Dialog\SearchTextBoxControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
