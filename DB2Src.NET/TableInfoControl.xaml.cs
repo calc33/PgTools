@@ -23,7 +23,7 @@ namespace Db2Source
     public partial class TableInfoControl : UserControl
     {
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(TableInfoControl));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableInfoControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableInfoControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty DataGridColumnsMaxHeightProperty = DependencyProperty.Register("DataGridColumnsMaxHeight", typeof(double), typeof(TableInfoControl));
 
         public bool IsEditing
@@ -125,19 +125,15 @@ namespace Db2Source
 
         }
 
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateDataGridColumns();
             UpdateDataGridIndexes();
         }
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (target as TableInfoControl)?.OnTargetPropertyChanged(e);
         }
 
         public void Dispose()
@@ -258,6 +254,27 @@ namespace Db2Source
         private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
         {
             Target?.Context?.Refresh(Target);
+        }
+
+        private void buttonForeignKey_Click(object sender, RoutedEventArgs e)
+        {
+            DataGridCell cell = App.FindLogicalParent<DataGridCell>(sender as DependencyObject);
+            if (cell == null)
+            {
+                return;
+            }
+            ForeignKeyConstraint key = cell.DataContext as ForeignKeyConstraint;
+            if (key == null)
+            {
+                return;
+            }
+            SchemaObject obj = Target?.Context?.Objects[key.ReferenceSchemaName, key.ReferenceTableName];
+            if (obj == null)
+            {
+                return;
+            }
+            MainWindow.Current.OpenViewer(obj);
+            
         }
     }
 }

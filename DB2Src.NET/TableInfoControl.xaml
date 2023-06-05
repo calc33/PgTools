@@ -180,16 +180,20 @@
                                             <ItemsControl ItemsSource="{Binding ForeignKeys}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate>
-                                                        <Grid ToolTip="{Binding Description}" Margin="2,1">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="1*"/>
-                                                            </Grid.ColumnDefinitions>
-                                                            <Canvas VerticalAlignment="Center" Width="16" Height="16">
-                                                                <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type DataGridCell}}}" Data="M2,5 l5,0 l0,-3 l5,5 l-5,5 l0,-3 l-5,0 z"/>
-                                                            </Canvas>
-                                                            <TextBlock Grid.Column="1" Text="{Binding ReferenceTableName, Mode=OneWay}"/>
-                                                        </Grid>
+                                                        <Button x:Name="buttonForeignKey" Click="buttonForeignKey_Click">
+                                                            <Button.Content>
+                                                            <Grid ToolTip="{Binding Description}" Margin="2,1">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto"/>
+                                                                    <ColumnDefinition Width="1*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Canvas VerticalAlignment="Center" Width="16" Height="16">
+                                                                    <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type DataGridCell}}}" Data="M2,5 l5,0 l0,-3 l5,5 l-5,5 l0,-3 l-5,0 z"/>
+                                                                </Canvas>
+                                                                <TextBlock Grid.Column="1" Text="{Binding ReferenceTableName, Mode=OneWay}"/>
+                                                                </Grid>
+                                                            </Button.Content>
+                                                        </Button>
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
