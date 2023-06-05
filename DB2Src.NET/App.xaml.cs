@@ -528,7 +528,6 @@ namespace Db2Source
             InitSettingsFromRegistry();
             SettingsBinding.Load(RegistryFinder);
             Resources["DBNull"] = DBNull.Value;
-            SQLTextBox.DefaultDecolations = Resources["SyntaxDecorationSettings"] as SyntaxDecorationCollection;
             AnalyzeArguments(e.Args);
             MainWindow window = new MainWindow() { StartupConnection = GetStartupConnection() };
             if (HasFullyConnectionArgs() && window.StartupConnection == null)

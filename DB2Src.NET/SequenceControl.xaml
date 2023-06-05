@@ -80,7 +80,7 @@
                     <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
-                <local:SQLTextBox x:Name="textBoxSource" DataSet="{Binding Path=Target.Context, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+                <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
             </DockPanel>
         </TabItem>
     </TabControl>

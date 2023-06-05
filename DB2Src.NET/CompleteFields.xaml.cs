@@ -19,10 +19,10 @@ namespace Db2Source
     /// </summary>
     public partial class CompleteFieldWindow : Window
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
-        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(SQLTextBox), typeof(CompleteFieldWindow), new PropertyMetadata(new PropertyChangedCallback(OnTextBoxPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow));
+        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFieldWindow));
 
-        public static CompleteFieldWindow Start(Selectable target, SQLTextBox textBox)
+        public static CompleteFieldWindow Start(Selectable target, TextBox textBox)
         {
             if (target == null)
             {
@@ -39,7 +39,7 @@ namespace Db2Source
                 Owner = GetWindow(textBox),
             };
             window.InitStartPosition();
-            Rect rect = textBox.ToTextPointer(window.StartPosition, 0).GetCharacterRect(LogicalDirection.Forward);
+            Rect rect = textBox.GetRectFromCharacterIndex(window.StartPosition);
             WindowLocator.LocateNearby(textBox, rect, window, NearbyLocation.DownLeft);
             Rect area = WindowLocator.GetWorkingAreaOf(textBox);
             window.MaxHeight = Math.Min(window.MaxHeight, area.Bottom - rect.Bottom);
@@ -56,7 +56,7 @@ namespace Db2Source
             if (tSel != null && tSel.Kind == TokenKind.Identifier)
             {
                 selStart = tSel.StartPos;
-            }
+                }
             StartPosition = selStart;
         }
 
@@ -66,9 +66,9 @@ namespace Db2Source
             set { SetValue(TargetProperty, value); }
         }
 
-        public SQLTextBox TextBox
+        public TextBox TextBox
         {
-            get { return (SQLTextBox)GetValue(TextBoxProperty); }
+            get { return (TextBox)GetValue(TextBoxProperty); }
             set { SetValue(TextBoxProperty, value); }
         }
 
@@ -80,7 +80,7 @@ namespace Db2Source
                 {
                     return StartPosition;
                 }
-                return TextBox.ToCharacterPosition(TextBox.Selection.End);
+                return TextBox.SelectionStart + TextBox.SelectionLength;
             }
             set
             {
@@ -143,7 +143,7 @@ namespace Db2Source
                 string selText = string.Empty;
                 if (!string.IsNullOrEmpty(TextBox.Text))
                 {
-                    selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionEnd, TextBox.Text.Length) - StartPosition);
+                    selText = TextBox.Text.Substring(StartPosition, Math.Min(TextBox.SelectionStart + TextBox.SelectionLength, TextBox.Text.Length) - StartPosition);
                 }
                 foreach (string s in _fieldNamesBase)
                 {
@@ -182,9 +182,9 @@ namespace Db2Source
             {
                 return;
             }
-            TextBox.Select(StartPosition, TextBox.SelectionEnd - StartPosition);
+            TextBox.Select(StartPosition, TextBox.SelectionStart + TextBox.SelectionLength - StartPosition);
             TextBox.SelectedText = s;
-            TextBox.Select(TextBox.SelectionEnd, 0);
+            TextBox.Select(TextBox.SelectionStart + TextBox.SelectionLength, 0);
         }
 
         private void CancelInput()
@@ -192,7 +192,7 @@ namespace Db2Source
             Dispatcher.InvokeAsync(Close);
         }
 
-        private void Unlink(SQLTextBox textBox)
+        private void Unlink(TextBox textBox)
         {
             if (textBox == null)
             {
@@ -205,7 +205,7 @@ namespace Db2Source
             textBox.TextInput -= TextBox_TextInput;
         }
 
-        private void Link(SQLTextBox textBox)
+        private void Link(TextBox textBox)
         {
             if (textBox == null)
             {
@@ -226,30 +226,32 @@ namespace Db2Source
             textBox.TextChanged += TextBox_TextChanged;
         }
 
-        private void OnTextBoxPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void TextBoxPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue != e.OldValue)
             {
-                Unlink((SQLTextBox)e.OldValue);
-                Link((SQLTextBox)e.NewValue);
+                Unlink((TextBox)e.OldValue);
+                Link((TextBox)e.NewValue);
             }
             DelayedUpdateListBoxFields();
         }
 
-        private static void OnTextBoxPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
-        {
-            (target as CompleteFieldWindow)?.OnTextBoxPropertyChanged(e);
-        }
-
-        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateFieldNamesBase();
             DelayedUpdateListBoxFields();
         }
-
-        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            (target as CompleteFieldWindow)?.OnTargetPropertyChanged(e);
+            if (e.Property == TextBoxProperty)
+            {
+                TextBoxPropertyChanged(e);
+            }
+            if (e.Property == TargetProperty)
+            {
+                TargetPropertyChanged(e);
+            }
+            base.OnPropertyChanged(e);
         }
 
         public CompleteFieldWindow()
@@ -421,7 +423,7 @@ namespace Db2Source
             Dispatcher.InvokeAsync(() =>
             {
                 TextBox.SelectedText = e.Text;
-                TextBox.Select(TextBox.SelectionEnd, 0);
+                TextBox.Select(TextBox.SelectionStart + TextBox.SelectionLength, 0);
                 TextBox.Focus();
             });
         }
@@ -444,10 +446,10 @@ namespace Db2Source
                 DropDownWindow = null;
             }
         }
-        public SQLTextBox TextBox { get; }
+        public TextBox TextBox { get; }
         public CompleteFieldWindow DropDownWindow { get; private set; }
 
-        public CompleteFieldController(Selectable target, SQLTextBox textBox)
+        public CompleteFieldController(Selectable target, TextBox textBox)
         {
             Target = target;
             TextBox = textBox;

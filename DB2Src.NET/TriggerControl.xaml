@@ -66,8 +66,8 @@
             <Button x:Name="buttonOpenTriggerDef" DockPanel.Dock="Right" ContentTemplate="{StaticResource ImageRightArrow14}" ToolTip="定義を開く"/>
             <ComboBox HorizontalAlignment="Stretch" IsEditable="True" Text="{Binding Target.Definition, ElementName=userControl}" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}"/>
         </DockPanel>
-        <local:SQLTextBox x:Name="textBoxTriggerBodySQL" DataSet="{Binding Target.Context, ElementName=userControl}" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
-        <local:SearchSQLTextBoxControl Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTriggerBodySQL}" Visibility="Collapsed" Grid.Column="2"/>
+        <TextBox x:Name="textBoxTriggerBodySQL" Grid.ColumnSpan="3" Grid.Row="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="True" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>
+        <local:SearchTextBoxControl Grid.Row="5" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxTriggerBodySQL}" Visibility="Collapsed" Grid.Column="2"/>
         <TextBox x:Name="textBoxComment" Grid.ColumnSpan="3" Grid.Row="6" Margin="0,4,0,0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsReadOnly="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" ToolTip="(コメント)" Text="{Binding Target.CommentText, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
         <GridSplitter Grid.ColumnSpan="3" Grid.Row="6" VerticalAlignment="Top" HorizontalAlignment="Stretch" Height="4"/>
     </Grid>

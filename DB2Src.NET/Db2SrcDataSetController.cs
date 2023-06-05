@@ -134,16 +134,6 @@ namespace Db2Source
             textBox.Select(ret.Item1, ret.Item2);
             int l = textBox.GetLineIndexFromCharacterIndex(ret.Item1);
             textBox.ScrollToLine(l);
-        }
-        public static void ShowErrorPosition(Exception t, SQLTextBox textBox, Db2SourceContext dataSet, int offset)
-        {
-            Tuple<int, int> ret = dataSet.GetErrorPosition(t, textBox.Text, offset);
-            if (ret == null)
-            {
-                return;
-            }
-            textBox.Select(ret.Item1, ret.Item2);
-            textBox.ScrollIntoSelection();
             textBox.Focus();
         }
     }

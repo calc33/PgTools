@@ -132,8 +132,8 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
                 <Grid>
-                    <local:SQLTextBox x:Name="textBoxSource" DataSet="{Binding Path=Target.Context, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
-                    <local:SearchSQLTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
+                	<TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
+                    <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>
         </TabItem>

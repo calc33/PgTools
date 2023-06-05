@@ -68,9 +68,9 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
                 </StackPanel>
                 <Grid>
-                    <local:SQLTextBox x:Name="textBoxSource" DataSet="{Binding Path=Target.Context, ElementName=userControl}" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
+                    <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
                              FontFamily="{Binding FontFamily, Source={StaticResource CodeFont}}" FontSize="{Binding FontSize, Source={StaticResource CodeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource CodeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource CodeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource CodeFont}}"/>
-                    <local:SearchSQLTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
+                    <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
                 </Grid>
             </DockPanel>
         </TabItem>
