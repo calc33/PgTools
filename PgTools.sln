@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpTbl", "ExpTbl\ExpTbl.csp
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PgToolsInstaller", "PgToolsInstaller\PgToolsInstaller.vdproj", "{134D8C1E-9A15-4FEE-8B6F-62BA8F79EA76}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyntaxEditor", "SyntaxEditor\SyntaxEditor.csproj", "{389376EB-B1B5-44F8-B4D0-9022C961110C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,8 +39,15 @@ Global
 		{393E4BD2-C17A-4875-A28F-A21C8FB7E339}.Release|Any CPU.Build.0 = Release|Any CPU
 		{134D8C1E-9A15-4FEE-8B6F-62BA8F79EA76}.Debug|Any CPU.ActiveCfg = Debug
 		{134D8C1E-9A15-4FEE-8B6F-62BA8F79EA76}.Release|Any CPU.ActiveCfg = Release
+		{389376EB-B1B5-44F8-B4D0-9022C961110C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{389376EB-B1B5-44F8-B4D0-9022C961110C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{389376EB-B1B5-44F8-B4D0-9022C961110C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{389376EB-B1B5-44F8-B4D0-9022C961110C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FD8AE3C6-20EA-43F5-A74C-86BA9F3F7B10}
 	EndGlobalSection
 EndGlobal

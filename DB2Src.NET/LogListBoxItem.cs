@@ -99,7 +99,7 @@ namespace Db2Source
 
         private void OnStatusPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            Brush b;
+                Brush b;
             if (!LogStatusToBrush.TryGetValue(Status, out b))
             {
                 b = LogStatusToBrush[LogStatus.Normal];

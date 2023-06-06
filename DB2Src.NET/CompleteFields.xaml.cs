@@ -19,8 +19,8 @@ namespace Db2Source
     /// </summary>
     public partial class CompleteFieldWindow : Window
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow));
-        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFieldWindow));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(CompleteFieldWindow), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty TextBoxProperty = DependencyProperty.Register("TextBox", typeof(TextBox), typeof(CompleteFieldWindow), new PropertyMetadata(new PropertyChangedCallback(OnTextBoxPropertyChanged)));
 
         public static CompleteFieldWindow Start(Selectable target, TextBox textBox)
         {
@@ -226,7 +226,7 @@ namespace Db2Source
             textBox.TextChanged += TextBox_TextChanged;
         }
 
-        private void TextBoxPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTextBoxPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue != e.OldValue)
             {
@@ -235,23 +235,19 @@ namespace Db2Source
             }
             DelayedUpdateListBoxFields();
         }
+        private static void OnTextBoxPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            (sender as CompleteFieldWindow).OnTextBoxPropertyChanged(e);
+        }
 
-        private void TargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateFieldNamesBase();
             DelayedUpdateListBoxFields();
         }
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private static void OnTargetPropertyChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
         {
-            if (e.Property == TextBoxProperty)
-            {
-                TextBoxPropertyChanged(e);
-            }
-            if (e.Property == TargetProperty)
-            {
-                TargetPropertyChanged(e);
-            }
-            base.OnPropertyChanged(e);
+            (sender as CompleteFieldWindow).OnTargetPropertyChanged(e);
         }
 
         public CompleteFieldWindow()
