@@ -23,6 +23,34 @@ namespace Db2Source
         public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register("Columns", typeof(ColumnCollection), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnColumnsPropertyChanged)));
         public static readonly DependencyProperty SelectedFieldProperty = DependencyProperty.Register("SelectedField", typeof(Column), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnSelectedFieldPropertyChanged)));
 
+        private Operation _addField;
+        private Operation _deleteField;
+        private Operation AddField
+        {
+            get
+            {
+                if (_addField != null)
+                {
+                    return _addField;
+                }
+                _addField = new Operation((string)Resources["AddFieldText"]);
+                return _addField;
+            }
+        }
+
+        private Operation DeleteField
+        {
+            get
+            {
+                if (_deleteField != null)
+                {
+                    return _deleteField;
+                }
+                _deleteField = new Operation((string)Resources["DeleteFieldText"]);
+                return _deleteField;
+            }
+        }
+
         public ColumnCollection Columns
         {
             get
@@ -46,11 +74,11 @@ namespace Db2Source
                 SetValue(SelectedFieldProperty, value);
             }
         }
-        public Order Order
+        public SortOrder Order
         {
             get
             {
-                return (Order)comboBoxOrder.SelectedValue;
+                return (SortOrder)comboBoxOrder.SelectedValue;
             }
             set
             {
@@ -78,15 +106,15 @@ namespace Db2Source
             _hasAddField = (SelectedField == null);
             if (_hasAddField)
             {
-                list.Add(Operation.AddField);
+                list.Add(AddField);
             }
             list.AddRange(Columns);
             if (SelectedField != null)
             {
-                list.Add(Operation.DeleteField);
+                list.Add(DeleteField);
             }
             comboBoxField.ItemsSource = list;
-            comboBoxField.SelectedItem = (SelectedField != null) ? SelectedField : (object)Operation.AddField;
+            comboBoxField.SelectedItem = (SelectedField != null) ? SelectedField : (object)AddField;
         }
         private void Unlink()
         {
@@ -99,15 +127,15 @@ namespace Db2Source
         private void AddNewFieldControl()
         {
             SortFieldListControl owner = FindOwner();
-            owner?.AddNewFieldControl(null, Order.Asc);
+            owner?.AddNewFieldControl(null, SortOrder.Asc);
         }
         private void UpdateComboBoxFieldSelection()
         {
-            if (comboBoxField.SelectedItem == Operation.AddField)
+            if (comboBoxField.SelectedItem == AddField)
             {
                 return;
             }
-            if (comboBoxField.SelectedItem == Operation.DeleteField)
+            if (comboBoxField.SelectedItem == DeleteField)
             {
                 Unlink();
                 return;
@@ -167,55 +195,36 @@ namespace Db2Source
             {
                 return;
             }
-            if (cb.SelectedItem == Operation.DeleteField)
+            if (cb.SelectedItem == DeleteField)
             {
                 return;
             }
             UpdateComboBoxFieldSelection();
         }
-    }
-    public class Operation
-    {
-        public string Name { get; set; }
-        public Operation(string name)
+        public class Operation
         {
-            Name = name;
-        }
-        public static Operation AddField = new Operation("(追加)");
-        public static Operation DeleteField = new Operation("(削除)");
-    }
-    public enum Order
-    {
-        Asc = 0,
-        Desc = 1
-    }
-    public class OrderItem
-    {
-        public Order Value { get; set; }
-        public string Text { get; set; }
-        public string ToolTip { get; set; }
-        public OrderItem() { Value = Order.Asc; }
-        public OrderItem(Order value, string name, string tooltip)
-        {
-            Value = value;
-            Text = name;
-            ToolTip = tooltip;
-        }
-        public override string ToString()
-        {
-            return Text;
-        }
-        public override bool Equals(object obj)
-        {
-            if (obj is OrderItem)
+            public string Name { get; set; }
+            public Operation(string name)
             {
-                return Value == ((OrderItem)obj).Value;
+                Name = name;
             }
-            return base.Equals(obj);
-        }
-        public override int GetHashCode()
-        {
-            return Value.GetHashCode();
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is Operation))
+                {
+                    return false;
+                }
+                return string.Equals(Name, ((Operation)obj).Name);
+            }
+            public override int GetHashCode()
+            {
+                return Name != null ? Name.GetHashCode() : 0;
+            }
+            public override string ToString()
+            {
+                return Name;
+            }
         }
     }
 }

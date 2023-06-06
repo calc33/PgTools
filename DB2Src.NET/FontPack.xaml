@@ -7,7 +7,7 @@
     <local:FontPack x:Key="TreeFont" Title="ツリー" Parent="{Binding Source={StaticResource BaseFont}}"/>
     <local:FontPack x:Key="DataGridFont" Title="グリッド" Parent="{Binding Source={StaticResource BaseFont}}"/>
     <sys:String x:Key="WeightStyleDelimiter">-</sys:String>
-    <local:TextDictinary x:Key="FontWeightText">
+    <local:TextDictionary x:Key="FontWeightText">
         <sys:String x:Key="Thin">極細</sys:String>
         <sys:String x:Key="ExtraLight">特細</sys:String>
         <sys:String x:Key="UltraLight">特細</sys:String>
@@ -24,13 +24,13 @@
         <sys:String x:Key="Heavy">極太</sys:String>
         <sys:String x:Key="ExtraBlack">極極太</sys:String>
         <sys:String x:Key="UltraBlack">極極太</sys:String>
-    </local:TextDictinary>
-    <local:TextDictinary x:Key="FontStyleText">
+    </local:TextDictionary>
+    <local:TextDictionary x:Key="FontStyleText">
         <x:Static x:Key="Normal" Member="sys:String.Empty"/>
         <sys:String x:Key="Italic">斜体</sys:String>
         <sys:String x:Key="Oblique">斜投影</sys:String>
-    </local:TextDictinary>
-    <local:TextDictinary x:Key="FontWeightStyleText">
+    </local:TextDictionary>
+    <local:TextDictionary x:Key="FontWeightStyleText">
         <sys:String x:Key="Thin-Normal">極細</sys:String>
         <sys:String x:Key="ExtraLight-Normal">特細</sys:String>
         <sys:String x:Key="UltraLight-Normal">特細</sys:String>
@@ -79,12 +79,12 @@
         <sys:String x:Key="Heavy-Oblique">極太斜投影</sys:String>
         <sys:String x:Key="ExtraBlack-Oblique">極極太斜投影</sys:String>
         <sys:String x:Key="UltraBlack-Oblique">極極太斜投影</sys:String>
-    </local:TextDictinary>
-    <local:TextDictinary x:Key="FontStretchText">
+    </local:TextDictionary>
+    <local:TextDictionary x:Key="FontStretchText">
         <x:Static x:Key="Normal" Member="sys:String.Empty"/>
         <x:Static x:Key="Medium" Member="sys:String.Empty"/>
-    </local:TextDictinary>
-    <local:TextDictinary x:Key="OpenTypeStretchText">
+    </local:TextDictionary>
+    <local:TextDictionary x:Key="OpenTypeStretchText">
         <sys:String x:Key="1">50%</sys:String>
         <sys:String x:Key="2">62.5%</sys:String>
         <sys:String x:Key="3">75%</sys:String>
@@ -94,5 +94,5 @@
         <sys:String x:Key="7">125%</sys:String>
         <sys:String x:Key="8">150%</sys:String>
         <sys:String x:Key="9">200%</sys:String>
-    </local:TextDictinary>
+    </local:TextDictionary>
 </ResourceDictionary>

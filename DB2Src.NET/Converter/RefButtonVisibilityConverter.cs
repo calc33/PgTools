@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 
-namespace Db2Source.Converter
+namespace Db2Source
 {
     public class RefButtonVisibilityConverter : IValueConverter
     {

@@ -9,6 +9,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="20" d:DesignWidth="72">
     <UserControl.Resources>
+        <sys:String x:Key="AddFieldText">(追加)</sys:String>
+        <sys:String x:Key="DeleteFieldText">(削除)</sys:String>
         <ControlTemplate x:Key="ComboBoxTemplate" TargetType="{x:Type ComboBox}">
             <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
                 <Grid.ColumnDefinitions>
@@ -241,8 +243,8 @@
     <StackPanel Orientation="Horizontal" Margin="0,0,2,0">
         <ComboBox x:Name="comboBoxField" DropDownClosed="comboBoxField_DropDownClosed" SelectionChanged="comboBoxField_SelectionChanged" DisplayMemberPath="Name" ItemsSource="{Binding Columns, ElementName=userControl}" />
         <ComboBox x:Name="comboBoxOrder" SelectedIndex="0" FontSize="6" VerticalContentAlignment="Center" ToolTip="{Binding SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}" Style="{DynamicResource ComboBoxStyleOrder}" SelectedValuePath="Value">
-            <local:OrderItem Text="▲" Value="Asc" ToolTip="小さいものから並べる"/>
-            <local:OrderItem Text="▼" Value="Desc" ToolTip="大きいものから並べる"/>
+            <local:SortOrderItem Text="▲" Value="Asc" ToolTip="小さいものから並べる"/>
+            <local:SortOrderItem Text="▼" Value="Desc" ToolTip="大きいものから並べる"/>
         </ComboBox>
     </StackPanel>
 </UserControl>

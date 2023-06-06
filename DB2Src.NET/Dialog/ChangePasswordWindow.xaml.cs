@@ -15,11 +15,6 @@ using System.Windows.Shapes;
 
 namespace Db2Source
 {
-    public class QueryResultEventArgs : EventArgs
-    {
-        public bool IsFailed { get; set; } = false;
-        public QueryResultEventArgs() { }
-    }
     /// <summary>
     /// ChangePasswordWindow.xaml の相互作用ロジック
     /// </summary>

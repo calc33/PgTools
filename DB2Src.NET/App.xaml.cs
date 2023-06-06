@@ -787,39 +787,4 @@ namespace Db2Source
             row.RevertChanges();
         }
     }
-
-    public class SqlLogger
-    {
-        internal StringBuilder Buffer { get; } = new StringBuilder();
-        internal void Log(object sender, LogEventArgs e)
-        {
-            Buffer.AppendLine(e.Text);
-        }
-    }
-
-    public class NewNpgsqlConnectionInfo: NpgsqlConnectionInfo
-    {
-        public NewNpgsqlConnectionInfo(bool fromSetting) : base()
-        {
-            if (fromSetting)
-            {
-                ServerName = App.Hostname;
-                ServerPort = App.Port;
-                DatabaseName = App.Database;
-                UserName = App.Username;
-            }
-            Name = Properties.Resources.NewConnectionTitle;
-        }
-    }
-
-    public interface ISchemaObjectWpfControl : ISchemaObjectControl
-    {
-        DependencyObject Parent { get; }
-    }
-
-    public interface IRegistryStore
-    {
-        void LoadFromRegistry();
-        void SaveToRegistry();
-    }
 }

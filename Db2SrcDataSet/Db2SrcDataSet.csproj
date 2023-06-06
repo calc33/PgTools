@@ -135,6 +135,7 @@
     <Compile Include="SessionList.cs" />
     <Compile Include="Setting.cs" />
     <Compile Include="QueryHistory.cs" />
+    <Compile Include="SortOrder.cs" />
     <Compile Include="SqliteUtil.cs" />
     <Compile Include="StoredFunction.cs" />
     <Compile Include="StrUtil.cs" />

@@ -62,7 +62,7 @@ namespace Db2Source
             (target as SortFieldListControl)?.OnTargetPropertyChanged(e);
         }
 
-        internal SortFieldControl AddNewFieldControl(Column column, Order order)
+        internal SortFieldControl AddNewFieldControl(Column column, SortOrder order)
         {
             SortFieldControl c = new SortFieldControl();
             c.Columns = Target?.Columns;
@@ -86,14 +86,14 @@ namespace Db2Source
             }
             return null;
         }
-        private bool AddSortFieldControl(string columnName, Order order)
+        private bool AddSortFieldControl(string columnName, SortOrder order)
         {
             Column col = Target.Columns[columnName];
             if (col == null)
             {
                 return false;
             }
-            AddNewFieldControl(col, Order.Asc);
+            AddNewFieldControl(col, SortOrder.Asc);
             return true;
         }
         public void SetColumns(string[] columns)
@@ -104,7 +104,7 @@ namespace Db2Source
             }
             if (columns == null)
             {
-                AddNewFieldControl(null, Order.Asc);
+                AddNewFieldControl(null, SortOrder.Asc);
                 return;
             }
             stackPanelMain.Children.Clear();
@@ -115,11 +115,11 @@ namespace Db2Source
                 {
                     continue;
                 }
-                AddNewFieldControl(col, Order.Asc);
+                AddNewFieldControl(col, SortOrder.Asc);
                 //SortFieldControl ctl = GetEmptyControl();
                 //ctl.SelectedField = col;
             }
-            AddNewFieldControl(null, Order.Asc);
+            AddNewFieldControl(null, SortOrder.Asc);
         }
 
         public string GetOrderBySql(string prefix)
@@ -138,7 +138,7 @@ namespace Db2Source
                     }
                     buf.Append(pre);
                     buf.Append(col.Name);
-                    if (c.Order == Order.Desc)
+                    if (c.Order == SortOrder.Desc)
                     {
                         buf.Append(" desc");
                     }

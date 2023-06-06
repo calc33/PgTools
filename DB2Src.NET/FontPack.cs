@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
@@ -343,43 +338,43 @@ namespace Db2Source
             }
         }
 
-        public static TextDictinary FontWeightDictionary
+        public static TextDictionary FontWeightDictionary
         {
             get
             {
-                return (TextDictinary)App.Current.Resources["FontWeightText"];
+                return (TextDictionary)App.Current.Resources["FontWeightText"];
             }
         }
 
-        public static TextDictinary FontStyleDictionary
+        public static TextDictionary FontStyleDictionary
         {
             get
             {
-                return (TextDictinary)App.Current.Resources["FontStyleText"];
+                return (TextDictionary)App.Current.Resources["FontStyleText"];
             }
         }
 
-        public static TextDictinary FontStretchDictionary
+        public static TextDictionary FontStretchDictionary
         {
             get
             {
-                return (TextDictinary)App.Current.Resources["FontStretchText"];
+                return (TextDictionary)App.Current.Resources["FontStretchText"];
             }
         }
 
-        public static TextDictinary OpenTypeStretchDictionary
+        public static TextDictionary OpenTypeStretchDictionary
         {
             get
             {
-                return (TextDictinary)App.Current.Resources["OpenTypeStretchText"];
+                return (TextDictionary)App.Current.Resources["OpenTypeStretchText"];
             }
         }
 
-        public static TextDictinary FontWeightStyleDictionary
+        public static TextDictionary FontWeightStyleDictionary
         {
             get
             {
-                return (TextDictinary)App.Current.Resources["FontWeightStyleText"];
+                return (TextDictionary)App.Current.Resources["FontWeightStyleText"];
             }
         }
 
@@ -448,6 +443,4 @@ namespace Db2Source
             return fontFamily.Source;
         }
     }
-
-    public class TextDictinary : Dictionary<string, string> { }
 }

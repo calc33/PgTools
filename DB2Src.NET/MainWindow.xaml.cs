@@ -26,12 +26,6 @@ using System.Windows.Automation.Peers;
 
 namespace Db2Source
 {
-    public enum SchemaConnectionStatus
-    {
-        Done,
-        Connecting,
-        Loading
-    }
     /// <summary>
     /// MainWindow.xaml の相互作用ロジック
     /// </summary>

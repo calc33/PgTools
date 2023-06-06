@@ -717,7 +717,7 @@ namespace Db2Source
             Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
             string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
-            SqlLogger logger = new SqlLogger();
+            StringBuilderLogger logger = new StringBuilderLogger();
             bool failed = false;
             try
             {
@@ -725,21 +725,10 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                logger.Buffer.AppendLine(ctx.GetExceptionMessage(t));
+                logger.LogException(t, ctx);
                 failed = true;
             }
-            string s = logger.Buffer.ToString().TrimEnd();
-            if (!string.IsNullOrEmpty(s))
-            {
-                if (failed)
-                {
-                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-                else
-                {
-                    MessageBox.Show(owner, s, Properties.Resources.MessageBoxCaption_Result, MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-            }
+            logger.ShowLogByMessageBox(owner, failed);
             if (failed)
             {
                 return;

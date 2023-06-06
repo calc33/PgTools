@@ -100,6 +100,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Commands\DataGridCommands.cs" />
+    <Compile Include="Commands\SearchCommands.cs" />
     <Compile Include="Converter\DataGridCellToCellConverter.cs" />
     <Compile Include="Converter\ForeignKeyRuleConverter.cs" />
     <Compile Include="Converter\HeaderBackgroundConverter.cs" />
@@ -159,17 +161,39 @@
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CrossTable.axis.cs" />
-    <Compile Include="CrossTable.cs" />
-    <Compile Include="CrossTable.cell.cs" />
+    <Compile Include="GridController\Axis.cs" />
+    <Compile Include="GridController\AxisCollection.cs" />
+    <Compile Include="GridController\AxisEntry.cs" />
+    <Compile Include="GridController\AxisEntryCollection.cs" />
+    <Compile Include="GridController\AxisEntryStatus.cs" />
+    <Compile Include="GridController\AxisValue.cs" />
+    <Compile Include="GridController\AxisValueArray.cs" />
+    <Compile Include="GridController\SummaryOperation.cs" />
+    <Compile Include="GridController\VisibleAxisEntryCollection.cs" />
+    <Compile Include="GridController\CrossTable.cs" />
+    <Compile Include="GridController\CrossTable.cell.cs" />
+    <Compile Include="Interface\IRegistryStore.cs" />
+    <Compile Include="Interface\ISchemaObjectWpfControl.cs" />
     <Compile Include="CrossTableViewer.xaml.cs">
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="CsvUtil.cs" />
-    <Compile Include="Dialog\SearchSQLTextBoxControl.xaml.cs">
-      <DependentUpon>SearchSQLTextBoxControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SyntaxDecoration.cs" />
+    <Compile Include="SortOrderItem.cs" />
+    <Compile Include="Windows\CsvConverter.cs" />
+    <Compile Include="Dialog\ColumnItem.cs" />
+    <Compile Include="Dialog\DateRangeKindItem.cs" />
+    <Compile Include="Dialog\DateUnit.cs" />
+    <Compile Include="Dialog\MatchResult.cs" />
+    <Compile Include="Dialog\PgDumpFormatOption.cs" />
+    <Compile Include="Dialog\QueryResultEventArgs.cs" />
+    <Compile Include="EventArgs\CellValueChangedEventArgs.cs" />
+    <Compile Include="EventArgs\RowChangedEventArgs.cs" />
+    <Compile Include="GridController\ArrayFormatProvider.cs" />
+    <Compile Include="GridController\CellInfo.cs" />
+    <Compile Include="GridController\NotSupportedColumn.cs" />
+    <Compile Include="GridController\OverflowColumn.cs" />
+    <Compile Include="GridController\Row.cs" />
+    <Compile Include="GridController\RowCollection.cs" />
+    <Compile Include="GridController\SearchDirection.cs" />
     <Compile Include="EquallyStackPanel.cs" />
     <Compile Include="DisplayItem.cs" />
     <Compile Include="EditPgsqlSetting.xaml.cs">
@@ -179,11 +203,11 @@
       <DependentUpon>FontDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="FontPack.cs" />
-    <Compile Include="HistoryWindow.xaml.cs">
+    <Compile Include="Dialog\HistoryWindow.xaml.cs">
       <DependentUpon>HistoryWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="MovableTabItem.cs" />
-    <Compile Include="NewPgsqlDatabaseWindow.xaml.cs">
+    <Compile Include="Dialog\NewPgsqlDatabaseWindow.xaml.cs">
       <DependentUpon>NewPgsqlDatabaseWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="PgsqlSessionListControl.xaml.cs">
@@ -195,11 +219,11 @@
     <Compile Include="PgsqlTypeControl.xaml.cs">
       <DependentUpon>PgsqlTypeControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Commands.cs" />
+    <Compile Include="Commands\QueryCommands.cs" />
     <Compile Include="DatabaseControl.xaml.cs">
       <DependentUpon>DatabaseControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DataGridController.cs" />
+    <Compile Include="GridController\DataGridController.cs" />
     <Compile Include="Db2SrcDataSetController.cs" />
     <Compile Include="Dialog\EditConnectionListWindow.xaml.cs">
       <DependentUpon>EditConnectionListWindow.xaml</DependentUpon>
@@ -211,10 +235,10 @@
     <Compile Include="ExportSchema.xaml.cs">
       <DependentUpon>ExportSchema.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FolderBrowserDialog.cs" />
-    <Compile Include="GridClipboard.cs" />
-    <Compile Include="GridClipboardWinow.xaml.cs">
-      <DependentUpon>GridClipboardWinow.xaml</DependentUpon>
+    <Compile Include="Dialog\FolderBrowserDialog.cs" />
+    <Compile Include="GridController\GridClipboard.cs" />
+    <Compile Include="Dialog\GridClipboardWindow.xaml.cs">
+      <DependentUpon>GridClipboardWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="LogListBoxItem.cs" />
     <Compile Include="MainWindow.treeview.cs" />
@@ -222,7 +246,7 @@
       <DependentUpon>NewConnectionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ParameterStore.cs" />
-    <Compile Include="PgDumpOptionWindow.xaml.cs">
+    <Compile Include="Dialog\PgDumpOptionWindow.xaml.cs">
       <DependentUpon>PgDumpOptionWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="PgsqlUserControl.xaml.cs">
@@ -235,13 +259,15 @@
     <Compile Include="RecordCountControl.xaml.cs">
       <DependentUpon>RecordCountControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RecordViewerWindow.xaml.cs">
+    <Compile Include="Dialog\RecordViewerWindow.xaml.cs">
       <DependentUpon>RecordViewerWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Registry.cs" />
-    <Compile Include="RegUtil.cs" />
-    <Compile Include="RegUtil.win32.cs" />
-    <Compile Include="RegUtil.wpf.cs" />
+    <Compile Include="Windows\StringList.cs" />
+    <Compile Include="Windows\StringTable.cs" />
+    <Compile Include="Windows\Registry.cs" />
+    <Compile Include="Windows\RegUtil.cs" />
+    <Compile Include="Windows\RegUtil.win32.cs" />
+    <Compile Include="Windows\RegUtil.wpf.cs" />
     <Compile Include="Dialog\SearchDataGridControllerWindow.xaml.cs">
       <DependentUpon>SearchDataGridControllerWindow.xaml</DependentUpon>
     </Compile>
@@ -260,6 +286,7 @@
     <Compile Include="Dialog\SelectTabItemWindow.xaml.cs">
       <DependentUpon>SelectTabItemWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="SchemaConnectionStatus.cs" />
     <Compile Include="SequenceControl.xaml.cs">
       <DependentUpon>SequenceControl.xaml</DependentUpon>
     </Compile>
@@ -272,13 +299,13 @@
     <Compile Include="SortFieldListControl.xaml.cs">
       <DependentUpon>SortFieldListControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="SQLTextBox.cs" />
     <Compile Include="StoredProcedureControl.xaml.cs">
       <DependentUpon>StoredProcedureControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="ComplexTypeControl.xaml.cs">
       <DependentUpon>ComplexTypeControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="StringBuilderLogger.cs" />
     <Compile Include="TableControl.xaml.cs">
       <DependentUpon>TableControl.xaml</DependentUpon>
     </Compile>
@@ -291,6 +318,8 @@
     <Compile Include="TablespaceListControl.xaml.cs">
       <DependentUpon>TablespaceListControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TextDictionary.cs" />
+    <Compile Include="TreeViewStatusStore.cs" />
     <Compile Include="TreeViewUtil.cs" />
     <Compile Include="TriggerControl.xaml.cs">
       <DependentUpon>TriggerControl.xaml</DependentUpon>
@@ -301,7 +330,7 @@
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WindowUtil.cs" />
+    <Compile Include="Windows\WindowUtil.cs" />
     <Page Include="Dialog\AwaitWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -334,14 +363,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Dialog\SearchSQLTextBoxControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="SyntaxDecoration.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="EditPgsqlSetting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -354,11 +375,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="HistoryWindow.xaml">
+    <Page Include="Dialog\HistoryWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NewPgsqlDatabaseWindow.xaml">
+    <Page Include="Dialog\NewPgsqlDatabaseWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -390,7 +411,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="GridClipboardWinow.xaml">
+    <Page Include="Dialog\GridClipboardWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -410,7 +431,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PgDumpOptionWindow.xaml">
+    <Page Include="Dialog\PgDumpOptionWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -426,7 +447,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="RecordViewerWindow.xaml">
+    <Page Include="Dialog\RecordViewerWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
