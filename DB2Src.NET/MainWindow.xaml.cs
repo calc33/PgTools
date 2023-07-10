@@ -260,7 +260,7 @@ namespace Db2Source
             info.WindowHeight = Height;
             info.IsWindowMaximized = (WindowState == WindowState.Maximized);
             App.Connections.Merge(info);
-            App.Connections.Save(info);
+            App.Connections.Save(info, null);
         }
 
 
@@ -332,8 +332,17 @@ namespace Db2Source
             try
             {
                 SetConnectionStatus(SchemaConnectionStatus.Connecting);
-                IDbConnection conn = await info.NewConnectionAsync(true);
-                await Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info); }, DispatcherPriority.ApplicationIdle);
+                IDbConnection conn;
+                try
+                {
+                    conn = await info.NewConnectionAsync(true);
+                }
+                catch
+                {
+                    await Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info, false); }, DispatcherPriority.ApplicationIdle);
+                    throw;
+                }
+                await Dispatcher.InvokeAsync(() => { SaveConnectionInfo(info, true); }, DispatcherPriority.ApplicationIdle);
                 SetConnectionStatus(SchemaConnectionStatus.Loading);
                 await LoadSchemaAsync(dataSet, conn);
             }
@@ -753,10 +762,10 @@ namespace Db2Source
             return info;
         }
 
-        private void SaveConnectionInfo(ConnectionInfo info)
+        private void SaveConnectionInfo(ConnectionInfo info, bool connected)
         {
             info = App.Connections.Merge(info);
-            App.Connections.Save(info);
+            App.Connections.Save(info, connected);
             info.UpdateLastConnected(App.Connections.RequireDatabase());
         }
 

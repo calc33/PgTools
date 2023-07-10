@@ -98,9 +98,11 @@ namespace Db2Source
                 }
                 win.Close();
             }
-            win = new SearchDataGridWindow();
-            win.Target = dataGridColumns;
-            win.Owner = Window.GetWindow(this);
+            win = new SearchDataGridWindow
+            {
+                Target = dataGridColumns,
+                Owner = Window.GetWindow(this)
+            };
             win.Closed += SearchWindowDataGridColumns_Closed;
             _searchWindowDataGridColumns = new WeakReference<SearchDataGridWindow>(win);
             win.Show();

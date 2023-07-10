@@ -470,6 +470,7 @@ namespace Db2Source
         [ReadOnly(true)]
         [DefaultValue(0)]
         public double LastConnectedSerial { get { return LastConnected.ToOADate(); } set { LastConnected = DateTime.FromOADate(value); } }
+        public bool IsLastConnectionFailed { get; set; }
         [ReadOnly(true)]
         [DefaultValue(0)]
         public long ConnectionCount { get; set; }
@@ -918,8 +919,12 @@ namespace Db2Source
         {
             SaveInternal();
         }
-        public void Save(ConnectionInfo info)
+        public void Save(ConnectionInfo info, bool? connected)
         {
+            if (connected.HasValue)
+            {
+                info.IsLastConnectionFailed = !connected.Value;
+            }
             SaveInternal(info);
         }
 

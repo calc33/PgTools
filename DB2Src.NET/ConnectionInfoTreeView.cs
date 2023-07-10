@@ -10,6 +10,11 @@ namespace Db2Source
 {
     public static class ConnectionInfoTreeView
     {
+        public class ConnectionInfoGroup
+        {
+            public string Name { get; set; }
+            public bool IsLastConnectionFailed { get; set; }
+        }
         private static TreeViewItem AddTreeViewItemRecursive(ItemCollection items, string[] paths, int pathIndex)
         {
             if (paths.Length <= pathIndex)
@@ -36,7 +41,8 @@ namespace Db2Source
             }
             if (parent == null)
             {
-                parent = new TreeViewItem() { Header = paths[pathIndex] };
+                ConnectionInfoGroup group = new ConnectionInfoGroup() { Name = paths[pathIndex], IsLastConnectionFailed = false };
+                parent = new TreeViewItem() { Header = group.Name, Tag = group };
                 items.Add(parent);
             }
             TreeViewItem child = AddTreeViewItemRecursive(parent.Items, paths, pathIndex + 1);

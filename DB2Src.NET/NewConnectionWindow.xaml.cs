@@ -330,11 +330,16 @@ namespace Db2Source
                         conn?.Dispose();
                         disp.InvokeAsync(() =>
                         {
+                            if (target.Id.HasValue)
+                            {
+                                App.Connections.Save(target, false);
+                            }
                             MessageBox.Show(App.GetExceptionMessage(t), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                             App.LogException(t);
                             gridLoading.Visibility = Visibility.Collapsed;
                         });
                     }
+                    App.Connections.Save(target, true);
                 });
             }
             catch (Exception t)
@@ -349,7 +354,6 @@ namespace Db2Source
         {
             Target.Name = Target.GetDefaultName();
             Target = App.Connections.Merge(Target);
-            App.Connections.Save(Target);
             Dispatcher.InvokeAsync(ConnectAndCloseAsync);
         }
 
@@ -580,6 +584,55 @@ namespace Db2Source
         {
             ShowSelectedTreeViewItem(treeViewConnections.SelectedItem as TreeViewItem);
             e.Handled = true;
+        }
+
+        private void treeViewConnections_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            ConnectionInfo info = null;
+            TreeViewItem sel = treeViewConnections.SelectedItem as TreeViewItem;
+            if (sel != null)
+            {
+                info = sel.Tag as ConnectionInfo;
+            }
+            if (info != null)
+            {
+                string s = (string)Resources["deleteConnectionInfoFormat"];
+                treeViewConnectionsDeleteConnection.Header = string.Format(s, info.Name);
+                treeViewConnectionsDeleteConnection.Tag = info;
+                treeViewConnectionsDeleteConnection.IsEnabled = true;
+            }
+            else
+            {
+                string s = (string)Resources["deleteConnectionInfo"];
+                treeViewConnectionsDeleteConnection.Header = s;
+                treeViewConnectionsDeleteConnection.Tag = null;
+                treeViewConnectionsDeleteConnection.IsEnabled = false;
+            }
+            //e.Handled = true;
+        }
+
+        private void treeViewConnectionsDeleteConnection_Click(object sender, RoutedEventArgs e)
+        {
+            TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
+            if (item == null)
+            {
+                return;
+            }
+            ConnectionInfo info = item.Tag as ConnectionInfo;
+            if (info == null)
+            {
+                return;
+            }
+            string caption = (string)Resources["deleteConnectionInfoCaption"];
+            string msg = string.Format((string)Resources["deleteConnectionInfoMessage"], info.Name);
+            MessageBoxResult ret = MessageBox.Show(this, msg, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (ret != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            App.Connections.Delete(info);
+            TreeViewItem parent = item.Parent as TreeViewItem;
+            parent.Items.Remove(item);
         }
     }
 }
