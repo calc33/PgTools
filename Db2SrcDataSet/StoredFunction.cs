@@ -177,7 +177,34 @@ namespace Db2Source
         }
     }
 
-    public partial class StoredFunction: SchemaObject, IDbTypeDef
+    public interface IReturnType
+    {
+        string GetSQL(Db2SourceContext context, string prefix, int indent, int charPerLine);
+        string GetDefName();
+    }
+
+    public class SimpleReturnType : IReturnType
+    {
+        public string DataType { get; set; }
+
+        public string GetSQL(Db2SourceContext context, string prefix, int indent, int charPerLine)
+        {
+            return prefix + DataType;
+        }
+
+        public string GetDefName()
+        {
+            return DataType;
+        }
+
+        public SimpleReturnType() { }
+        public SimpleReturnType(string dataType)
+        {
+            DataType = dataType;
+        }
+    }
+
+    public partial class StoredFunction: SchemaObject/*, IDbTypeDef*/
     {
         public class ParameterCollection: IList<Parameter>, IList
         {
@@ -503,33 +530,8 @@ namespace Db2Source
         //private string _nameExtension;
         private string _definition;
         private string _oldDefinition;
-        public string BaseType { get; set; }
-        public int? DataLength { get; set; }
-        public int? Precision { get; set; }
-        public bool? WithTimeZone { get; set; }
-        public bool IsSupportedType { get; set; }
-        public void UpdateDataType()
-        {
-            _dataType = DbTypeDefUtil.ToTypeText(this);
-        }
-        private string _dataType;
-        public string DataType
-        {
-            get
-            {
-                return _dataType;
-            }
-            set
-            {
-                if (_dataType == value)
-                {
-                    return;
-                }
-                //PropertyChangedEventArgs e = new PropertyChangedEventArgs("DataType", value, _dataType);
-                _dataType = value;
-                //OnPropertyChanged(e);
-            }
-        }
+
+        public IReturnType ReturnType { get; set; }
 
         public bool HasOutputParameter()
         {
@@ -604,7 +606,7 @@ namespace Db2Source
             {
                 return;
             }
-            _headerDef = Name + Parameters.GetParamDefText("(", ", ", ") return ") + DataType;
+            _headerDef = Name + Parameters.GetParamDefText("(", ", ", ") return ") + ReturnType.GetDefName();
         }
 
         public virtual string HeaderDef

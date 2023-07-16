@@ -232,6 +232,7 @@
     <None Include="Resources\QueryHistory_UpdateSQL.txt" />
     <None Include="Resources\QuerySql_SQL.txt" />
     <None Include="Resources\QuerySql_InsertSQL.txt" />
+    <None Include="Resources\PgProc9_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

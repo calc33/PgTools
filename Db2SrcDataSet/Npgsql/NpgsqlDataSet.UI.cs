@@ -38,7 +38,7 @@ namespace Db2Source
                     if (obj is StoredFunction)
                     {
                         StoredFunction fn = (StoredFunction)obj;
-                        if (string.Compare(fn.DataType, "trigger") == 0)
+                        if (string.Compare(fn.ReturnType.GetDefName(), "trigger") == 0)
                         {
                             trFuncs.Add(fn);
                         }

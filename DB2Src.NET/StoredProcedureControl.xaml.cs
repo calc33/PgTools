@@ -272,7 +272,7 @@ namespace Db2Source
         }
         private void UpdateTabItemExecuteVisibility()
         {
-            if (Target == null || Target.DataType == "trigger")
+            if (Target == null || Target.ReturnType.GetDefName() == "trigger")
             {
                 tabItemExecute.Visibility = Visibility.Collapsed;
             }

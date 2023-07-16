@@ -12,6 +12,15 @@ namespace Db2Source
 {
     public partial class NpgsqlDataSet: Db2SourceContext
     {
+        public enum ParameterDir
+        {
+            Input = 1,
+            Output = 2,
+            InputOutput = 3,
+            VariaDic = 4,
+            Table = 5,
+            ReturnValue = 6
+        }
         public new PgsqlDatabase Database
         {
             get { return base.Database as PgsqlDatabase; }

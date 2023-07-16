@@ -260,12 +260,12 @@ namespace Db2Source.DataSet.Properties {
         ///  d.datdba, u.usename as dbaname,
         ///  d.&quot;encoding&quot;, pg_encoding_to_char(d.&quot;encoding&quot;) as encoding_char,
         ///  d.datcollate, d.datctype, d.datistemplate, d.datallowconn, 
-        ///  d.datconnlimit, d.datlastsysoid, d.datfrozenxid, d.datminmxid,
+        ///  d.datconnlimit, d.datfrozenxid, d.datminmxid,
         ///  d.dattablespace, ts.spcname as dattablespacename,
-        ///  version() as version
+        ///  version() as version, current_setting(&apos;server_version_num&apos;) as version_num
         ///from pg_database as d
         ///  left outer join pg_user u on (d.datdba = u.usesysid)
-        ///  left outer join pg_tablespace ts on (d.dattablespace = ts.oid) に類似しているローカライズされた文字列を検索します。
+        ///  left outer join pg_tablespace ts on (d.dattablespace =  [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgDatabase_SQL {
             get {
@@ -321,13 +321,14 @@ namespace Db2Source.DataSet.Properties {
         
         /// <summary>
         ///   select p.oid,
-        ///  p.proname, p.pronamespace, p.prokind, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
-        ///  p.proargnames, p.prosrc,
+        ///  p.proname, p.pronamespace, p.procost, p.prorows,
+        ///  p.prokind, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proargnames, p.protrftypes, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
-        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))
-        ///order by p.proname, p.pronargs, p.oid に類似しているローカライズされた文字列を検索します。
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXE [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgProc_SQL {
             get {
@@ -337,17 +338,36 @@ namespace Db2Source.DataSet.Properties {
         
         /// <summary>
         ///   select p.oid,
-        ///  p.proname, p.pronamespace, p.proretset, p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proname, p.pronamespace, p.procost, p.prorows,
+        ///  p.proiswindow, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
+        ///  p.proargnames, p.protrftypes, p.prosrc,
+        ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
+        ///from pg_catalog.pg_proc p
+        ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid,  [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgProc10_SQL {
+            get {
+                return ResourceManager.GetString("PgProc10_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select p.oid,
+        ///  p.proname, p.pronamespace, p.procost, p.prorows,
+        ///  p.proiswindow, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
         ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))
-        ///order by p.proname, p.pronargs, p.oid に類似しているローカライズされた文字列を検索します。
+        ///or [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
-        internal static string PgProc10_SQL {
+        internal static string PgProc9_SQL {
             get {
-                return ResourceManager.GetString("PgProc10_SQL", resourceCulture);
+                return ResourceManager.GetString("PgProc9_SQL", resourceCulture);
             }
         }
         
@@ -440,20 +460,15 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   A
-        ///ABORT
-        ///ABS
+        ///   ABORT
         ///ABSOLUTE
         ///ACCESS
         ///ACTION
-        ///ADA
         ///ADD
         ///ADMIN
         ///AFTER
         ///AGGREGATE
-        ///ALIAS
         ///ALL
-        ///ALLOCATE
         ///ALSO
         ///ALTER
         ///ALWAYS
@@ -461,7 +476,6 @@ namespace Db2Source.DataSet.Properties {
         ///ANALYZE
         ///AND
         ///ANY
-        ///ARE
         ///ARRAY
         ///AS
         ///ASC
@@ -471,41 +485,44 @@ namespace Db2Source.DataSet.Properties {
         ///ASYMMETRIC
         ///AT
         ///ATOMIC
+        ///ATTACH
         ///ATTRIBUTE
-        ///ATTRIBUTES
         ///AUTHORIZATION
-        ///AVG
         ///BACKWARD
-        ///BASE64
         ///BEFORE
         ///BEGIN
-        ///BERNOULLI
         ///BETWEEN
         ///BIGINT
         ///BINARY
         ///BIT
-        ///BITVAR
-        ///BIT_LENGTH
-        ///BLOB
         ///BOOLEAN
         ///BOTH
         ///BREADTH
         ///BY
-        ///C
         ///CACHE
         ///CALL
         ///CALLED
-        ///CARDINALITY
         ///CASCADE
         ///CASCADED
         ///CASE
         ///CAST
         ///CATALOG
-        ///CATALOG_NAME
-        ///CEIL
-        ///CEILING
         ///CHAIN
-        ///C [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///CHAR
+        ///CHARACTER
+        ///CHARACTERISTICS
+        ///CHECK
+        ///CHECKPOINT
+        ///CLASS
+        ///CLOSE
+        ///CLUSTER
+        ///COALESCE
+        ///COLLATE
+        ///COLLATION
+        ///COLUMN
+        ///COLUMNS
+        ///COMMENT
+        ///COM [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PostgresReservedWords {
             get {
@@ -545,8 +562,8 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   INSERT INTO QUERY_PARAMETER (SQL_ID, NAME, PARAM_TYPE, VALUE)
-        ///VALUES (@SQL_ID, @NAME, @PARAM_TYPE, @VALUE)
+        ///   INSERT INTO QUERY_PARAMETER (QUERY_ID, NAME, PARAM_TYPE, VALUE)
+        ///VALUES (@QUERY_ID, @NAME, @PARAM_TYPE, @VALUE)
         ///RETURNING ID に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string QueryParameter_InsertSQL {
@@ -556,7 +573,7 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   SELECT ID, SQL_ID, NAME, PARAM_TYPE, VALUE
+        ///   SELECT ID, QUERY_ID, NAME, PARAM_TYPE, VALUE
         ///FROM QUERY_PARAMETER
         /// に類似しているローカライズされた文字列を検索します。
         /// </summary>

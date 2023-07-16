@@ -376,7 +376,7 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        private class PgObjectCollection<T>: IReadOnlyList<T> where T : PgObject, new()
+        internal class PgObjectCollection<T>: IReadOnlyList<T> where T : PgObject, new()
         {
             private readonly List<T> _items = new List<T>();
             private Dictionary<uint, T> _oidToItem = new Dictionary<uint, T>();
@@ -610,7 +610,7 @@ namespace Db2Source
             public T this[int index] { get { return _items[index]; } }
             #endregion
         }
-        private class PgOidSubidCollection<T> : IReadOnlyList<T> where T: PgOidSubid, new()
+        internal class PgOidSubidCollection<T> : IReadOnlyList<T> where T: PgOidSubid, new()
         {
             private readonly List<T> _items = new List<T>();
             private Dictionary<ulong, T> _oidNumToItem = new Dictionary<ulong, T>();
@@ -795,7 +795,7 @@ namespace Db2Source
             return baseSql + " where " + condition;
         }
 
-        private abstract class PgObject
+        internal abstract class PgObject
         {
             //public static PgObjectCollection<PgObject> DefaultStore;
 #pragma warning disable 0649
@@ -809,7 +809,7 @@ namespace Db2Source
             public abstract string GetIdentifier(bool fullName);
             public PgObject() { }
         }
-        private class PgNamespace: PgObject
+        internal class PgNamespace: PgObject
         {
 #pragma warning disable 0649
             public string nspname;
@@ -853,7 +853,7 @@ namespace Db2Source
                 return string.Format("{0}({1})", nspname, oid);
             }
         }
-        private class PgClass: PgObject
+        internal class PgClass: PgObject
         {
 #pragma warning disable 0649
             public string relname;
@@ -1259,7 +1259,7 @@ namespace Db2Source
             }
         }
 
-        private class PgType: PgObject
+        internal class PgType: PgObject
         {
 #pragma warning disable 0649
             public string typname;
@@ -1476,7 +1476,7 @@ namespace Db2Source
             }
         }
 
-        private class PgConstraint: PgObject
+        internal class PgConstraint: PgObject
         {
 #pragma warning disable 0649
             public string conname;
@@ -1698,7 +1698,7 @@ namespace Db2Source
                 return conname;
             }
         }
-        private abstract class PgOidSubid: IComparable
+        internal abstract class PgOidSubid: IComparable
         {
             public abstract uint Oid { get; }
             public abstract int Subid { get; }
@@ -1726,7 +1726,7 @@ namespace Db2Source
             }
 
         }
-        private class PgAttribute: PgOidSubid
+        internal class PgAttribute: PgOidSubid
         {
 #pragma warning disable 0649
             public uint attrelid;
@@ -1737,7 +1737,7 @@ namespace Db2Source
             public int attnum;
             //public int attndims;
             //public int attcacheoff;
-            //public int atttypmod;
+            public int atttypmod;
             //public bool attbyval;
             //public char attstorage;
             //public char attalign;
@@ -1891,7 +1891,7 @@ namespace Db2Source
             }
         }
 
-        private class PgDescription: PgObject
+        internal class PgDescription: PgObject
         {
 #pragma warning disable 0649
             public uint objoid;
@@ -2058,7 +2058,7 @@ namespace Db2Source
                 return description;
             }
         }
-//        private class PgDepend
+//        internal class PgDepend
 //        {
 //#pragma warning disable 0649
 //            public uint classid;
@@ -2135,7 +2135,7 @@ namespace Db2Source
 //                //robj.ReferFrom.Add(obj);
 //            }
 //        }
-        private class PgTrigger: PgObject
+        internal class PgTrigger: PgObject
         {
 #pragma warning disable 0649
             public uint tgrelid;
@@ -2322,7 +2322,7 @@ namespace Db2Source
                 return tgname;
             }
         }
-        private class PgTablespace: PgObject
+        internal class PgTablespace: PgObject
         {
 #pragma warning disable 0649
             public string spcname;
@@ -2385,25 +2385,26 @@ namespace Db2Source
             }
         }
 
-        private class PgProc: PgObject
+        internal class PgProc: PgObject
         {
 #pragma warning disable 0649
             public string proname;
             public uint pronamespace;
             //public uint proowner;
             //public uint prolang;
-            //public float procost;
-            //public float prorows;
+            public float procost;
+            public float prorows;
             //public uint provariadic;
             public string protransform;
             public char prokind;
             //public bool proisagg;
-            //public bool proiswindow;
-            //public bool prosecdef;
-            //public bool proleakproof;
-            //public bool proisstrict;
+            public bool proiswindow;
+            public bool prosecdef;
+            public bool proleakproof;
+            public bool proisstrict;
             public bool proretset;
-            //public char provolatile;
+            public char provolatile;
+            public char proparallel;
             //public short pronargs;
             //public short pronargdefaults;
             public uint prorettype;
@@ -2412,7 +2413,7 @@ namespace Db2Source
             public char[] proargmodes;
             public string[] proargnames;
             ////public pg_node_tree proargdefaults;
-            //public int[] protrftypes;
+            public uint[] protrftypes;
             public string prosrc;
             //public string probin;
             //public string[] proconfig;
@@ -2425,6 +2426,7 @@ namespace Db2Source
             public PgType ReturnType;
             public PgType[] ArgTypes;
             public PgType[] AllArgTypes;
+            public PgType[] TrfTypes;
             public Dictionary<int, string> ArgDefaults = new Dictionary<int, string>();
 
             internal string[] GetArgTypeStrs()
@@ -2501,7 +2503,19 @@ namespace Db2Source
             }
             public static PgObjectCollection<PgProc> Load(NpgsqlConnection connection, PgObjectCollection<PgProc> store)
             {
-                string sql = (11 <= connection.PostgreSqlVersion.Major) ? DataSet.Properties.Resources.PgProc_SQL : DataSet.Properties.Resources.PgProc10_SQL;
+                string sql;
+                if (connection.PostgreSqlVersion.Major < 10)
+                {
+                    sql = DataSet.Properties.Resources.PgProc9_SQL;
+                }
+                else if (connection.PostgreSqlVersion.Major == 10)
+                {
+                    sql = DataSet.Properties.Resources.PgProc10_SQL;
+                }
+                else
+                {
+                    sql = DataSet.Properties.Resources.PgProc_SQL;
+                }
                 PgObjectCollection <PgProc> l = store;
                 if (l == null)
                 {
@@ -2535,6 +2549,14 @@ namespace Db2Source
                         AllArgTypes[i] = working.PgTypes.FindByOid(proallargtypes[i]);
                     }
                 }
+                if (protrftypes != null)
+                {
+                    TrfTypes = new PgType[protrftypes.Length];
+                    for (int i = 0; i < protrftypes.Length; i++)
+                    {
+                        TrfTypes[i] = working.PgTypes.FindByOid(protrftypes[i]);
+                    }
+                }
             }
             public override void BeginFillReference(WorkingData working)
             {
@@ -2558,15 +2580,99 @@ namespace Db2Source
                         return ParameterDirection.Output;
                     case 'b':
                         return ParameterDirection.InputOutput;
-                    //case 'v':
-                    //    return ParameterDirection.VarDic;
-                    //case 't':
-                    //    retuen ParameterDirection.Table;
+                    case 'v':
+                        return ParameterDirection.Input;
+                    case 't':
+                        return ParameterDirection.ReturnValue;
                     default:
                         return ParameterDirection.Input;
                 }
                 //return ParameterDirection.Input;
             }
+            private ParameterDir GetParameterDir(int index)
+            {
+                if (proargmodes == null || index < 0 || proargmodes.Length <= index)
+                {
+                    return ParameterDir.Input;
+                }
+                switch (proargmodes[index])
+                {
+                    case 'i':
+                        return ParameterDir.Input;
+                    case 'o':
+                        return ParameterDir.Output;
+                    case 'v':
+                        return ParameterDir.VariaDic;
+                    case 't':
+                        return ParameterDir.Table;
+                    default:
+                        return ParameterDir.Input;
+                }
+                //return ParameterDirection.Input;
+            }
+            private const float PROCOST_DEFAULT_C = 1.0f;
+            private const float PROCOST_DEFAULT_INTERNAL = 1.0f;
+            private const float PROCOST_DEFAULT = 100.0f;
+            private const float PROROWS_DEFAULT = 1000.0f;
+            private float GetDefaultCost()
+            {
+                switch (lanname)
+                {
+                    case "internal":
+                    case "INTERNAL":
+                        return PROCOST_DEFAULT_INTERNAL;
+                    case "c":
+                    case "C":
+                        return PROCOST_DEFAULT_C;
+                }
+                return PROCOST_DEFAULT;
+            }
+
+            private string GetTransformTypeDefs()
+            {
+                if (TrfTypes == null || TrfTypes.Length == 0)
+                {
+                    return null;
+                }
+                StringBuilder buf = new StringBuilder("transform for type ");
+                string prefix = string.Empty;
+                foreach (PgType t in TrfTypes)
+                {
+                    buf.Append(prefix);
+                    buf.Append(t.formatname);
+                    prefix = ", ";
+                }
+                return buf.ToString();
+            }
+
+            private IReturnType GetReturnType()
+            {
+                string t = ReturnType?.formatname;
+                if (!proretset)
+                {
+                    return new SimpleReturnType(ReturnType?.formatname);
+                }
+                PgType[] args = AllArgTypes ?? ArgTypes;
+                if (args == null)
+                {
+                    return new SetOfReturnType(ReturnType?.formatname);
+                }
+                List<TableReturnType.Column> l = new List<TableReturnType.Column>();
+                for (int i = 0; i < args.Length; i++)
+                {
+                    ParameterDir dir = GetParameterDir(i);
+                    if (dir == ParameterDir.Table)
+                    {
+                        l.Add(new TableReturnType.Column(proargnames?[i], args[i]));
+                    }
+                }
+                if (l.Count == 0)
+                {
+                    return new SetOfReturnType(ReturnType?.formatname);
+                }
+                return new TableReturnType(l.ToArray());
+            }
+
             public StoredFunction ToStoredFunction(NpgsqlDataSet context)
             {
                 NamedObject o;
@@ -2576,23 +2682,24 @@ namespace Db2Source
                 }
                 StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
                 {
-                    DataType = ReturnType?.formatname,
-                    BaseType = ReturnType?.BaseType?.formatname
+                    ReturnType = GetReturnType(),
+                    //BaseType = ReturnType?.BaseType?.formatname
                 };
-                if (fn.BaseType == null)
-                {
-                    fn.BaseType = fn.DataType;
-                }
-                if (proretset)
-                {
-                    fn.DataType = "setof " + fn.DataType;
-                }
+                //if (fn.BaseType == null)
+                //{
+                //    fn.BaseType = fn.DataType;
+                //}
                 fn.Language = lanname;
                 PgType[] args = AllArgTypes ?? ArgTypes;
                 if (args != null)
                 {
                     for (int i = 0; i < args.Length; i++)
                     {
+                        ParameterDir dir = GetParameterDir(i);
+                        if (dir == ParameterDir.Table)
+                        {
+                            continue;
+                        }
                         Parameter p = new Parameter(fn)
                         {
                             Name = proargnames?[i],
@@ -2618,6 +2725,56 @@ namespace Db2Source
                         }
                     }
                 }
+                List<string> extra = new List<string>();
+                string def = GetTransformTypeDefs();
+                if (!string.IsNullOrEmpty(def))
+                {
+                    extra.Add(def);
+                }
+                if (prokind == 'w' || proiswindow)
+                {
+                    extra.Add("window");
+                }
+                //switch (provolatile)
+                //{
+                //    case 'i':
+                //        extra.Add("immutable");
+                //        break;
+                //    case 's':
+                //        extra.Add("stable");
+                //        break;
+                //}
+                if (proleakproof)
+                {
+                    extra.Add("leakproof");
+                }
+                //if (proisstrict)
+                //{
+                //    //extra.Add("returns null on null input");
+                //    extra.Add("strict");
+                //}
+                if (prosecdef)
+                {
+                    extra.Add("security definer");
+                }
+                switch (proparallel)
+                {
+                    case 's':
+                        extra.Add("parallel safe");
+                        break;
+                    case 'r':
+                        extra.Add("parallel restricted");
+                        break;
+                }
+                if (procost != GetDefaultCost())
+                {
+                    extra.Add(string.Format("cost {0}", procost));
+                }
+                if (proretset && prorows != PROROWS_DEFAULT)
+                {
+                    extra.Add(string.Format("rows {0}", prorows));
+                }
+                fn.ExtraInfo = extra.ToArray();
                 Generated = new WeakReference<NamedObject>(fn);
                 return fn;
             }
@@ -2628,7 +2785,7 @@ namespace Db2Source
             }
         }
 
-        private class PgDatabase : PgObject
+        internal class PgDatabase : PgObject
         {
 #pragma warning disable 0649
             public string datname;
@@ -2731,7 +2888,7 @@ namespace Db2Source
             }
         }
 
-        private class PgSettingCollection : IReadOnlyList<PgSetting>
+        internal class PgSettingCollection : IReadOnlyList<PgSetting>
         {
             private readonly List<PgSetting> _items = new List<PgSetting>();
 
@@ -2802,7 +2959,7 @@ namespace Db2Source
             public PgSetting this[int index] { get { return _items[index]; } }
             #endregion
         }
-        private class PgSetting: IComparable
+        internal class PgSetting: IComparable
         {
 #pragma warning disable 0649
             public string name;
@@ -2923,7 +3080,7 @@ namespace Db2Source
             }
         }
 
-        private class PgRole: PgObject
+        internal class PgRole: PgObject
         {
 #pragma warning disable 0649
             public string rolname;
@@ -2999,7 +3156,7 @@ namespace Db2Source
                 return rolname;
             }
         }
-        private class WorkingData
+        internal class WorkingData
         {
             public NpgsqlDataSet Context;
 
@@ -3662,5 +3819,101 @@ namespace Db2Source
             throw new NotImplementedException(string.Format("{0} {1} is not supported.", obj.GetType().FullName, obj.FullName));
             //return obj;
         }
+        public class SetOfReturnType : IReturnType
+        {
+            public string DataType { get; set; }
+
+            public string GetSQL(Db2SourceContext context, string prefix, int indent, int charPerLine)
+            {
+                return prefix + GetDefName();
+            }
+
+            public string GetDefName()
+            {
+                return "setof " + DataType;
+            }
+
+            public SetOfReturnType() { }
+            public SetOfReturnType(string dataType)
+            {
+                DataType = dataType;
+            }
+        }
+
+        public class TableReturnType : IReturnType
+        {
+            public struct Column
+            {
+                public string Name { get; set; }
+                public string DataType { get; set; }
+
+                public string GetSQL(Db2SourceContext context)
+                {
+                    return string.Format("{0} {1}", context.GetEscapedIdentifier(Name, false), DataType);
+                }
+
+                public override string ToString()
+                {
+                    return string.Format("{0} {1}", Name, DataType);
+                }
+                
+                internal Column(string name, PgType type)
+                {
+                    Name = name;
+                    DataType = type.formatname;
+                }
+            }
+            public Column[] Columns { get; set; }
+
+            private void _Add(StringBuilder buffer, string delimiter, string value, ref int column, int indent, int charPerLine)
+            {
+                if (!string.IsNullOrEmpty(delimiter))
+                {
+                    buffer.Append(delimiter);
+                    column += delimiter.Length;
+                    if (charPerLine < column)
+                    {
+                        buffer.AppendLine();
+                        buffer.Append(new string(' ', indent));
+                        column = indent;
+                    }
+                    else
+                    {
+                        buffer.Append(' ');
+                        column++;
+                    }
+                }
+                buffer.Append(value);
+                column += value.Length;
+            }
+
+            public string GetSQL(Db2SourceContext context, string prefix, int indent, int charPerLine)
+            {
+                StringBuilder buf = new StringBuilder();
+                int p = prefix.Length;
+                buf.Append(prefix);
+                _Add(buf, string.Empty, "table (", ref p, indent, charPerLine);
+                string delimiter = string.Empty;
+                foreach (Column column in Columns)
+                {
+                    _Add(buf, delimiter, column.GetSQL(context), ref p, indent, charPerLine);
+                    delimiter = ",";
+                }
+                buf.Append(")");
+                return buf.ToString();
+            }
+            
+            public string GetDefName()
+            {
+                return "table";
+            }
+
+            public TableReturnType() { }
+            public TableReturnType(Column[] columns)
+            {
+                Columns = columns;
+            }
+        }
+
     }
 }

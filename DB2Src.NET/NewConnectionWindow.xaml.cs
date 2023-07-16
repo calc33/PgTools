@@ -573,7 +573,7 @@ namespace Db2Source
         private void treeViewConnections_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem item = treeViewConnections.SelectedItem as TreeViewItem;
-            if (item?.Tag != null)
+            if (item?.Tag is ConnectionInfo)
             {
                 PerformClickAsync(buttonOK);
                 e.Handled = true;

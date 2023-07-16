@@ -354,7 +354,7 @@ namespace Db2Source
         public void LoadSchema(Db2SourceContext dataSet)
         {
             SetConnectionStatus(SchemaConnectionStatus.Loading);
-            Task t = LoadSchemaAsync(dataSet);
+            _ = LoadSchemaAsync(dataSet);
         }
 
         //#pragma warning restore 1998

@@ -720,8 +720,17 @@ namespace Db2Source
         }
 
         //private static readonly string[] ParameterDirectionStr = { "", "", "out ", "inout ", "variadic ", "variadic ", "variadic out ", "variadic inout ", "result " };
-        private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", string.Empty, string.Empty, "result " };
+        private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", "variadic ", "table ", "result " };
         private string GetParameterDirectionStr(ParameterDirection direction)
+        {
+            int i = (int)direction;
+            if (i < 0 || ParameterDirectionStr.Length <= i)
+            {
+                return null;
+            }
+            return ParameterDirectionStr[i];
+        }
+        private string GetParameterDirStr(ParameterDir direction)
         {
             int i = (int)direction;
             if (i < 0 || ParameterDirectionStr.Length <= i)
@@ -777,14 +786,20 @@ namespace Db2Source
             }
             buf.Append(')');
             buf.AppendLine();
-            buf.Append(spc);
-            buf.Append(" returns ");
-            buf.AppendLine(function.DataType);
+            //buf.Append(spc);
+            //buf.Append(" returns ");
+            buf.AppendLine(function.ReturnType.GetSQL(this, spc + " returns ", indent + 3, PreferredCharsPerLine));
             if (!string.IsNullOrEmpty(function.Language))
             {
                 buf.Append(spc);
                 buf.Append(" language ");
                 buf.AppendLine(function.Language);
+            }
+            foreach (string s in function.ExtraInfo)
+            {
+                buf.Append(spc);
+                buf.Append(' ');
+                buf.AppendLine(s);
             }
             buf.Append(spc);
             buf.Append(" as $function$"); // Definitionの前後に改行が含まれるためここでは改行しない

@@ -337,12 +337,12 @@ namespace Db2Source
 
     public interface IDbTypeDef
     {
-        string BaseType { get; set; }
-        int? DataLength { get; set; }
-        int? Precision { get; set; }
-        bool? WithTimeZone { get; set; }
-        bool IsSupportedType { get; set; }
-        Type ValueType { get; set; }
+        string BaseType { get; }
+        int? DataLength { get; }
+        int? Precision { get; }
+        bool? WithTimeZone { get; }
+        //bool IsSupportedType { get; }
+        //Type ValueType { get; }
     }
 
     public static class DbTypeDefUtil
