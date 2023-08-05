@@ -773,11 +773,11 @@ namespace Db2Source
             {
                 throw new ArgumentException("主キーがありません");
             }
-            StringBuilder buf = new StringBuilder(GetInsertSql(table, "t", indent, charPerLine, string.Empty, false));
+            StringBuilder buf = new StringBuilder(GetInsertSql(table, null, indent, charPerLine, string.Empty, false));
             buf.Append(" on conflict on constraint ");
             buf.Append(GetEscapedIdentifier(table.PrimaryKey.Name, true));
             buf.AppendLine(" do update set ");
-            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 2, "t.", table.PrimaryKey));
+            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 2, "excluded.", table.PrimaryKey));
             return buf.ToString();
         }
         public override string GetMergeSql(Table table, int indent, int charPerLine, string postfix)
