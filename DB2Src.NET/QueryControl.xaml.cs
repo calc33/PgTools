@@ -262,6 +262,7 @@ namespace Db2Source
                     {
                         Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
                         AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
+                        App.LogException(t);
                         Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
                         return;
                     }
