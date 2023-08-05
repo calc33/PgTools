@@ -2647,7 +2647,6 @@ namespace Db2Source
 
             private IReturnType GetReturnType()
             {
-                string t = ReturnType?.formatname;
                 if (!proretset)
                 {
                     return new SimpleReturnType(ReturnType?.formatname);
@@ -3702,8 +3701,6 @@ namespace Db2Source
         }
         internal StoredFunction RefreshStoredFunction(StoredFunction function,  NpgsqlConnection connection)
         {
-            string sch = function.SchemaName;
-            string id = function.FullIdentifier;
             if (_backend == null)
             {
                 LoadSchema(connection, false);
@@ -3726,6 +3723,7 @@ namespace Db2Source
                 }
                 _backend.FillProcByOid(oid.Value, connection);
             }
+            string id = function.FullIdentifier;
             StoredFunction ret = StoredFunctions[id];
             if (ret != function)
             {
