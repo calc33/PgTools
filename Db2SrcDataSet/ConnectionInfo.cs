@@ -751,7 +751,7 @@ namespace Db2Source
         [JsonIgnore]
         public string Path { get; private set; }
         private List<ConnectionInfo> _list = new List<ConnectionInfo>();
-        private List<ConnectionInfo> _backlist = new List<ConnectionInfo>();
+        //private List<ConnectionInfo> _backlist = new List<ConnectionInfo>();
 
         public ConnectionList(string path)
         {
@@ -771,7 +771,7 @@ namespace Db2Source
         public void Load()
         {
             _list = LoadInternal();
-            _backlist = new List<ConnectionInfo>(_list);
+            //_backlist = new List<ConnectionInfo>(_list);
         }
 
         /// <summary>
@@ -801,98 +801,99 @@ namespace Db2Source
             destination.AddRange(newList);
         }
 
-        private void Merge(List<ConnectionInfo> currentList, List<ConnectionInfo> newList, List<ConnectionInfo> oldList)
-        {
-            if (newList == null)
-            {
-                return;
-            }
-            Dictionary<string, int> curDict = new Dictionary<string, int>();
-            Dictionary<string, ConnectionInfo> oldDict = new Dictionary<string, ConnectionInfo>();
-            for (int i = 0; i < currentList.Count; i++)
-            {
-                curDict.Add(currentList[i].Name, i);
-            }
-            foreach (ConnectionInfo info in oldList)
-            {
-                oldDict.Add(info.Name, info);
-            }
-            Dictionary<string, ConnectionInfo> newDict = new Dictionary<string, ConnectionInfo>();
-            foreach (ConnectionInfo info in newList)
-            {
-                newDict.Add(info.Name, info);
-            }
+        //private void Merge(List<ConnectionInfo> currentList, List<ConnectionInfo> newList, List<ConnectionInfo> oldList)
+        //{
+        //    if (newList == null)
+        //    {
+        //        return;
+        //    }
+        //    Dictionary<string, int> curDict = new Dictionary<string, int>();
+        //    Dictionary<string, ConnectionInfo> oldDict = new Dictionary<string, ConnectionInfo>();
+        //    for (int i = 0; i < currentList.Count; i++)
+        //    {
+        //        curDict.Add(currentList[i].Name, i);
+        //    }
+        //    foreach (ConnectionInfo info in oldList)
+        //    {
+        //        oldDict.Add(info.Name, info);
+        //    }
+        //    Dictionary<string, ConnectionInfo> newDict = new Dictionary<string, ConnectionInfo>();
+        //    foreach (ConnectionInfo info in newList)
+        //    {
+        //        newDict.Add(info.Name, info);
+        //    }
 
-            foreach (ConnectionInfo info in newList)
-            {
-                if (!oldDict.ContainsKey(info.Name))
-                {
-                    if (!curDict.ContainsKey(info.Name))
-                    {
-                        //手元にないエントリがファイルにあった→追加
-                        //(ただし読込時以降に手元で追加していない場合に限る)
-                        currentList.Add(info);
-                    }
-                }
-                else
-                {
-                    ConnectionInfo back = oldDict[info.Name];
-                    if (!info.Equals(back))
-                    {
-                        int i;
-                        if (curDict.TryGetValue(info.Name, out i) && 0 <= i && i < currentList.Count)
-                        {
-                            ConnectionInfo cur = currentList[i];
-                            if (cur.Equals(back))
-                            {
-                                // 手元で変更していないエントリがファイル上では変更されていた→置換
-                                // (手元の変更優先)
-                                currentList[i] = info;
-                            }
-                        }
-                    }
-                }
-            }
-            foreach (ConnectionInfo back in oldList)
-            {
-                if (!newDict.ContainsKey(back.Name))
-                {
-                    int i;
-                    if (curDict.TryGetValue(back.Name, out i) && 0 <= i && i < currentList.Count)
-                    {
-                        ConnectionInfo cur = currentList[i];
-                        if (cur != null && cur.Equals(back))
-                        {
-                            //ファイル上にないエントリが手元にある&手元で変更していない→削除
-                            currentList[i] = null;
-                        }
-                    }
-                }
-            }
-            for (int i = currentList.Count - 1; 0 <= i; i--)
-            {
-                if (currentList[i] == null)
-                {
-                    currentList.RemoveAt(i);
-                }
-            }
-        }
+        //    foreach (ConnectionInfo info in newList)
+        //    {
+        //        if (!oldDict.ContainsKey(info.Name))
+        //        {
+        //            if (!curDict.ContainsKey(info.Name))
+        //            {
+        //                //手元にないエントリがファイルにあった→追加
+        //                //(ただし読込時以降に手元で追加していない場合に限る)
+        //                currentList.Add(info);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            ConnectionInfo back = oldDict[info.Name];
+        //            if (!info.Equals(back))
+        //            {
+        //                int i;
+        //                if (curDict.TryGetValue(info.Name, out i) && 0 <= i && i < currentList.Count)
+        //                {
+        //                    ConnectionInfo cur = currentList[i];
+        //                    if (cur.Equals(back))
+        //                    {
+        //                        // 手元で変更していないエントリがファイル上では変更されていた→置換
+        //                        // (手元の変更優先)
+        //                        currentList[i] = info;
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    foreach (ConnectionInfo back in oldList)
+        //    {
+        //        if (!newDict.ContainsKey(back.Name))
+        //        {
+        //            int i;
+        //            if (curDict.TryGetValue(back.Name, out i) && 0 <= i && i < currentList.Count)
+        //            {
+        //                ConnectionInfo cur = currentList[i];
+        //                if (cur != null && cur.Equals(back))
+        //                {
+        //                    //ファイル上にないエントリが手元にある&手元で変更していない→削除
+        //                    currentList[i] = null;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    for (int i = currentList.Count - 1; 0 <= i; i--)
+        //    {
+        //        if (currentList[i] == null)
+        //        {
+        //            currentList.RemoveAt(i);
+        //        }
+        //    }
+        //}
 
-        /// <summary>
-        /// _listと接続情報一覧ファイルの内容をマージする
-        /// </summary>
-        /// <param name="stream"></param>
-        private void Sync(FileStream stream)
-        {
-            string js = null;
-            using (StreamReader sr = new StreamReader(stream, Encoding.UTF8))
-            {
-                js = sr.ReadToEnd();
-            }
-            List<ConnectionInfo> newList = LoadInternal();
-            Merge(_list, newList, _backlist);
-            _list.Sort(ConnectionInfo.CompareByName);
-        }
+        ///// <summary>
+        ///// _listと接続情報一覧ファイルの内容をマージする
+        ///// </summary>
+        ///// <param name="stream"></param>
+        //private void Sync(FileStream stream)
+        //{
+        //    string js = null;
+        //    using (StreamReader sr = new StreamReader(stream, Encoding.UTF8))
+        //    {
+        //        js = sr.ReadToEnd();
+        //    }
+        //    List<ConnectionInfo> newList = LoadInternal();
+        //    Merge(_list, newList, _backlist);
+        //    _list.Sort(ConnectionInfo.CompareByName);
+        //}
+
         public ConnectionInfo Merge(ConnectionInfo item)
         {
             int p = IndexOf(item);
