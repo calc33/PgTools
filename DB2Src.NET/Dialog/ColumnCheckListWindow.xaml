@@ -62,7 +62,7 @@
     </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal"/>
-        <ListBox x:Name="listBoxMain" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" ItemsSource="{Binding Columns, ElementName=window}" PreviewKeyUp="listBoxMain_PreviewKeyUp" MinWidth="200">
+        <ListBox x:Name="listBoxMain" VerticalContentAlignment="Center" ItemContainerStyle="{DynamicResource ListBoxItemStyle1}" ItemsSource="{Binding Columns, ElementName=window}" PreviewKeyUp="listBoxMain_PreviewKeyUp" MinWidth="200" SelectionMode="Extended">
             <ListBox.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="すべてチェック" Click="MenuItemCheckAll_Click" />

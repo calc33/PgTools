@@ -125,20 +125,25 @@ namespace Db2Source
             }
         }
 
+        private void ToggleIsChecked()
+        {
+            ColumnItem sel = listBoxMain.SelectedItem as ColumnItem;
+            if (sel == null)
+            {
+                return;
+            }
+            bool flag = !sel.IsChecked;
+            foreach (ColumnItem item in listBoxMain.SelectedItems)
+            {
+                item.IsChecked = flag;
+            }
+        }
+
         private void listBoxMain_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Space)
             {
-                ColumnItem sel = listBoxMain.SelectedItem as ColumnItem;
-                if (sel == null)
-                {
-                    return;
-                }
-                bool flag = !sel.IsChecked;
-                foreach (ColumnItem item in listBoxMain.SelectedItems)
-                {
-                    item.IsChecked = flag;
-                }
+                ToggleIsChecked();
                 e.Handled = true;
             }
         }
