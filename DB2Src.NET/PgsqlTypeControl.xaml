@@ -28,9 +28,14 @@
                             <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Focusable="False" Click="buttonRevertSchema_Click"/>
                         </ToolBar>
                     </ToolBarTray>
-                    <StackPanel Orientation="Horizontal" Margin="0,2">
-                        <TextBlock Text="所有者：" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
+                    <StackPanel Margin="0,2" Orientation="Horizontal">
+                        <TextBlock Text="名称：" VerticalAlignment="Center"/>
+                        <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Name, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
+                        <TextBlock Text="所有者：" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <Grid>
+                            <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
                 <Grid Grid.Row="1" Margin="0,0,0,4">

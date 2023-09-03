@@ -54,17 +54,23 @@
                     <RowDefinition Height="10*"/>
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
-                    <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="2">
-                        <CheckBox x:Name="checkBoxLimitRow" VerticalAlignment="Center" IsChecked="True" TabIndex="2"/>
-                        <TextBlock Text="先頭の"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
-                        <TextBox x:Name="textBoxLimitRow" Text="100" Width="48"  VerticalAlignment="Center" TextAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=checkBoxLimitRow}" PreviewTextInput="textBoxLimitRow_PreviewTextInput" TabIndex="3"/>
-                        <TextBlock Text="件のみ"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}">
-                            <TextBlock.Background>
-                                <ImageBrush/>
-                            </TextBlock.Background>
-                        </TextBlock>
-                        <TextBlock x:Name="textBlockWarningLimit" Text="件数上限に達しています"  VerticalAlignment="Center" Margin="2,0" Foreground="Red" Visibility="Collapsed"/>
-                        <Button x:Name="buttonCopyAll" Margin="4,2,2,2" Padding="4,2" Content="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                    <StackPanel DockPanel.Dock="Bottom">
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="2">
+                            <CheckBox x:Name="checkBoxLimitRow" VerticalAlignment="Center" IsChecked="True" TabIndex="2"/>
+                            <TextBlock Text="先頭の"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
+                            <TextBox x:Name="textBoxLimitRow" Text="100" Width="48"  VerticalAlignment="Center" TextAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=checkBoxLimitRow}" PreviewTextInput="textBoxLimitRow_PreviewTextInput" TabIndex="3"/>
+                            <TextBlock Text="件のみ"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
+                            <TextBlock x:Name="textBlockWarningLimit" Text="件数上限に達しています"  VerticalAlignment="Center" Margin="2,0" Foreground="Red" Visibility="Collapsed"/>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal">
+                            <ToolBarTray>
+                                <ToolBar>
+                                    <Button x:Name="buttonFilterColumns" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageFilter14}" VerticalAlignment="Stretch" ToolTip="項目フィルター" TabIndex="10" Click="buttonFilterColumns_Click"/>
+                                    <Button x:Name="buttonCopyAll" Margin="1" Padding="2,0" Focusable="False" ContentTemplate="{StaticResource ImageCopy14}" VerticalAlignment="Stretch" ToolTip="表をコピー" TabIndex="10" Click="buttonCopyAll_Click"/>
+                                    <Button x:Name="buttonSearchWord" Margin="1" Padding="2" Focusable="False" ContentTemplate="{StaticResource ImageSearch14}" VerticalAlignment="Stretch" ToolTip="検索" Click="buttonSearchWord_Click"/>
+                                </ToolBar>
+                            </ToolBarTray>
+                        </StackPanel>
                     </StackPanel>
                     <Button x:Name="buttonFetch" Padding="4,2" ContentTemplate="{StaticResource ImageSearch20}" HorizontalContentAlignment="Center" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="34" DockPanel.Dock="Right" Margin="2,0" TabIndex="1"/>
                     <Grid>
@@ -102,8 +108,13 @@
                         </ToolBar>
                     </ToolBarTray>
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="所有者："/>
-                        <TextBox IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="80"/>
+                        <TextBlock Text="名称：" VerticalAlignment="Center"/>
+                        <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Name, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
+                        <TextBlock Text="所有者：" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <Grid>
+                            <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                        </Grid>
                     </StackPanel>
                 </StackPanel>
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" MaxHeight="100" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />

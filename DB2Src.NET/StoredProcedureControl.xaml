@@ -92,8 +92,13 @@
                         </ToolBar>
                     </ToolBarTray>
                     <StackPanel Orientation="Horizontal" Margin="2,2">
-                        <TextBlock Text="所有者：" VerticalAlignment="Center"/>
-                        <ComboBox IsEditable="True" IsEnabled="{Binding IsEditing, ElementName=userControl}" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center"/>
+                        <TextBlock Text="名称：" VerticalAlignment="Center"/>
+                        <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Name, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
+                        <TextBlock Text="所有者：" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <Grid>
+                            <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                            <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
+                        </Grid>
                     </StackPanel>
                     <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
                 </StackPanel>
