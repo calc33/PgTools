@@ -352,6 +352,11 @@ namespace Db2Source
             }
         }
 
+        public static string IndentText { get; set; } = "  ";
+        public static string GetIndent(int indent)
+        {
+            return string.IsNullOrEmpty(IndentText) ? string.Empty : new string(IndentText[0], IndentText.Length * indent);
+        }
         public static string DateFormat { get; set; } = "yyyy/MM/dd";
         public static string TimeFormat { get; set; } = "HH:mm:ss";
         public static string[] TimeFormats { get; set; } = new string[] { "HH:mm:ss", "HH:mm" };

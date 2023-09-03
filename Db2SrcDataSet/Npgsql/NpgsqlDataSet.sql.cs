@@ -67,7 +67,7 @@ namespace Db2Source
                 l.AddRange(GetSQL(seq, prefix, postfix, indent, addNewline, false, true));
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("create {0} {1} (", table.GetSqlType().ToLower(), table.EscapedIdentifier(CurrentSchema));
@@ -75,13 +75,13 @@ namespace Db2Source
             int n = table.Columns.Count - 1;
             for (int i = 0; i < n; i++)
             {
-                buf.Append(_Expand(GetSQL(table.Columns[i], string.Empty, ",", indent + 2, true)));
+                buf.Append(_Expand(GetSQL(table.Columns[i], string.Empty, ",", indent + 1, true)));
             }
             bool needKey = includePrimaryKey && (table.PrimaryKey != null);
-            buf.Append(_Expand(GetSQL(table.Columns[n], string.Empty, needKey ? "," : string.Empty, indent + 2, true)));
+            buf.Append(_Expand(GetSQL(table.Columns[n], string.Empty, needKey ? "," : string.Empty, indent + 1, true)));
             if (needKey)
             {
-                buf.Append(_Expand(GetSQL(table.PrimaryKey, string.Empty, string.Empty, indent + 2, false, true)));
+                buf.Append(_Expand(GetSQL(table.PrimaryKey, string.Empty, string.Empty, indent + 1, false, true)));
             }
             buf.Append(spc);
             buf.Append(")");
@@ -136,12 +136,12 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("create or replace {0} {1} (", table.GetSqlType().ToLower(), table.EscapedIdentifier(CurrentSchema));
-            int colIndent = indent + 2;
-            string colSpc = new string(' ', indent + 2);
+            int colIndent = indent + 1;
+            string colSpc = GetIndent(colIndent);
             int l = colIndent;
             int n = table.Columns.Count - 1;
             for (int i = 0; i < n; i++)
@@ -195,7 +195,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append(column.EscapedName);
@@ -255,11 +255,11 @@ namespace Db2Source
             }
             if (constraint.IsTemporaryName)
             {
-                return string.Format("{0}{1} {2}", new string(' ', indent), pre, ConstraintTypeToStr[constraint.ConstraintType]);
+                return string.Format("{0}{1} {2}", GetIndent(indent), pre, ConstraintTypeToStr[constraint.ConstraintType]);
             }
             else
             {
-                return string.Format("{0}{1}constraint {2} {3}", new string(' ', indent), pre, GetEscapedIdentifier(constraint.Name, true), ConstraintTypeToStr[constraint.ConstraintType]);
+                return string.Format("{0}{1}constraint {2} {3}", GetIndent(indent), pre, GetEscapedIdentifier(constraint.Name, true), ConstraintTypeToStr[constraint.ConstraintType]);
             }
         }
         public override string[] GetSQL(KeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline)
@@ -437,7 +437,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc2 = new string(' ', indent + 2);
+            string spc2 = GetIndent(indent + 1);
             if (database.DbaUserName != ConnectionInfo.UserName)
             {
                 _AddPgsqlDatabaseParam(buf, spc2, "owner", database.DbaUserName);
@@ -512,21 +512,21 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
 
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("create trigger {0}", GetEscapedIdentifier(trigger.Name, true));
             buf.AppendLine();
             StringBuilder bufPart = new StringBuilder();
-            spc += "  ";
+            spc += IndentText;
             bufPart.Append(spc);
             bufPart.Append(trigger.TimingText);
             bufPart.Append(trigger.EventText);
             buf.Append(bufPart.ToString());
             int l = 0;
             int c = bufPart.Length;
-            buf.Append(trigger.GetUpdateEventColumnsSql(" of ", spc + "  ", ref c, ref l, LINE_SOFTLIMIT, LINE_HARDLIMIT));
+            buf.Append(trigger.GetUpdateEventColumnsSql(" of ", spc + IndentText, ref c, ref l, LINE_SOFTLIMIT, LINE_HARDLIMIT));
             bufPart = new StringBuilder();
             bufPart.Append("on ");
             bufPart.Append(GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema, true));
@@ -576,7 +576,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             if (!string.IsNullOrEmpty(index.SqlDef))
@@ -640,7 +640,7 @@ namespace Db2Source
         private string[] GetCommentSQL(Comment comment, string commentText, string prefix, string postfix, int indent, bool addNewline)
         {
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             string cmtType = comment.GetCommentType();
@@ -673,7 +673,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
 
             buf.Append(spc);
             buf.Append(prefix);
@@ -767,7 +767,7 @@ namespace Db2Source
 
         public override string[] GetSQL(StoredFunction function, string prefix, string postfix, int indent, bool addNewline)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append(prefix);
@@ -913,7 +913,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("create type {0} AS (", type.EscapedIdentifier(CurrentSchema));
@@ -921,9 +921,9 @@ namespace Db2Source
             int n = type.Columns.Count - 1;
             for (int i = 0; i < n; i++)
             {
-                buf.Append(_Expand(GetSQL(type.Columns[i], string.Empty, ",", indent + 2, true)));
+                buf.Append(_Expand(GetSQL(type.Columns[i], string.Empty, ",", indent + 1, true)));
             }
-            buf.Append(_Expand(GetSQL(type.Columns[n], string.Empty, string.Empty, indent + 2, true)));
+            buf.Append(_Expand(GetSQL(type.Columns[n], string.Empty, string.Empty, indent + 1, true)));
             buf.Append(spc);
             buf.Append(")");
             buf.Append(postfix);
@@ -948,7 +948,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("create type {0} (", type.EscapedIdentifier(CurrentSchema));
@@ -1041,7 +1041,7 @@ namespace Db2Source
         {
             PgsqlTablespace ts = tablespace as PgsqlTablespace;
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("create tablespace ");
@@ -1064,7 +1064,7 @@ namespace Db2Source
         {
             PgsqlUser u = user as PgsqlUser;
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("create role ");
@@ -1157,7 +1157,7 @@ namespace Db2Source
                 l.AddRange(GetDropSQL(before, prefix, postfix, indent, false, addNewline));
                 l.AddRange(GetSQL(after, prefix, postfix, indent, addNewline));
             }
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string nl = addNewline ? Environment.NewLine : string.Empty;
             if (after.Name != before.Name)
             {
@@ -1250,7 +1250,7 @@ namespace Db2Source
                 throw new ArgumentNullException("before");
             }
             List<string> l = new List<string>();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string nl = addNewline ? Environment.NewLine : string.Empty;
             if (NeedsDropAndCreate(after, before))
             {
@@ -1288,7 +1288,7 @@ namespace Db2Source
                 throw new ArgumentNullException("before");
             }
             List<string> l = new List<string>();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string nl = addNewline ? Environment.NewLine : string.Empty;
             if (after.Id != before.Id)
             {
@@ -1326,7 +1326,7 @@ namespace Db2Source
 
         public string[] GetAlterSQL(PgsqlSetting setting, string prefix, string postfix, int indent, bool addNewline)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string nl = addNewline ? Environment.NewLine : string.Empty;
             return new string[]
             {
@@ -1336,7 +1336,7 @@ namespace Db2Source
 
         public string[] GetAlterSQL(PgsqlSetting setting, string userName, string prefix, string postfix, int indent, bool addNewline)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string nl = addNewline ? Environment.NewLine : string.Empty;
             return new string[]
             {
@@ -1420,7 +1420,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("alter table {0} drop constraint {1}", constraint.Table.EscapedIdentifier(CurrentSchema), GetEscapedIdentifier(constraint.Name, true));
@@ -1438,7 +1438,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.AppendFormat("drop trigger {0} on {1}", trigger.EscapedIdentifier(trigger.Table.SchemaName), trigger.Table.EscapedIdentifier(CurrentSchema));
@@ -1493,7 +1493,7 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("drop function ");

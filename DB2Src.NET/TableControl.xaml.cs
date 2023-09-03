@@ -346,166 +346,185 @@ namespace Db2Source
         {
             return checkBox.IsChecked.HasValue && checkBox.IsChecked.Value;
         }
+
+        private bool _isTextBoxSourceUpdating = false;
         private void UpdateTextBoxSource()
         {
-            if (textBoxSource == null)
-            {
-                return;
-            }
-            if (Target == null)
-            {
-                textBoxSource.Text = string.Empty;
-                return;
-            }
-            Db2SourceContext ctx = Target.Context;
             try
             {
-                StringBuilder buf = new StringBuilder();
-                if (IsChecked(checkBoxSourceDropReferredCons))
+                if (textBoxSource == null)
                 {
-                    foreach (ForeignKeyConstraint f in Target.ReferFrom)
-                    {
-                        buf.Append(ctx.GetDropSQL(f, string.Empty, ";", 0, false, true));
-                    }
-                    if (0 < buf.Length)
-                    {
-                        buf.AppendLine();
-                    }
+                    return;
                 }
-                if (IsChecked(checkBoxSourceMain))
+                if (Target == null)
                 {
-                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true, true))
+                    textBoxSource.Text = string.Empty;
+                    return;
+                }
+                Db2SourceContext ctx = Target.Context;
+                try
+                {
+                    StringBuilder buf = new StringBuilder();
+                    if (IsChecked(checkBoxSourceDropReferredCons))
                     {
-                        buf.Append(s);
+                        foreach (ForeignKeyConstraint f in Target.ReferFrom)
+                        {
+                            buf.Append(ctx.GetDropSQL(f, string.Empty, ";", 0, false, true));
+                        }
+                        if (0 < buf.Length)
+                        {
+                            buf.AppendLine();
+                        }
                     }
-                }
-                List<Constraint> list = new List<Constraint>(Target.Constraints);
-                list.Sort();
-                int lastLength = buf.Length;
-                foreach (Constraint c in list)
-                {
-                    switch (c.ConstraintType)
+                    if (IsChecked(checkBoxSourceMain))
                     {
-                        case ConstraintType.Primary:
-                            if (!IsChecked(checkBoxSourceMain) && IsChecked(checkBoxSourceKeyCons))
-                            {
-                                // 本体ソース内で出力しているので本体を出力しない場合のみ
-                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
-                                {
-                                    buf.Append(s);
-                                }
-                            }
-                            break;
-                        case ConstraintType.Unique:
-                            if (IsChecked(checkBoxSourceKeyCons))
-                            {
-                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
-                                {
-                                    buf.Append(s);
-                                }
-                            }
-                            break;
-                        case ConstraintType.ForeignKey:
-                            if (IsChecked(checkBoxSourceRefCons))
-                            {
-                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
-                                {
-                                    buf.Append(s);
-                                }
-                            }
-                            break;
-                        case ConstraintType.Check:
-                            if (IsChecked(checkBoxSourceCons))
-                            {
-                                foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
-                                {
-                                    buf.Append(s);
-                                }
-                            }
-                            break;
-                    }
-                }
-                if (lastLength < buf.Length)
-                {
-                    buf.AppendLine();
-                }
-                if (IsChecked(checkBoxSourceComment))
-                {
-                    lastLength = buf.Length;
-                    if (!string.IsNullOrEmpty(Target.CommentText))
-                    {
-                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true, true))
                         {
                             buf.Append(s);
                         }
                     }
-                    foreach (Column c in Target.Columns)
+                    List<Constraint> list = new List<Constraint>(Target.Constraints);
+                    list.Sort();
+                    int lastLength = buf.Length;
+                    foreach (Constraint c in list)
                     {
-                        if (!string.IsNullOrEmpty(c.CommentText))
+                        switch (c.ConstraintType)
                         {
-                            foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                            case ConstraintType.Primary:
+                                if (!IsChecked(checkBoxSourceMain) && IsChecked(checkBoxSourceKeyCons))
+                                {
+                                    // 本体ソース内で出力しているので本体を出力しない場合のみ
+                                    foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                    {
+                                        buf.Append(s);
+                                    }
+                                }
+                                break;
+                            case ConstraintType.Unique:
+                                if (IsChecked(checkBoxSourceKeyCons))
+                                {
+                                    foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                    {
+                                        buf.Append(s);
+                                    }
+                                }
+                                break;
+                            case ConstraintType.ForeignKey:
+                                if (IsChecked(checkBoxSourceRefCons))
+                                {
+                                    foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                    {
+                                        buf.Append(s);
+                                    }
+                                }
+                                break;
+                            case ConstraintType.Check:
+                                if (IsChecked(checkBoxSourceCons))
+                                {
+                                    foreach (string s in ctx.GetSQL(c, string.Empty, ";", 0, true, true))
+                                    {
+                                        buf.Append(s);
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    if (lastLength < buf.Length)
+                    {
+                        buf.AppendLine();
+                    }
+                    if (IsChecked(checkBoxSourceComment))
+                    {
+                        lastLength = buf.Length;
+                        if (!string.IsNullOrEmpty(Target.CommentText))
+                        {
+                            foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
                             {
                                 buf.Append(s);
                             }
                         }
-                    }
-                    if (lastLength < buf.Length)
-                    {
-                        buf.AppendLine();
-                    }
-                }
-                if (IsChecked(checkBoxSourceTrigger))
-                {
-                    lastLength = buf.Length;
-                    foreach (Trigger t in Target.Triggers)
-                    {
-                        foreach (string s in ctx.GetSQL(t, string.Empty, ";", 0, true))
+                        foreach (Column c in Target.Columns)
                         {
-                            buf.Append(s);
+                            if (!string.IsNullOrEmpty(c.CommentText))
+                            {
+                                foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                                {
+                                    buf.Append(s);
+                                }
+                            }
                         }
-                        buf.AppendLine();
-                    }
-                    if (lastLength < buf.Length)
-                    {
-                        buf.AppendLine();
-                    }
-                }
-                if (IsChecked(checkBoxSourceIndex))
-                {
-                    lastLength = buf.Length;
-                    foreach (Index i in Target.Indexes)
-                    {
-                        foreach (string s in ctx.GetSQL(i, string.Empty, ";", 0, true))
+                        if (lastLength < buf.Length)
                         {
-                            buf.Append(s);
+                            buf.AppendLine();
                         }
                     }
-                    if (lastLength < buf.Length)
+                    if (IsChecked(checkBoxSourceTrigger))
                     {
-                        buf.AppendLine();
-                    }
-                }
-                if (IsChecked(checkBoxSourceReferredCons))
-                {
-                    lastLength = buf.Length;
-                    foreach (ForeignKeyConstraint f in Target.ReferFrom)
-                    {
-                        foreach (string s in ctx.GetSQL(f, string.Empty, ";", 0, true, true))
+                        lastLength = buf.Length;
+                        foreach (Trigger t in Target.Triggers)
                         {
-                            buf.Append(s);
+                            foreach (string s in ctx.GetSQL(t, string.Empty, ";", 0, true))
+                            {
+                                buf.Append(s);
+                            }
+                            buf.AppendLine();
+                        }
+                        if (lastLength < buf.Length)
+                        {
+                            buf.AppendLine();
                         }
                     }
-                    if (lastLength < buf.Length)
+                    if (IsChecked(checkBoxSourceIndex))
                     {
-                        buf.AppendLine();
+                        lastLength = buf.Length;
+                        foreach (Index i in Target.Indexes)
+                        {
+                            foreach (string s in ctx.GetSQL(i, string.Empty, ";", 0, true))
+                            {
+                                buf.Append(s);
+                            }
+                        }
+                        if (lastLength < buf.Length)
+                        {
+                            buf.AppendLine();
+                        }
                     }
+                    if (IsChecked(checkBoxSourceReferredCons))
+                    {
+                        lastLength = buf.Length;
+                        foreach (ForeignKeyConstraint f in Target.ReferFrom)
+                        {
+                            foreach (string s in ctx.GetSQL(f, string.Empty, ";", 0, true, true))
+                            {
+                                buf.Append(s);
+                            }
+                        }
+                        if (lastLength < buf.Length)
+                        {
+                            buf.AppendLine();
+                        }
+                    }
+                    textBoxSource.Text = buf.ToString();
                 }
-                textBoxSource.Text = buf.ToString();
+                catch (Exception t)
+                {
+                    textBoxSource.Text = t.ToString();
+                }
             }
-            catch (Exception t)
+            finally
             {
-                textBoxSource.Text = t.ToString();
+                _isTextBoxSourceUpdating = false;
             }
+        }
+
+        private void DelayedUpdateTextBoxSource()
+        {
+            if (_isTextBoxSourceUpdating)
+            {
+                return;
+            }
+            _isTextBoxSourceUpdating = true;
+            Dispatcher.InvokeAsync(UpdateTextBoxSource, DispatcherPriority.ApplicationIdle);
         }
 
         private void UpdateTextBoxSelectSql()
@@ -525,9 +544,8 @@ namespace Db2Source
                 return;
             }
             string alias = JoinTables[0].Alias;
-            string where = Target.GetKeyConditionSQL(alias, string.Empty, 0);
-            DateTime t0 = DateTime.Now;
-            string sql = JoinTables.GetSelectSQL(where, string.Empty, null);
+            string where = Target.GetKeyConditionSQL(alias, string.Empty, MainWindow.Current.IndentOffset);
+            string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80);
             textBoxSelectSql.Text = sql;
         }
 
@@ -559,11 +577,11 @@ namespace Db2Source
             {
                 if (checkBoxUpsert.IsChecked ?? false)
                 {
-                    textBoxInsertSql.Text = (Target != null) ? Target.GetUpsertSql(0, 80, string.Empty) : string.Empty;
+                    textBoxInsertSql.Text = (Target != null) ? Target.GetUpsertSql(MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
                 }
                 else
                 {
-                    textBoxInsertSql.Text = Target?.GetInsertSql(0, 80, string.Empty);
+                    textBoxInsertSql.Text = Target?.GetInsertSql(MainWindow.Current.IndentOffset, 80, string.Empty);
                 }
             }
             catch (Exception t)
@@ -577,7 +595,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty): string.Empty;
+            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset), MainWindow.Current.IndentOffset, 80, string.Empty): string.Empty;
         }
 
         private void UpdateTextBoxDeleteSql()
@@ -586,7 +604,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", 0), 0, 80, string.Empty) : string.Empty;
+            textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset), MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
         }
 
         private void UpdateTextBoxMergeSql()
@@ -600,7 +618,7 @@ namespace Db2Source
             tabItemMergeSql.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
             try
             {
-                textBoxMergeSql.Text = enabled ? Target.GetMergeSql(0, 80, string.Empty) : string.Empty;
+                textBoxMergeSql.Text = enabled ? Target.GetMergeSql(MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
             }
             catch (Exception t)
             {
@@ -608,6 +626,7 @@ namespace Db2Source
             }
         }
 
+        private bool _isTextBoxTemplateSqlUpdatng = false;
         private void UpdateTextBoxTemplateSql()
         {
             DelayedUpdateTextBoxSelectSql();
@@ -615,6 +634,17 @@ namespace Db2Source
             UpdateTextBoxUpdateSql();
             UpdateTextBoxDeleteSql();
             UpdateTextBoxMergeSql();
+            _isTextBoxTemplateSqlUpdatng = false;
+        }
+
+        private void DelayedUpdateTextBoxTemplateSql()
+        {
+            if (_isTextBoxTemplateSqlUpdatng)
+            {
+                return;
+            }
+            _isTextBoxTemplateSqlUpdatng = true;
+            Dispatcher.InvokeAsync(UpdateTextBoxTemplateSql, DispatcherPriority.ApplicationIdle);
         }
 
         private bool _fetched = false;
@@ -669,7 +699,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 80);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection(true))
@@ -778,6 +808,15 @@ namespace Db2Source
             textBoxCondition.CommandBindings.Add(b);
             VisibleLevel = HiddenLevel.Hidden;
             _dropDownController = new CompleteFieldController(Target, textBoxCondition);
+            MainWindow.Current.IndentPropertyChanged += MainWindow_IndentPropertyChanged;
+            MainWindow.Current.IndentCharPropertyChanged += MainWindow_IndentPropertyChanged;
+            MainWindow.Current.IndentOffsetPropertyChanged += MainWindow_IndentPropertyChanged;
+        }
+
+        private void MainWindow_IndentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            DelayedUpdateTextBoxSource();
+            DelayedUpdateTextBoxTemplateSql();
         }
 
         private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -1257,7 +1296,9 @@ namespace Db2Source
                 return;
             }
             JoinTable join = menu.DataContext as JoinTable;
-            JoinTables.Add(new JoinTable(join, refTbl.Constraint, refTbl.Direction));
+            JoinTable jt = new JoinTable(join, refTbl.Constraint, refTbl.Direction);
+            jt.PropertyChanged += JoinTable_PropertyChanged;
+            JoinTables.Add(jt);
         }
 
         private void TextBoxAlias_LostFocus(object sender, RoutedEventArgs e)

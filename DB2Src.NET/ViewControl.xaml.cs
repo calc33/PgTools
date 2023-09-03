@@ -239,7 +239,8 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, 80);
+            int indent = 0;
+            textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, indent, 80);
         }
 
         public void Fetch(string condition)
@@ -271,7 +272,7 @@ namespace Db2Source
                 limit = l;
             }
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 80);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 0, 80);
             try
             {
                 using (IDbConnection conn = ctx.NewConnection(true))
@@ -335,6 +336,15 @@ namespace Db2Source
         {
             DataGridControllerResult = new DataGridController();
             DataGridControllerResult.Grid = dataGridResult;
+            CommandBinding b;
+            b = new CommandBinding(ApplicationCommands.Find, FindCommand_Executed);
+            dataGridResult.CommandBindings.Add(b);
+            b = new CommandBinding(SearchCommands.FindNext, FindNextCommand_Executed);
+            dataGridResult.CommandBindings.Add(b);
+            b = new CommandBinding(SearchCommands.FindPrevious, FindPreviousCommand_Executed);
+            dataGridResult.CommandBindings.Add(b);
+            b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
+            textBoxCondition.CommandBindings.Add(b);
             _dropDownController = new CompleteFieldController(Target, textBoxCondition);
         }
 
@@ -375,6 +385,31 @@ namespace Db2Source
         private void buttonCopyAll_Click(object sender, RoutedEventArgs e)
         {
             DataGridCommands.CopyTable.Execute(null, dataGridResult);
+        }
+
+        private void textBoxConditionCommandNormalizeSql_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Target == null)
+            {
+                return;
+            }
+            textBoxCondition.Text = Target.Context.NormalizeSQL(textBoxCondition.Text);
+            e.Handled = true;
+        }
+
+        private void FindCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DataGridControllerResult.ShowSearchWinodow();
+        }
+
+        private void FindNextCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DataGridControllerResult.SearchGridTextForward();
+        }
+
+        private void FindPreviousCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            DataGridControllerResult.SearchGridTextBackward();
         }
 
         public void OnTabClosing(object sender, ref bool cancel) { }
@@ -472,6 +507,51 @@ namespace Db2Source
                 return;
             }
             listBoxTrigger.SelectedItem = Target.Triggers[0];
+        }
+
+        private SelectColumnWindow _selectColumnWindow = null;
+        private object _selectColumnWindowLock = new object();
+        private SelectColumnWindow GetColumnFilterWindow()
+        {
+            if (_selectColumnWindow != null)
+            {
+                return _selectColumnWindow;
+            }
+            lock (_selectColumnWindowLock)
+            {
+                if (_selectColumnWindow != null)
+                {
+                    return _selectColumnWindow;
+                }
+                _selectColumnWindow = new SelectColumnWindow();
+
+                _selectColumnWindow.Owner = Window.GetWindow(this);
+                return _selectColumnWindow;
+            }
+        }
+
+        private void buttonFilterColumns_Click(object sender, RoutedEventArgs e)
+        {
+            SelectColumnWindow w = GetColumnFilterWindow();
+            if (w.IsVisible)
+            {
+                return;
+            }
+            w.Grid = dataGridResult;
+            w.SelectedColumn = w.Grid.CurrentColumn;
+            WindowLocator.LocateNearby(buttonFilterColumns, w, NearbyLocation.DownLeft);
+            w.Closed += ColumnFilterWindow_Closed;
+            w.Show();
+        }
+
+        private void ColumnFilterWindow_Closed(object sender, EventArgs e)
+        {
+            _selectColumnWindow = null;
+        }
+
+        private void buttonSearchWord_Click(object sender, RoutedEventArgs e)
+        {
+            ApplicationCommands.Find.Execute(null, dataGridResult);
         }
     }
 }

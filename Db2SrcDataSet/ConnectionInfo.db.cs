@@ -205,8 +205,8 @@ namespace Db2Source
             {
                 StringBuilder bufF = new StringBuilder();
                 StringBuilder bufV = new StringBuilder();
-                bufF.Append("  ");
-                bufV.Append("  ");
+                bufF.Append(Db2SourceContext.IndentText);
+                bufV.Append(Db2SourceContext.IndentText);
                 int n = flds.Count - 1;
                 for (int i = 0; i <= n; i++)
                 {
@@ -356,7 +356,7 @@ namespace Db2Source
                 {
                     PropertyInfo p = flds[i];
                     string f = FieldDefinition.GetFieldName(p);
-                    buf.Append("  ");
+                    buf.Append(Db2SourceContext.IndentText);
                     buf.Append(f);
                     buf.Append(" = @");
                     buf.Append(f);

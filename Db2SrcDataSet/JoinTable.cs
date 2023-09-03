@@ -207,7 +207,7 @@ namespace Db2Source
 
         public string GetFieldsSQL(int indent, int charPerLine)
         {
-            return Table.GetColumnsSQL(Alias, VisibleColumns, charPerLine);
+            return Table.GetColumnsSQL(Alias, VisibleColumns, indent, charPerLine);
         }
         private static readonly Dictionary<JoinKind, string> JoinKindToSQL = new Dictionary<JoinKind, string>()
         {
@@ -233,7 +233,7 @@ namespace Db2Source
                 if (!isFirst)
                 {
                     buf.AppendLine(",");
-                    buf.Append("  ");
+                    buf.Append(Db2SourceContext.IndentText);
                 }
                 buf.Append(Table.EscapedIdentifier(null));
                 if (!string.IsNullOrEmpty(Alias))
@@ -246,7 +246,7 @@ namespace Db2Source
             if (!isFirst)
             {
                 buf.AppendLine();
-                buf.Append("  ");
+                buf.Append(Db2SourceContext.IndentText);
             }
             buf.Append(JoinKindToSQL[Kind]);
             string a = string.IsNullOrEmpty(Alias) ? string.Empty : Alias + ".";
@@ -326,15 +326,17 @@ namespace Db2Source
     }
     public class JoinTableCollection : ObservableCollection<JoinTable>
     {
-        public string GetSelectSQL(string where, string orderBy, int? limit, out int whereOffset)
+        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine, out int whereOffset)
         {
+            string spc = Db2SourceContext.GetIndent(indent);
             StringBuilder buf = new StringBuilder();
+            buf.Append(spc);
             buf.AppendLine("select");
             string delimiter = "," + Environment.NewLine;
             string prefix = string.Empty;
             foreach (JoinTable t in Items)
             {
-                string s = t.GetFieldsSQL(2, 80);
+                string s = t.GetFieldsSQL(indent + 1, charPerLine);
                 if (string.IsNullOrEmpty(s))
                 {
                     continue;
@@ -344,40 +346,43 @@ namespace Db2Source
                 prefix = delimiter;
             }
             buf.AppendLine();
+            buf.Append(spc);
             buf.Append("from ");
             bool isFirst = true;
             foreach (JoinTable t in Items)
             {
-                buf.Append(t.GetJoinSQL(2, isFirst));
+                buf.Append(t.GetJoinSQL(indent + 1, isFirst));
                 isFirst = false;
             }
             buf.AppendLine();
             whereOffset = buf.Length;
             if (!string.IsNullOrEmpty(where))
             {
+                buf.Append(spc);
                 buf.Append("where ");
                 whereOffset = buf.Length;
                 buf.AppendLine(where);
             }
             if (!string.IsNullOrEmpty(orderBy))
             {
+                buf.Append(spc);
                 buf.Append("order by ");
                 buf.AppendLine(orderBy);
             }
             if (limit.HasValue)
             {
+                buf.Append(spc);
                 buf.Append("limit ");
                 buf.Append(limit.Value);
                 buf.AppendLine();
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string where, string orderBy, int? limit)
+        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine)
         {
-            int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, out _);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, out int whereOffset)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             bool needIndent = false;
@@ -385,19 +390,19 @@ namespace Db2Source
             {
                 if (needIndent)
                 {
-                    buf.Append("  ");
+                    buf.Append(Db2SourceContext.IndentText);
                 }
                 buf.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(buf.ToString(), orderBy, limit, out whereOffset);
+            return GetSelectSQL(buf.ToString(), orderBy, limit, indent, charPerLine, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, out whereOffset);
         }
-        public string GetSelectSQL(string where, string[] orderBy, int? limit)
+        public string GetSelectSQL(string where, string[] orderBy, int? limit, int indent, int charPerLine)
         {
             StringBuilder bufO = new StringBuilder();
             bool needComma = false;
@@ -410,9 +415,9 @@ namespace Db2Source
                 bufO.Append(s);
                 needComma = true;
             }
-            return GetSelectSQL(where, bufO.ToString(), limit);
+            return GetSelectSQL(where, bufO.ToString(), limit, indent, charPerLine);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, out int whereOffset)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
             bool needIndent = false;
@@ -420,7 +425,7 @@ namespace Db2Source
             {
                 if (needIndent)
                 {
-                    bufW.Append("  ");
+                    bufW.Append(Db2SourceContext.IndentText);
                 }
                 bufW.AppendLine(s);
                 needIndent = true;
@@ -436,12 +441,12 @@ namespace Db2Source
                 bufO.Append(s);
                 needComma = true;
             }
-            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, out whereOffset);
+            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, indent, charPerLine, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, out whereOffset);
         }
     }
 }

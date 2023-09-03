@@ -157,7 +157,7 @@ namespace Db2Source
         public string GetKeyConditionSQL(string alias, string prefix, int indent)
         {
             string[] cond = GetKeyConditionSQL(alias);
-            string spc = new string(' ', indent);
+            string spc = Db2SourceContext.GetIndent(indent + 1);
             StringBuilder buf = new StringBuilder();
             bool needAnd = false;
             foreach (string s in cond)
@@ -165,17 +165,11 @@ namespace Db2Source
                 if (needAnd)
                 {
                     buf.Append(spc);
-                    buf.Append("  and ");
+                    buf.Append("and ");
                 }
                 else
                 {
-                    buf.Append(spc);
-                    string pre = prefix.TrimEnd();
-                    if (!string.IsNullOrEmpty(pre))
-                    {
-                        buf.Append(pre);
-                        buf.Append(' ');
-                    }
+                    buf.Append(prefix);
                 }
                 buf.AppendLine(s);
                 needAnd = true;

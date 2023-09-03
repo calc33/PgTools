@@ -17,6 +17,7 @@
         <sys:String x:Key="TextBoxFilterTooltipBoth">(名前・列名で絞り込み)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipByObject">(名前で絞り込み)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipByColumn">(列名で絞り込み)</sys:String>
+        <sys:String x:Key="InvalidIndentText">IndentTextに指定できるのは同じ文字が連続した文字列のみです</sys:String>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
         <Style x:Key="TreeViewItemFocusVisual">

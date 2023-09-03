@@ -23,6 +23,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Windows.Automation.Provider;
 using System.Windows.Automation.Peers;
+using System.Runtime.Remoting.Channels;
 
 namespace Db2Source
 {
@@ -36,6 +37,47 @@ namespace Db2Source
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnCurrentDataSetPropertyChanged)));
         public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnConnectionStatusPropertyChanged)));
         public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnMultipleSelectionModePropertyChanged)));
+        public static readonly DependencyProperty IndentProperty = DependencyProperty.Register("Indent", typeof(int), typeof(MainWindow), new PropertyMetadata(2, IndentPropertyChangedCallback));
+        public static readonly DependencyProperty IndentCharProperty = DependencyProperty.Register("IndentChar", typeof(string), typeof(MainWindow), new PropertyMetadata(" ", IndentCharPropertyChangedCallback));
+        public static readonly DependencyProperty IndentOffsetProperty = DependencyProperty.Register("IndentOffset", typeof(int), typeof(MainWindow), new PropertyMetadata(0, IndentOffsetPropertyChangedCallback));
+
+        private void UpdateIndentText()
+        {
+            Db2SourceContext.IndentText = IndentText;
+
+        }
+
+        public event DependencyPropertyChangedEventHandler IndentPropertyChanged;
+        protected void OnIndentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateIndentText();
+            IndentPropertyChanged?.Invoke(sender, e);
+        }
+        private static void IndentPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnIndentPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler IndentCharPropertyChanged;
+        protected void OnIndentCharPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            UpdateIndentText();
+            IndentCharPropertyChanged?.Invoke(sender, e);
+        }
+        private static void IndentCharPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnIndentCharPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler IndentOffsetPropertyChanged;
+        protected void OnIndentOffsetPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            IndentOffsetPropertyChanged?.Invoke(sender, e);
+        }
+        private static void IndentOffsetPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnIndentOffsetPropertyChanged(d, e);
+        }
 
         public static MainWindow Current { get; private set; } = null;
         public Db2SourceContext CurrentDataSet
@@ -54,6 +96,65 @@ namespace Db2Source
         {
             get { return (bool)GetValue(MultipleSelectionModeProperty); }
             set { SetValue(MultipleSelectionModeProperty, value); }
+        }
+
+        public int Indent
+        {
+            get { return (int)GetValue(IndentProperty); }
+            set { SetValue(IndentProperty, value); }
+        }
+
+        public string IndentChar
+        {
+            get { return (string)GetValue(IndentCharProperty); }
+            set
+            {
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new ArgumentNullException("IndentChar");
+                }
+                if (value.Length != 1)
+                {
+                    throw new ArgumentException("IndentChar");
+                }
+                SetValue(IndentCharProperty, value);
+            }
+        }
+
+        public int IndentOffset
+        {
+            get { return (int)GetValue(IndentOffsetProperty); }
+            set { SetValue(IndentOffsetProperty, value); }
+        }
+
+        public string IndentText
+        {
+            get
+            {
+                return string.IsNullOrEmpty(IndentChar) ? string.Empty : new string(IndentChar[0], Indent);
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException("IndentText");
+                }
+                if (value.Length == 0)
+                {
+                    Indent = 0;
+                    return;
+                }
+                char c = value[0];
+                foreach (char ch in value)
+                {
+                    if (ch != c)
+                    {
+                        throw new ArgumentException((string)Resources["InvalidIndentText"]);
+                    }
+                }
+                Indent = value.Length;
+                IndentChar = c.ToString();
+            }
         }
 
         private void SetConnectionStatus(SchemaConnectionStatus value)
@@ -716,8 +817,13 @@ namespace Db2Source
                 return;
             }
             _registryBinding = new RegistryBinding();
-            _registryBinding.Register(window);
-            _registryBinding.Register(window, gridBase);
+            _registryBinding.Register(this);
+            _registryBinding.Register(this, gridBase);
+            _registryBinding.Register(string.Empty, "Indent", this, "Indent", new Int32Operator());
+            _registryBinding.Register(string.Empty, "IndentChar", this, "IndentChar", new StringOperator());
+            _registryBinding.Register(string.Empty, "IndentOffset", this, "IndentOffset", new Int32Operator());
+            _registryBinding.Register(string.Empty, "Maximized", this, "WindowState", new WindowStateOperator());
+
         }
         public RegistryBinding RegistryBinding
         {

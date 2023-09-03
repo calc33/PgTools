@@ -3872,7 +3872,7 @@ namespace Db2Source
                     if (charPerLine < column)
                     {
                         buffer.AppendLine();
-                        buffer.Append(new string(' ', indent));
+                        buffer.Append(GetIndent(indent));
                         column = indent;
                     }
                     else

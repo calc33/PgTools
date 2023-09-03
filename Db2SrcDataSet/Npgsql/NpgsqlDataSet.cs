@@ -456,7 +456,7 @@ namespace Db2Source
 
         private void GetInsertColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder bufF = new StringBuilder();
             StringBuilder bufP = new StringBuilder();
             bool needComma = false;
@@ -500,7 +500,7 @@ namespace Db2Source
         }
         private string GetUpdateColumnsByParamsSql(Table table, int indent, KeyConstraint excludeKey)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             Dictionary<string, bool> keys = new Dictionary<string, bool>();
             if (excludeKey != null)
             {
@@ -534,7 +534,7 @@ namespace Db2Source
 
         private string GetUpdateColumnsBySameColumnSql(Table table, int indent, string prefix, KeyConstraint excludeKey)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             Dictionary<string, bool> keys = new Dictionary<string, bool>();
             if (excludeKey != null)
             {
@@ -570,9 +570,9 @@ namespace Db2Source
 
         private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool addNewline)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             string flds, prms;
-            GetInsertColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out flds, out prms);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
@@ -614,14 +614,14 @@ namespace Db2Source
         /// <returns></returns>
         public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder bufF = new StringBuilder();
             StringBuilder bufP = new StringBuilder();
             bool needComma = false;
             bufF.Append(spc);
-            bufF.Append("  ");
+            bufF.Append(IndentText);
             bufP.Append(spc);
-            bufP.Append("  ");
+            bufP.Append(IndentText);
             int w = spc.Length + 2;
             Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
             foreach (ColumnInfo info in data.Keys){
@@ -643,10 +643,10 @@ namespace Db2Source
                     {
                         bufF.AppendLine();
                         bufF.Append(spc);
-                        bufF.Append("  ");
+                        bufF.Append(IndentText);
                         bufP.AppendLine();
                         bufP.Append(spc);
-                        bufP.Append("  ");
+                        bufP.Append(IndentText);
                         w = spc.Length + 2;
                     }
                     else
@@ -683,32 +683,42 @@ namespace Db2Source
         }
         public override string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("update ");
             buf.Append(table.EscapedIdentifier(CurrentSchema));
             buf.AppendLine(" set");
-            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 2, null));
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, null));
             buf.Append(spc);
             buf.AppendLine(where);
-            buf.AppendLine(postfix);
+            if (!string.IsNullOrEmpty(postfix))
+            {
+                buf.Append(spc);
+                buf.AppendLine(postfix);
+            }
             return buf.ToString();
         }
         public override string GetDeleteSql(Table table, string where, int indent, int charPerLine, string postfix)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("delete from ");
             buf.AppendLine(table.EscapedIdentifier(CurrentSchema));
+            buf.Append(spc);
             buf.AppendLine(where);
+            if (!string.IsNullOrEmpty(postfix))
+            {
+                buf.Append(spc);
+                buf.AppendLine(postfix);
+            }
             return buf.ToString();
         }
 
         public override string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys)
         {
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
             foreach (ColumnInfo info in data.Keys)
             {
@@ -728,7 +738,7 @@ namespace Db2Source
                 }
                 buf.AppendLine(prefix);
                 buf.Append(spc);
-                buf.Append("  ");
+                buf.Append(Db2SourceContext.IndentText);
                 buf.Append(GetEscapedIdentifier(c.Name, true));
                 buf.Append(" = ");
                 buf.Append(GetImmediatedStr(info, data[info]));
@@ -777,7 +787,7 @@ namespace Db2Source
             buf.Append(" on conflict on constraint ");
             buf.Append(GetEscapedIdentifier(table.PrimaryKey.Name, true));
             buf.AppendLine(" do update set ");
-            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 2, "excluded.", table.PrimaryKey));
+            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 1, "excluded.", table.PrimaryKey));
             return buf.ToString();
         }
         public override string GetMergeSql(Table table, int indent, int charPerLine, string postfix)
@@ -786,7 +796,7 @@ namespace Db2Source
             {
                 throw new ArgumentException("主キーがありません");
             }
-            string spc = new string(' ', indent);
+            string spc = GetIndent(indent);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("merge into ");
@@ -825,11 +835,11 @@ namespace Db2Source
             buf.AppendLine(")");
             buf.Append(spc);
             buf.AppendLine("when matched then update set");
-            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 2, table.PrimaryKey));
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, table.PrimaryKey));
             buf.Append(spc);
             buf.AppendLine("when not matched then insert (");
             string flds, prms;
-            GetInsertColumnsByParamsSql(table, indent + 2, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out flds, out prms);
             buf.AppendLine(flds);
             buf.Append(spc);
             buf.AppendLine(") values (");
@@ -907,10 +917,10 @@ namespace Db2Source
             buf.Append("insert into ");
             buf.Append(tbl.EscapedIdentifier(CurrentSchema));
             buf.AppendLine(" (");
-            buf.Append("  ");
+            buf.Append(Db2SourceContext.IndentText);
             buf.Append(bufF);
             buf.AppendLine(") values (");
-            buf.Append("  ");
+            buf.Append(Db2SourceContext.IndentText);
             buf.Append(bufP);
             buf.AppendLine();
             buf.Append(") returning *");
@@ -941,7 +951,7 @@ namespace Db2Source
                 {
                     bufF.AppendLine(", ");
                 }
-                bufF.Append("  ");
+                bufF.Append(Db2SourceContext.IndentText);
                 bufF.Append(GetEscapedIdentifier(f.Name, true));
                 bufF.Append(" = :");
                 bufF.Append(f.Name);

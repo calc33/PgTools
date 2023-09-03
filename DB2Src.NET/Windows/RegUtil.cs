@@ -102,7 +102,7 @@ namespace Db2Source
         void Read(RegistryKey key, string name, object control, PropertyInfo property);
         void Write(RegistryKey key, string name, object control, PropertyInfo property);
     }
-    public class StringOperator: IRegistryOperator
+    public class StringOperator : IRegistryOperator
     {
         public RegistryValueKind GetValueKind()
         {
