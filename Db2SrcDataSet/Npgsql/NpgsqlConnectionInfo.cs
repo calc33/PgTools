@@ -486,6 +486,7 @@ namespace Db2Source
                 Database = DatabaseName,
                 Port = ServerPort,
                 Username = UserName,
+                IncludeErrorDetails = true,
                 ApplicationName = Assembly.GetEntryAssembly().GetName().Name
             };
             if (includePassord)
