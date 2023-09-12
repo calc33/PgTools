@@ -172,6 +172,9 @@
     <Compile Include="GridController\VisibleAxisEntryCollection.cs" />
     <Compile Include="GridController\CrossTable.cs" />
     <Compile Include="GridController\CrossTable.cell.cs" />
+    <Compile Include="IndentSettingsControl.xaml.cs">
+      <DependentUpon>IndentSettingsControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Interface\IRegistryStore.cs" />
     <Compile Include="Interface\ISchemaObjectWpfControl.cs" />
     <Compile Include="CrossTableViewer.xaml.cs">
@@ -380,6 +383,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialog\NewPgsqlDatabaseWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="IndentSettingsControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

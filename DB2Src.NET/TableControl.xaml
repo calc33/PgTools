@@ -419,16 +419,7 @@
         <TabItem Header="ソース">
             <DockPanel>
                 <WrapPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                    <ToolBar DockPanel.Dock="Top">
-                        <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                        <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                        <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                            <ComboBox.Items>
-                                <ComboBoxItem Content="空白" Tag=" "/>
-                                <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                            </ComboBox.Items>
-                        </ComboBox>
-                    </ToolBar>
+                    <local:IndentSettingsControl IndentOffsetVisibility="Collapsed"/>
                     <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceKeyCons" Content="一意成約" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceRefCons" Content="参照制約" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
@@ -451,19 +442,7 @@
                 <TabItem x:Name="tabItemSelectSql" Header="SELECT">
                     <DockPanel>
                         <StackPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                            <ToolBar DockPanel.Dock="Top">
-                                <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem Content="空白" Tag=" "/>
-                                        <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <Separator/>
-                                <TextBlock Text="開始レベル" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding IndentOffset, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                            </ToolBar>
+                            <local:IndentSettingsControl/>
                         </StackPanel>
                         <Border DockPanel.Dock="Top">
                             <DockPanel>
@@ -480,20 +459,7 @@
                 <TabItem x:Name="tabItemInsertSql" Header="INSERT">
                     <DockPanel>
                         <WrapPanel DockPanel.Dock="Top" Orientation="Horizontal">
-                            <ToolBar DockPanel.Dock="Top">
-                                <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem Content="空白" Tag=" "/>
-                                        <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <Separator/>
-                                <TextBlock Text="開始レベル" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding IndentOffset, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <Separator/>
-                            </ToolBar>
+                            <local:IndentSettingsControl/>
                             <CheckBox x:Name="checkBoxUpsert" Content="ON CONFLICT DO UPDATE" Checked="checkBoxUpsert_Checked" Unchecked="checkBoxUpsert_Unchecked" VerticalAlignment="Center"/>
                         </WrapPanel>
                         <Grid>
@@ -506,20 +472,7 @@
                 <TabItem x:Name="tabItemUpdateSql" Header="UPDATE">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                            <ToolBar DockPanel.Dock="Top">
-                                <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem Content="空白" Tag=" "/>
-                                        <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <Separator/>
-                                <TextBlock Text="開始レベル" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding IndentOffset, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <Separator/>
-                            </ToolBar>
+                            <local:IndentSettingsControl/>
                         </StackPanel>
                         <Grid>
                             <TextBox x:Name="textBoxUpdateSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
@@ -531,20 +484,7 @@
                 <TabItem x:Name="tabItemDeleteSql" Header="DELETE">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                            <ToolBar DockPanel.Dock="Top">
-                                <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem Content="空白" Tag=" "/>
-                                        <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <Separator/>
-                                <TextBlock Text="開始レベル" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding IndentOffset, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <Separator/>
-                            </ToolBar>
+                            <local:IndentSettingsControl/>
                         </StackPanel>
                         <Grid>
                             <TextBox x:Name="textBoxDeleteSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"
@@ -556,20 +496,7 @@
                 <TabItem x:Name="tabItemMergeSql" Header="MERGE">
                     <DockPanel>
                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                            <ToolBar DockPanel.Dock="Top">
-                                <TextBlock Text="インデント" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding Indent, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <ComboBox MinWidth="40" VerticalAlignment="Center" SelectedValue="{Binding IndentChar, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" SelectedValuePath="Tag">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem Content="空白" Tag=" "/>
-                                        <ComboBoxItem Content="タブ" Tag="&#9;"/>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <Separator/>
-                                <TextBlock Text="開始レベル" VerticalAlignment="Center"/>
-                                <TextBox Text="{Binding IndentOffset, RelativeSource={RelativeSource AncestorType=local:MainWindow}}" MinWidth="20" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                <Separator/>
-                            </ToolBar>
+                            <local:IndentSettingsControl/>
                         </StackPanel>
                         <Grid>
                             <TextBox x:Name="textBoxMergeSql" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"

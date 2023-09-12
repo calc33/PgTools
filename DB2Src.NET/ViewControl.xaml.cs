@@ -174,73 +174,109 @@ namespace Db2Source
         {
             return checkBox.IsChecked.HasValue && checkBox.IsChecked.Value;
         }
+
+        private bool _isTextBoxSourceUpdating;
         private void UpdateTextBoxSource()
         {
-            if (textBoxSource == null)
-            {
-                return;
-            }
-            if (Target == null)
-            {
-                textBoxSource.Text = string.Empty;
-                return;
-            }
-            Db2SourceContext ctx = Target.Context;
             try
             {
-                StringBuilder buf = new StringBuilder();
-                if (IsChecked(checkBoxSourceMain))
+                if (textBoxSource == null)
                 {
-                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
-                    {
-                        buf.Append(s);
-                    }
+                    return;
                 }
-                if (IsChecked(checkBoxSourceComment))
+                if (Target == null)
                 {
-                    if (!string.IsNullOrEmpty(Target.CommentText))
+                    textBoxSource.Text = string.Empty;
+                    return;
+                }
+                Db2SourceContext ctx = Target.Context;
+                try
+                {
+                    StringBuilder buf = new StringBuilder();
+                    if (IsChecked(checkBoxSourceMain))
                     {
-                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
                         {
                             buf.Append(s);
                         }
                     }
-                    foreach (Column c in Target.Columns)
+                    if (IsChecked(checkBoxSourceComment))
                     {
-                        if (!string.IsNullOrEmpty(c.CommentText))
+                        if (!string.IsNullOrEmpty(Target.CommentText))
                         {
-                            foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                            foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
                             {
                                 buf.Append(s);
                             }
                         }
+                        foreach (Column c in Target.Columns)
+                        {
+                            if (!string.IsNullOrEmpty(c.CommentText))
+                            {
+                                foreach (string s in ctx.GetSQL(c.Comment, string.Empty, ";", 0, true))
+                                {
+                                    buf.Append(s);
+                                }
+                            }
+                        }
+                        buf.AppendLine();
                     }
-                    buf.AppendLine();
-                }
-                if (IsChecked(checkBoxSourceTrigger))
-                {
+                    if (IsChecked(checkBoxSourceTrigger))
+                    {
 
+                    }
+                    textBoxSource.Text = buf.ToString();
                 }
-                textBoxSource.Text = buf.ToString();
+                catch (Exception t)
+                {
+                    textBoxSource.Text = t.ToString();
+                }
             }
-            catch (Exception t)
+            finally
             {
-                textBoxSource.Text = t.ToString();
+                _isTextBoxSourceUpdating = false;
             }
         }
 
+        private void DelayedUpdateTextBoxSource()
+        {
+            if (_isTextBoxSourceUpdating)
+            {
+                return;
+            }
+            _isTextBoxSourceUpdating = true;
+            Dispatcher.InvokeAsync(UpdateTextBoxSource, DispatcherPriority.ApplicationIdle);
+        }
+
+        private bool _isTextBoxSelectSqlUpdating;
         private void UpdateTextBoxSelectSql()
         {
-            if (textBoxSelectSql == null)
+            try
+            {
+                if (textBoxSelectSql == null)
+                {
+                    return;
+                }
+                if (Target == null)
+                {
+                    return;
+                }
+                textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, MainWindow.Current.IndentOffset, 80);
+            }
+            finally
+            {
+                _isTextBoxSelectSqlUpdating = false;
+            }
+        }
+
+        private void DelayedUpdateTextBoxSelectSql()
+        {
+            if (_isTextBoxSelectSqlUpdating)
             {
                 return;
             }
-            if (Target == null)
-            {
-                return;
-            }
-            int indent = 0;
-            textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, indent, 80);
+            _isTextBoxSelectSqlUpdating = true;
+            Dispatcher.InvokeAsync(UpdateTextBoxSelectSql, DispatcherPriority.ApplicationIdle);
         }
 
         public void Fetch(string condition)
@@ -346,6 +382,15 @@ namespace Db2Source
             b = new CommandBinding(QueryCommands.NormalizeSQL, textBoxConditionCommandNormalizeSql_Executed);
             textBoxCondition.CommandBindings.Add(b);
             _dropDownController = new CompleteFieldController(Target, textBoxCondition);
+            MainWindow.Current.IndentPropertyChanged += MainWindow_IndentPropertyChanged;
+            MainWindow.Current.IndentCharPropertyChanged += MainWindow_IndentPropertyChanged;
+            MainWindow.Current.IndentOffsetPropertyChanged += MainWindow_IndentPropertyChanged;
+        }
+
+        private void MainWindow_IndentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            DelayedUpdateTextBoxSource();
+            DelayedUpdateTextBoxSelectSql();
         }
 
         private void buttonApplySchema_Click(object sender, RoutedEventArgs e)

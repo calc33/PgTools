@@ -369,7 +369,10 @@ namespace Db2Source
                     {
                         foreach (ForeignKeyConstraint f in Target.ReferFrom)
                         {
-                            buf.Append(ctx.GetDropSQL(f, string.Empty, ";", 0, false, true));
+                            foreach (string s in ctx.GetDropSQL(f, string.Empty, ";", 0, false, true))
+                            {
+                                buf.Append(s);
+                            }
                         }
                         if (0 < buf.Length)
                         {

@@ -199,11 +199,12 @@
         </TabItem>
         <TabItem Header="ソース">
             <DockPanel>
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                    <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                </StackPanel>
+                <WrapPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <local:IndentSettingsControl IndentOffsetVisibility="Collapsed"/>
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                </WrapPanel>
                 <Grid>
                     <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>
                     <local:SearchTextBoxControl x:Name="searchTextBoxSource" HorizontalAlignment="Right" VerticalAlignment="Top" Target="{Binding ElementName=textBoxSource}" FontFamily="Yu Gothic UI"/>
@@ -216,7 +217,8 @@
                     <DockPanel>
                         <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Auto">
                             <StackPanel Margin="2" Orientation="Horizontal">
-                                <StackPanel Orientation="Horizontal" Margin="2,2">
+                                <local:IndentSettingsControl/>
+                                <StackPanel Orientation="Horizontal" Margin="2,2" Visibility="Collapsed">
                                     <TextBlock Text="{Binding Target.Name, ElementName=userControl}" MinWidth="32"/>
                                     <TextBlock Text=" as "/>
                                     <TextBox x:Name="textBoxAlias0" MinWidth="16"/>
