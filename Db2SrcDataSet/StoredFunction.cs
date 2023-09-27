@@ -25,6 +25,13 @@ namespace Db2Source
                 Invalidate();
             }
         }
+        public string ParameterName
+        {
+            get
+            {
+                return string.IsNullOrEmpty(_name) ? Index.ToString() : _name;
+            }
+        }
         private ParameterDirection _direction;
         public ParameterDirection Direction
         {
@@ -241,11 +248,12 @@ namespace Db2Source
                     Dictionary<string, Parameter> dict = new Dictionary<string, Parameter>();
                     foreach (Parameter p in _items)
                     {
-                        if (string.IsNullOrEmpty(p.Name))
+                        string pName = p.ParameterName;
+                        if (string.IsNullOrEmpty(pName))
                         {
                             continue;
                         }
-                        dict[p.Name.ToLower()] = p;
+                        dict[pName.ToLower()] = p;
                     }
                     _nameToItem = dict;
                 }
