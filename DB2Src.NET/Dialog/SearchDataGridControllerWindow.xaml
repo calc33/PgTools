@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="検索" ShowInTaskbar="False" WindowStyle="ToolWindow" d:DesignWidth="327.488" d:DesignHeight="213.729" SizeToContent="WidthAndHeight" PreviewKeyDown="window_PreviewKeyDown" Loaded="window_Loaded">
+        Title="検索" ShowInTaskbar="False" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" PreviewKeyDown="window_PreviewKeyDown" Loaded="window_Loaded">
     <Window.Resources>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
     </Window.Resources>

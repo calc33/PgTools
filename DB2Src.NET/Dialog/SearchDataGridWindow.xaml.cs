@@ -689,6 +689,10 @@ namespace Db2Source
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            SetBinding(SearchTextProperty, new Binding("SearchText") { Source = MainWindow.Current });
+            SetBinding(IgnoreCaseProperty, new Binding("MatchByIgnoreCase") { Source = MainWindow.Current });
+            SetBinding(WordwrapProperty, new Binding("MatchByWhole") { Source = MainWindow.Current });
+            SetBinding(UseRegexProperty, new Binding("MatchByRegex") { Source = MainWindow.Current });
             CommandBinding b;
             b = new CommandBinding(SearchCommands.FindNext, FindNextCommand_Executed);
             CommandBindings.Add(b);

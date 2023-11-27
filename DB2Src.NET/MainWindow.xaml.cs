@@ -40,6 +40,11 @@ namespace Db2Source
         public static readonly DependencyProperty IndentProperty = DependencyProperty.Register("Indent", typeof(int), typeof(MainWindow), new PropertyMetadata(2, IndentPropertyChangedCallback));
         public static readonly DependencyProperty IndentCharProperty = DependencyProperty.Register("IndentChar", typeof(string), typeof(MainWindow), new PropertyMetadata(" ", IndentCharPropertyChangedCallback));
         public static readonly DependencyProperty IndentOffsetProperty = DependencyProperty.Register("IndentOffset", typeof(int), typeof(MainWindow), new PropertyMetadata(0, IndentOffsetPropertyChangedCallback));
+        public static readonly DependencyProperty SearchTextProperty = DependencyProperty.Register("SearchText", typeof(string), typeof(MainWindow), new PropertyMetadata(string.Empty, SearchTextPropertyChangedCallback));
+        public static readonly DependencyProperty MatchByIgnoreCaseProperty = DependencyProperty.Register("MatchByIgnoreCase", typeof(bool), typeof(MainWindow), new PropertyMetadata(true, MatchByIgnoreCasePropertyChangedCallback));
+        public static readonly DependencyProperty MatchByWordwrapProperty = DependencyProperty.Register("MatchByWordwrap", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWordwrapPropertyChangedCallback));
+        public static readonly DependencyProperty MatchByWholeProperty = DependencyProperty.Register("MatchByWhole", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWholePropertyChangedCallback));
+        public static readonly DependencyProperty MatchByRegexProperty = DependencyProperty.Register("MatchByRegex", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByRegexPropertyChangedCallback));
 
         private void UpdateIndentText()
         {
@@ -77,6 +82,56 @@ namespace Db2Source
         private static void IndentOffsetPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             (d as MainWindow)?.OnIndentOffsetPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler SearchTextPropertyChanged;
+        protected void OnSearchTextPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            SearchTextPropertyChanged?.Invoke(sender, e);
+        }
+        private static void SearchTextPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnSearchTextPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler MatchByIgnoreCasePropertyChanged;
+        protected void OnMatchByIgnoreCasePropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            MatchByIgnoreCasePropertyChanged?.Invoke(sender, e);
+        }
+        private static void MatchByIgnoreCasePropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnMatchByIgnoreCasePropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler MatchByWordwrapPropertyChanged;
+        protected void OnMatchByWordwrapPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            MatchByWordwrapPropertyChanged?.Invoke(sender, e);
+        }
+        private static void MatchByWordwrapPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnMatchByWordwrapPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler MatchByWholePropertyChanged;
+        protected void OnMatchByWholePropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            MatchByWholePropertyChanged?.Invoke(sender, e);
+        }
+        private static void MatchByWholePropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnMatchByWholePropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler MatchByRegexPropertyChanged;
+        protected void OnMatchByRegexPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            MatchByRegexPropertyChanged?.Invoke(sender, e);
+        }
+        private static void MatchByRegexPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnMatchByRegexPropertyChanged(d, e);
         }
 
         public static MainWindow Current { get; private set; } = null;
@@ -155,6 +210,36 @@ namespace Db2Source
                 Indent = value.Length;
                 IndentChar = c.ToString();
             }
+        }
+
+        public string SearchText
+        {
+            get { return (string)GetValue(SearchTextProperty); }
+            set { SetValue(SearchTextProperty, value); }
+        }
+
+        public bool MatchByIgnoreCase
+        {
+            get { return (bool)GetValue(MatchByIgnoreCaseProperty); }
+            set { SetValue(MatchByIgnoreCaseProperty, value); }
+        }
+
+        public bool MatchByWordwrap
+        {
+            get { return (bool)GetValue(MatchByWordwrapProperty); }
+            set { SetValue(MatchByWordwrapProperty, value); }
+        }
+
+        public bool MatchByWhole
+        {
+            get { return (bool)GetValue(MatchByWholeProperty); }
+            set { SetValue(MatchByWholeProperty, value); }
+        }
+
+        public bool MatchByRegex
+        {
+            get { return (bool)GetValue(MatchByRegexProperty); }
+            set { SetValue(MatchByRegexProperty, value); }
         }
 
         private void SetConnectionStatus(SchemaConnectionStatus value)
