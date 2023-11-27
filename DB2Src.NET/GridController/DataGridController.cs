@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -580,6 +581,42 @@ namespace Db2Source
         {
             Fields = ColumnInfo.EmptyArray;
             Rows = new RowCollection(this);
+            BindingOperations.SetBinding(this, SearchTextProperty, new Binding("SearchText") { Source = MainWindow.Current });
+            BindingOperations.SetBinding(this, IgnoreCaseProperty, new Binding("MatchByIgnoreCase") { Source = MainWindow.Current });
+            BindingOperations.SetBinding(this, WordwrapProperty, new Binding("MatchByWordwrap") { Source = MainWindow.Current });
+            BindingOperations.SetBinding(this, UseRegexProperty, new Binding("MatchByRegex") { Source = MainWindow.Current });
+        }
+
+        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader)
+        {
+            int n = reader.FieldCount;
+            Fields = new ColumnInfo[n];
+            List<Row> rows = new List<Row>();
+            for (int i = 0; i < n; i++)
+            {
+                ColumnInfo fi = new ColumnInfo(reader, i);
+                Column c = Table?.Columns[fi.Name];
+                if (c != null)
+                {
+                    fi.Comment = c.CommentText;
+                    fi.StringFormat = c.StringFormat;
+                }
+                Fields[i] = fi;
+                _nameToField[fi.Name.ToLower()] = fi;
+            }
+            while (reader.Read())
+            {
+                rows.Add(new Row(this, reader));
+            }
+            await dispatcher.InvokeAsync(() =>
+            {
+                Rows = new RowCollection(this);
+                foreach (Row row in rows)
+                {
+                    Rows.Add(row);
+                }
+                IsModified = false;
+            });
         }
 
         private void LoadInternal(IDataReader reader)
