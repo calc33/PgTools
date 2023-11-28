@@ -556,7 +556,14 @@ namespace Db2Source
                 }
                 if (!string.IsNullOrEmpty(Password))
                 {
-                    Password = Encoding.UTF8.GetString(DecryptStr(Password));
+                    try
+                    {
+                        Password = Encoding.UTF8.GetString(DecryptStr(Password));
+                    }
+                    catch (CryptographicException)
+                    {
+                        Password = null;
+                    }
                 }
                 Name = GetDefaultName();
             }
