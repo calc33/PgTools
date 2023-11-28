@@ -173,7 +173,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                FormattedText txt = new FormattedText(c.Header.ToString(), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, font, FontSize, Foreground);
+                FormattedText txt = new FormattedText(c.Header.ToString(), CultureInfo.CurrentCulture, FlowDirection.LeftToRight, font, FontSize, Foreground, VisualTreeHelper.GetDpi(this).PixelsPerDip);
                 s = new Size(Math.Max(s.Width, txt.Width), Math.Max(s.Height, txt.Height));
             }
             //listBoxColumns.MinWidth = s.Width + 31;    // 10(ListBoxItemのPadding+BorderTickness) + 17(Scrollbar.Width) + 4(Border類のサイズ)

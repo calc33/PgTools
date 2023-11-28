@@ -19,7 +19,7 @@ namespace Db2Source.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -47,7 +47,7 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
-        ///   厳密に型指定されたこのリソース クラスを使用して、すべての検索リソースに対し、
+        ///   すべてについて、現在のスレッドの CurrentUICulture プロパティをオーバーライドします
         ///   現在のスレッドの CurrentUICulture プロパティをオーバーライドします。
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -74,11 +74,11 @@ namespace Db2Source.Properties {
         ///  -n, --schema=SCHEMA      指名したスキーマのみをダンプ
         ///  -N, --exclude-schema=SCHEMA 指名されたスキーマをダンプしません
         ///  --no-tablespaces         テーブルスペースの割り当てを出力しません
+        ///  --newline=[CR|LF|CRLF]   出力時の改行コードを統一します
         ///接続オプション
         ///  -d, --dbname=データベース名  ダンプするデータベース
         ///  -h, --host=HOSTNAME      データベースサーバのホストまたはソケットディレクトリです
-        ///  -p, --port=PORT          データベースサーバのポート番号です
-        ///  -U, --username=NAME      [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///  -p, --port=PORT          デ [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string Usage {
             get {

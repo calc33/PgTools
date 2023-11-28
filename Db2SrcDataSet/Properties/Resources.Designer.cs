@@ -19,7 +19,7 @@ namespace Db2Source.DataSet.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -322,13 +322,13 @@ namespace Db2Source.DataSet.Properties {
         /// <summary>
         ///   select p.oid,
         ///  p.proname, p.pronamespace, p.procost, p.prorows,
-        ///  p.prokind, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.prokind, p.prosecdef, p.proleakproof, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
         ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.protrftypes, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
-        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXE [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_f [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgProc_SQL {
             get {
@@ -339,13 +339,13 @@ namespace Db2Source.DataSet.Properties {
         /// <summary>
         ///   select p.oid,
         ///  p.proname, p.pronamespace, p.procost, p.prorows,
-        ///  p.proiswindow, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.proiswindow, p.prosecdef, p.proleakproof, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
         ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.protrftypes, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
-        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid,  [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or h [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgProc10_SQL {
             get {
@@ -356,14 +356,13 @@ namespace Db2Source.DataSet.Properties {
         /// <summary>
         ///   select p.oid,
         ///  p.proname, p.pronamespace, p.procost, p.prorows,
-        ///  p.proiswindow, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
+        ///  p.proiswindow, p.prosecdef, p.proisstrict, p.proretset, p.provolatile, p.proparallel,
         ///  p.prorettype, p.proargtypes, p.proallargtypes, p.proargmodes, 
         ///  p.proargnames, p.prosrc,
         ///  l.lanname, pg_get_userbyid(p.proowner) as ownername, pg_get_functiondef(0) as grant_check
         ///from pg_catalog.pg_proc p
         ///  left outer join pg_catalog.pg_language l on (p.prolang = l.oid)
-        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;EXECUTE&apos;))
-        ///or [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///where (pg_has_role(p.proowner, &apos;USAGE&apos;) or has_function_privilege(p.oid, &apos;E [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgProc9_SQL {
             get {

@@ -690,7 +690,7 @@ namespace Db2Source
                 {
                     UnlinkLogicalChildren(content);
                 }
-                control.Content = null;
+                try { control.Content = null; } catch { } // 無理に値を設定しているのでエラーになる可能性があるがエラーになった場合は無視
             }
             BindingOperations.ClearAllBindings(obj);
             LocalValueEnumerator enumerator = obj.GetLocalValueEnumerator();
@@ -706,7 +706,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                obj.SetValue(property, null);
+                try { obj.SetValue(property, null); } catch { } // 無理に値を設定しているのでエラーになる可能性があるがエラーになった場合は無視
             }
         }
         public static void DisposeDependencyObject(DependencyObject obj)

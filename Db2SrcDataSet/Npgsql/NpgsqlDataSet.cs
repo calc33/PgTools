@@ -199,10 +199,6 @@ namespace Db2Source
             {
                 OnLog(sender, e.Notice.MessageText);
             }
-            public void Command_Disposed(object sender, EventArgs e)
-            {
-                Log = null;
-            }
             public static LogConverter NewLogConverter(NpgsqlCommand command, EventHandler<LogEventArgs> logEvent)
             {
                 if (logEvent == null)
@@ -213,7 +209,6 @@ namespace Db2Source
                 {
                     Log = logEvent
                 };
-                command.Disposed += conv.Command_Disposed;
                 command.Connection.Notice += conv.Notice;
                 return conv;
             }
@@ -288,7 +283,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                string pName = p.Name ?? p.Index.ToString();
+                string pName = p.ParameterName;
                 if (needComma)
                 {
                     buf.Append(", ");
