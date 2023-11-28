@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,6 +18,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Db2Source
 {
@@ -209,29 +211,14 @@ namespace Db2Source
         {
             AddLog(e.Text, new QueryHistory.Query(e.Command), e.Status, false);
         }
-        private void UpdateDataGridResult(SQLParts sqls)
+
+        private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls)
         {
-            Db2SourceContext ctx = CurrentDataSet;
+            await dispatcher.InvokeAsync(() => {
+                controller.Grid.ItemsSource = null;
+            });
             using (IDbConnection conn = ctx.NewConnection(true))
             {
-                bool modified;
-                Parameters = ParameterStore.GetParameterStores(sqls.ParameterNames, Parameters, out modified);
-                if (modified)
-                {
-                    return;
-                }
-
-                foreach (ParameterStore p in Parameters)
-                {
-                    if (p.IsError)
-                    {
-                        dataGridParameters.Focus();
-                        dataGridParameters.SelectedItem = p;
-                        Window owner = Window.GetWindow(this);
-                        MessageBox.Show(owner, string.Format((string)Resources["messageInvalidParameter"], p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
-                        return;
-                    }
-                }
                 foreach (SQLPart sql in sqls.Items)
                 {
                     if (!sql.IsExecutable)
@@ -239,17 +226,24 @@ namespace Db2Source
                         continue;
                     }
                     IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
-                    ParameterStoreCollection stores = ParameterStore.GetParameterStores(cmd, Parameters, out modified);
+                    ParameterStoreCollection stores = null;
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        stores = ParameterStore.GetParameterStores(cmd, Parameters, out _);
+                    });
                     DateTime start = DateTime.Now;
                     QueryHistory.Query history = new QueryHistory.Query(cmd);
                     try
                     {
                         using (IDataReader reader = cmd.ExecuteReader())
                         {
-                            DataGridControllerResult.Load(reader);
+                            await controller.LoadAsync(dispatcher, reader);
                             if (0 <= reader.RecordsAffected)
                             {
-                                AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
+                                await dispatcher.InvokeAsync(() =>
+                                {
+                                    AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
+                                });
                             }
                             else if (0 < reader.FieldCount)
                             {
@@ -260,24 +254,38 @@ namespace Db2Source
                     }
                     catch (Exception t)
                     {
-                        Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
-                        AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
-                        App.LogException(t);
-                        Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
+                        await dispatcher.InvokeAsync(() =>
+                        {
+                            Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
+                            AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
+                            App.LogException(t);
+                            Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
+                        });
                         return;
                     }
                     finally
                     {
-                        ParameterStore.GetParameterStores(cmd, stores, out modified);
-                        UpdateDataGridParameters();
                         DateTime end = DateTime.Now;
                         TimeSpan time = end - start;
                         string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                        AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
-                        textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
+                        await dispatcher.InvokeAsync(() =>
+                        {
+                            ParameterStore.GetParameterStores(cmd, stores, out _);
+                            UpdateDataGridParameters();
+                            AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
+                            textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], controller.Rows.Count, s);
+                        }, DispatcherPriority.Background);
                     }
                 }
             }
+            await dispatcher.InvokeAsync(() => {
+                controller.UpdateGrid();
+            });
+        }
+
+        private void UpdateDataGridResult(SQLParts sqls)
+        {
+            Task _ = ExecuteSqlPartsAsync(Dispatcher.CurrentDispatcher, CurrentDataSet, DataGridControllerResult, sqls);
         }
 
         private void Parameters_ParameterTextChanged(object sender, DependencyPropertyChangedEventArgs e)
