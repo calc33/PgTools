@@ -173,8 +173,17 @@ namespace Db2Source
             }
             AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
+        private void ExportSchema_(StringBuilder buffer, Schema schema)
+        {
+            if (schema == null)
+            {
+                return;
+            }
+            AppendToBuffer(buffer, DataSet.GetSQL(schema, string.Empty, ";", 0, true));
+        }
         private async Task ExportAsync(Db2SourceContext dataSet, List<string> schemas, List<string> excludedSchemas, string baseDir, Encoding encoding)
         {
+            encoding = encoding ?? Encoding.UTF8;
             Dictionary<string, bool> exported = new Dictionary<string, bool>();
             await dataSet.LoadSchemaAsync();
             foreach (Schema s in dataSet.Schemas)
@@ -241,7 +250,6 @@ namespace Db2Source
                         string path = Path.Combine(dir, obj.Name + ".sql");
                         Directory.CreateDirectory(dir);
                         bool append = exported.ContainsKey(path);
-                        encoding = encoding ?? Encoding.UTF8;
                         using (StreamWriter sw = new StreamWriter(path, append, encoding))
                         {
                             if (append)
@@ -251,6 +259,18 @@ namespace Db2Source
                             sw.Write(DataSet.NormalizeNewLine(buf));
                         }
                         exported[path] = true;
+                    }
+                }
+                {
+                    StringBuilder buf = new StringBuilder();
+                    ExportSchema_(buf, s);
+                    if (buf.Length != 0)
+                    {
+                        string path = Path.Combine(baseDir, s.Name + ".sql");
+                        using (StreamWriter sw = new StreamWriter(path, false, encoding))
+                        {
+                            sw.Write(DataSet.NormalizeNewLine(buf));
+                        }
                     }
                 }
             }

@@ -22,6 +22,10 @@ namespace Db2Source
         public int Offset { get; set; }
         public string SQL { get; set; }
         public string[] ParameterNames { get; set; }
+        /// <summary>
+        /// false: SQLが空文字列もしくは空白・改行・コメントのみで構成されているため実行不可能
+        /// true: SQLは実行可能
+        /// </summary>
         public bool IsExecutable { get; set; }
 
         public override string ToString()
@@ -952,6 +956,7 @@ namespace Db2Source
         public abstract string[] GetSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(User user, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Schema schema, string prefix, string postfix, int indent, bool addNewline);
 
         public abstract string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);

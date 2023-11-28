@@ -562,6 +562,13 @@ namespace Db2Source
             }
             List<string> ret = new List<string>();
             ret.Add(buf.ToString());
+            if (!trigger.IsEnabled)
+            {
+                ret.Add(string.Format("{0}{1}alter table {2} disable trigger {3}{4}{5}", GetIndent(indent), prefix,
+                    GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema, true),
+                    GetEscapedIdentifier(trigger.Name, true),
+                    postfix, addNewline ? Environment.NewLine : string.Empty));
+            }
             ret.AddRange(GetSQL(trigger.Comment, prefix, postfix, indent, addNewline));
             return ret.ToArray();
         }
@@ -1130,6 +1137,26 @@ namespace Db2Source
             {
                 buf.Append(" with");
                 buf.Append(bufOpt.ToString());
+            }
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return new string[] { buf.ToString() };
+        }
+        public override string[] GetSQL(Schema schema, string prefix, string postfix, int indent, bool addNewline)
+        {
+            StringBuilder buf = new StringBuilder();
+            string spc = GetIndent(indent);
+            buf.Append(spc);
+            buf.Append(prefix);
+            buf.Append("create schema ");
+            buf.Append(GetEscapedIdentifier(schema.Name, true));
+            if (!string.IsNullOrEmpty(schema.Owner))
+            {
+                buf.Append(" authorization ");
+                buf.Append(schema.Owner);
             }
             buf.Append(postfix);
             if (addNewline)
