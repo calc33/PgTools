@@ -102,5 +102,92 @@ namespace Db2Source
             return buf.ToString();
 
         }
+
+        private static string QuotedString(string value, char quoteChar, Dictionary<char, bool> escapedChars)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            StringBuilder builder = new StringBuilder(value.Length * 2 + 2);
+            bool needQuote = false;
+            builder.Append(quoteChar);
+            foreach (char c in value)
+            {
+                if (c == quoteChar)
+                {
+                    builder.Append(c);
+                    needQuote = true;
+                }
+                builder.Append(c);
+                if (escapedChars.ContainsKey(c))
+                {
+                    needQuote = true;
+                }
+            }
+            builder.Append(quoteChar);
+            if (needQuote)
+            {
+                return builder.ToString();
+            }
+            return value;
+        }
+        public static string DelimitedText(string[] value, char separator, char quoteChar, string escapeChars)
+        {
+            if (value == null)
+            {
+                return string.Empty;
+            }
+            StringBuilder buf = new StringBuilder();
+            string delim = string.Empty;
+            Dictionary<char, bool> escapeDict = new Dictionary<char, bool>();
+            foreach (char c in escapeChars)
+            {
+                escapeDict[c] = true;
+            }
+            escapeDict[separator] = true;
+            buf.Append(QuotedString(value[0], quoteChar, escapeDict));
+            for (int i = 1, n = value.Length; i < n; i++)
+            {
+                buf.Append(separator);
+                buf.Append(QuotedString(value[i], quoteChar, escapeDict));
+            }
+            return buf.ToString();
+
+        }
+
+        public static string[] SplitDelimitedText(string value, char separator, char quoteChar)
+        {
+            List<string> list = new List<string>();
+            StringBuilder builder = new StringBuilder(value.Length);
+            bool wasQuoteChar = false;
+            char c = '\0';
+            for (int i = 0, n = value.Length; i < n; i++)
+            {
+                wasQuoteChar = (c == separator);
+                c = value[i];
+                if (c == separator)
+                {
+                    list.Add(builder.ToString());
+                    builder.Clear();
+                    continue;
+                }
+                if (c == quoteChar)
+                {
+                    if (wasQuoteChar)
+                    {
+                        builder.Append(c);
+                    }
+                    for (i++; i < n && value[i] != separator; i++)
+                    {
+                        builder.Append(value[i]);
+                    }
+                    continue;
+                }
+                builder.Append(c);
+            }
+            list.Add(builder.ToString());
+            return list.ToArray();
+        }
     }
 }

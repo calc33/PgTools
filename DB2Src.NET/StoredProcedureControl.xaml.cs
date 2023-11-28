@@ -32,6 +32,8 @@ namespace Db2Source
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl));
 
+        private StoredProcedureSetting _setting = null;
+
         public StoredFunction Target
         {
             get
@@ -178,6 +180,8 @@ namespace Db2Source
                 UpdateTextBoxSource();
                 UpdateStringResources();
                 AdjustSelectedTabItem();
+                _setting = StoredProcedureSetting.Require(Target);
+                _setting.Load(this);
             });
         }
 

@@ -623,4 +623,433 @@ namespace Db2Source
             }
         }
     }
+    public class ParameterDef
+    {
+        public string Name { get; set; }
+        public DbType DbType { get; set; }
+        public object Value { get; set; }
+        public ParameterDef(string name, DbType dbType, object value)
+        {
+            Name = name;
+            DbType = dbType;
+            Value = value;
+        }
+
+        public SQLiteParameter AddParameter(SQLiteCommand command)
+        {
+            SQLiteParameter parameter = command.CreateParameter();
+            parameter.ParameterName = Name;
+            parameter.DbType = DbType;
+            parameter.Value = Value;
+            command.Parameters.Add(parameter);
+            return parameter;
+        }
+    }
+
+    public class PropertyBindingDef<T> where T : class
+    {
+        private delegate void ReadField(SQLiteDataReader reader, int index, T obj, PropertyInfo property);
+        private delegate void WriteParameter(SQLiteParameter parameter, T obj, PropertyInfo property);
+        public string ColumnName { get; set; }
+        public DbType DbType { get; set; }
+        public PropertyInfo Property { get; set; }
+
+        private ReadField _fieldReader;
+        private WriteParameter _parameterWriter;
+        private static void ReadBoolean(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                property.SetValue(obj, reader.GetBoolean(index));
+            }
+        }
+        private static void ReadInt32(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                property.SetValue(obj, reader.GetInt32(index));
+            }
+        }
+        private static void ReadInt64(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                property.SetValue(obj, reader.GetInt64(index));
+            }
+        }
+        private static void ReadFloat(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                property.SetValue(obj, reader.GetFloat(index));
+            }
+        }
+        private static void ReadDouble(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                property.SetValue(obj, reader.GetDouble(index));
+            }
+        }
+        private static void ReadDateTime(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            if (reader.IsDBNull(index))
+            {
+                property.SetValue(obj, null);
+            }
+            else
+            {
+                DateTime v = DateTime.FromOADate(reader.GetDouble(index));
+                property.SetValue(obj, v);
+            }
+        }
+        private static void ReadString(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            property.SetValue(obj, reader.GetString(index));
+        }
+        private static void ReadObject(SQLiteDataReader reader, int index, T obj, PropertyInfo property)
+        {
+            property.SetValue(obj, reader.GetValue(index));
+        }
+        private static void WriteInt32(SQLiteParameter parameter, T obj, PropertyInfo property)
+        {
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = Convert.ToInt32(value);
+            }
+        }
+        private static void WriteInt64(SQLiteParameter parameter, T obj, PropertyInfo property)
+        {
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = Convert.ToInt64(value);
+            }
+        }
+        private static void WriteString(SQLiteParameter parameter, T obj, PropertyInfo property)
+        {
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = value.ToString();
+            }
+        }
+
+        private static readonly Dictionary<Type, ReadField> TypeToReader = new Dictionary<Type, ReadField>()
+        {
+            { typeof(bool), ReadBoolean },
+            { typeof(int), ReadInt32 },
+            { typeof(uint), ReadInt32 },
+            { typeof(long), ReadInt64 },
+            { typeof(ulong), ReadInt64 },
+            { typeof(float), ReadFloat },
+            { typeof(double), ReadDouble },
+            { typeof(string), ReadString },
+            { typeof(DateTime), ReadDateTime },
+        };
+        public PropertyBindingDef(string columnName, DbType dbType, string property)
+        {
+            ColumnName = columnName;
+            DbType = dbType;
+            Property = typeof(T).GetProperty(property);
+            if (Property == null)
+            {
+                throw new ArgumentException("property");
+            }
+            Type type = Property.PropertyType;
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                type = type.GetGenericArguments()[0];
+            }
+            if (!TypeToReader.TryGetValue(type, out _fieldReader))
+            {
+                _fieldReader = ReadObject;
+            }
+        }
+        public bool Add(IList<string> sqls, IList<SQLiteParameter> parameters, T newObj, T oldObj)
+        {
+            if (newObj == null)
+            {
+                throw new ArgumentNullException("newValue");
+            }
+            object newValue = Property.GetValue(newObj, null);
+            object oldValue = oldObj != null ? Property.GetValue(oldObj, null) : null;
+            if (Equals(newValue, oldValue))
+            {
+                return false;
+            }
+            sqls.Add(string.Format("{0} = @{0}", ColumnName));
+            parameters.Add(new SQLiteParameter(ColumnName, DbType, ColumnName) { Value = newValue });
+            return true;
+        }
+        public bool Add(IList<string> sqls, string format, IList<SQLiteParameter> parameters, T obj, DataRowVersion rowVersion = DataRowVersion.Current)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException("newValue");
+            }
+            object value = Property.GetValue(obj, null);
+            string paramName = ((rowVersion == DataRowVersion.Original) ? "OLD_" : string.Empty) + ColumnName;
+            sqls.Add(string.Format(format, ColumnName, paramName));
+            parameters.Add(new SQLiteParameter(paramName, DbType, ColumnName, rowVersion) { Value = value });
+            return true;
+        }
+
+        public void ReadValue(SQLiteDataReader reader, int index, T obj)
+        {
+            _fieldReader(reader, index, obj, Property);
+        }
+    }
+    public static class ObjectWrapper<T> where T : class
+    {
+        private static SQLiteCommand GetSelectSqlCommand(T obj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            if (keys.Length == 0)
+            {
+                throw new ArgumentException("keys");
+            }
+            List<string> fields = new List<string>();
+            List<string> where = new List<string>();
+            List<SQLiteParameter> parameters = new List<SQLiteParameter>();
+            foreach (var prop in keys)
+            {
+                fields.Add(prop.ColumnName);
+                prop.Add(where, "{0} = @{1}", parameters, obj, DataRowVersion.Original);
+            }
+            foreach (var prop in properties)
+            {
+                fields.Add(prop.ColumnName);
+            }
+            StringBuilder builder = new StringBuilder();
+            string prefix = "SELECT ";
+            foreach (string s in fields)
+            {
+                builder.Append(prefix);
+                builder.Append(s);
+                prefix = ", ";
+            }
+            builder.AppendLine();
+            builder.Append("FROM ");
+            builder.AppendLine(tableName);
+            prefix = "WHERE ";
+            foreach (string s in where)
+            {
+                builder.Append(prefix);
+                builder.AppendLine(s);
+                prefix = "  AND ";
+            }
+            SQLiteCommand cmd = connection.CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = builder.ToString();
+            cmd.Parameters.AddRange(parameters.ToArray());
+            return cmd;
+        }
+
+        //private static SQLiteCommand GetCountSqlCommand(T obj, string tableName, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        //{
+        //    if (keys.Length == 0)
+        //    {
+        //        throw new ArgumentException("keys");
+        //    }
+        //    List<string> where = new List<string>();
+        //    List<SQLiteParameter> parameters = new List<SQLiteParameter>();
+        //    StringBuilder builder = new StringBuilder();
+        //    builder.AppendLine("SELECT COUNT(1)");
+        //    builder.Append("FROM ");
+        //    builder.AppendLine(tableName);
+        //    string prefix = "WHERE ";
+        //    foreach (string s in where)
+        //    {
+        //        builder.Append(prefix);
+        //        builder.AppendLine(s);
+        //        prefix = "  AND ";
+        //    }
+        //    SQLiteCommand cmd = connection.CreateCommand();
+        //    cmd.CommandType = CommandType.Text;
+        //    cmd.CommandText = builder.ToString();
+        //    cmd.Parameters.AddRange(parameters.ToArray());
+        //    return cmd;
+        //}
+
+        private static SQLiteCommand GetInsertSqlCommand(T obj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            List<string> fields = new List<string>();
+            List<string> values = new List<string>();
+            List<SQLiteParameter> parameters = new List<SQLiteParameter>();
+            foreach (var prop in keys)
+            {
+                fields.Add(prop.ColumnName);
+                prop.Add(values, "@{1}", parameters, obj);
+            }
+            foreach (var prop in properties)
+            {
+                fields.Add(prop.ColumnName);
+                prop.Add(values, "@{1}", parameters, obj);
+            }
+            StringBuilder builder = new StringBuilder();
+            builder.Append("INSERT INTO ");
+            builder.Append(tableName);
+            builder.AppendLine(" (");
+            string prefix = string.Empty;
+            foreach (string s in fields)
+            {
+                builder.Append(prefix);
+                builder.Append(s);
+                prefix = ", ";
+            }
+            builder.AppendLine(")");
+            builder.AppendLine("VALUES (");
+            prefix = string.Empty;
+            foreach (string s in values)
+            {
+                builder.Append(prefix);
+                builder.Append(s);
+                prefix = ", ";
+            }
+            builder.AppendLine(")");
+            SQLiteCommand cmd = connection.CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = builder.ToString();
+            cmd.Parameters.AddRange(parameters.ToArray());
+            return cmd;
+        }
+
+        private static SQLiteCommand GetUpdateSqlCommand(T newObj, T oldObj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            List<string> fields = new List<string>();
+            List<string> where = new List<string>();
+            List<SQLiteParameter> parameters = new List<SQLiteParameter>();
+            foreach (var prop in keys)
+            {
+                prop.Add(fields, parameters, newObj, oldObj);
+                prop.Add(where, "{0} = @{1}", parameters, oldObj, DataRowVersion.Original);
+            }
+            foreach (var prop in properties)
+            {
+                prop.Add(fields, parameters, newObj, oldObj);
+            }
+            if (fields.Count == 0)
+            {
+                return null;
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("UPDATE ");
+            builder.Append(tableName);
+            builder.AppendLine(" SET");
+            string prefix = "  ";
+            string prefix2 = "," + Environment.NewLine + "  ";
+            foreach (string s in fields)
+            {
+                builder.Append(prefix);
+                builder.Append(s);
+                prefix = prefix2;
+            }
+            builder.AppendLine();
+            prefix = "WHERE ";
+            foreach (string s in where)
+            {
+                builder.Append(prefix);
+                builder.AppendLine(s);
+                prefix = "  AND ";
+            }
+            SQLiteCommand cmd = connection.CreateCommand();
+            cmd.CommandType = CommandType.Text;
+            cmd.CommandText = builder.ToString();
+            cmd.Parameters.AddRange(parameters.ToArray());
+            return cmd;
+        }
+
+        public static bool Read(T obj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            using (SQLiteCommand cmd = GetSelectSqlCommand(obj, tableName, properties, keys, connection))
+            {
+                using (SQLiteDataReader reader = cmd.ExecuteReader())
+                {
+                    if (!reader.Read())
+                    {
+                        return false;
+                    }
+                    int i = 0;
+                    foreach (var prop in keys)
+                    {
+                        prop.ReadValue(reader, i, obj);
+                        i++;
+                    }
+                    foreach (var prop in properties)
+                    {
+                        prop.ReadValue(reader, i, obj);
+                        i++;
+                    }
+                    return true;
+                }
+            }
+        }
+        public static int Write(T newObj, T oldObj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            if (oldObj == null)
+            {
+                return WriteNew(newObj, tableName, properties, keys, connection);
+            }
+            SQLiteCommand cmd = GetUpdateSqlCommand(newObj, oldObj, tableName, properties, keys, connection);
+            if (cmd == null)
+            {
+                return 0;
+            }
+            int n;
+            try
+            {
+                n = cmd.ExecuteNonQuery();
+            }
+            finally
+            {
+                cmd.Dispose();
+            }
+            if (n == 0)
+            {
+                return WriteNew(newObj, tableName, properties, keys, connection);
+            }
+            return n;
+        }
+        public static int WriteNew(T obj, string tableName, PropertyBindingDef<T>[] properties, PropertyBindingDef<T>[] keys, SQLiteConnection connection)
+        {
+            using (SQLiteCommand cmd = GetInsertSqlCommand(obj, tableName, properties, keys, connection))
+            {
+                return cmd.ExecuteNonQuery();
+            }
+        }
+    }
 }

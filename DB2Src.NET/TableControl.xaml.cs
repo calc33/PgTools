@@ -83,6 +83,7 @@ namespace Db2Source
         public static readonly DependencyProperty VisibleLevelProperty = DependencyProperty.Register("VisibleLevel", typeof(HiddenLevel), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnVisibleLevelPropertyChanged)));
         //public static readonly DependencyProperty SelectedTriggerProperty = DependencyProperty.Register("SelectedTrigger", typeof(Trigger), typeof(TableControl));
 
+        private TableSetting _setting = null;
         private HiddenLevelDisplayItem[] HiddenLevelItems = new HiddenLevelDisplayItem[0];
         private void UpdateHiddenLevelDisplayItems()
         {
@@ -242,7 +243,9 @@ namespace Db2Source
                 UpdateTextBoxSource();
                 UpdateTextBoxTemplateSql();
                 UpdateHiddenLevelDisplayItems();
-                Fetch();
+                _setting = TableSetting.Require(Target);
+                _setting.Load(this);
+                AutoFetch();
             });
         }
         private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
@@ -650,6 +653,30 @@ namespace Db2Source
             Dispatcher.InvokeAsync(UpdateTextBoxTemplateSql, DispatcherPriority.ApplicationIdle);
         }
 
+        private void AutoFetch()
+        {
+            if (!(checkBoxAutoFetch.IsChecked ?? false))
+            {
+                return;
+            }
+            // 10秒以上かかったら次回からは「起動時に検索」のチェックを外す
+            DateTime timeLimit = DateTime.Now.AddSeconds(10);
+            try
+            {
+                Fetch();
+            }
+            finally
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    if (timeLimit < DateTime.Now)
+                    {
+                        checkBoxAutoFetch.IsChecked = false;
+                        _setting.Save(this);
+                    }
+                }, DispatcherPriority.ApplicationIdle);
+            }
+        }
         private bool _fetched = false;
         public void Fetch(string condition)
         {
@@ -1003,6 +1030,7 @@ namespace Db2Source
 
         public void OnTabClosing(object sender, ref bool cancel)
         {
+            _setting.Save(this);
             if (!DataGridControllerResult.IsModified)
             {
                 return;

@@ -68,6 +68,7 @@
         <TreeView DockPanel.Dock="Left">
             <TreeViewItem Header="表示" IsExpanded="True">
                 <TreeViewItem Header="フォント"/>
+                <TreeViewItem Header="表"/>
             </TreeViewItem>
         </TreeView>
         <TabControl>
@@ -77,6 +78,15 @@
                         <DataGridTextColumn Header="対象" Binding="{Binding Title}"/>
                         <DataGridTemplateColumn x:Name="dataGridColumnFontButton" CellTemplate="{DynamicResource FontButtonTemplate}" CellStyle="{DynamicResource DataGridButtonCellStyle}"/>
                         <DataGridTextColumn Header="フォント" Binding="{Binding}" ElementStyle="{DynamicResource FontTextBlockStyle}"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+            <TabItem>
+                <DataGrid x:Name="dataGridTable" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="項目" Binding="{Binding Header}"/>
+                        <!--<DataGridTextColumn Header="値" Binding="{Binding Value}"/>-->
+                        <DataGridComboBoxColumn Header="値" SelectedValueBinding="{Binding Value}" ItemsSource="{Binding Options}" DisplayMemberPath="Name" SelectedValuePath="Value"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </TabItem>

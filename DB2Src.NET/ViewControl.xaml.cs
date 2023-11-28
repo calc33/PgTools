@@ -29,6 +29,8 @@ namespace Db2Source
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(ViewControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(ViewControl));
 
+        private ViewSetting _setting = null;
+
         public View Target
         {
             get
@@ -116,7 +118,9 @@ namespace Db2Source
             _dropDownController.Target = Target;
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
-            Dispatcher.InvokeAsync(Fetch);
+            _setting = ViewSetting.Require(Target);
+            _setting.Load(this);
+            AutoFetch();
         }
 
         private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
@@ -277,6 +281,30 @@ namespace Db2Source
             }
             _isTextBoxSelectSqlUpdating = true;
             Dispatcher.InvokeAsync(UpdateTextBoxSelectSql, DispatcherPriority.ApplicationIdle);
+        }
+        private void AutoFetch()
+        {
+            if (!(checkBoxAutoFetch.IsChecked ?? false))
+            {
+                return;
+            }
+            // 10秒以上かかったら次回からは「起動時に検索」のチェックを外す
+            DateTime timeLimit = DateTime.Now.AddSeconds(10);
+            try
+            {
+                Fetch();
+            }
+            finally
+            {
+                Dispatcher.InvokeAsync(() =>
+                {
+                    if (timeLimit < DateTime.Now)
+                    {
+                        checkBoxAutoFetch.IsChecked = false;
+                        _setting.Save(this);
+                    }
+                }, DispatcherPriority.ApplicationIdle);
+            }
         }
 
         public void Fetch(string condition)
@@ -457,7 +485,10 @@ namespace Db2Source
             DataGridControllerResult.SearchGridTextBackward();
         }
 
-        public void OnTabClosing(object sender, ref bool cancel) { }
+        public void OnTabClosing(object sender, ref bool cancel)
+        {
+            _setting.Save(this);
+        }
 
         public void Dispose()
         {

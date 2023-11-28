@@ -56,6 +56,7 @@
                 <DockPanel Margin="0,0,0,4">
                     <StackPanel DockPanel.Dock="Bottom">
                         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="2">
+                            <CheckBox x:Name="checkBoxAutoFetch" Content="起動時に検索" VerticalAlignment="Center" Margin="0,0,4,0" IsChecked="True"/>
                             <CheckBox x:Name="checkBoxLimitRow" VerticalAlignment="Center" IsChecked="True" TabIndex="2"/>
                             <TextBlock Text="先頭の"  VerticalAlignment="Center" Foreground="{Binding IsChecked, Converter={StaticResource IsEnabledToColorConverter}, ElementName=checkBoxLimitRow}"/>
                             <TextBox x:Name="textBoxLimitRow" Text="100" Width="48"  VerticalAlignment="Center" TextAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=checkBoxLimitRow}" PreviewTextInput="textBoxLimitRow_PreviewTextInput" TabIndex="3"/>
