@@ -27,6 +27,11 @@ namespace Db2Source
             BinDirectory = Path.Combine(BaseDirectory, "bin");
             DataDirectory = key.GetValue("Data Directory")?.ToString();
         }
+
+        public bool IsValid()
+        {
+            return Directory.Exists(BinDirectory);
+        }
         public int CompareTo(object obj)
         {
             if (!(obj is PgsqlInstallation))
@@ -71,7 +76,15 @@ namespace Db2Source
                     {
                         using (RegistryKey reg = root.OpenSubKey(key))
                         {
-                            l.Add(new PgsqlInstallation(reg));
+                            try
+                            {
+                                PgsqlInstallation installation = new PgsqlInstallation(reg);
+                                if (installation.IsValid())
+                                {
+                                    l.Add(installation);
+                                }
+                            }
+                            catch { }   // 読み込みで失敗したレジストリエントリはスルー
                         }
                     }
                 }
