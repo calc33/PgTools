@@ -148,7 +148,7 @@ namespace Db2Source
             {
                 l.Add(def.Height.ToString());
             }
-            string csv = new StringList(l.ToArray()).ToCsv(false);
+            string csv = new StringList(l).ToCsv(false);
             key.SetValue(name, csv, RegistryValueKind.String);
         }
     }
@@ -201,7 +201,7 @@ namespace Db2Source
             {
                 l.Add(def.Width.ToString());
             }
-            string csv = new StringList(l.ToArray()).ToCsv(false);
+            string csv = new StringList(l).ToCsv(false);
             key.SetValue(name, csv, RegistryValueKind.String);
         }
     }

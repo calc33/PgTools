@@ -58,7 +58,7 @@ namespace Db2Source
             return _list.ToArray();
         }
 
-        public StringList(string[] value)
+        public StringList(IEnumerable<string> value)
         {
             if (value == null)
             {
