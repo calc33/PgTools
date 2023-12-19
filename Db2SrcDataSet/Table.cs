@@ -154,25 +154,27 @@ namespace Db2Source
             RestoreFrom(_backup);
         }
 
-        public string GetKeyConditionSQL(string alias, string prefix, int indent)
+        public string GetKeyConditionSQL(string alias, string prefix, int indent, bool addNewLine)
         {
             string[] cond = GetKeyConditionSQL(alias);
+            if (cond.Length == 0)
+            {
+                return string.Empty;
+            }
             string spc = Db2SourceContext.GetIndent(indent + 1);
             StringBuilder buf = new StringBuilder();
-            bool needAnd = false;
-            foreach (string s in cond)
+            string s = cond[0];
+            buf.Append(prefix);
+            buf.Append(s);
+            for (int i = 1; i < cond.Length; i++)
             {
-                if (needAnd)
-                {
-                    buf.Append(spc);
-                    buf.Append("and ");
-                }
-                else
-                {
-                    buf.Append(prefix);
-                }
-                buf.AppendLine(s);
-                needAnd = true;
+                buf.AppendLine();
+                buf.Append(spc);
+                buf.Append("and ");
+            }
+            if (addNewLine)
+            {
+                buf.AppendLine();
             }
             return buf.ToString();
         }

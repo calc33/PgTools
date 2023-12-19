@@ -473,7 +473,6 @@ namespace Db2Source
                             {
                                 buf.Append(s);
                             }
-                            buf.AppendLine();
                         }
                         if (lastLength < buf.Length)
                         {
@@ -550,7 +549,7 @@ namespace Db2Source
                 return;
             }
             string alias = JoinTables[0].Alias;
-            string where = Target.GetKeyConditionSQL(alias, string.Empty, MainWindow.Current.IndentOffset);
+            string where = Target.GetKeyConditionSQL(alias, string.Empty, MainWindow.Current.IndentOffset, false);
             string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80);
             textBoxSelectSql.Text = sql;
         }
@@ -601,7 +600,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset), MainWindow.Current.IndentOffset, 80, string.Empty): string.Empty;
+            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty): string.Empty;
         }
 
         private void UpdateTextBoxDeleteSql()
@@ -610,7 +609,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset), MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
+            textBoxDeleteSql.Text = (Target != null) ? Target.GetDeleteSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
         }
 
         private void UpdateTextBoxMergeSql()
