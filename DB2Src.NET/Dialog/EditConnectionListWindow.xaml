@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="接続リストの管理" WindowStyle="ToolWindow"  MinWidth="300" MinHeight="200" MaxWidth="800" MaxHeight="700" SizeToContent="WidthAndHeight" Loaded="Window_Loaded" LocationChanged="Window_LocationChanged">
+        Title="接続リストの管理" WindowStyle="ToolWindow"  MinWidth="300" MinHeight="200" SizeToContent="WidthAndHeight" Loaded="Window_Loaded" LocationChanged="Window_LocationChanged">
     <Window.Resources>
         <sys:String x:Key="messageDelete">を削除します。よろしいですか?</sys:String>
         <sys:String x:Key="columnHeaderDatabaseType">種別</sys:String>

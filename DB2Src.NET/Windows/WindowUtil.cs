@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using WinDrawing = System.Drawing;
 using WinForm = System.Windows.Forms;
 
 namespace Db2Source
@@ -67,12 +68,11 @@ namespace Db2Source
         private static Size GetMaxWindowSize(Window window)
         {
             Point p = window.PointToScreen(new Point(window.Width / 2, window.Height / 2));
-            WinForm.Screen screen = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
+            WinForm.Screen screen = WinForm.Screen.FromPoint(new WinDrawing.Point((int)p.X, (int)p.Y));
             Point p1 = window.PointFromScreen(new Point(screen.WorkingArea.Left, screen.WorkingArea.Top));
             Point p2 = window.PointFromScreen(new Point(screen.WorkingArea.Right, screen.WorkingArea.Bottom));
-            FrameworkElement content = window.Content as FrameworkElement;
-            Point delta = new Point(window.ActualWidth - content.ActualWidth, window.ActualHeight - content.ActualHeight);
-            return new Size(Math.Abs(p2.X - p1.X) + delta.X, Math.Abs(p2.Y - p1.Y) + delta.Y);
+            WinDrawing.Size s = SystemMetrics.SizeFrame;
+            return new Size(Math.Abs(p2.X - p1.X) + s.Width * 2, Math.Abs(p2.Y - p1.Y) + s.Height * 2);
         }
 
         public static void AdjustMaxSizeToScreen(Window window)
@@ -86,6 +86,16 @@ namespace Db2Source
             window.MaxHeight = s.Height;
         }
 
+        public static void LocateIntoCurrentScreen(Window window)
+        {
+            Point p = window.PointToScreen(new Point(window.Width / 2, window.Height / 2));
+            WinForm.Screen screen = WinForm.Screen.FromPoint(new WinDrawing.Point((int)p.X, (int)p.Y));
+            Point p1 = new Point(screen.WorkingArea.Left, screen.WorkingArea.Top);
+            Point p2 = new Point(screen.WorkingArea.Right, screen.WorkingArea.Bottom);
+            window.Left = Math.Max(Math.Min(window.Left, p2.X - window.ActualWidth), p1.X);
+            window.Top = Math.Max(Math.Min(window.Top, p2.Y - window.ActualHeight), p1.Y);
+        }
+
         public static void AdjustMaxHeightToScreen(Window window)
         {
             if (!window.IsVisible)
@@ -94,12 +104,13 @@ namespace Db2Source
             }
             Size s = GetMaxWindowSize(window);
             window.MaxHeight = s.Height;
+            LocateIntoCurrentScreen(window);
         }
 
         public static Rect GetWorkingAreaOf(FrameworkElement element)
         {
             Point p = element.PointToScreen(new Point());
-            WinForm.Screen sc = WinForm.Screen.FromPoint(new System.Drawing.Point((int)p.X, (int)p.Y));
+            WinForm.Screen sc = WinForm.Screen.FromPoint(new WinDrawing.Point((int)p.X, (int)p.Y));
             return new Rect(sc.WorkingArea.X, sc.WorkingArea.Y, sc.WorkingArea.Width, sc.WorkingArea.Height);
         }
 
