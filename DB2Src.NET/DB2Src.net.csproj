@@ -335,6 +335,7 @@
     <Compile Include="ViewControl.xaml.cs">
       <DependentUpon>ViewControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\SystemMetrics.cs" />
     <Compile Include="Windows\WindowUtil.cs" />
     <Page Include="Dialog\AwaitWindow.xaml">
       <SubType>Designer</SubType>
