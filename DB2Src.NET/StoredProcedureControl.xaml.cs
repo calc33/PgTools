@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -344,7 +345,7 @@ namespace Db2Source
                 {
                     p.SetValue();
                 }
-                using (IDbConnection conn = ctx.NewConnection(true))
+                using (IDbConnection conn = ctx.NewConnection(true, App.Current.CommandTimeout))
                 {
                     IDbCommand cmd = Target.DbCommand;
                     try

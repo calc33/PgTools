@@ -688,6 +688,10 @@ namespace Db2Source
         /// SQL出力時の一行あたりの推奨文字数
         /// </summary>
         public int PreferredCharsPerLine { get; set; } = 80;
+        public virtual IDbConnection NewConnection(bool withOpening, int commandTimeout)
+        {
+            return ConnectionInfo?.NewConnection(withOpening, commandTimeout);
+        }
         public virtual IDbConnection NewConnection(bool withOpening)
         {
             return ConnectionInfo?.NewConnection(withOpening);

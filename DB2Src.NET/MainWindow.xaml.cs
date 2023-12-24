@@ -45,7 +45,7 @@ namespace Db2Source
         public static readonly DependencyProperty MatchByWordwrapProperty = DependencyProperty.Register("MatchByWordwrap", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWordwrapPropertyChangedCallback));
         public static readonly DependencyProperty MatchByWholeProperty = DependencyProperty.Register("MatchByWhole", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWholePropertyChangedCallback));
         public static readonly DependencyProperty MatchByRegexProperty = DependencyProperty.Register("MatchByRegex", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByRegexPropertyChangedCallback));
-
+        public static readonly DependencyProperty CommandTimeoutProperty = DependencyProperty.Register("CommandTimeout", typeof(int), typeof(MainWindow), new PropertyMetadata(30, CommandTimeoutPropertyChangedCallback));
         private void UpdateIndentText()
         {
             Db2SourceContext.IndentText = IndentText;
@@ -132,6 +132,15 @@ namespace Db2Source
         private static void MatchByRegexPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             (d as MainWindow)?.OnMatchByRegexPropertyChanged(d, e);
+        }
+        public event DependencyPropertyChangedEventHandler CommandTimeoutPropertyChanged;
+        protected void OnCommandTimeoutPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            CommandTimeoutPropertyChanged?.Invoke(sender, e);
+        }
+        private static void CommandTimeoutPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnCommandTimeoutPropertyChanged(d, e);
         }
 
         public static MainWindow Current { get; private set; } = null;
@@ -240,6 +249,12 @@ namespace Db2Source
         {
             get { return (bool)GetValue(MatchByRegexProperty); }
             set { SetValue(MatchByRegexProperty, value); }
+        }
+
+        public int CommandTimeout
+        {
+            get { return (int)GetValue(CommandTimeoutProperty); }
+            set { SetValue(CommandTimeoutProperty, value); }
         }
 
         private void SetConnectionStatus(SchemaConnectionStatus value)
@@ -908,8 +923,9 @@ namespace Db2Source
             _registryBinding.Register(string.Empty, "IndentChar", this, "IndentChar", new StringOperator());
             _registryBinding.Register(string.Empty, "IndentOffset", this, "IndentOffset", new Int32Operator());
             _registryBinding.Register(string.Empty, "Maximized", this, "WindowState", new WindowStateOperator());
-
+            _registryBinding.Register(string.Empty, "CommandTimeout", this, "CommandTimeout", new Int32Operator());
         }
+
         public RegistryBinding RegistryBinding
         {
             get

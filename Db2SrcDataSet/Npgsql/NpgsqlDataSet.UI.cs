@@ -201,6 +201,7 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+        private const int ERROR_DURING_READING_STREAM = -2147467259;
         /// <summary>
         /// 例外のダイアログ出力用メッセージを取得
         /// </summary>
@@ -211,6 +212,13 @@ namespace Db2Source
             if (t is Npgsql.PostgresException)
             {
                 return GetExceptionMessage((Npgsql.PostgresException)t);
+            }
+            if (t is Npgsql.NpgsqlException)
+            {
+                if (((Npgsql.NpgsqlException)t).ErrorCode == ERROR_DURING_READING_STREAM)
+                {
+                    return t.InnerException.Message;
+                }
             }
             return t.Message;
         }

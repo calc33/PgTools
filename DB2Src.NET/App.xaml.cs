@@ -41,6 +41,13 @@ namespace Db2Source
                 return (Current?.MainWindow as MainWindow)?.CurrentDataSet;
             }
         }
+
+        public int CommandTimeout {
+            get { return (MainWindow as MainWindow).CommandTimeout; }
+            set { (MainWindow as MainWindow).CommandTimeout = value; }
+        }
+
+        //public RegistrySetting Setting { get; } = new RegistrySetting();
         /// <summary>
         /// SQLを実行してエラーが出たらエラーメッセージをダイアログで表示する
         /// </summary>

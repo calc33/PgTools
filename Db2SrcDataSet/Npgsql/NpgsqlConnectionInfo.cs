@@ -478,7 +478,7 @@ namespace Db2Source
             Password = builder.Password;
             SearchPath = builder.SearchPath;
         }
-        public override string ToConnectionString(bool includePassord)
+        public override string ToConnectionString(bool includePassord, int commandTimeout)
         {
             NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder
             {
@@ -487,7 +487,9 @@ namespace Db2Source
                 Port = ServerPort,
                 Username = UserName,
                 IncludeErrorDetail = true,
-                ApplicationName = Assembly.GetEntryAssembly().GetName().Name
+                ApplicationName = Assembly.GetEntryAssembly().GetName().Name,
+                CancellationTimeout = 0,
+                CommandTimeout = commandTimeout,
             };
             if (includePassord)
             {
@@ -508,9 +510,9 @@ namespace Db2Source
             }
             return builder.ToString();
         }
-        public override IDbConnection NewConnection(bool withOpening)
+        public override IDbConnection NewConnection(bool withOpening, int commandTimeout)
         {
-            NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString(true));
+            NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString(true, commandTimeout));
             try
             {
                 if (withOpening)
@@ -524,6 +526,11 @@ namespace Db2Source
                 conn.Dispose();
                 throw;
             }
+        }
+
+        public override int DefaultCommandTimeout()
+        {
+            return 30;
         }
 
         static NpgsqlConnectionInfo()

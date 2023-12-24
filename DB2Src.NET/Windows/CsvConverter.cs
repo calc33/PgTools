@@ -58,7 +58,7 @@ namespace Db2Source
         {
             if (string.IsNullOrEmpty(text))
             {
-                return new string[0];
+                return StrUtil.EmptyStringArray;
             }
             if (text.Length <= position)
             {

@@ -212,12 +212,12 @@ namespace Db2Source
             AddLog(e.Text, new QueryHistory.Query(e.Command), e.Status, false);
         }
 
-        private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls)
+        private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls, int commandTimeout)
         {
             await dispatcher.InvokeAsync(() => {
                 controller.Grid.ItemsSource = null;
             });
-            using (IDbConnection conn = ctx.NewConnection(true))
+            using (IDbConnection conn = ctx.NewConnection(true, commandTimeout))
             {
                 foreach (SQLPart sql in sqls.Items)
                 {
@@ -285,7 +285,7 @@ namespace Db2Source
 
         private void UpdateDataGridResult(SQLParts sqls)
         {
-            Task _ = ExecuteSqlPartsAsync(Dispatcher.CurrentDispatcher, CurrentDataSet, DataGridControllerResult, sqls);
+            Task _ = ExecuteSqlPartsAsync(Dispatcher.CurrentDispatcher, CurrentDataSet, DataGridControllerResult, sqls, App.Current.CommandTimeout);
         }
 
         private void Parameters_ParameterTextChanged(object sender, DependencyPropertyChangedEventArgs e)

@@ -643,8 +643,17 @@ namespace Db2Source
         {
             return Name;
         }
-        public abstract string ToConnectionString(bool includePassord);
-        public abstract IDbConnection NewConnection(bool withOpening);
+        public abstract string ToConnectionString(bool includePassord, int commandTimeout);
+        public abstract IDbConnection NewConnection(bool withOpening, int commandTimeout);
+        public IDbConnection NewConnection(bool withOpening)
+        {
+            return NewConnection(withOpening, DefaultCommandTimeout());
+        }
+        public abstract int DefaultCommandTimeout();
+        public async Task<IDbConnection> NewConnectionAsync(bool withOpening, int commandTimeout)
+        {
+            return await Task.Run(() => { return NewConnection(withOpening, commandTimeout); });
+        }
         public async Task<IDbConnection> NewConnectionAsync(bool withOpening)
         {
             return await Task.Run(() => { return NewConnection(withOpening); });
@@ -1160,7 +1169,7 @@ namespace Db2Source
             }
         }
 
-        public override IDbConnection NewConnection(bool withOpening)
+        public override IDbConnection NewConnection(bool withOpening, int commandTimeout)
         {
             return null;
         }
@@ -1170,9 +1179,14 @@ namespace Db2Source
             return null;
         }
 
-        public override string ToConnectionString(bool includePassord)
+        public override string ToConnectionString(bool includePassord, int commandTimeout)
         {
             return null;
+        }
+
+        public override int DefaultCommandTimeout()
+        {
+            return int.MaxValue;
         }
 
         public override string GetDefaultCategoryPath()

@@ -182,9 +182,9 @@ namespace Db2Source
 
     public partial class StoredProcedureSetting : SchemaObjectSetting<StoredProcedureControl>
     {
-        public string[] ParamValues { get; set; }
+        public string[] ParamValues { get; set; } = StrUtil.EmptyStringArray;
 
-        internal string ParamValuesCSV
+        public string ParamValuesCSV
         {
             get
             {

@@ -387,10 +387,13 @@ namespace Db2Source
         public override object Clone()
         {
             StoredProcedureSetting setting = (StoredProcedureSetting)MemberwiseClone();
-            setting.ParamValues = new string[ParamValues.Length];
-            for(int i = 0, n =  ParamValues.Length; i < n; i++)
+            if (ParamValues != null)
             {
-                setting.ParamValues[i] = ParamValues[i];
+                setting.ParamValues = new string[ParamValues.Length];
+                for (int i = 0, n = ParamValues.Length; i < n; i++)
+                {
+                    setting.ParamValues[i] = ParamValues[i];
+                }
             }
             return setting;
         }

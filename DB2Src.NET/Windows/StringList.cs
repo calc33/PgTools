@@ -7,7 +7,7 @@ namespace Db2Source
 {
     public class StringList
     {
-        public static readonly string[] Empty = new string[0];
+        public static readonly string[] Empty = StrUtil.EmptyStringArray;
         private List<string> _list = new List<string>();
         public string this[int index]
         {

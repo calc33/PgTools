@@ -30,7 +30,23 @@
             <RowDefinition Height="10*"/>
         </Grid.RowDefinitions>
         <DockPanel Margin="0,0,0,4">
-            <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" DockPanel.Dock="Right" Margin="2,0" TabIndex="1" VerticalAlignment="Top" MinWidth="40" MinHeight="50"/>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="実行タイムアウト" Margin="2"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBox x:Name="textBoxTimeout" MinWidth="50" Text="{Binding CommandTimeout, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Mode=TwoWay}" Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
+                                <TextBlock Text="秒 " Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <ToggleButton x:Name="buttonTimeoutSetting" ContentTemplate="{StaticResource ImageClock14}" VerticalAlignment="Bottom" ToolTip="ストアド関数の実行タイムアウト時間を設定" IsTabStop="False"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+                <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" TabIndex="1" VerticalAlignment="Top" MinWidth="40" MaxHeight="50" Margin="2,0"/>
+            </StackPanel>
             <ListBox x:Name="listBoxErrors" DockPanel.Dock="Bottom" Visibility="Collapsed"/>
             <Grid x:Name="gridSql">
                 <Grid.ColumnDefinitions>

@@ -307,6 +307,25 @@
                     <Ellipse x:Name="eye" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Width="8" Height="8" Canvas.Left="3" Canvas.Top="3"/>
                 </Canvas>
             </DataTemplate>
+            <DataTemplate x:Key="ImageGear14">
+                <Canvas Width="14" Height="14" SnapsToDevicePixels="True" ClipToBounds="False">
+                    <Line x:Name="line1" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="2" Y1="2" X2="4" Y2="4"/>
+                    <Line x:Name="line2" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="7" Y1="0" X2="7" Y2="4"/>
+                    <Line x:Name="line3" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="12" Y1="2" X2="10" Y2="4"/>
+                    <Line x:Name="line4" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="14" Y1="7" X2="10" Y2="7"/>
+                    <Line x:Name="line5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="12" Y1="12" X2="10" Y2="10"/>
+                    <Line x:Name="line6" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="7" Y1="14" X2="7" Y2="10"/>
+                    <Line x:Name="line7" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="2" Y1="12" X2="4" Y2="10"/>
+                    <Line x:Name="line8" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="2" X1="0" Y1="7" X2="3" Y2="7"/>
+                    <Ellipse x:Name="body" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="3" Canvas.Left="2" Canvas.Top="2" Width="10" Height="10"/>
+                </Canvas>
+            </DataTemplate>
+            <DataTemplate x:Key="ImageClock14">
+                <Canvas Width="14" Height="14" SnapsToDevicePixels="True" ClipToBounds="False">
+                    <Ellipse x:Name="body" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Canvas.Left="0" Canvas.Top="0" Width="14" Height="14"/>
+                    <Path x:Name="Hands" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M7,3 L7,8 L10,8"/>
+                </Canvas>
+            </DataTemplate>
             <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>
             <SolidColorBrush x:Key="OptionMark.Static.Border" Color="#FF707070"/>
             <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>
