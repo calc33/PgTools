@@ -119,7 +119,7 @@ namespace Db2Source
             UpdateTextBoxSource();
             UpdateTextBoxSelectSql();
             _setting = ViewSetting.Require(Target);
-            _setting.Load(this);
+            _setting?.Load(this);
             AutoFetch();
         }
 

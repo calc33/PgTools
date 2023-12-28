@@ -244,6 +244,10 @@ namespace Db2Source
 
         public static TableSetting Require(Table target)
         {
+            if (target == null)
+            {
+                return null;
+            }
             using (SQLiteConnection conn = NewConnection())
             {
                 TableSetting setting = new TableSetting(target, conn);
@@ -300,6 +304,10 @@ namespace Db2Source
 
         public static ViewSetting Require(View target)
         {
+            if (target == null)
+            {
+                return null;
+            }
             using (SQLiteConnection conn = NewConnection())
             {
                 ViewSetting setting = new ViewSetting(target, conn);
@@ -362,6 +370,10 @@ namespace Db2Source
         };
         public static StoredProcedureSetting Require(StoredFunction target)
         {
+            if (target == null)
+            {
+                return null;
+            }
             using (SQLiteConnection conn = NewConnection())
             {
                 StoredProcedureSetting setting = new StoredProcedureSetting(target, conn);

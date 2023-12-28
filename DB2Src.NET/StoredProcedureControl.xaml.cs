@@ -182,7 +182,7 @@ namespace Db2Source
                 UpdateStringResources();
                 AdjustSelectedTabItem();
                 _setting = StoredProcedureSetting.Require(Target);
-                _setting.Load(this);
+                _setting?.Load(this);
             });
         }
 

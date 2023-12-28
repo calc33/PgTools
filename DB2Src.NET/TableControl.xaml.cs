@@ -244,7 +244,7 @@ namespace Db2Source
                 UpdateTextBoxTemplateSql();
                 UpdateHiddenLevelDisplayItems();
                 _setting = TableSetting.Require(Target);
-                _setting.Load(this);
+                _setting?.Load(this);
                 AutoFetch();
             });
         }
@@ -586,7 +586,7 @@ namespace Db2Source
                 }
                 else
                 {
-                    textBoxInsertSql.Text = Target?.GetInsertSql(MainWindow.Current.IndentOffset, 80, string.Empty);
+                    textBoxInsertSql.Text = Target?.GetInsertSql(MainWindow.Current.IndentOffset, 80, string.Empty, false);
                 }
             }
             catch (Exception t)
