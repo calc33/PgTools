@@ -171,6 +171,7 @@ namespace Db2Source
                 buf.AppendLine();
                 buf.Append(spc);
                 buf.Append("and ");
+                buf.Append(cond[i]);
             }
             if (addNewLine)
             {
@@ -198,9 +199,9 @@ namespace Db2Source
             return l.ToArray();
         }
 
-        public string GetInsertSql(int indent, int charPerLine, string postfix)
+        public string GetInsertSql(int indent, int charPerLine, string postfix, bool noNewLine)
         {
-            return Context.GetInsertSql(this, indent, charPerLine, postfix);
+            return Context.GetInsertSql(this, indent, charPerLine, postfix, noNewLine);
         }
         public string GetUpdateSql(string where, int indent, int charPerLine, string postfix)
         {
