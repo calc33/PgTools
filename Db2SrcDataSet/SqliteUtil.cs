@@ -755,6 +755,33 @@ namespace Db2Source
                 parameter.Value = Convert.ToInt64(value);
             }
         }
+
+        private static void WriteFloat(SQLiteParameter parameter, T obj, PropertyInfo property)
+        {
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = Convert.ToSingle(value);
+            }
+        }
+
+        private static void WriteDouble(SQLiteParameter parameter, T obj, PropertyInfo property)
+        {
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = Convert.ToDouble(value);
+            }
+        }
+
         private static void WriteString(SQLiteParameter parameter, T obj, PropertyInfo property)
         {
             object value = property.GetValue(obj, null);
@@ -768,17 +795,30 @@ namespace Db2Source
             }
         }
 
-        private static readonly Dictionary<Type, ReadField> TypeToReader = new Dictionary<Type, ReadField>()
+        private static void WriteDateTime(SQLiteParameter parameter, T obj, PropertyInfo property)
         {
-            { typeof(bool), ReadBoolean },
-            { typeof(int), ReadInt32 },
-            { typeof(uint), ReadInt32 },
-            { typeof(long), ReadInt64 },
-            { typeof(ulong), ReadInt64 },
-            { typeof(float), ReadFloat },
-            { typeof(double), ReadDouble },
-            { typeof(string), ReadString },
-            { typeof(DateTime), ReadDateTime },
+            object value = property.GetValue(obj, null);
+            if (value == null)
+            {
+                parameter.Value = DBNull.Value;
+            }
+            else
+            {
+                parameter.Value = Convert.ToDateTime(value).ToOADate();
+            }
+        }
+
+        private static readonly Dictionary<Type, Tuple<ReadField, WriteParameter>> TypeToReader = new Dictionary<Type, Tuple<ReadField, WriteParameter>>()
+        {
+            { typeof(bool), new Tuple<ReadField, WriteParameter>(ReadBoolean, WriteInt32) },
+            { typeof(int), new Tuple<ReadField, WriteParameter>(ReadInt32, WriteInt32) },
+            { typeof(uint), new Tuple<ReadField, WriteParameter>(ReadInt32, WriteInt32) },
+            { typeof(long), new Tuple<ReadField, WriteParameter>(ReadInt64, WriteInt64) },
+            { typeof(ulong), new Tuple<ReadField, WriteParameter>(ReadInt64, WriteInt64) },
+            { typeof(float), new Tuple<ReadField, WriteParameter>(ReadFloat, WriteFloat) },
+            { typeof(double), new Tuple<ReadField, WriteParameter>(ReadDouble, WriteDouble) },
+            { typeof(string), new Tuple<ReadField, WriteParameter>(ReadString, WriteString) },
+            { typeof(DateTime), new Tuple<ReadField, WriteParameter>(ReadDateTime, WriteDateTime) },
         };
         public PropertyBindingDef(string columnName, DbType dbType, string property)
         {
@@ -794,9 +834,15 @@ namespace Db2Source
             {
                 type = type.GetGenericArguments()[0];
             }
-            if (!TypeToReader.TryGetValue(type, out _fieldReader))
+            if (TypeToReader.TryGetValue(type, out Tuple<ReadField, WriteParameter> t))
+            {
+                _fieldReader = t.Item1;
+                _parameterWriter = t.Item2;
+            }
+            else
             {
                 _fieldReader = ReadObject;
+                _parameterWriter = null;
             }
         }
         public bool Add(IList<string> sqls, IList<SQLiteParameter> parameters, T newObj, T oldObj)
@@ -830,7 +876,11 @@ namespace Db2Source
 
         public void ReadValue(SQLiteDataReader reader, int index, T obj)
         {
-            _fieldReader(reader, index, obj, Property);
+            _fieldReader?.Invoke(reader, index, obj, Property);
+        }
+        public void WriteValue(SQLiteParameter parameter, int index, T obj)
+        {
+            _parameterWriter?.Invoke(parameter, obj, Property);
         }
     }
     public static class ObjectWrapper<T> where T : class
