@@ -1599,7 +1599,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                buf.Append(DataSet.GetInsertSql(Table, 0, 80, ";", values));
+                buf.Append(DataSet.GetInsertSql(Table, 0, 80, ";", values, true));
             }
             DataObject obj = new DataObject();
             obj.SetData(DataFormats.Text, buf.ToString());

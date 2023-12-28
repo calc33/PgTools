@@ -1396,7 +1396,7 @@ namespace Db2Source
         public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
 
         public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
-        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix);
+        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine);
         /// <summary>
         /// データ付でINSERT文を生成する
         /// </summary>
@@ -1406,7 +1406,7 @@ namespace Db2Source
         /// <param name="postfix"></param>
         /// <param name="data">項目と値の組み合わせを渡す</param>
         /// <returns></returns>
-        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data);
+        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine);
         public abstract string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix);
         /// <summary>
         /// データ付でUPDATE文を生成する

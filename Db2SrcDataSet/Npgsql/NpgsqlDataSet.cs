@@ -563,11 +563,11 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool addNewline)
+        private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool noNewLine, bool addNewline)
         {
             string spc = GetIndent(indent);
             string flds, prms;
-            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, noNewLine ? int.MaxValue : charPerLine, out flds, out prms);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
@@ -577,13 +577,27 @@ namespace Db2Source
                 buf.Append(" as ");
                 buf.Append(alias);
             }
-            buf.AppendLine(" (");
+            buf.Append(" (");
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(flds);
-            buf.AppendLine();
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(spc);
-            buf.AppendLine(") values (");
+            buf.Append(") values (");
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(prms);
-            buf.AppendLine();
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(spc);
             buf.Append(")");
             buf.Append(postfix);
@@ -593,9 +607,9 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix)
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine)
         {
-            return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, true);
+            return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, noNewLine, true);
         }
 
         /// <summary>
@@ -607,17 +621,21 @@ namespace Db2Source
         /// <param name="postfix"></param>
         /// <param name="data">項目と値の組み合わせを渡す</param>
         /// <returns></returns>
-        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data)
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine)
         {
             string spc = GetIndent(indent);
             StringBuilder bufF = new StringBuilder();
             StringBuilder bufP = new StringBuilder();
             bool needComma = false;
-            bufF.Append(spc);
-            bufF.Append(IndentText);
-            bufP.Append(spc);
-            bufP.Append(IndentText);
-            int w = spc.Length + 2;
+            int w = 0;
+            if (!noNewLine)
+            {
+                bufF.Append(spc);
+                bufF.Append(IndentText);
+                bufP.Append(spc);
+                bufP.Append(IndentText);
+                w = spc.Length + 2;
+            }
             Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
             foreach (ColumnInfo info in data.Keys){
                 name2col.Add(info.Name, info);
@@ -634,7 +652,7 @@ namespace Db2Source
                     bufF.Append(',');
                     bufP.Append(',');
                     w++;
-                    if (charPerLine <= w)
+                    if (!noNewLine && charPerLine <= w)
                     {
                         bufF.AppendLine();
                         bufF.Append(spc);
@@ -664,13 +682,27 @@ namespace Db2Source
             buf.Append(spc);
             buf.Append("insert into ");
             buf.Append(table.EscapedIdentifier(CurrentSchema));
-            buf.AppendLine(" (");
+            buf.Append(" (");
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(bufF);
-            buf.AppendLine();
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(spc);
-            buf.AppendLine(") values (");
+            buf.Append(") values (");
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(bufP);
-            buf.AppendLine();
+            if (!noNewLine)
+            {
+                buf.AppendLine();
+            }
             buf.Append(spc);
             buf.Append(")");
             buf.AppendLine(postfix);
@@ -778,7 +810,7 @@ namespace Db2Source
             {
                 throw new ArgumentException("主キーがありません");
             }
-            StringBuilder buf = new StringBuilder(GetInsertSql(table, null, indent, charPerLine, string.Empty, false));
+            StringBuilder buf = new StringBuilder(GetInsertSql(table, null, indent, charPerLine, string.Empty, false, false));
             buf.Append(" on conflict on constraint ");
             buf.Append(GetEscapedIdentifier(table.PrimaryKey.Name, true));
             buf.AppendLine(" do update set ");
