@@ -1196,8 +1196,8 @@ namespace Db2Source
                 return;
             }
             NpgsqlConnectionInfo info = CurrentDataSet.ConnectionInfo as NpgsqlConnectionInfo;
-            string arg = string.Format("-h {0} -p {1} -d {2} -U {3}", info.ServerName, info.ServerPort, info.DatabaseName, info.UserName);
-            Process.Start(exe, arg);
+            string arg = string.Format("/K \"{0}\" -h {1} -p {2} -d {3} -U {4}", exe, info.ServerName, info.ServerPort, info.DatabaseName, info.UserName);
+            Process.Start("cmd.exe", arg);
         }
 
         private void menuItemPgdump_Click(object sender, RoutedEventArgs e)
