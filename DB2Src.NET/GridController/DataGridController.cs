@@ -258,7 +258,7 @@ namespace Db2Source
         public event EventHandler<DependencyPropertyChangedEventArgs> GridPropertyChanged;
         protected void OnGridPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            UpdateGrid();
+            InitGrid();
             GridPropertyChanged?.Invoke(this, e);
         }
 
@@ -765,12 +765,47 @@ namespace Db2Source
             Grid.ItemsSource = Rows;
         }
 
-        public void UpdateGrid()
+        private bool IsTableEditable()
+        {
+            return (Table != null) && (Table.FirstCandidateKey != null) && (Table.FirstCandidateKey.Columns.Length != 0);
+        }
+
+        private void InitGrid()
         {
             Grid.IsVisibleChanged += Grid_IsVisibleChanged;
-            Grid_IsVisibleChanged(Grid, new DependencyPropertyChangedEventArgs(DataGrid.IsVisibleProperty, false, Grid.IsVisible));
+            Grid_IsVisibleChanged(Grid, new DependencyPropertyChangedEventArgs(UIElement.IsVisibleProperty, false, Grid.IsVisible));
             Grid.SelectedCellsChanged += Grid_SelectedCellsChanged;
-            bool editable = (Table != null) && (Table.FirstCandidateKey != null) && (Table.FirstCandidateKey.Columns.Length != 0);
+
+            CommandBinding cb;
+            Grid.CommandBindings.Clear();
+            cb = new CommandBinding(ApplicationCommands.SelectAll, SelectAllCommand_Executed);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.SelectAllCells, SelectAllCells_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsUpdate, CopyTableAsUpdateCommand_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+
+            cb = new CommandBinding(DataGridCommands.CheckAll, CheckAllCommand_Executed, CheckAllCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(DataGridCommands.UncheckAll, UncheckAllCommand_Executed, UncheckAllCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+            cb = new CommandBinding(ApplicationCommands.Paste, PasteCommand_Executed, PasteCommand_CanExecute);
+            Grid.CommandBindings.Add(cb);
+
+            UpdateGrid();
+        }
+
+        private void UpdateGridColumns()
+        {
+            bool editable = IsTableEditable();
             Grid.IsReadOnly = !editable;
             Grid.CanUserAddRows = editable;
             Grid.CanUserDeleteRows = false;
@@ -795,32 +830,6 @@ namespace Db2Source
                 Grid.Columns.Add(chk);
             }
 
-            {
-                CommandBinding cb;
-                cb = new CommandBinding(ApplicationCommands.SelectAll, SelectAllCommand_Executed);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.SelectAllCells, SelectAllCells_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTable, CopyTableCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableContent, CopyTableContentCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableAsInsert, CopyTableAsInsertCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableAsUpdate, CopyTableAsUpdateCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                cb = new CommandBinding(DataGridCommands.CopyTableAsCopy, CopyTableAsCopyCommand_Executed, CopyTableCommand_CanExecute);
-                Grid.CommandBindings.Add(cb);
-                if (editable)
-                {
-                    cb = new CommandBinding(DataGridCommands.CheckAll, CheckAllCommand_Executed, CheckAllCommand_CanExecute);
-                    Grid.CommandBindings.Add(cb);
-                    cb = new CommandBinding(DataGridCommands.UncheckAll, UncheckAllCommand_Executed, UncheckAllCommand_CanExecute);
-                    Grid.CommandBindings.Add(cb);
-                    cb = new CommandBinding(ApplicationCommands.Paste, PasteCommand_Executed, PasteCommand_CanExecute);
-                    Grid.CommandBindings.Add(cb);
-                }
-            }
             int i = 0;
             foreach (ColumnInfo info in Fields)
             {
@@ -860,6 +869,11 @@ namespace Db2Source
                 Grid.Columns.Add(col);
                 i++;
             }
+        }
+        public void UpdateGrid()
+        {
+            UpdateGridColumns();
+            Grid.ItemsSource = null;
             Grid.ItemsSource = Rows;
         }
 
@@ -1746,7 +1760,7 @@ namespace Db2Source
         private void PasteCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             DataGrid gr = sender as DataGrid;
-            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly && IsTableEditable();
             e.Handled = true;
         }
 
@@ -1812,7 +1826,7 @@ namespace Db2Source
         private void CheckAllCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             DataGrid gr = sender as DataGrid;
-            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly && IsTableEditable();
             e.Handled = true;
         }
         private void CheckAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -1834,7 +1848,7 @@ namespace Db2Source
         private void UncheckAllCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             DataGrid gr = sender as DataGrid;
-            e.CanExecute = (gr != null) && !gr.IsReadOnly;
+            e.CanExecute = (gr != null) && !gr.IsReadOnly && IsTableEditable();
             e.Handled = true;
         }
         private void UncheckAllCommand_Executed(object sender, ExecutedRoutedEventArgs e)
