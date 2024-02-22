@@ -178,7 +178,7 @@ namespace Db2Source
             }
             for (int i = 0; i < Length; i++)
             {
-                if (!this[i].Equals(o[i]))
+                if (!Equals(this[i], o[i]))
                 {
                     return false;
                 }
