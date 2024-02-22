@@ -2456,6 +2456,8 @@ namespace Db2Source
             {
                 string sql = AddCondition(DataSet.Properties.Resources.PgProc_SQL, string.Format("p.oid = {0}::oid", oid));
                 store.Fill(sql, connection, false);
+                string sqlArg = AddCondition(DataSet.Properties.Resources.PgProc_ARGDEFAULTSQL, string.Format("ss.p_oid = {0}::oid", oid));
+                store.JoinToDict<string>(sqlArg, typeof(PgProc).GetField("ArgDefaults"), "parameter_default", connection);
             }
             public static uint? GetOid(WorkingData backend, NpgsqlConnection connection, string schema, string name, string[] argtypes)
             {
@@ -2516,7 +2518,7 @@ namespace Db2Source
                 {
                     sql = DataSet.Properties.Resources.PgProc_SQL;
                 }
-                PgObjectCollection <PgProc> l = store;
+                PgObjectCollection<PgProc> l = store;
                 if (l == null)
                 {
                     l = new PgObjectCollection<PgProc>(sql, connection);
