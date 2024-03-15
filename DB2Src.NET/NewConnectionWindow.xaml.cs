@@ -72,9 +72,38 @@ namespace Db2Source
             return attr1.Order.CompareTo(attr2.Order);
         }
 
-        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        private Dictionary<string, FrameworkElement> _propertyControls = new Dictionary<string, FrameworkElement>();
+
+        private T GetPropertyControl<T>(string name) where T : FrameworkElement
         {
-            if (e.NewValue == e.OldValue)
+            if (_propertyControls.TryGetValue(name, out var control))
+            {
+                return control as T;
+            }
+            return null;
+        }
+
+        private delegate T ConstructT<T>() where T : FrameworkElement;
+        private T RequirePropertyControl<T>(string name, int row, int column, ConstructT<T> ctor) where T : FrameworkElement
+        {
+            T control = GetPropertyControl<T>(name);
+            if (control == null)
+            {
+                control = ctor();
+                control.Name = name;
+                RegisterName(name, control);
+                _propertyControls[name] = control;
+            }
+            Grid.SetRow(control, row);
+            Grid.SetColumn(control, column);
+            GridProperties.Children.Add(control);
+            return control;
+        }
+
+        private Type _lastTargetType = null;
+        private void UpdateGridProperties()
+        {
+            if (Target.GetType() == _lastTargetType)
             {
                 return;
             }
@@ -89,6 +118,11 @@ namespace Db2Source
             }
             props.Sort(ComparePropertyByInputFieldAttr);
 
+            foreach (FrameworkElement element in _propertyControls.Values)
+            {
+                GridProperties.Children.Remove(element);
+            }
+
             GridProperties.RowDefinitions.Clear();
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
@@ -98,22 +132,21 @@ namespace Db2Source
                 GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                 PropertyInfo prop = props[i];
                 InputFieldAttribute attr = (InputFieldAttribute)prop.GetCustomAttribute(typeof(InputFieldAttribute));
-                TextBlock lbl = new TextBlock()
+                TextBlock lbl = RequirePropertyControl("textBlock" + prop.Name, r, 0, () =>
                 {
-                    Margin = new Thickness(2.0),
-                    HorizontalAlignment = HorizontalAlignment.Right,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    Text = attr?.Title
-                };
-                Grid.SetRow(lbl, r);
-                GridProperties.Children.Add(lbl);
-                string newName = "textBox" + prop.Name;
-                TextBox tb = FindName(newName) as TextBox;
-                if (tb == null)
-                {
-                    tb = new TextBox()
+                    return new TextBlock()
                     {
-                        Name = newName,
+                        Margin = new Thickness(2.0),
+                        HorizontalAlignment = HorizontalAlignment.Right,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        Text = attr?.Title
+                    };
+                });
+
+                TextBox tb = RequirePropertyControl("textBox" + prop.Name, r, 1, () =>
+                {
+                    TextBox newObj = new TextBox()
+                    {
                         Margin = new Thickness(2.0),
                         VerticalAlignment = VerticalAlignment.Center
                     };
@@ -122,65 +155,48 @@ namespace Db2Source
                         ElementName = "window",
                         Mode = BindingMode.TwoWay
                     };
-                    tb.SetBinding(TextBox.TextProperty, b1);
-                    tb.TextChanged += TextBox_TextChanged;
-                    tb.LostFocus += TextBox_LostFocus;
-                    RegisterName(tb.Name, tb);
-                }
-                else
-                {
-                    GridProperties.Children.Remove(tb);
-                }
-                Grid.SetColumn(tb, 1);
-                Grid.SetRow(tb, r);
-                GridProperties.Children.Add(tb);
+                    newObj.SetBinding(TextBox.TextProperty, b1);
+                    newObj.TextChanged += TextBox_TextChanged;
+                    newObj.LostFocus += TextBox_LostFocus;
+                    return newObj;
+                });
+
                 if (attr.HiddenField)
                 {
-                    newName = "passwordBox" + prop.Name;
-                    PasswordBox pb = FindName(newName) as PasswordBox;
-                    if (pb == null)
+                    PasswordBox pb = RequirePropertyControl("passwordBox" + prop.Name, r, 1, () =>
                     {
-                        pb = new PasswordBox()
+                        PasswordBox newObj = new PasswordBox()
                         {
-                            Name = newName,
                             Margin = new Thickness(2.0),
                             VerticalAlignment = VerticalAlignment.Center,
                             Password = Target.Password,
                             Tag = tb
                         };
-                        pb.PasswordChanged += PbPassword_PasswordChanged;
+                        newObj.PasswordChanged += PbPassword_PasswordChanged;
                         tb.TextChanged += TbPassword_TextChanged;
                         tb.IsVisibleChanged += TbPassword_IsVisibleChanged;
-                        tb.Tag = pb;
-                        RegisterName(pb.Name, pb);
-                    }
-                    else
-                    {
-                        GridProperties.Children.Remove(pb);
-                    }
-                    Grid.SetColumn(pb, 1);
-                    Grid.SetRow(pb, r);
-                    GridProperties.Children.Add(pb);
+                        tb.Tag = newObj;
+                        return newObj;
+                    });
 
                     GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                     r++;
 
-                    newName = "checkBox" + prop.Name;
-                    CheckBox cb = FindName(newName) as CheckBox;
-                    if (cb == null)
+                    CheckBox cb = RequirePropertyControl<CheckBox>("checkBox" + prop.Name, r, 1, () =>
                     {
-                        cb = new CheckBox()
+                        CheckBox newObj = new CheckBox()
                         {
-                            Name = newName,
                             Content = (string)Resources["checkBoxTextShowPassword"],
                             IsChecked = false,
-                            VerticalAlignment = VerticalAlignment.Center
+                            VerticalAlignment = VerticalAlignment.Center,
+                            Name = "checkBox" + prop.Name
                         };
-                        RegisterName(cb.Name, cb);
+                        RegisterName(newObj.Name, newObj);
+                        _propertyControls[newObj.Name] = newObj;
 
                         Binding b3 = new Binding("IsChecked")
                         {
-                            ElementName = cb.Name,
+                            ElementName = newObj.Name,
                             Mode = BindingMode.OneWay,
                             Converter = new BooleanToVisibilityConverter()
                         };
@@ -188,7 +204,7 @@ namespace Db2Source
 
                         Binding b4 = new Binding("IsChecked")
                         {
-                            ElementName = cb.Name,
+                            ElementName = newObj.Name,
                             Mode = BindingMode.OneWay,
                             Converter = new InvertBooleanToVisibilityConverter()
                         };
@@ -200,14 +216,9 @@ namespace Db2Source
                             Mode = BindingMode.OneWay,
                             Converter = new IsEnabledToColorConverter()
                         };
-                        cb.SetBinding(ForegroundProperty, b5);
-                    }
-                    else
-                    {
-                        GridProperties.Children.Remove(cb);
-                    }
-                    Grid.SetColumn(cb, 1);
-                    Grid.SetRow(cb, r);
+                        newObj.SetBinding(ForegroundProperty, b5);
+                        return newObj;
+                    });
                     if (Target.IsPasswordHidden)
                     {
                         cb.IsEnabled = false;
@@ -217,12 +228,25 @@ namespace Db2Source
                     {
                         cb.IsEnabled = true;
                     }
-                    GridProperties.Children.Add(cb);
+                    if (cb.Parent == null)
+                    {
+                        GridProperties.Children.Add(cb);
+                    }
                 }
             }
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
             Grid.SetRow(textBlockTitleColor, r);
             Grid.SetRow(stackPanelTitleColor, r);
+            _lastTargetType = Target.GetType();
+        }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            if (e.NewValue == e.OldValue)
+            {
+                return;
+            }
+            UpdateGridProperties();
             UpdateTitleColor();
             StackPanelMain.UpdateLayout();
         }

@@ -488,7 +488,7 @@ namespace Db2Source
                 Username = UserName,
                 IncludeErrorDetail = true,
                 ApplicationName = Assembly.GetEntryAssembly().GetName().Name,
-                CancellationTimeout = 0,
+                CancellationTimeout = 1000,
                 CommandTimeout = commandTimeout,
             };
             if (includePassord)
