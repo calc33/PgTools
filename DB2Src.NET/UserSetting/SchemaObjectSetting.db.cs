@@ -87,6 +87,21 @@ namespace Db2Source
                     new PrimaryKeyConstraintDefinition(new string[]{ "OBJECT_ID" }, false),
                 }
             },
+            new TableDefinition()
+            {
+                Name = "QUERY_PARAMETER",
+                Columns = new FieldDefinition[]
+                {
+                    new FieldDefinition("NAME", SqliteDbType.Text),
+                    new FieldDefinition("DB_TYPE", SqliteDbType.Integer),
+                    new FieldDefinition("DIRECTION", SqliteDbType.Integer),
+                    new FieldDefinition("VALUE", SqliteDbType.Text),
+                },
+                Constraints = new ConstraintDefinition[]
+                {
+                    new PrimaryKeyConstraintDefinition(new string[]{ "NAME" }, false),
+                }
+            },
         };
         private static bool _isDefinitionChecked = false;
 

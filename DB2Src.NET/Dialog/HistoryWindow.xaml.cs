@@ -155,14 +155,14 @@ namespace Db2Source
 
         private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            WindowLocator.AdjustMaxHeightToScreen(this);
+            WindowLocator.AdjustMaxSizeToScreen(this);
             Span = 2;
             Dispatcher.InvokeAsync(Fetch, DispatcherPriority.ApplicationIdle);
         }
 
         private void window_LocationChanged(object sender, EventArgs e)
         {
-            WindowLocator.AdjustMaxHeightToScreen(this);
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void listBoxResult_MouseDoubleClick(object sender, MouseButtonEventArgs e)

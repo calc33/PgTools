@@ -180,6 +180,7 @@
     <Compile Include="CrossTableViewer.xaml.cs">
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ParameterStoreCollection.cs" />
     <Compile Include="SortOrderItem.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.db.cs" />

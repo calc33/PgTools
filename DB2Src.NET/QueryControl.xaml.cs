@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -203,7 +204,7 @@ namespace Db2Source
                 return;
             }
             textBoxSql.Text = sql;
-            Parameters = ParameterStore.GetParameterStores(item.Query, Parameters, out _);
+            Parameters = ParameterStoreCollection.GetParameterStores(item.Query, Parameters, out _);
             //Fetch();
         }
 
@@ -212,75 +213,128 @@ namespace Db2Source
             AddLog(e.Text, new QueryHistory.Query(e.Command), e.Status, false);
         }
 
+        private IDbCommand _currentCommand = null;
+        private CancellationTokenSource _cancellationToken = null;
         private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls, int commandTimeout)
         {
-            await dispatcher.InvokeAsync(() => {
-                controller.Grid.ItemsSource = null;
-            });
-            using (IDbConnection conn = ctx.NewConnection(true, commandTimeout))
+            _cancellationToken = new CancellationTokenSource();
+            try
             {
-                foreach (SQLPart sql in sqls.Items)
+                await dispatcher.InvokeAsync(() =>
                 {
-                    if (!sql.IsExecutable)
+                    controller.Grid.ItemsSource = null;
+                });
+                using (IDbConnection conn = ctx.NewConnection(true, commandTimeout))
+                {
+                    bool aborted = false;
+                    await dispatcher.InvokeAsync(() =>
                     {
-                        continue;
-                    }
-                    IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
-                    ParameterStoreCollection stores = null;
-                    await Dispatcher.InvokeAsync(() =>
-                    {
-                        stores = ParameterStore.GetParameterStores(cmd, Parameters, out _);
-                    });
-                    DateTime start = DateTime.Now;
-                    QueryHistory.Query history = new QueryHistory.Query(cmd);
-                    try
-                    {
-                        using (IDataReader reader = cmd.ExecuteReader())
+                        bool modified;
+                        Parameters = ParameterStoreCollection.GetParameterStores(sqls.ParameterNames, Parameters, out modified);
+                        if (modified)
                         {
-                            await controller.LoadAsync(dispatcher, reader);
-                            if (0 <= reader.RecordsAffected)
+                            aborted = true;
+                            return;
+                        }
+
+                        foreach (ParameterStore p in Parameters)
+                        {
+                            if (p.IsError)
                             {
-                                await dispatcher.InvokeAsync(() =>
-                                {
-                                    AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
-                                });
-                            }
-                            else if (0 < reader.FieldCount)
-                            {
-                                tabControlResult.SelectedItem = tabItemDataGrid;
+                                dataGridParameters.Focus();
+                                dataGridParameters.SelectedItem = p;
+                                Window owner = Window.GetWindow(this);
+                                MessageBox.Show(owner, string.Format((string)Resources["messageInvalidParameter"], p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                                aborted = true;
+                                return;
                             }
                         }
-                        ctx.History.AddHistory(history);
-                    }
-                    catch (Exception t)
+                    });
+                    if (aborted)
                     {
-                        await dispatcher.InvokeAsync(() =>
-                        {
-                            Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
-                            AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
-                            App.LogException(t);
-                            Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
-                        });
                         return;
                     }
-                    finally
+
+                    foreach (SQLPart sql in sqls.Items)
                     {
-                        DateTime end = DateTime.Now;
-                        TimeSpan time = end - start;
-                        string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                        await dispatcher.InvokeAsync(() =>
+                        if (!sql.IsExecutable)
                         {
-                            ParameterStore.GetParameterStores(cmd, stores, out _);
-                            UpdateDataGridParameters();
-                            AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
-                            textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], controller.Rows.Count, s);
-                        }, DispatcherPriority.Background);
+                            continue;
+                        }
+                        IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
+                        ParameterStoreCollection stores = null;
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            stores = ParameterStoreCollection.GetParameterStores(cmd, Parameters, out _);
+                        });
+                        DateTime start = DateTime.Now;
+                        QueryHistory.Query history = new QueryHistory.Query(cmd);
+                        try
+                        {
+                            _currentCommand = cmd;
+                            using (IDataReader reader = cmd.ExecuteReader())
+                            {
+                                _currentCommand = null;
+                                await controller.LoadAsync(dispatcher, reader);
+                                if (0 <= reader.RecordsAffected)
+                                {
+                                    await dispatcher.InvokeAsync(() =>
+                                    {
+                                        AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
+                                    });
+                                }
+                                else if (0 < reader.FieldCount)
+                                {
+                                    tabControlResult.SelectedItem = tabItemDataGrid;
+                                }
+                            }
+                            ctx.History.AddHistory(history);
+                        }
+                        catch (OperationAbortedException)
+                        {
+                            await dispatcher.InvokeAsync(() =>
+                            {
+                                AddLog((string)Resources["messageQueryAborted"], history, LogStatus.Error, true);
+                            });
+                        }
+                        catch (Exception t)
+                        {
+                            await dispatcher.InvokeAsync(() =>
+                            {
+                                Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
+                                AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
+                                App.LogException(t);
+                                Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
+                            });
+                            return;
+                        }
+                        finally
+                        {
+                            _currentCommand = null;
+                            DateTime end = DateTime.Now;
+                            TimeSpan time = end - start;
+                            string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+                            await dispatcher.InvokeAsync(() =>
+                            {
+                                ParameterStore.GetParameterStores(cmd, stores, out _);
+                                UpdateDataGridParameters();
+                                AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
+                                textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], controller.Rows.Count, s);
+                            }, DispatcherPriority.Background);
+                        }
                     }
                 }
+                await dispatcher.InvokeAsync(() =>
+                {
+                    Parameters.Save();
+                    controller.UpdateGrid();
+                });
             }
-            await dispatcher.InvokeAsync(() => {
-                controller.UpdateGrid();
-            });
+            finally
+            {
+                _cancellationToken.Dispose();
+                _cancellationToken = null;
+            }
         }
 
         private void UpdateDataGridResult(SQLParts sqls)
@@ -325,6 +379,7 @@ namespace Db2Source
             e.Handled = true;
         }
 
+        private bool _isFetching = false;
         private void Fetch()
         {
             Db2SourceContext ctx = CurrentDataSet;
@@ -349,9 +404,32 @@ namespace Db2Source
             listBoxErrors.Visibility = Visibility.Collapsed;
             UpdateDataGridResult(parts);
         }
+
+        private void AbortFetching()
+        {
+            _currentCommand?.Cancel();
+
+        }
+
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
-            Fetch();
+            if (!_isFetching)
+            {
+                _isFetching = true;
+                try
+                {
+                    Fetch();
+                }
+                catch
+                {
+                    _isFetching = false;
+                    throw;
+                }
+            }
+            else
+            {
+                AbortFetching();
+            }
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)
@@ -409,6 +487,19 @@ namespace Db2Source
             }
             textBoxSql.Text = sel.SqlText;
             Parameters = ParameterStore.GetParameterStores(sel, Parameters, out _);
+        }
+
+        private void DataGridCellParamValueStyleButton_Click(object sender, RoutedEventArgs e)
+        {
+            ContextMenu menu = (ContextMenu)Resources["ContextMenuParameter"];
+            menu.Placement = PlacementMode.Bottom;
+            menu.PlacementTarget = App.FindVisualParent<DataGridCell>(e.Source as DependencyObject);
+            menu.IsOpen = true;
+        }
+
+        private void MenuItemParameterSetNull(object sender, RoutedEventArgs e)
+        {
+            (dataGridParameters.CurrentItem as ParameterStore).Value = DBNull.Value;
         }
     }
 }

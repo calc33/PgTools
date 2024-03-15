@@ -23,63 +23,63 @@ namespace Db2Source
         }
         private static object ParseBool(string value)
         {
-            return bool.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)bool.Parse(value);
         }
         private static object ParseSByte(string value)
         {
-            return sbyte.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)sbyte.Parse(value);
         }
         private static object ParseInt16(string value)
         {
-            return short.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)short.Parse(value);
         }
         private static object ParseInt32(string value)
         {
-            return int.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)int.Parse(value);
         }
         private static object ParseInt64(string value)
         {
-            return long.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)long.Parse(value);
         }
         private static object ParseByte(string value)
         {
-            return byte.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)byte.Parse(value);
         }
         private static object ParseUInt16(string value)
         {
-            return ushort.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)ushort.Parse(value);
         }
         private static object ParseUInt32(string value)
         {
-            return uint.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)uint.Parse(value);
         }
         private static object ParseUInt64(string value)
         {
-            return ulong.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)ulong.Parse(value);
         }
         private static object ParseSingle(string value)
         {
-            return float.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)float.Parse(value);
         }
         private static object ParseDouble(string value)
         {
-            return double.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)double.Parse(value);
         }
         private static object ParseDecimal(string value)
         {
-            return decimal.Parse(value);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)decimal.Parse(value);
         }
         private static object ParseDate(string value)
         {
-            return DateTime.ParseExact(value, Db2SourceContext.ParseDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)DateTime.ParseExact(value, Db2SourceContext.ParseDateFormat, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
         }
         private static object ParseDateTime(string value)
         {
-            return DateTime.ParseExact(value, Db2SourceContext.ParseDateTimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
+            return string.IsNullOrEmpty(value) ? DBNull.Value : (object)DateTime.ParseExact(value, Db2SourceContext.ParseDateTimeFormats, CultureInfo.CurrentCulture, DateTimeStyles.AssumeLocal);
         }
         private static string ObjectToString(object value)
         {
-            return value?.ToString();
+            return (value == null || value is DBNull) ? null : value.ToString();
         }
         private static string DateToString(object value)
         {
@@ -196,124 +196,8 @@ namespace Db2Source
         public static readonly DependencyProperty ParameterNameProperty = DependencyProperty.Register("ParameterName", typeof(string), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnParameterNamePropertyChanged)));
         public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(object), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnValuePropertyChanged)));
         public static readonly DependencyProperty TextProperty = DependencyProperty.Register("Text", typeof(string), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnTextPropertyChanged)));
+        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(ParameterStore), new PropertyMetadata(new PropertyChangedCallback(OnIsNullPropertyChanged)));
         public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParameterStore));
-
-        public static ParameterStoreCollection AllParameters = new ParameterStoreCollection();
-        public static ParameterStoreCollection GetParameterStores(IDbCommand command, ParameterStoreCollection stores, out bool modified)
-        {
-            modified = false;
-            ParameterStoreCollection l = new ParameterStoreCollection();
-            foreach (DbParameter p in command.Parameters)
-            {
-                ParameterStore ps = stores[p.ParameterName];
-                ParameterStore psAll = AllParameters[p.ParameterName];
-                if (ps != null)
-                {
-                    ps = ps.Clone() as ParameterStore;
-                    ps.Target = p;
-                }
-                else if (psAll != null)
-                {
-                    ps = psAll.Clone() as ParameterStore;
-                    ps.Target = p;
-                    modified = true;
-                }
-                else
-                {
-                    ps = new ParameterStore(p);
-                    modified = true;
-                }
-                l.Add(ps);
-
-                if (psAll != null)
-                {
-                    ps.CopyTo(psAll);
-                }
-                else
-                {
-                    AllParameters.Add(ps.Clone() as ParameterStore);
-                }
-            }
-            return l;
-        }
-
-        public static ParameterStoreCollection GetParameterStores(string[] paramNames, ParameterStoreCollection stores, out bool modified)
-        {
-            modified = false;
-            ParameterStoreCollection l = new ParameterStoreCollection();
-            foreach (string param in paramNames)
-            {
-                ParameterStore ps = stores[param];
-                ParameterStore psAll = AllParameters[param];
-                if (ps != null)
-                {
-                    ps = ps.Clone() as ParameterStore;
-                    ps.Target = null;
-                }
-                else if (psAll != null)
-                {
-                    ps = psAll.Clone() as ParameterStore;
-                    ps.Target = null;
-                    modified = true;
-                }
-                else
-                {
-                    ps = new ParameterStore(param);
-                    modified = true;
-                }
-                l.Add(ps);
-
-                if (psAll != null)
-                {
-                    ps.CopyTo(psAll);
-                }
-                else
-                {
-                    AllParameters.Add(ps.Clone() as ParameterStore);
-                }
-            }
-            return l;
-        }
-
-        public static ParameterStoreCollection GetParameterStores(QueryHistory.Query query, ParameterStoreCollection stores, out bool modified)
-        {
-            modified = false;
-            ParameterStoreCollection l = new ParameterStoreCollection();
-            foreach (QueryHistory.Parameter p in query.Parameters)
-            {
-                ParameterStore ps = stores[p.Name];
-                ParameterStore psAll = AllParameters[p.Name];
-                if (ps != null)
-                {
-                    ps = ps.Clone() as ParameterStore;
-                    ps.Target = null;
-                    ps.Value = p.Value;
-                }
-                else if (psAll != null)
-                {
-                    ps = psAll.Clone() as ParameterStore;
-                    ps.Target = null;
-                    ps.Value = p.Value;
-                    modified = true;
-                }
-                else
-                {
-                    ps = new ParameterStore(p);
-                    modified = true;
-                }
-                l.Add(ps);
-
-                if (psAll != null)
-                {
-                    ps.CopyTo(psAll);
-                }
-                else
-                {
-                    AllParameters.Add(ps.Clone() as ParameterStore);
-                }
-            }
-            return l;
-        }
 
         private WeakReference<DbParameter> _target = null;
         private DbParameter GetTarget()
@@ -462,6 +346,7 @@ namespace Db2Source
                     SetValue(ValueProperty, value);
                 }
                 SetValue(TextProperty, DbTypeInfo?.ValueToString(value));
+                SetValue(IsNullProperty, IsNullValue(value));
                 SetIsError(false);
             }
         }
@@ -480,6 +365,27 @@ namespace Db2Source
         private static void OnValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
             (target as ParameterStore)?.OnValuePropertyChanged(e);
+        }
+
+        private static bool IsNullValue(object value)
+        {
+            return (value == null || value == DBNull.Value);
+        }
+
+        public bool IsNull
+        {
+            get { return (bool)GetValue(IsNullProperty); }
+        }
+
+        public event EventHandler<DependencyPropertyChangedEventArgs> IsNullChanged;
+        private void OnIsNullPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            IsNullChanged?.Invoke(this, e);
+        }
+
+        private static void OnIsNullPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        {
+            (target as ParameterStore)?.OnIsNullPropertyChanged(e);
         }
 
         public string Text
@@ -504,7 +410,12 @@ namespace Db2Source
             try
             {
                 object v = DbTypeInfo.Parse(Text);
+                if (Equals(GetValue(ValueProperty), v))
+                {
+                    return;
+                }
                 SetValue(ValueProperty, v);
+                SetValue(IsNullProperty, IsNullValue(v));
                 SetIsError(false);
                 string txt = DbTypeInfo?.ValueToString(Value);
                 if (Text != txt)
@@ -550,7 +461,7 @@ namespace Db2Source
                     p.IsNullable = IsNullable;
                     p.SourceColumn = SourceColumn;
                     p.SourceVersion = SourceVersion;
-                    p.Value = Value;
+                    p.Value = Value ?? DBNull.Value;
                 }
             }
         }
@@ -569,7 +480,7 @@ namespace Db2Source
             _sourceVersion = parameter.SourceVersion;
             _target = new WeakReference<DbParameter>(parameter);
             Value = parameter.Value;
-            AllParameters.Add(this);
+            ParameterStoreCollection.AllParameters.Add(this);
         }
         
         public ParameterStore(string parameterName)
@@ -586,7 +497,7 @@ namespace Db2Source
             _sourceVersion = DataRowVersion.Current;
             _target = null;
             Value = null;
-            AllParameters.Add(this);
+            ParameterStoreCollection.AllParameters.Add(this);
         }
 
         public ParameterStore(QueryHistory.Parameter parameter)
@@ -603,7 +514,7 @@ namespace Db2Source
             _sourceVersion = DataRowVersion.Current;
             _target = null;
             Value = parameter.Value;
-            AllParameters.Add(this);
+            ParameterStoreCollection.AllParameters.Add(this);
         }
 
         public object Clone()
@@ -626,246 +537,10 @@ namespace Db2Source
             destination.SourceVersion = SourceVersion;
             destination.Value = Value;
         }
-    }
-    public class ParameterStoreCollection: IList<ParameterStore>, IList
-    {
-        private List<ParameterStore> _list = new List<ParameterStore>();
-        private Dictionary<string, ParameterStore> _nameDict = null;
-        private object _nameDictLock = new object();
 
-        private void RequireNameDict()
+        public override string ToString()
         {
-            if (_nameDict != null)
-            {
-                return;
-            }
-            _nameDict = new Dictionary<string, ParameterStore>();
-            foreach (ParameterStore obj in _list)
-            {
-                if (obj == null || string.IsNullOrEmpty(obj.ParameterName))
-                {
-                    continue;
-                }
-                _nameDict[obj.ParameterName] = obj;
-            }
-        }
-        private void InvalidateNameDict()
-        {
-            lock (_nameDictLock)
-            {
-                _nameDict = null;
-            }
-        }
-        private void ParameterStore_ParameterNameChange(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            InvalidateNameDict();
-        }
-
-        public event EventHandler<DependencyPropertyChangedEventArgs> ParameterTextChanged;
-        private void ParameterStore_TextChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            ParameterTextChanged?.Invoke(sender, e);
-        }
-        public ParameterStore this[string name]
-        {
-            get
-            {
-                lock (_nameDictLock)
-                {
-                    RequireNameDict();
-                    ParameterStore ret;
-                    if (!_nameDict.TryGetValue(name, out ret))
-                    {
-                        return null;
-                    }
-                    return ret;
-                }
-            }
-        }
-
-        public ParameterStore this[int index]
-        {
-            get
-            {
-                return _list[index];
-            }
-
-            set
-            {
-                _list[index] = value;
-                InvalidateNameDict();
-            }
-        }
-
-        public int Count
-        {
-            get
-            {
-                return _list.Count;
-            }
-        }
-
-        public bool IsReadOnly
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public bool IsFixedSize
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public object SyncRoot
-        {
-            get
-            {
-                return ((IList)_list).SyncRoot;
-            }
-        }
-
-        public bool IsSynchronized
-        {
-            get
-            {
-                return ((IList)_list).IsSynchronized;
-            }
-        }
-
-        object IList.this[int index]
-        {
-            get
-            {
-                return _list[index];
-            }
-
-            set
-            {
-                if (value != null && !(value is ParameterStore))
-                {
-                    throw new ArgumentException("value");
-                }
-                _list[index] = value as ParameterStore;
-            }
-        }
-
-        public void Add(ParameterStore item)
-        {
-            _list.Add(item);
-            if (item != null)
-            {
-                item.ParameterNameChange += ParameterStore_ParameterNameChange;
-                item.TextChanged += ParameterStore_TextChanged;
-            }
-            InvalidateNameDict();
-        }
-
-        public void Clear()
-        {
-            foreach (ParameterStore obj in _list)
-            {
-                obj.ParameterNameChange -= ParameterStore_ParameterNameChange;
-                obj.TextChanged -= ParameterStore_TextChanged;
-            }
-            _list.Clear();
-            InvalidateNameDict();
-        }
-
-        public bool Contains(ParameterStore item)
-        {
-            return _list.Contains(item);
-        }
-
-        public void CopyTo(ParameterStore[] array, int arrayIndex)
-        {
-            _list.CopyTo(array, arrayIndex);
-        }
-
-        public IEnumerator<ParameterStore> GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-
-        public int IndexOf(ParameterStore item)
-        {
-            return _list.IndexOf(item);
-        }
-
-        public void Insert(int index, ParameterStore item)
-        {
-            _list.Insert(index, item);
-            if (item != null)
-            {
-                item.ParameterNameChange += ParameterStore_ParameterNameChange;
-            }
-            InvalidateNameDict();
-        }
-
-        public bool Remove(ParameterStore item)
-        {
-            bool ret = _list.Remove(item);
-            if (ret && item != null)
-            {
-                item.ParameterNameChange -= ParameterStore_ParameterNameChange;
-            }
-            InvalidateNameDict();
-            return ret;
-        }
-
-        public void RemoveAt(int index)
-        {
-            ParameterStore obj = _list[index];
-            _list.RemoveAt(index);
-            obj.ParameterNameChange -= ParameterStore_ParameterNameChange;
-            InvalidateNameDict();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _list.GetEnumerator();
-        }
-
-        public int Add(object value)
-        {
-            if (value != null && !(value is ParameterStore))
-            {
-                throw new ArgumentException("value");
-            }
-            int ret = ((IList)_list).Add(value as ParameterStore);
-            InvalidateNameDict();
-            return ret;
-        }
-
-        public bool Contains(object value)
-        {
-            return _list.Contains(value);
-        }
-
-        public int IndexOf(object value)
-        {
-            return ((IList)_list).IndexOf(value);
-        }
-
-        public void Insert(int index, object value)
-        {
-            ((IList)_list).Insert(index, value);
-            InvalidateNameDict();
-        }
-
-        public void Remove(object value)
-        {
-            ((IList)_list).Remove(value);
-            InvalidateNameDict();
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            ((IList)_list).CopyTo(array, index);
+            return string.Format("{0}: {1}", ParameterName, Value);
         }
     }
 }

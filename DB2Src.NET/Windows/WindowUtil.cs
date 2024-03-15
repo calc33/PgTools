@@ -65,12 +65,23 @@ namespace Db2Source
             new WindowLocator(target, window, location);
         }
 
+        private static WinDrawing.Rectangle GetMaxRect()
+        {
+            WinDrawing.Rectangle ret = WinDrawing.Rectangle.Empty;
+            foreach (WinForm.Screen screen in WinForm.Screen.AllScreens)
+            {
+                var r = screen.WorkingArea;
+                WinDrawing.Point p = new WinDrawing.Point(Math.Min(ret.X, r.X), Math.Min(ret.Y, r.Y));
+                WinDrawing.Size s = new WinDrawing.Size(Math.Max(ret.Right, r.Right) - p.X, Math.Max(ret.Bottom, r.Bottom) - p.Y);
+                ret = new WinDrawing.Rectangle(p, s);
+            }
+            return ret;
+        }
         private static Size GetMaxWindowSize(Window window)
         {
-            Point p = window.PointToScreen(new Point(window.Width / 2, window.Height / 2));
-            WinForm.Screen screen = WinForm.Screen.FromPoint(new WinDrawing.Point((int)p.X, (int)p.Y));
-            Point p1 = window.PointFromScreen(new Point(screen.WorkingArea.Left, screen.WorkingArea.Top));
-            Point p2 = window.PointFromScreen(new Point(screen.WorkingArea.Right, screen.WorkingArea.Bottom));
+            WinDrawing.Rectangle rect = GetMaxRect();
+            Point p1 = window.PointFromScreen(new Point(rect.Left, rect.Top));
+            Point p2 = window.PointFromScreen(new Point(rect.Right, rect.Bottom));
             WinDrawing.Size s = SystemMetrics.SizeFrame;
             return new Size(Math.Abs(p2.X - p1.X) + s.Width * 2, Math.Abs(p2.Y - p1.Y) + s.Height * 2);
         }

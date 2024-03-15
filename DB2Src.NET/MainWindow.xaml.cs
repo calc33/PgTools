@@ -867,6 +867,7 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(SessionList), typeof(PgsqlSessionListControl));
             TitleBase = Title;
             LoadFromRegistry();
+            ParameterStoreCollection.AllParameters.Load();
         }
 
         private void menuItemRefreshSchema_Click(object sender, RoutedEventArgs e)
@@ -1094,12 +1095,12 @@ namespace Db2Source
             InitCommandBindings();
             UpdateTextBoxFilter();
             Dispatcher.InvokeAsync(StartConnection, DispatcherPriority.ApplicationIdle);
-            WindowLocator.AdjustMaxHeightToScreen(this);
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void window_LocationChanged(object sender, EventArgs e)
         {
-            WindowLocator.AdjustMaxHeightToScreen(this);
+            WindowLocator.AdjustMaxSizeToScreen(this);
         }
 
         private void CopyTableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
