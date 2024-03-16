@@ -174,7 +174,7 @@ namespace Db2Source
                 RemoveCurrent();
                 return;
             }
-            string[] sqls = App.CurrentDataSet.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            string[] sqls = App.CurrentDataSet.GetDropSQL(Target, true, string.Empty, string.Empty, 0, false, false);
             if (App.ExecSqls(sqls))
             {
                 RefreshTablespaces();

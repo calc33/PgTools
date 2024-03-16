@@ -93,8 +93,9 @@
         <TabItem Header="ソース">
             <DockPanel>
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
-                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxDrop" Content="削除" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                 </StackPanel>
                 <Grid>
                     <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"/>

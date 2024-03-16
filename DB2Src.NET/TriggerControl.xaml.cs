@@ -148,7 +148,7 @@ namespace Db2Source
         {
             Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
-            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            string[] sql = ctx.GetDropSQL(Target, true, string.Empty, string.Empty, 0, cascade, false);
             StringBuilderLogger logger = new StringBuilderLogger();
             bool failed = false;
             try

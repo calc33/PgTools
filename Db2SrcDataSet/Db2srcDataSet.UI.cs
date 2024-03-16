@@ -129,6 +129,7 @@ namespace Db2Source
     {
         SchemaObject Target { get; set; }
         string SelectedTabKey { get; set; }
+        string[] SettingCheckBoxNames { get; }
         void OnTabClosing(object sender, ref bool cancel);
         void OnTabClosed(object sender);
 

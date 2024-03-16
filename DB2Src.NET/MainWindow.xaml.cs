@@ -578,6 +578,15 @@ namespace Db2Source
             if (newCtl != null && curCtl != null)
             {
                 newCtl.SelectedTabKey = curCtl.SelectedTabKey;
+                foreach (string s in newCtl.SettingCheckBoxNames)
+                {
+                    CheckBox src = (curCtl as FrameworkElement).FindName(s) as CheckBox;
+                    CheckBox dest = (newCtl as FrameworkElement).FindName(s) as CheckBox;
+                    if (src != null && dest != null)
+                    {
+                        dest.IsChecked = src.IsChecked;
+                    }
+                }
             }
         }
 

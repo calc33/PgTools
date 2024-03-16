@@ -69,7 +69,10 @@ namespace Db2Source
             }
         }
 
-            public bool IsEditing
+        private static readonly string[] _settingControlNames = new string[] { "checkBoxDrop", "checkBoxSourceMain", "checkBoxSourceComment" };
+        public string[] SettingCheckBoxNames { get { return _settingControlNames; } }
+
+        public bool IsEditing
         {
             get
             {
@@ -125,6 +128,14 @@ namespace Db2Source
             try
             {
                 StringBuilder buf = new StringBuilder();
+                if (IsChecked(checkBoxDrop))
+                {
+                    foreach (string s in ctx.GetDropSQL(Target, true, String.Empty, ";", 0, false, true))
+                    {
+                        buf.Append(s);
+                    }
+                    buf.AppendLine();
+                }
                 if (IsChecked(checkBoxSourceMain))
                 {
                     foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
@@ -171,7 +182,7 @@ namespace Db2Source
             UpdateTextBoxSource();
         }
 
-        private void checkBoxSource_Unhecked(object sender, RoutedEventArgs e)
+        private void checkBoxSource_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxSource();
         }

@@ -127,6 +127,8 @@ namespace Db2Source
             }
         }
 
+        public string[] SettingCheckBoxNames { get { return StrUtil.EmptyStringArray; } }
+
         private void UpdateDataGridSetting()
         {
             PgsqlSettingCollection lSrc = Target?.Settings;

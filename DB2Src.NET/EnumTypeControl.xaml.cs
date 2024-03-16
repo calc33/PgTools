@@ -21,7 +21,7 @@ namespace Db2Source
     public partial class EnumTypeControl : UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(EnumTypeControl));
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlEnumType), typeof(EnumTypeControl));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(PgsqlEnumType), typeof(EnumTypeControl), new PropertyMetadata(OnTargetPropertyChanged));
 
         public bool IsEditing
         {
@@ -77,6 +77,77 @@ namespace Db2Source
             }
         }
 
+        private static readonly string[] _settingControlNames = new string[] { "checkBoxDrop", "checkBoxSourceMain", "checkBoxSourceComment" };
+        public string[] SettingCheckBoxNames { get { return _settingControlNames; } }
+
+        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+            UpdateTextBoxSource();
+        }
+
+        private static void OnTargetPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as EnumTypeControl)?.OnTargetPropertyChanged(e);
+        }
+
+        private static bool IsChecked(CheckBox checkBox)
+        {
+            return checkBox.IsChecked.HasValue && checkBox.IsChecked.Value;
+        }
+        private void UpdateTextBoxSource()
+        {
+            if (textBoxSource == null)
+            {
+                return;
+            }
+            if (Target == null)
+            {
+                textBoxSource.Text = string.Empty;
+                return;
+            }
+            Db2SourceContext ctx = Target.Context;
+            try
+            {
+                StringBuilder buf = new StringBuilder();
+                if (IsChecked(checkBoxDrop))
+                {
+                    foreach (string s in ctx.GetDropSQL(Target, true, String.Empty, ";", 0, false, true))
+                    {
+                        buf.Append(s);
+                    }
+                    buf.AppendLine();
+                }
+                if (IsChecked(checkBoxSourceMain))
+                {
+                    foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
+                    {
+                        buf.AppendLine(s);
+                    }
+                }
+                int lastLength = buf.Length;
+                if (IsChecked(checkBoxSourceComment))
+                {
+                    lastLength = buf.Length;
+                    if (!string.IsNullOrEmpty(Target.CommentText))
+                    {
+                        foreach (string s in ctx.GetSQL(Target.Comment, string.Empty, ";", 0, true))
+                        {
+                            buf.Append(s);
+                        }
+                    }
+                    if (lastLength < buf.Length)
+                    {
+                        buf.AppendLine();
+                    }
+                }
+                textBoxSource.Text = buf.ToString();
+            }
+            catch (Exception t)
+            {
+                textBoxSource.Text = t.ToString();
+            }
+        }
+
         public EnumTypeControl()
         {
             InitializeComponent();
@@ -93,12 +164,12 @@ namespace Db2Source
 
         private void checkBoxSource_Checked(object sender, RoutedEventArgs e)
         {
-
+            UpdateTextBoxSource();
         }
 
-        private void checkBoxSource_Unhecked(object sender, RoutedEventArgs e)
+        private void checkBoxSource_Unchecked(object sender, RoutedEventArgs e)
         {
-
+            UpdateTextBoxSource();
         }
 
         public void OnTabClosing(object sender, ref bool cancel) { }

@@ -202,9 +202,10 @@
             <DockPanel>
                 <WrapPanel Orientation="Horizontal" DockPanel.Dock="Top">
                     <local:IndentSettingsControl IndentOffsetVisibility="Collapsed"/>
-                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
-                    <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unhecked"/>
+                    <CheckBox x:Name="checkBoxDrop" Content="削除" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" Margin="2" VerticalAlignment="Center" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                 </WrapPanel>
                 <Grid>
                     <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible"/>

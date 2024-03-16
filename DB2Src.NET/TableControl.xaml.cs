@@ -166,6 +166,12 @@ namespace Db2Source
             }
         }
 
+        private static readonly string[] _settingControlNames = new string[] {
+            "checkBoxDrop", "checkBoxSourceMain", "checkBoxSourceKeyCons", "checkBoxSourceRefCons", "checkBoxSourceCons",
+            "checkBoxSourceComment", "checkBoxSourceTrigger", "checkBoxSourceIndex",
+            "checkBoxSourceReferredCons", "checkBoxSourceDropReferredCons", "checkBoxUpsert" };
+        public string[] SettingCheckBoxNames { get { return _settingControlNames; } }
+
         public DataGridController DataGridControllerResult
         {
             get
@@ -372,7 +378,7 @@ namespace Db2Source
                     {
                         foreach (ForeignKeyConstraint f in Target.ReferFrom)
                         {
-                            foreach (string s in ctx.GetDropSQL(f, string.Empty, ";", 0, false, true))
+                            foreach (string s in ctx.GetDropSQL(f, true, string.Empty, ";", 0, false, true))
                             {
                                 buf.Append(s);
                             }
@@ -381,6 +387,14 @@ namespace Db2Source
                         {
                             buf.AppendLine();
                         }
+                    }
+                    if (IsChecked(checkBoxDrop))
+                    {
+                        foreach (string s in ctx.GetDropSQL(Target, true, string.Empty, ";", 0, false, true))
+                        {
+                            buf.Append(s);
+                        }
+                        buf.AppendLine();
                     }
                     if (IsChecked(checkBoxSourceMain))
                     {
@@ -775,7 +789,7 @@ namespace Db2Source
             }
             Window owner = Window.GetWindow(this);
             Db2SourceContext ctx = Target.Context;
-            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, cascade, false);
+            string[] sql = ctx.GetDropSQL(Target, true, string.Empty, string.Empty, 0, cascade, cascade);
             StringBuilderLogger logger = new StringBuilderLogger();
             bool failed = false;
             try

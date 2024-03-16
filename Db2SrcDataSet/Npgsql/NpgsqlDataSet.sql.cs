@@ -909,6 +909,22 @@ namespace Db2Source
             return GetSQL(after, string.Empty, string.Empty, 0, false);
         }
 
+        public override string[] GetSQL(Type_ type, string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (type is PgsqlEnumType)
+            {
+                return GetSQL((PgsqlEnumType)type, prefix, postfix, indent, addNewline);
+            }
+            if (type is PgsqlRangeType)
+            {
+                return GetSQL((PgsqlRangeType)type, prefix, postfix, indent, addNewline);
+            }
+            if (type is PgsqlBasicType)
+            {
+                return GetSQL((PgsqlBasicType)type, prefix, postfix, indent, addNewline);
+            }
+            return StrUtil.EmptyStringArray;
+        }
         public override string[] GetSQL(ComplexType type, string prefix, string postfix, int indent, bool addNewline)
         {
             if (type == null)
@@ -1181,7 +1197,7 @@ namespace Db2Source
             List<string> l = new List<string>();
             if (after.Path != before.Path)
             {
-                l.AddRange(GetDropSQL(before, prefix, postfix, indent, false, addNewline));
+                l.AddRange(GetDropSQL(before, true, prefix, postfix, indent, false, addNewline));
                 l.AddRange(GetSQL(after, prefix, postfix, indent, addNewline));
             }
             string spc = GetIndent(indent);
@@ -1282,7 +1298,7 @@ namespace Db2Source
             if (NeedsDropAndCreate(after, before))
             {
                 List<string> ret = new List<string>();
-                ret.AddRange(GetDropSQL(before, prefix, postfix, indent, true, addNewline));
+                ret.AddRange(GetDropSQL(before, true, prefix, postfix, indent, true, addNewline));
                 ret.AddRange(GetSQL(after, prefix, postfix, indent, addNewline));
                 return ret.ToArray();
             }
@@ -1372,7 +1388,7 @@ namespace Db2Source
         }
 
 
-        private string[] GetDropSQLInternal(SchemaObject target, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        private string[] GetDropSQLInternal(SchemaObject target, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (target == null)
             {
@@ -1383,6 +1399,10 @@ namespace Db2Source
             buf.Append("drop ");
             buf.Append(target.GetSqlType().ToLower());
             buf.Append(" ");
+            if (ifExists)
+            {
+                buf.Append("if exists ");
+            }
             buf.Append(target.EscapedIdentifier(CurrentSchema));
             if (cascade)
             {
@@ -1395,19 +1415,19 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        public override string[] GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(SchemaObject table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             throw new NotImplementedException();
         }
-        public override string[] GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Table table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(table, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(table, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(View table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(table, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(table, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(Column column, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Column column, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (column == null)
             {
@@ -1431,7 +1451,7 @@ namespace Db2Source
             return new string[] { buf.ToString() };
         }
 
-        public override string[] GetDropSQL(Comment comment, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Comment comment, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (comment == null)
             {
@@ -1440,7 +1460,7 @@ namespace Db2Source
             return GetCommentSQL(comment, null, prefix, postfix, indent, addNewline);
         }
 
-        public override string[] GetDropSQL(Constraint constraint, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Constraint constraint, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (constraint == null)
             {
@@ -1458,7 +1478,7 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        public override string[] GetDropSQL(Trigger trigger, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Trigger trigger, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (trigger == null)
             {
@@ -1468,7 +1488,7 @@ namespace Db2Source
             string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("drop trigger {0} on {1}", trigger.EscapedIdentifier(trigger.Table.SchemaName), trigger.Table.EscapedIdentifier(CurrentSchema));
+            buf.AppendFormat("drop trigger {0}{1} on {2}", trigger.EscapedIdentifier(trigger.Table.SchemaName), ifExists ? "if exists" : string.Empty, trigger.Table.EscapedIdentifier(CurrentSchema));
             buf.Append(postfix);
             if (addNewline)
             {
@@ -1476,13 +1496,13 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        public override string[] GetDropSQL(Index index, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Index index, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(index, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(index, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(Sequence sequence, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Sequence sequence, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(sequence, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(sequence, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
         private string GetSQLIdentifier(StoredFunction function, string baseSchemaName)
         {
@@ -1513,7 +1533,7 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        public override string[] GetDropSQL(StoredFunction function, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(StoredFunction function, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (function == null)
             {
@@ -1536,24 +1556,24 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        //public override string GetDropSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public override string[] GetDropSQL(ComplexType type, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        //public override string GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public override string[] GetDropSQL(ComplexType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(type, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(type, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(PgsqlEnumType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(type, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(type, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(PgsqlRangeType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(type, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(type, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(PgsqlBasicType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return GetDropSQLInternal(type, prefix, postfix, indent, cascade, addNewline);
+            return GetDropSQLInternal(type, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        public override string[] GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(Tablespace tablespace, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (tablespace == null)
             {
@@ -1561,7 +1581,11 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
-            buf.Append("drop tablespace if exists ");
+            buf.Append("drop tablespace ");
+            if (ifExists)
+            {
+                buf.Append("if exists ");
+            }
             buf.Append(GetEscapedIdentifier(tablespace.Name, true));
             buf.Append(postfix);
             if (addNewline)
@@ -1570,7 +1594,7 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        public override string[] GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public override string[] GetDropSQL(User user, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             if (user == null)
             {
@@ -1578,7 +1602,11 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(prefix);
-            buf.Append("drop user if exists ");
+            buf.Append("drop user ");
+            if (ifExists)
+            {
+                buf.Append("if exists ");
+            }
             buf.Append(GetEscapedIdentifier(user.Name, true));
             buf.Append(postfix);
             if (addNewline)

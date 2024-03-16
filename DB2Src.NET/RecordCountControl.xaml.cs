@@ -281,6 +281,8 @@ namespace Db2Source
         public SchemaObject Target { get { return null; } set { } }
         public string SelectedTabKey { get { return null; } set { } }
 
+        public string[] SettingCheckBoxNames { get { return StrUtil.EmptyStringArray; } }
+
         private void OnDataSetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             UpdateItems();

@@ -954,6 +954,7 @@ namespace Db2Source
         public abstract string[] GetSQL(Parameter p);
         public abstract string[] GetSQL(StoredFunction function, string prefix, string postfix, int indent, bool addNewline);
         //public abstract string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Type_ type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(ComplexType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool addNewline);
@@ -966,23 +967,23 @@ namespace Db2Source
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(Trigger after, Trigger before, string prefix, string postfix, int indent, bool addNewline);
 
-        public abstract string[] GetDropSQL(SchemaObject table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Table table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(View table, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Column column, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Comment comment, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Constraint constraint, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Trigger trigger, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Index index, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Sequence sequence, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(StoredFunction function, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        //public abstract string[] GetDropSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(ComplexType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(PgsqlBasicType type, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(User user, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(SchemaObject table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Table table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(View table, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Column column, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Comment comment, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Constraint constraint, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Trigger trigger, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Index index, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline );
+        public abstract string[] GetDropSQL(Sequence sequence, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(StoredFunction function, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        //public abstract string[] GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(ComplexType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlEnumType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlRangeType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(PgsqlBasicType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(Tablespace tablespace, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public abstract string[] GetDropSQL(User user, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
 
         protected abstract void LoadEncodings(IDbConnection connection);
         public abstract string GetServerEncoding();

@@ -49,6 +49,8 @@ namespace Db2Source
         }
         public string SelectedTabKey { get { return string.Empty; } set { } }
 
+        public string[] SettingCheckBoxNames { get { return StrUtil.EmptyStringArray; } }
+
         public List<ISession> AllSessions { get; private set; }
 
         public PgsqlSessionListControl()

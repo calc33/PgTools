@@ -76,6 +76,9 @@ namespace Db2Source
             }
         }
 
+        private static readonly string[] _settingControlNames = new string[] { "checkBoxDrop", "checkBoxSourceMain", "checkBoxSourceComment" };
+        public string[] SettingCheckBoxNames { get { return _settingControlNames; } }
+
         public DataGridController DataGridControllerResult
         {
             get
@@ -302,6 +305,14 @@ namespace Db2Source
             try
             {
                 StringBuilder buf = new StringBuilder();
+                if (IsChecked(checkBoxDrop))
+                {
+                    foreach (string s in ctx.GetDropSQL(Target, true, String.Empty, ";", 0, false, true))
+                    {
+                        buf.Append(s);
+                    }
+                    buf.AppendLine();
+                }
                 if (IsChecked(checkBoxSourceMain))
                 {
                     foreach (string s in ctx.GetSQL(Target, string.Empty, ";", 0, true))
@@ -408,7 +419,7 @@ namespace Db2Source
             UpdateTextBoxSource();
         }
 
-        private void checkBoxSource_Unhecked(object sender, RoutedEventArgs e)
+        private void checkBoxSource_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxSource();
         }
@@ -500,7 +511,7 @@ namespace Db2Source
                 return;
             }
             Db2SourceContext ctx = Target.Context;
-            string[] sql = ctx.GetDropSQL(Target, string.Empty, string.Empty, 0, false, false);
+            string[] sql = ctx.GetDropSQL(Target, true, string.Empty, string.Empty, 0, false, false);
             StringBuilderLogger logger = new StringBuilderLogger();
             bool failed = false;
             try

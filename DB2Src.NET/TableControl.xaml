@@ -421,6 +421,7 @@
             <DockPanel>
                 <WrapPanel Orientation="Horizontal" DockPanel.Dock="Top">
                     <local:IndentSettingsControl IndentOffsetVisibility="Collapsed"/>
+                    <CheckBox x:Name="checkBoxDrop" Content="削除" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceMain" Content="本体" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceKeyCons" Content="一意成約" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceRefCons" Content="参照制約" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>

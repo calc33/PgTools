@@ -220,9 +220,9 @@ namespace Db2Source
             return Context.GetMergeSql(this, indent, charPerLine, postfix);
         }
 
-        public string[] GetDropSql(string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        public string[] GetDropSql(bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
-            return Context.GetDropSQL(this, prefix, postfix, indent, cascade, addNewline);
+            return Context.GetDropSQL(this, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
         protected void BackupConstraints(Table destination, bool force)
         {
