@@ -1488,7 +1488,7 @@ namespace Db2Source
             string spc = GetIndent(indent);
             buf.Append(spc);
             buf.Append(prefix);
-            buf.AppendFormat("drop trigger {0}{1} on {2}", trigger.EscapedIdentifier(trigger.Table.SchemaName), ifExists ? "if exists" : string.Empty, trigger.Table.EscapedIdentifier(CurrentSchema));
+            buf.AppendFormat("drop trigger {0}{1} on {2}", trigger.EscapedIdentifier(trigger.Table.SchemaName), ifExists ? "if exists " : string.Empty, trigger.Table.EscapedIdentifier(CurrentSchema));
             buf.Append(postfix);
             if (addNewline)
             {
@@ -1544,6 +1544,10 @@ namespace Db2Source
             buf.Append(spc);
             buf.Append(prefix);
             buf.Append("drop function ");
+            if (ifExists)
+            {
+                buf.Append("if exists ");
+            }
             buf.Append(GetSQLIdentifier(function, CurrentSchema));
             if (cascade)
             {
