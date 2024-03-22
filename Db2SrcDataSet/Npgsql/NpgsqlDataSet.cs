@@ -376,7 +376,12 @@ namespace Db2Source
             }
             using (IDbCommand cmd = GetSqlCommand("select " + expression, null, connection))
             {
-                return cmd.ExecuteScalar();
+                object v = cmd.ExecuteScalar();
+                if (v is DateTime && ((DateTime)v).Kind == DateTimeKind.Utc)
+                {
+                    v = ((DateTime)v).ToLocalTime();
+                }
+                return v;
             }
         }
 
@@ -772,6 +777,7 @@ namespace Db2Source
                 prefix = ",";
             }
             prefix = "where ";
+            string prefixAnd = Db2SourceContext.IndentText + "and ";
             foreach (string c in table.PrimaryKey.Columns)
             {
                 ColumnInfo info;
@@ -785,7 +791,7 @@ namespace Db2Source
                 buf.Append(GetEscapedIdentifier(c, true));
                 buf.Append(" = ");
                 buf.Append(GetImmediatedStr(info, data[info]));
-                prefix = "and ";
+                prefix = prefixAnd;
             }
             buf.AppendLine(postfix);
             return buf.ToString();
