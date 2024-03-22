@@ -97,6 +97,25 @@ namespace Db2Source
             window.MaxHeight = s.Height;
         }
 
+        private static Size GetMaxSizeOnCurrentScreen(Window window)
+        {
+            Rect rect = GetWorkingAreaOf(window);
+            Point p1 = window.PointFromScreen(new Point(rect.Left, rect.Top));
+            Point p2 = window.PointFromScreen(new Point(rect.Right, rect.Bottom));
+            WinDrawing.Size s = SystemMetrics.SizeFrame;
+            return new Size(Math.Abs(p2.X - p1.X) + s.Width * 2, Math.Abs(p2.Y - p1.Y) + s.Height * 2);
+        }
+        public static void AdjustMaxSizeToCurrentScreen(Window window)
+        {
+            if (!window.IsVisible)
+            {
+                return;
+            }
+            Size s = GetMaxSizeOnCurrentScreen(window);
+            window.MaxWidth = s.Width;
+            window.MaxHeight = s.Height;
+        }
+
         public static void LocateIntoCurrentScreen(Window window)
         {
             Point p = window.PointToScreen(new Point(window.Width / 2, window.Height / 2));

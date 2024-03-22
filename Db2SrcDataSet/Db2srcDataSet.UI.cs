@@ -420,6 +420,7 @@ namespace Db2Source
                 return null;
             }
         }
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return _convert(value, targetType, parameter, culture);
