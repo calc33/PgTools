@@ -614,9 +614,57 @@ namespace Db2Source
             }
             return l.ToArray();
         }
+
+        private static string DequoteEscaped(string value, char quoteChar, Dictionary<char,bool> escapeChars)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            if (value.Length < 2)
+            {
+                return value;
+            }
+            if (value[0] != quoteChar || value[value.Length - 1] != quoteChar)
+            {
+                return value;
+            }
+            bool escaped = false;
+            StringBuilder buf = new StringBuilder(value.Length - 2);
+            for (int i = 1, n = value.Length - 1; i < n; i++)
+            {
+                char c = value[i];
+                buf.Append(c);
+                if (escapeChars.ContainsKey(c))
+                {
+                    escaped = true;
+                }
+                if (c == quoteChar)
+                {
+                    escaped = true;
+                    i++;
+                    if (n <= i)
+                    {
+                        break;
+                    }
+                    c = value[i];
+                    if (c != quoteChar)
+                    {
+                        buf.Append(c);
+                    }
+                }
+            }
+            return escaped ? buf.ToString() : value;
+        }
+
+        private static readonly Dictionary<char, bool> TabTextEscapeChars = new Dictionary<char, bool>()
+        {
+            {'\t', true }, {'\r', true }, {'\n', true }
+        };
+        private const char TabTextQuoteChar = '"';
         public static string[][] GetArrayFromTabText(string text)
         {
-            string[] lines = SplitLines(text, '\'');
+            string[] lines = SplitLines(text, TabTextQuoteChar);
             if (lines.Length == 0)
             {
                 return StrUtil.EmptyString2DArray;
@@ -636,12 +684,9 @@ namespace Db2Source
                     {
                         switch (c)
                         {
-                            case '\'':
+                            case TabTextQuoteChar:
                                 inQuote = !inQuote;
-                                if (inQuote && wasQuote)
-                                {
-                                    buf.Append(c);
-                                }
+                                buf.Append(c);
                                 break;
                             case '\t':
                                 if (inQuote)
@@ -661,10 +706,10 @@ namespace Db2Source
                     }
                     finally
                     {
-                        wasQuote = (c == '\'');
+                        wasQuote = (c == TabTextQuoteChar);
                     }
                 }
-                l.Add(buf.ToString());
+                l.Add(DequoteEscaped(buf.ToString(), TabTextQuoteChar, TabTextEscapeChars));
                 buf.Clear();
                 // 末尾の空文字列を除去
                 for (int i = l.Count - 1; 0 <= i && string.IsNullOrEmpty(l[i]); i--)
@@ -688,9 +733,16 @@ namespace Db2Source
             }
             return ret;
         }
+
+        private static readonly Dictionary<char, bool> CsvEscapeChars = new Dictionary<char, bool>()
+        {
+            {',', true }, {'\r', true }, {'\n', true }
+        };
+        private const char CsvQuoteChar = '"';
+
         public static string[][] GetArrayFromCsv(string text)
         {
-            string[] lines = SplitLines(text, '"');
+            string[] lines = SplitLines(text, CsvQuoteChar);
             if (lines.Length == 0)
             {
                 return StrUtil.EmptyString2DArray;
@@ -710,12 +762,9 @@ namespace Db2Source
                     {
                         switch (c)
                         {
-                            case '"':
+                            case CsvQuoteChar:
                                 inQuote = !inQuote;
-                                if (inQuote && wasQuote)
-                                {
-                                    buf.Append(c);
-                                }
+                                buf.Append(c);
                                 break;
                             case ',':
                                 if (inQuote)
@@ -735,10 +784,10 @@ namespace Db2Source
                     }
                     finally
                     {
-                        wasQuote = (c == '"');
+                        wasQuote = (c == CsvQuoteChar);
                     }
                 }
-                l.Add(buf.ToString());
+                l.Add(DequoteEscaped(buf.ToString(), CsvQuoteChar, CsvEscapeChars));
                 buf.Clear();
                 // 末尾の空文字列を除去
                 for (int i = l.Count - 1; 0 <= i && string.IsNullOrEmpty(l[i]); i--)
