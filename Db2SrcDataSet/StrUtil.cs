@@ -189,5 +189,155 @@ namespace Db2Source
             list.Add(builder.ToString());
             return list.ToArray();
         }
+
+        /// <summary>
+        /// ExcelのTSV/CSVテキストのエスケープ仕様に合わせたエスケープを解除処理
+        /// 1. "で始まって"で終わらない文字列はそのまま返す(文字列中に"があっても無視)
+        /// 2. ""でくくられた文字列中にデリミタ(TABもしくはカンマ)、改行、""が入っている場合は解除処理を行う
+        /// 3. ""で括られている場合でも上記に該当しない場合はそのまま返す
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="quoteChar"></param>
+        /// <param name="escapeChars"></param>
+        /// <returns></returns>
+        private static string DequoteEscaped(string value, char quoteChar, Dictionary<char, bool> escapeChars)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return value;
+            }
+            if (value.Length < 2)
+            {
+                return value;
+            }
+            if (value[0] != quoteChar || value[value.Length - 1] != quoteChar)
+            {
+                return value;
+            }
+            bool escaped = false;
+            StringBuilder buf = new StringBuilder(value.Length - 2);
+            for (int i = 1, n = value.Length - 1; i < n; i++)
+            {
+                char c = value[i];
+                buf.Append(c);
+                if (escapeChars.ContainsKey(c))
+                {
+                    escaped = true;
+                }
+                if (c == quoteChar)
+                {
+                    escaped = true;
+                    i++;
+                    if (n <= i)
+                    {
+                        break;
+                    }
+                    c = value[i];
+                    if (c != quoteChar)
+                    {
+                        buf.Append(c);
+                    }
+                }
+            }
+            return escaped ? buf.ToString() : value;
+        }
+
+        private static string[][] Get2DArrayFromDelimitedText(string text, char quoteChar, char delimiter, Dictionary<char, bool> escapeChars)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return StrUtil.EmptyString2DArray;
+            }
+            List<List<string>> lRet = new List<List<string>>();
+            StringBuilder buf = new StringBuilder();
+            List<string> cols = new List<string>();
+            int p0 = 0;
+            int p = 0;
+            for (int n = text.Length; p < n; p++)
+            {
+                char c = text[p];
+                if (c == quoteChar)
+                {
+                    for (p++; p < n && text[p] != '"'; p++) ;
+                }
+                else if (c == delimiter)
+                {
+                    cols.Add(DequoteEscaped(text.Substring(p0, p - p0), quoteChar, escapeChars));
+                    p0 = p + 1;
+                }
+                else if (c == '\r')
+                {
+                    cols.Add(DequoteEscaped(text.Substring(p0, p - p0), quoteChar, escapeChars));
+                    lRet.Add(cols);
+                    cols = new List<string>();
+                    if (p + 1 < n && text[p + 1] == '\n')
+                    {
+                        p++;
+                    }
+                    p0 = p + 1;
+                }
+                else if (c == '\n')
+                {
+                    cols.Add(DequoteEscaped(text.Substring(p0, p - p0), quoteChar, escapeChars));
+                    lRet.Add(cols);
+                    cols = new List<string>();
+                    p0 = p + 1;
+                }
+            }
+            if (p0 < p)
+            {
+                cols.Add(DequoteEscaped(text.Substring(p0, p - p0), quoteChar, escapeChars));
+            }
+            if (0 < cols.Count)
+            {
+                lRet.Add(cols);
+            }
+            foreach (List<string> ls in lRet)
+            {
+                for (int i = ls.Count - 1; 0 <= i && string.IsNullOrEmpty(ls[i]); i--)
+                {
+                    ls.RemoveAt(i);
+                }
+            }
+            for (int i = lRet.Count - 1; 0 <= i && lRet[i].Count == 0; i--)
+            {
+                lRet.RemoveAt(i);
+            }
+            int nCol = 0;
+            foreach (List<string> l in lRet)
+            {
+                nCol = Math.Max(nCol, l.Count);
+            }
+
+            string[][] ret = new string[lRet.Count][];
+            for (int i = 0; i < lRet.Count; i++)
+            {
+                // 要素数を揃えた二次元配列にする
+                ret[i] = new string[nCol];
+                lRet[i].CopyTo(ret[i]);
+            }
+            return ret;
+        }
+
+
+        private static readonly Dictionary<char, bool> TabTextEscapeChars = new Dictionary<char, bool>()
+        {
+            {'\t', true }, {'\r', true }, {'\n', true }
+        };
+
+        public static string[][] Get2DArrayFromTabText(string text)
+        {
+            return Get2DArrayFromDelimitedText(text, '"', '\t', TabTextEscapeChars);
+        }
+
+        private static readonly Dictionary<char, bool> CSVEscapeChars = new Dictionary<char, bool>()
+        {
+            {',', true }, {'\r', true }, {'\n', true }
+        };
+
+        public static string[][] Get2DArrayFromCSV(string text)
+        {
+            return Get2DArrayFromDelimitedText(text, '"', ',', CSVEscapeChars);
+        }
     }
 }

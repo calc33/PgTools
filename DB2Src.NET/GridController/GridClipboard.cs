@@ -2,9 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.Contracts;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media.Animation;
 
 namespace Db2Source
 {
@@ -566,259 +569,14 @@ namespace Db2Source
         }
         public GridClipboard(DataGridController controller, string text, TextViewFormat format) : this(controller, GetArrayFromText(text, format)) { }
 
-        private static string[] SplitLines(string text, char quoteChar)
-        {
-            List<string> l = new List<string>();
-            StringBuilder buf = new StringBuilder();
-            bool inQuote = false;
-            bool wasCr = false;
-            int n = text.Length;
-            for (int i = 0; i < n; i++)
-            {
-                char c = text[i];
-                try
-                {
-                    // 改行コードCR, LF, CR+LFへの対応
-                    if (!inQuote)
-                    {
-                        if (c == '\n' || c != '\n' && wasCr)
-                        {
-                            l.Add(buf.ToString());
-                            buf.Clear();
-                            continue;
-                        }
-                        if (c == '\r')
-                        {
-                            continue;
-                        }
-                    }
-                    if (c == quoteChar)
-                    {
-                        inQuote = !inQuote;
-                    }
-                    buf.Append(c);
-                }
-                finally
-                {
-                    wasCr = (c == '\r');
-                }
-            }
-            l.Add(buf.ToString());
-            // 末尾の空行を除去
-            for (int i = l.Count - 1; 0 <= i; i--)
-            {
-                if (string.IsNullOrEmpty(l[i]))
-                {
-                    l.RemoveAt(i);
-                }
-            }
-            return l.ToArray();
-        }
-
-        private static string DequoteEscaped(string value, char quoteChar, Dictionary<char,bool> escapeChars)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return value;
-            }
-            if (value.Length < 2)
-            {
-                return value;
-            }
-            if (value[0] != quoteChar || value[value.Length - 1] != quoteChar)
-            {
-                return value;
-            }
-            bool escaped = false;
-            StringBuilder buf = new StringBuilder(value.Length - 2);
-            for (int i = 1, n = value.Length - 1; i < n; i++)
-            {
-                char c = value[i];
-                buf.Append(c);
-                if (escapeChars.ContainsKey(c))
-                {
-                    escaped = true;
-                }
-                if (c == quoteChar)
-                {
-                    escaped = true;
-                    i++;
-                    if (n <= i)
-                    {
-                        break;
-                    }
-                    c = value[i];
-                    if (c != quoteChar)
-                    {
-                        buf.Append(c);
-                    }
-                }
-            }
-            return escaped ? buf.ToString() : value;
-        }
-
-        private static readonly Dictionary<char, bool> TabTextEscapeChars = new Dictionary<char, bool>()
-        {
-            {'\t', true }, {'\r', true }, {'\n', true }
-        };
-        private const char TabTextQuoteChar = '"';
-        public static string[][] GetArrayFromTabText(string text)
-        {
-            string[] lines = SplitLines(text, TabTextQuoteChar);
-            if (lines.Length == 0)
-            {
-                return StrUtil.EmptyString2DArray;
-            }
-            List<List<string>> lRet = new List<List<string>>();
-            StringBuilder buf = new StringBuilder();
-            foreach (string s in lines)
-            {
-                List<string> l = new List<string>();
-                bool inQuote = false;
-                bool wasQuote = false;
-                int n = s.Length;
-                for (int i = 0; i < n; i++)
-                {
-                    char c = s[i];
-                    try
-                    {
-                        switch (c)
-                        {
-                            case TabTextQuoteChar:
-                                inQuote = !inQuote;
-                                buf.Append(c);
-                                break;
-                            case '\t':
-                                if (inQuote)
-                                {
-                                    buf.Append(c);
-                                }
-                                else
-                                {
-                                    l.Add(buf.ToString());
-                                    buf.Clear();
-                                }
-                                break;
-                            default:
-                                buf.Append(c);
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        wasQuote = (c == TabTextQuoteChar);
-                    }
-                }
-                l.Add(DequoteEscaped(buf.ToString(), TabTextQuoteChar, TabTextEscapeChars));
-                buf.Clear();
-                // 末尾の空文字列を除去
-                for (int i = l.Count - 1; 0 <= i && string.IsNullOrEmpty(l[i]); i--)
-                {
-                    l.RemoveAt(i);
-                }
-                lRet.Add(l);
-            }
-            int nCol = lRet[0].Count;
-            string[][] ret = new string[lRet.Count][];
-            ret[0] = lRet[0].ToArray();
-            // 先頭行より要素数の少ない行はnullで埋めて要素数を先頭行に合わせる
-            for (int i = 1; i < lRet.Count; i++)
-            {
-                List<string> l = lRet[i];
-                while (l.Count < nCol)
-                {
-                    l.Add(null);
-                }
-                ret[i] = l.ToArray();
-            }
-            return ret;
-        }
-
-        private static readonly Dictionary<char, bool> CsvEscapeChars = new Dictionary<char, bool>()
-        {
-            {',', true }, {'\r', true }, {'\n', true }
-        };
-        private const char CsvQuoteChar = '"';
-
-        public static string[][] GetArrayFromCsv(string text)
-        {
-            string[] lines = SplitLines(text, CsvQuoteChar);
-            if (lines.Length == 0)
-            {
-                return StrUtil.EmptyString2DArray;
-            }
-            List<List<string>> lRet = new List<List<string>>();
-            StringBuilder buf = new StringBuilder();
-            foreach (string s in lines)
-            {
-                List<string> l = new List<string>();
-                bool inQuote = false;
-                bool wasQuote = false;
-                int n = s.Length;
-                for (int i = 0; i < n; i++)
-                {
-                    char c = s[i];
-                    try
-                    {
-                        switch (c)
-                        {
-                            case CsvQuoteChar:
-                                inQuote = !inQuote;
-                                buf.Append(c);
-                                break;
-                            case ',':
-                                if (inQuote)
-                                {
-                                    buf.Append(c);
-                                }
-                                else
-                                {
-                                    l.Add(buf.ToString());
-                                    buf.Clear();
-                                }
-                                break;
-                            default:
-                                buf.Append(c);
-                                break;
-                        }
-                    }
-                    finally
-                    {
-                        wasQuote = (c == CsvQuoteChar);
-                    }
-                }
-                l.Add(DequoteEscaped(buf.ToString(), CsvQuoteChar, CsvEscapeChars));
-                buf.Clear();
-                // 末尾の空文字列を除去
-                for (int i = l.Count - 1; 0 <= i && string.IsNullOrEmpty(l[i]); i--)
-                {
-                    l.RemoveAt(i);
-                }
-                lRet.Add(l);
-            }
-            int nCol = lRet[0].Count;
-            string[][] ret = new string[lRet.Count][];
-            ret[0] = lRet[0].ToArray();
-            // 先頭行より要素数の少ない行はnullで埋めて要素数を先頭行に合わせる
-            for (int i = 1; i < lRet.Count; i++)
-            {
-                List<string> l = lRet[i];
-                while (l.Count < nCol)
-                {
-                    l.Add(null);
-                }
-                ret[i] = l.ToArray();
-            }
-            return ret;
-        }
         public static string[][] GetArrayFromText(string text, TextViewFormat format)
         {
             switch (format)
             {
                 case TextViewFormat.TabText:
-                    return GetArrayFromTabText(text);
+                    return StrUtil.Get2DArrayFromTabText(text);
                 case TextViewFormat.CSV:
-                    return GetArrayFromCsv(text);
+                    return StrUtil.Get2DArrayFromCSV(text);
                 default:
                     throw new ArgumentException("未対応のformatです");
             }
