@@ -39,9 +39,19 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Position.cs" />
     <Compile Include="SyntaxTextBox.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TextDocument.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Db2SrcDataSet\Db2SrcDataSet.csproj">
+      <Project>{079817e7-43d7-4473-9c1f-9957d349998b}</Project>
+      <Name>Db2SrcDataSet</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

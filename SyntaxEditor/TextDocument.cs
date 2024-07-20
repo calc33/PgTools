@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
@@ -23,12 +25,14 @@ namespace SyntaxEditor
             LF,
             CR,
         }
+
         internal enum HitTestResult
         {
             Before = -1,
             Hit = 0,
             After = 1,
         }
+
         private static readonly Dictionary<NewLine, Tuple<int, string>> NewLineInfos = new Dictionary<NewLine, Tuple<int, string>>()
         {
             { NewLine.None, new Tuple<int, string>(0, string.Empty) },
@@ -36,6 +40,7 @@ namespace SyntaxEditor
             { NewLine.LF, new Tuple<int, string>(2, "\n") },
             { NewLine.CR, new Tuple<int, string>(2, "\r") },
         };
+
         private static readonly Dictionary<string, NewLine> StrToNewLine = new Dictionary<string, NewLine>()
         {
             { string.Empty, NewLine.None },
@@ -87,6 +92,7 @@ namespace SyntaxEditor
                     return _textLength.Value;
                 }
             }
+
             private string _text;
             public string Text
             {
@@ -98,6 +104,7 @@ namespace SyntaxEditor
                     Next?.InvalidatePosition();
                 }
             }
+
             private NewLine _newLine;
             public NewLine NewLine
             {
@@ -116,7 +123,7 @@ namespace SyntaxEditor
             {
                 return _text + NewLineInfos[NewLine].Item2;
             }
-            
+
             public void InvalidatePosition()
             {
                 if (_offset == null)
@@ -209,6 +216,7 @@ namespace SyntaxEditor
                 }
                 InvalidatePosition();
             }
+
             /// <summary>
             /// 終端用の空のLineInfo
             /// </summary>
@@ -230,14 +238,91 @@ namespace SyntaxEditor
                 NewLine = NewLine.None;
                 InvalidatePosition();
             }
+
+            internal static List<LineInfo> NewLines(string text)
+            {
+                int n = text.Length;
+                int pos0 = 0;
+                int posNL = 0;
+                bool wasCR = false;
+                List<LineInfo> lines = new List<LineInfo>();
+                LineInfo current = null;
+                for (int p = 0; p < n; p++)
+                {
+                    char c = text[p];
+                    switch (c)
+                    {
+                        case '\n':
+                            if (!wasCR)
+                            {
+                                posNL = p;
+                            }
+                            current = new LineInfo(text, pos0, posNL, p, current);
+                            lines.Add(current);
+                            pos0 = p + 1;
+                            posNL = -1;
+                            break;
+                        case '\r':
+                            if (wasCR)
+                            {
+                                current = new LineInfo(text, pos0, posNL, p - 1, current);
+                                lines.Add(current);
+                                pos0 = p;
+                            }
+                            posNL = p;
+                            break;
+                        default:
+                            if (wasCR)
+                            {
+                                current = new LineInfo(text, pos0, posNL, p - 1, current);
+                                lines.Add(current);
+                                pos0 = p;
+                                posNL = -1;
+                            }
+                            if (char.IsHighSurrogate(c))
+                            {
+                                p++;
+                            }
+                            break;
+                    }
+                    wasCR = (c == '\r');
+                }
+                if (pos0 < n)
+                {
+                    current = new LineInfo(text, pos0, posNL, n - 1, current);
+                    lines.Add(current);
+                }
+                if (current == null || current.NewLine != NewLine.None)
+                {
+                    lines.Add(new LineInfo(current));
+                }
+                return lines;
+            }
+            internal static void DisposeLines(IEnumerable<LineInfo> lines)
+            {
+                if (lines == null)
+                {
+                    return;
+                }
+                foreach (LineInfo info in lines)
+                {
+                    info.Unlink();
+                }
+            }
+            public static readonly LineInfo[] EmptyArray = new LineInfo[0];
         }
 
         /// <summary>
-        /// データの矛盾もしくはプログラムの不備によりよりありえない結果が返された場合にこの例外を発生させる
+        /// データの矛盾もしくはプログラムの不備によりありえない結果が返された場合にこの例外を発生させる
         /// </summary>
         public class LineInfoConflictException: Exception { }
 
-        private List<LineInfo> _lines;
+        private SyntaxTextBox _owner;
+        internal List<LineInfo> Lines;
+
+        private Position _selectionStart;
+        private Position _selectionEnd;
+
         private string _text;
         private object _textLock = new object();
 
@@ -253,8 +338,15 @@ namespace SyntaxEditor
                 {
                     return;
                 }
-                StringBuilder buf = new StringBuilder();
-                foreach (LineInfo info in _lines)
+                if (Lines.Count == 0)
+                {
+                    _text = string.Empty;
+                    return;
+                }
+                LineInfo last = Lines.Last();
+                int n = last.Offset + last.TextLength;
+                StringBuilder buf = new StringBuilder(n);
+                foreach (LineInfo info in Lines)
                 {
                     buf.Append(info.GetTextWithNewLine());
                 }
@@ -264,77 +356,19 @@ namespace SyntaxEditor
 
         private void DisposeLines()
         {
-            if (_lines == null)
+            if (Lines == null)
             {
                 return;
             }
-            List<LineInfo> lines = _lines;
-            _lines = null;
-            foreach (LineInfo info in lines)
-            {
-                info.Unlink();
-            }
-            lines.Clear();
+            LineInfo.DisposeLines(Lines);
+            Lines.Clear();
         }
+
         private void SetLines(string text)
         {
-            _text = text;
-            int n = text.Length;
-            int pos0 = 0;
-            int posNL = 0;
-            bool wasCR = false;
             DisposeLines();
-            _lines = new List<LineInfo>();
-            LineInfo current = null;
-            for (int p = 0; p < n; p++)
-            {
-                char c = text[p];
-                switch (c)
-                {
-                    case '\n':
-                        if (!wasCR)
-                        {
-                            posNL = p;
-                        }
-                        current = new LineInfo(text, pos0, posNL, p, current);
-                        _lines.Add(current);
-                        pos0 = p + 1;
-                        posNL = -1;
-                        break;
-                    case '\r':
-                        if (wasCR)
-                        {
-                            current = new LineInfo(text, pos0, posNL, p - 1, current);
-                            _lines.Add(current);
-                            pos0 = p;
-                        }
-                        posNL = p;
-                        break;
-                    default:
-                        if (wasCR)
-                        {
-                            current = new LineInfo(text, pos0, posNL, p - 1, current);
-                            _lines.Add(current);
-                            pos0 = p;
-                            posNL = -1;
-                        }
-                        if (char.IsHighSurrogate(c))
-                        {
-                            p++;
-                        }
-                        break;
-                }
-                wasCR = (c == '\r');
-            }
-            if (pos0 < n)
-            {
-                current = new LineInfo(text, pos0, posNL, n - 1, current);
-                _lines.Add(current);
-            }
-            if (current == null || current.NewLine != NewLine.None)
-            {
-                _lines.Add(new LineInfo(current));
-            }
+            _text = text;
+            Lines = LineInfo.NewLines(text);
         }
 
         public string Text
@@ -350,6 +384,19 @@ namespace SyntaxEditor
             }
         }
 
+        public int TextLength
+        {
+            get
+            {
+                LineInfo last = (0 < Lines.Count) ? Lines[Lines.Count - 1] : null;
+                if (last == null)
+                {
+                    return 0;
+                }
+                return last.Offset + last.TextLength;
+            }
+        }
+
         private int FindLineIndexFromCharacterPositionRecursive(int position, int index0, int index1)
         {
             if (index1 < index0)
@@ -358,7 +405,7 @@ namespace SyntaxEditor
             }
             int index;
             index = index0;
-            switch (_lines[index].HitTest(position))
+            switch (Lines[index].HitTest(position))
             {
                 case HitTestResult.Hit:
                     return index;
@@ -368,7 +415,7 @@ namespace SyntaxEditor
 
             int indexM = (index0 + index1 + 1) / 2;
             index = indexM;
-            switch (_lines[index].HitTest(position))
+            switch (Lines[index].HitTest(position))
             {
                 case HitTestResult.Hit:
                     return index;
@@ -377,7 +424,7 @@ namespace SyntaxEditor
             }
 
             index = index1;
-            switch (_lines[index].HitTest(position))
+            switch (Lines[index].HitTest(position))
             {
                 case HitTestResult.Hit:
                     return index;
@@ -398,12 +445,12 @@ namespace SyntaxEditor
         /// <returns></returns>
         public int GetLineFromCharacterPosition(int position, int startLine)
         {
-            if (_lines.Count == 0)
+            if (Lines.Count == 0)
             {
                 return -1;
             }
-            int p = Math.Min(Math.Max(0, startLine), _lines.Count - 1);
-            switch (_lines[p].HitTest(position))
+            int p = Math.Min(Math.Max(0, startLine), Lines.Count - 1);
+            switch (Lines[p].HitTest(position))
             {
                 case HitTestResult.Hit:
                     return p;
@@ -412,7 +459,7 @@ namespace SyntaxEditor
                     return FindLineIndexFromCharacterPositionRecursive(position, 0, p - 1);
                 case HitTestResult.After:
                     // 後方はLineInfo.Offsetの更新を抑制するために探索範囲を徐々に広げていく
-                    int nLine = _lines.Count - 1;
+                    int nLine = Lines.Count - 1;
                     for (int n = 2, i0 = position + 1, i1 = position + n; i0 <= nLine ; i0 = i1 + 1, n *= 2, i1 = Math.Min(i0 - n - 1, nLine))
                     {
                         int i = FindLineIndexFromCharacterPositionRecursive(position, i0, i1);
@@ -437,6 +484,94 @@ namespace SyntaxEditor
             return GetLineFromCharacterPosition(position, 0);
         }
 
-        public TextDocument() { }
+        public int SelectionStart { get { return _selectionStart.Offset; } }
+        public int SelectionStartLineIndex { get { return _selectionStart.LineIndex; } }
+        public int SelectionStartColumnIndex { get { return _selectionStart.ColumnIndex; } }
+        public int SelectionEnd { get { return _selectionEnd.Offset; } }
+        public int SelectionEndLineIndex { get { return _selectionEnd.LineIndex; } }
+        public int SelectionEndColumnIndex { get { return _selectionEnd.ColumnIndex; } }
+
+        public int SelectionLength { get { return _selectionEnd.Offset - _selectionStart.Offset; } }
+
+        public void Select(int start, int end)
+        {
+            _selectionStart.Offset = Math.Min(start, end);
+            _selectionEnd.Offset = Math.Max(start, end);
+        }
+
+        private LineInfo[] GetSelectedLines()
+        {
+            if (Lines.Count == 0)
+            {
+                return LineInfo.EmptyArray;
+            }
+            int i0 = _selectionStart.LineIndex;
+            int i1 = _selectionEnd.LineIndex;
+            LineInfo[] ret = new LineInfo[i1 - i0 + 1];
+            Lines.CopyTo(ret, i0);
+            return ret;
+        }
+
+        private void ReplaceSelectedText(string value)
+        {
+            var newLines = LineInfo.NewLines(value);
+            var curLines = GetSelectedLines();
+            if (curLines.Length == 0)
+            {
+                Lines = newLines;
+                return;
+            }
+            LineInfo cur0 = curLines[0];
+            LineInfo cur1 = curLines[curLines.Length - 1];
+        }
+
+        public string SelectedText
+        {
+            get
+            {
+                _selectionStart.Offset = Math.Max(0, _selectionStart.Offset);
+                _selectionEnd.Offset = Math.Min(_selectionEnd.Offset, TextLength);
+                if (_selectionEnd.Offset <= _selectionStart.Offset)
+                {
+                    return string.Empty;
+                }
+                return _text.Substring(_selectionStart.Offset, _selectionEnd.Offset - _selectionStart.Offset);
+            }
+            set
+            {
+                if (_selectionStart.Offset == 0 && _selectionEnd.Offset == TextLength)
+                {
+                    Text = value;
+                }
+                else if (_selectionEnd.Offset == 0)
+                {
+                    Text = value + Text;
+                }
+                else if (_selectionStart.Offset == TextLength)
+                {
+                    Text += value;
+                }
+                else if (_selectionStart.Offset == 0)
+                {
+                    Text = value + Text.Substring(_selectionEnd.Offset);
+                }
+                else if (_selectionEnd.Offset == TextLength)
+                {
+                    Text = Text.Substring(0, _selectionStart.Offset) + value;
+                }
+                else
+                {
+                    Text = Text.Substring(0, _selectionStart.Offset) + value + Text.Substring(_selectionEnd.Offset);
+                }
+                _selectionEnd.Offset = _selectionStart.Offset + value.Length;
+            }
+        }
+
+        internal TextDocument(SyntaxTextBox owner)
+        {
+            _owner = owner;
+            _selectionStart = new Position(this, 0);
+            _selectionEnd = new Position(this, 0);
+        }
     }
 }
