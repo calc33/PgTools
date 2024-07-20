@@ -36,7 +36,7 @@ namespace Db2Source
         public static readonly Type[] ConnectionInfoTypes = new Type[] { typeof(NpgsqlConnectionInfo) };
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnCurrentDataSetPropertyChanged)));
         public static readonly DependencyProperty ConnectionStatusProperty = DependencyProperty.Register("ConnectionStatus", typeof(SchemaConnectionStatus), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnConnectionStatusPropertyChanged)));
-        public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnMultipleSelectionModePropertyChanged)));
+        //public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.Register("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new PropertyMetadata(new PropertyChangedCallback(OnMultipleSelectionModePropertyChanged)));
         public static readonly DependencyProperty IndentProperty = DependencyProperty.Register("Indent", typeof(int), typeof(MainWindow), new PropertyMetadata(2, IndentPropertyChangedCallback));
         public static readonly DependencyProperty IndentCharProperty = DependencyProperty.Register("IndentChar", typeof(string), typeof(MainWindow), new PropertyMetadata(" ", IndentCharPropertyChangedCallback));
         public static readonly DependencyProperty IndentOffsetProperty = DependencyProperty.Register("IndentOffset", typeof(int), typeof(MainWindow), new PropertyMetadata(0, IndentOffsetPropertyChangedCallback));
@@ -46,6 +46,7 @@ namespace Db2Source
         public static readonly DependencyProperty MatchByWholeProperty = DependencyProperty.Register("MatchByWhole", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWholePropertyChangedCallback));
         public static readonly DependencyProperty MatchByRegexProperty = DependencyProperty.Register("MatchByRegex", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByRegexPropertyChangedCallback));
         public static readonly DependencyProperty CommandTimeoutProperty = DependencyProperty.Register("CommandTimeout", typeof(int), typeof(MainWindow), new PropertyMetadata(30, CommandTimeoutPropertyChangedCallback));
+
         private void UpdateIndentText()
         {
             Db2SourceContext.IndentText = IndentText;
@@ -133,6 +134,7 @@ namespace Db2Source
         {
             (d as MainWindow)?.OnMatchByRegexPropertyChanged(d, e);
         }
+
         public event DependencyPropertyChangedEventHandler CommandTimeoutPropertyChanged;
         protected void OnCommandTimeoutPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
@@ -156,11 +158,11 @@ namespace Db2Source
             set { SetValue(ConnectionStatusProperty, value); }
         }
 
-        public bool MultipleSelectionMode
-        {
-            get { return (bool)GetValue(MultipleSelectionModeProperty); }
-            set { SetValue(MultipleSelectionModeProperty, value); }
-        }
+        //public bool MultipleSelectionMode
+        //{
+        //    get { return (bool)GetValue(MultipleSelectionModeProperty); }
+        //    set { SetValue(MultipleSelectionModeProperty, value); }
+        //}
 
         public int Indent
         {
@@ -641,19 +643,19 @@ namespace Db2Source
             (target as MainWindow)?.OnConnectionStatusPropertyChanged(e);
         }
 
-        protected void OnMultipleSelectionModePropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (menuItemMultiSelMode.IsChecked != MultipleSelectionMode)
-            {
-                menuItemMultiSelMode.IsChecked = MultipleSelectionMode;
-            }
-            Dispatcher.InvokeAsync(UpdateTreeViewDB, DispatcherPriority.Background);
-        }
+        //protected void OnMultipleSelectionModePropertyChanged(DependencyPropertyChangedEventArgs e)
+        //{
+        //    if (menuItemMultiSelMode.IsChecked != MultipleSelectionMode)
+        //    {
+        //        menuItemMultiSelMode.IsChecked = MultipleSelectionMode;
+        //    }
+        //    Dispatcher.InvokeAsync(UpdateTreeViewDB, DispatcherPriority.Background);
+        //}
 
-        private static void OnMultipleSelectionModePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
-        {
-            (target as MainWindow)?.OnMultipleSelectionModePropertyChanged(e);
-        }
+        //private static void OnMultipleSelectionModePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        //{
+        //    (target as MainWindow)?.OnMultipleSelectionModePropertyChanged(e);
+        //}
 
         private void CurrentDataSet_Log(object sender, LogEventArgs e)
         {
@@ -1766,11 +1768,11 @@ namespace Db2Source
             Dispatcher.InvokeAsync(() =>
             {
                 bool b = (sender as MenuItem).IsChecked;
-                if (MultipleSelectionMode == b)
+                if (GetMultipleSelectionMode(treeViewDB) == b)
                 {
                     return;
                 }
-                MultipleSelectionMode = b;
+                SetMultipleSelectionMode(treeViewDB, b);
             }, DispatcherPriority.Background);
         }
 

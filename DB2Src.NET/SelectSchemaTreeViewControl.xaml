@@ -1,0 +1,20 @@
+﻿<UserControl x:Class="Db2Source.SelectSchemaTreeViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Db2Source"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="400">
+    <Grid>
+        <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Style="{DynamicResource TreeViewDbStyle}" ItemContainerStyle="{DynamicResource TreeViewItemStyleSchema}"
+                  local:MainWindow.MultipleSelectionMode="True"
+                  FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
+            <TreeViewItem x:Name="treeViewItemTop" Header="データベース" HeaderTemplate="{DynamicResource ImageServer}" IsExpanded="True">
+                <TreeViewItem.Items>
+                    <TreeViewItem x:Name="TreeViewItemDB"  Header="データベース" HeaderTemplate="{DynamicResource ImageTable}" MouseDoubleClick="TreeViewItem_MouseDoubleClick" Style="{DynamicResource TreeViewItemStyleSchema}"/>
+                </TreeViewItem.Items>
+            </TreeViewItem>
+        </TreeView>
+    </Grid>
+</UserControl>

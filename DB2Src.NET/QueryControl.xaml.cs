@@ -316,7 +316,7 @@ namespace Db2Source
                             string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
                             await dispatcher.InvokeAsync(() =>
                             {
-                                ParameterStore.GetParameterStores(cmd, stores, out _);
+                                ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
                                 UpdateDataGridParameters();
                                 AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
                                 textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], controller.Rows.Count, s);
@@ -434,7 +434,7 @@ namespace Db2Source
 
         private void UserControl_Initialized(object sender, EventArgs e)
         {
-            ParameterStore.AllParameters.ParameterTextChanged += Parameters_ParameterTextChanged;
+            ParameterStoreCollection.AllParameters.ParameterTextChanged += Parameters_ParameterTextChanged;
             DataGridControllerResult = new DataGridController();
             //DataGridControllerResult.Context = CurrentDataSet;
             DataGridControllerResult.Grid = dataGridResult;
@@ -458,7 +458,7 @@ namespace Db2Source
 
         private void UserControl_Unloaded(object sender, RoutedEventArgs e)
         {
-            ParameterStore.AllParameters.ParameterTextChanged -= Parameters_ParameterTextChanged;
+            ParameterStoreCollection.AllParameters.ParameterTextChanged -= Parameters_ParameterTextChanged;
         }
 
         private void menuItemClearLog_Click(object sender, RoutedEventArgs e)
@@ -486,7 +486,7 @@ namespace Db2Source
                 return;
             }
             textBoxSql.Text = sel.SqlText;
-            Parameters = ParameterStore.GetParameterStores(sel, Parameters, out _);
+            Parameters = ParameterStoreCollection.GetParameterStores(sel, Parameters, out _);
         }
 
         private void DataGridCellParamValueStyleButton_Click(object sender, RoutedEventArgs e)

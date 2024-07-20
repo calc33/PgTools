@@ -16,6 +16,8 @@ namespace Db2Source
     {
         public static readonly DependencyProperty IsCheckableProperty = DependencyProperty.RegisterAttached("IsCheckable", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckablePropertyChanged));
         public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.RegisterAttached("IsChecked", typeof(bool?), typeof(MainWindow), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckedPropertyChanged));
+        public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.RegisterAttached("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, MultipleSelectionModePropertyChanged));
+        public static readonly DependencyProperty ShowOwnerProperty = DependencyProperty.RegisterAttached("ShowOwner", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, ShowOwnerPropertyChanged));
 
         public static bool GetIsCheckable(TreeViewItem target)
         {
@@ -116,6 +118,44 @@ namespace Db2Source
             AdjustIsCheckedByChildren(target.Parent as TreeViewItem);
         }
 
+        public static bool? GetMultipleSelectionMode(TreeView target)
+        {
+            return (bool?)target.GetValue(MultipleSelectionModeProperty);
+        }
+
+        public static void SetMultipleSelectionMode(TreeView target, bool? value)
+        {
+            if (GetMultipleSelectionMode(target) == value)
+            {
+                return;
+            }
+            target.SetValue(MultipleSelectionModeProperty, value);
+        }
+
+        private static void MultipleSelectionModePropertyChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
+
+        public static bool? GetShowOwner(TreeView target)
+        {
+            return (bool?)target.GetValue(ShowOwnerProperty);
+        }
+
+        public static void SetShowOwner(TreeView target, bool? value)
+        {
+            if (GetShowOwner(target) == value)
+            {
+                return;
+            }
+            target.SetValue(ShowOwnerProperty, value);
+        }
+
+        private static void ShowOwnerPropertyChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
+
         //private Dictionary<Tuple<Type, int>, string> groupNodeTypeToStyleName = new Dictionary<Tuple<Type, int>, string>()
         //{
         //    { new Tuple<Type,int>(typeof(Schema),0), "TreeViewItemStyleSchema" },
@@ -141,19 +181,35 @@ namespace Db2Source
         //    { new Tuple<Type,int>(typeof(Sequence),0), "TreeViewItemStyleTable" },
         //};
 
+        //public event DependencyPropertyChangedEventHandler ShowOwnerPropertyChanged;
+        //protected void OnShowOwnerPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        //{
+        //    ShowOwnerPropertyChanged?.Invoke(sender, e);
+        //}
+        //private static void ShowOwnerPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        //{
+        //    (d as MainWindow)?.OnShowOwnerPropertyChanged(d, e);
+        //}
+
+        //public bool ShowOwner
+        //{
+        //    get { return (bool)GetValue(ShowOwnerProperty); }
+        //    set { SetValue(ShowOwnerProperty, value); }
+        //}
+
         private void SetTreeView(TreeViewItem item, TreeNode node)
         {
             item.Tag = node;
             item.FontWeight = node.IsBold ? FontWeights.Bold : FontWeights.Normal;
             item.Header = node.Name;
-            item.Style = Resources["TreeViewItemStyle"] as Style;
+            item.Style = Resources["TreeViewItemStyleSchema"] as Style;
             if (node.IsGrouped)
             {
                 if (node.TargetType == typeof(Schema))
                 {
                     if (node.IsHidden)
                     {
-                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
                         item.HeaderTemplate = Resources["ImageHiddenSchema"] as DataTemplate;
                     }
                     else
@@ -168,7 +224,7 @@ namespace Db2Source
                     {
                         SetIsCheckable(item, false);
                         item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
-                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
                     }
                     else if (db.IsCurrent)
                     {
@@ -180,7 +236,7 @@ namespace Db2Source
                     {
                         SetIsCheckable(item, false);
                         item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
-                        item.Style = Resources["TreeViewItemStyleGrayed"] as Style;
+                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
                         item.ContextMenu = new ContextMenu();
                         string user = App.GetDefaultLoginUserForDatabase(db);
                         MenuItem mi1 = new MenuItem

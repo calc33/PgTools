@@ -181,6 +181,9 @@
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ParameterStoreCollection.cs" />
+    <Compile Include="SelectSchemaTreeViewControl.xaml.cs">
+      <DependentUpon>SelectSchemaTreeViewControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="SortOrderItem.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.db.cs" />
@@ -483,6 +486,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Dialog\SelectTabItemWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="SelectSchemaTreeViewControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
