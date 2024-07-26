@@ -113,5 +113,19 @@ namespace Db2Source
             }
             return l.ToArray();
         }
+        public string GetLastExecutedQuery(int pid, IDbConnection connection)
+        {
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            using (NpgsqlCommand cmd = new NpgsqlCommand(DataSet.Properties.Resources.GetLastExecutedQuery_SQL, conn))
+            {
+                cmd.Parameters.Add(new NpgsqlParameter("pid", pid));
+                NpgsqlDataReader reader = cmd.ExecuteReader();
+                if (reader.Read())
+                {
+                    return reader.GetString(0);
+                }
+            }
+            return null;
+        }
     }
 }

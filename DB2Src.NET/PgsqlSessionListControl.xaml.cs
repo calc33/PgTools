@@ -168,9 +168,9 @@ namespace Db2Source
             {
                 return;
             }
-            string msg = string.Format((string)Resources["messageDisconnectForce"],
+            string msg = string.Format((string)FindResource("messageDisconnectForce"),
                 obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, (string)Resources["captionDisconnectForce"], MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(msg, (string)FindResource("captionDisconnectForce"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -192,9 +192,9 @@ namespace Db2Source
             {
                 return;
             }
-            string msg = string.Format((string)Resources["messageAbortQuery"],
+            string msg = string.Format((string)FindResource("messageAbortQuery"),
                 obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, (string)Resources["captionAbortQuery"], MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(msg, (string)FindResource("captionAbortQuery"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -221,6 +221,21 @@ namespace Db2Source
             menu.Placement = PlacementMode.Bottom;
             menu.PlacementTarget = buttonStop;
             menu.IsOpen = true;
+        }
+
+        private void dataGridSessionList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            NpgsqlSession selected = dataGridSessionList.SelectedItem as NpgsqlSession;
+            NpgsqlDataSet dataSet = (Target?.Context as NpgsqlDataSet);
+            string sql = null;
+            if (selected != null && dataSet != null)
+            {
+                using (var conn = dataSet.NewConnection(true))
+                {
+                    sql = dataSet.GetLastExecutedQuery(selected.Pid, conn);
+                }
+            }
+            textBoxLastExecutedSql.Text = sql;
         }
     }
 }

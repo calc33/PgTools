@@ -81,6 +81,15 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select query from pg_stat_get_activity(:pid) に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string GetLastExecutedQuery_SQL {
+            get {
+                return ResourceManager.GetString("GetLastExecutedQuery_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select current_schema() に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string NpgsqlDataSet_USERINFOSQL {
@@ -409,7 +418,7 @@ namespace Db2Source.DataSet.Properties {
         ///   select
         ///  pid, datname, usename, application_name,
         ///  client_hostname, host(client_addr) as client_addr, client_port,
-        ///  wait_event_type, wait_event, &quot;state&quot;
+        ///  wait_event_type, wait_event, &quot;state&quot;, query
         ///from pg_catalog.pg_stat_activity
         /// に類似しているローカライズされた文字列を検索します。
         /// </summary>
