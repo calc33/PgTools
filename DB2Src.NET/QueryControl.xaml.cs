@@ -122,7 +122,7 @@ namespace Db2Source
 
         public string GetTabItemHeader(int index)
         {
-            string s = (string)Resources["tabItemHeader"];
+            string s = (string)FindResource("tabItemHeader");
             if (index != 0)
             {
                 s += " " + index.ToString();
@@ -244,7 +244,7 @@ namespace Db2Source
                                 dataGridParameters.Focus();
                                 dataGridParameters.SelectedItem = p;
                                 Window owner = Window.GetWindow(this);
-                                MessageBox.Show(owner, string.Format((string)Resources["messageInvalidParameter"], p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                                MessageBox.Show(owner, string.Format((string)FindResource("messageInvalidParameter"), p.ParameterName), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                                 aborted = true;
                                 return;
                             }
@@ -280,7 +280,7 @@ namespace Db2Source
                                 {
                                     await dispatcher.InvokeAsync(() =>
                                     {
-                                        AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
+                                        AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
                                     });
                                 }
                                 else if (0 < reader.FieldCount)
@@ -294,7 +294,7 @@ namespace Db2Source
                         {
                             await dispatcher.InvokeAsync(() =>
                             {
-                                AddLog((string)Resources["messageQueryAborted"], history, LogStatus.Error, true);
+                                AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                             });
                         }
                         catch (Exception t)
@@ -318,8 +318,8 @@ namespace Db2Source
                             {
                                 ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
                                 UpdateDataGridParameters();
-                                AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
-                                textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], controller.Rows.Count, s);
+                                AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
+                                textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s);
                             }, DispatcherPriority.Background);
                         }
                     }
@@ -385,19 +385,19 @@ namespace Db2Source
             Db2SourceContext ctx = CurrentDataSet;
             if (ctx == null)
             {
-                AddLog((string)Resources["messageNotConnected"], null, LogStatus.Error, true);
+                AddLog((string)FindResource("messageNotConnected"), null, LogStatus.Error, true);
                 return;
             }
             string sql = textBoxSql.Text.TrimEnd();
             if (string.IsNullOrEmpty(sql))
             {
-                AddLog((string)Resources["messageNoSql"], null, LogStatus.Error, true);
+                AddLog((string)FindResource("messageNoSql"), null, LogStatus.Error, true);
                 return;
             }
             SQLParts parts = ctx.SplitSQL(sql);
             if (parts.Count == 0)
             {
-                AddLog((string)Resources["messageNoSql"], null, LogStatus.Error, true);
+                AddLog((string)FindResource("messageNoSql"), null, LogStatus.Error, true);
                 return;
             }
             listBoxErrors.Items.Clear();
@@ -491,7 +491,7 @@ namespace Db2Source
 
         private void DataGridCellParamValueStyleButton_Click(object sender, RoutedEventArgs e)
         {
-            ContextMenu menu = (ContextMenu)Resources["ContextMenuParameter"];
+            ContextMenu menu = (ContextMenu)FindResource("ContextMenuParameter");
             menu.Placement = PlacementMode.Bottom;
             menu.PlacementTarget = App.FindVisualParent<DataGridCell>(e.Source as DependencyObject);
             menu.IsOpen = true;

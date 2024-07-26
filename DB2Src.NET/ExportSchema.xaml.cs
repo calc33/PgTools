@@ -149,7 +149,7 @@ namespace Db2Source
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog()
             {
-                Title = (string)Resources["FolderBrowserDialog_Title"],
+                Title = (string)FindResource("FolderBrowserDialog_Title"),
                 SelectedPath = textBoxFolder.Text
             };
             Db2Source.DialogResult ret = dlg.ShowDialog(this);
@@ -402,7 +402,7 @@ namespace Db2Source
             Task t = ExportAsync(context, list, baseDir);
             AwaitWindow win = new AwaitWindow() { Owner = this };
             win.WaitTask(t);
-            MessageBox.Show(this, (string)Resources["messageDone"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(this, (string)FindResource("messageDone"), Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         private void buttonClose_Click(object sender, RoutedEventArgs e)

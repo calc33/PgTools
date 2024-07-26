@@ -342,7 +342,7 @@ namespace Db2Source
                 int l;
                 if (!int.TryParse(textBoxLimitRow.Text, out l))
                 {
-                    MessageBox.Show((string)Resources["messageInvalidLimitRow"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show((string)FindResource("messageInvalidLimitRow"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxLimitRow.Focus();
                 }
                 limit = l;
@@ -526,7 +526,7 @@ namespace Db2Source
         private void buttonOptions_Click(object sender, RoutedEventArgs e)
         {
             ContextMenu menu;
-            menu = (ContextMenu)Resources["dropViewContextMenu"];
+            menu = (ContextMenu)FindResource("dropViewContextMenu");
             menu.PlacementTarget = buttonOptions;
             menu.Placement = PlacementMode.Bottom;
             menu.IsOpen = true;
@@ -570,7 +570,7 @@ namespace Db2Source
         private void menuItemDropView_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropView"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropView"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

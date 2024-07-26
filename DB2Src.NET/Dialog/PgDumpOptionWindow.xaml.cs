@@ -89,7 +89,7 @@ namespace Db2Source
         {
             FolderBrowserDialog dlg = new FolderBrowserDialog()
             {
-                Title = (string)Resources["FolderBrowserDialog_Title"],
+                Title = (string)FindResource("FolderBrowserDialog_Title"),
                 SelectedPath = textBoxDir.Text
             };
             DialogResult ret = dlg.ShowDialog(this);
@@ -244,7 +244,7 @@ namespace Db2Source
                 int nJob;
                 if (!int.TryParse(textBoxNumJobs.Text, out nJob))
                 {
-                    textBoxLog.AppendText((string)Resources["messageInvalidJobs"]);
+                    textBoxLog.AppendText((string)FindResource("messageInvalidJobs"));
                 }
                 else
                 {
@@ -257,7 +257,7 @@ namespace Db2Source
                 int timeout;
                 if (!int.TryParse(textBoxLockTimeout.Text, out timeout))
                 {
-                    textBoxLog.AppendText((string)Resources["messageInvalidLockTime"]);
+                    textBoxLog.AppendText((string)FindResource("messageInvalidLockTime"));
                 }
                 else
                 {
@@ -314,7 +314,7 @@ namespace Db2Source
                 _runningProcess.WaitForExit();
                 lock (_outputBufferLock)
                 {
-                    _outputBuffer.Add((string)Resources["messageProcessTerminated"] + Environment.NewLine);
+                    _outputBuffer.Add((string)FindResource("messageProcessTerminated") + Environment.NewLine);
                 }
                 Dispatcher.InvokeAsync(UpdateTextBoxLog);
             }
@@ -347,7 +347,7 @@ namespace Db2Source
             PgDumpFormatOption opt = comboBoxFormat.SelectedItem as PgDumpFormatOption;
             if (opt == null)
             {
-                MessageBox.Show(this, (string)Resources["messageNoFormat"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)FindResource("messageNoFormat"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
             string path;
@@ -355,7 +355,7 @@ namespace Db2Source
             {
                 if (string.IsNullOrEmpty(textBoxPath.Text))
                 {
-                    MessageBox.Show(this, (string)Resources["messageNoFilePath"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, (string)FindResource("messageNoFilePath"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxPath.Focus();
                     return false;
                 }
@@ -365,7 +365,7 @@ namespace Db2Source
             {
                 if (string.IsNullOrEmpty(textBoxDir.Text))
                 {
-                    MessageBox.Show(this, (string)Resources["messageNoDirectory"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(this, (string)FindResource("messageNoDirectory"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxDir.Focus();
                     return false;
                 }
@@ -375,14 +375,14 @@ namespace Db2Source
             _exportFile = IO.Path.GetFileName(path);
             if (IsChecked(checkBoxUseJob) && !int.TryParse(textBoxNumJobs.Text, out _))
             {
-                MessageBox.Show(this, (string)Resources["messageInvalidJobs"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)FindResource("messageInvalidJobs"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxNumJobs.Focus();
                 textBoxNumJobs.SelectAll();
                 return false;
             }
             if (IsChecked(checkBoxLockTimeout) && !int.TryParse(textBoxLockTimeout.Text, out _))
             {
-                MessageBox.Show(this, (string)Resources["messageInvalidLockTime"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)FindResource("messageInvalidLockTime"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 textBoxLockTimeout.Focus();
                 textBoxLockTimeout.SelectAll();
                 return false;
@@ -525,12 +525,12 @@ namespace Db2Source
             List<Tuple<string, string>> l = new List<Tuple<string, string>>();
             if (DataSet == null)
             {
-                l.Add(new Tuple<string, string>(string.Empty, (string)Resources["messageDefaultValue"]));
+                l.Add(new Tuple<string, string>(string.Empty, (string)FindResource("messageDefaultValue")));
                 return;
             }
             else
             {
-                l.Add(new Tuple<string, string>(string.Empty, string.Format((string)Resources["messageDefaultValueFmt"], DataSet.GetServerEncoding())));
+                l.Add(new Tuple<string, string>(string.Empty, string.Format((string)FindResource("messageDefaultValueFmt"), DataSet.GetServerEncoding())));
                 foreach (string s in DataSet.GetEncodings())
                 {
                     l.Add(new Tuple<string, string>(s, s));

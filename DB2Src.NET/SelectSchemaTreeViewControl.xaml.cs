@@ -54,19 +54,19 @@ namespace Db2Source
             item.Tag = node;
             item.FontWeight = node.IsBold ? FontWeights.Bold : FontWeights.Normal;
             item.Header = node.Name;
-            item.Style = Resources["TreeViewItemStyleSchema"] as Style;
+            item.Style = FindResource("TreeViewItemStyleSchema") as Style;
             if (node.IsGrouped)
             {
                 if (node.TargetType == typeof(Schema))
                 {
                     if (node.IsHidden)
                     {
-                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
-                        item.HeaderTemplate = Resources["ImageHiddenSchema"] as DataTemplate;
+                        item.Style = FindResource("TreeViewItemStyleGrayedSchema") as Style;
+                        item.HeaderTemplate = FindResource("ImageHiddenSchema") as DataTemplate;
                     }
                     else
                     {
-                        item.HeaderTemplate = Resources["ImageSchema"] as DataTemplate;
+                        item.HeaderTemplate = FindResource("ImageSchema") as DataTemplate;
                     }
                 }
                 else if (node.TargetType == typeof(Database))
@@ -74,19 +74,19 @@ namespace Db2Source
                     Database db = node.Target as Database;
                     if (db != null && db.IsCurrent)
                     {
-                        item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
+                        item.HeaderTemplate = FindResource("ImageDatabase") as DataTemplate;
                         //item.MouseDoubleClick += TreeViewItemDatabase_MouseDoubleClick;
                         item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
                     }
                 }
                 else
                 {
-                    item.HeaderTemplate = Resources["ImageTables"] as DataTemplate;
+                    item.HeaderTemplate = FindResource("ImageTables") as DataTemplate;
                 }
             }
             else
             {
-                item.HeaderTemplate = Resources["ImageTable"] as DataTemplate;
+                item.HeaderTemplate = FindResource("ImageTable") as DataTemplate;
                 item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
             }
             item.ToolTip = node.Hint;

@@ -340,7 +340,7 @@ namespace Db2Source
 
         public string GetTabItemHeader()
         {
-            return (string)Resources["tabItemHeader"];
+            return (string)FindResource("tabItemHeader");
         }
 
         private void UpdateListBoxTablesTimer_Tick(object sender, EventArgs e)

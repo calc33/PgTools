@@ -111,7 +111,7 @@ namespace Db2Source
             dataGridConnections.Columns.Clear();
             dataGridConnections.Columns.Add(new DataGridTextColumn()
             {
-                Header = (string)Resources["columnHeaderDatabaseType"],
+                Header = (string)FindResource("columnHeaderDatabaseType"),
                 Binding = new Binding("DatabaseType")
             });
             foreach (ColumnInfo info in infos)
@@ -192,7 +192,7 @@ namespace Db2Source
                 buf.Append(info.Description);
                 buf.Append(' ');
             }
-            buf.Append((string)Resources["messageDelete"]);
+            buf.Append((string)FindResource("messageDelete"));
             MessageBoxResult ret = MessageBox.Show(buf.ToString(), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
             if (ret != MessageBoxResult.Yes)
             {

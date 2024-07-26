@@ -226,10 +226,10 @@ namespace Db2Source
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             WindowLocator.AdjustMaxSizeToScreen(this);
-            //dataGridTextColumnValue.ElementStyle = Resources["ValueTextBlockStyle"] as Style;
-            //dataGridTextColumnValue.EditingElementStyle = Resources["ValueTextBoxStyle"] as Style;
-            dataGridTextColumnColumnName.CellStyle = Resources["DataGridCellColumnNameStyle"] as Style;
-            dataGridTextColumnValue.CellStyle = Resources["DataGridCellValueStyle"] as Style;
+            //dataGridTextColumnValue.ElementStyle = FindResource("ValueTextBlockStyle") as Style;
+            //dataGridTextColumnValue.EditingElementStyle = FindResource("ValueTextBoxStyle") as Style;
+            dataGridTextColumnColumnName.CellStyle = FindResource("DataGridCellColumnNameStyle") as Style;
+            dataGridTextColumnValue.CellStyle = FindResource("DataGridCellValueStyle") as Style;
         }
 
         private void Window_LocationChanged(object sender, EventArgs e)

@@ -96,7 +96,7 @@ namespace Db2Source
             HiddenLevel lv = hasOid ? HiddenLevel.Hidden : HiddenLevel.Visible;
             HiddenLevelDisplayItem sel = null;
             List<HiddenLevelDisplayItem> l = new List<HiddenLevelDisplayItem>();
-            foreach (HiddenLevelDisplayItem item in (HiddenLevelDisplayItem[])Resources["DefaultHiddenLevelDisplayItems"])
+            foreach (HiddenLevelDisplayItem item in (HiddenLevelDisplayItem[])FindResource("DefaultHiddenLevelDisplayItems"))
             {
                 if (item.Level == lv)
                 {
@@ -707,7 +707,7 @@ namespace Db2Source
             if (!force && DataGridControllerResult.IsModified)
             {
                 Window owner = Window.GetWindow(this);
-                MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageConfirmSave"], Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
+                MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageConfirmSave"), Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
                 switch (ret)
                 {
                     case MessageBoxResult.Yes:
@@ -735,7 +735,7 @@ namespace Db2Source
                 if (!int.TryParse(textBoxLimitRow.Text, out l))
                 {
                     Window owner = Window.GetWindow(this);
-                    MessageBox.Show(owner, (string)Resources["messageInvalidLimitRow"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show(owner, (string)FindResource("messageInvalidLimitRow"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     textBoxLimitRow.Focus();
                 }
                 limit = l;
@@ -1050,7 +1050,7 @@ namespace Db2Source
             }
             MainWindow.TabBecomeVisible(this);
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageConfirmSaveAndClose"], Target.DisplayName),
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageConfirmSaveAndClose"), Target.DisplayName),
                 Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.Yes);
             switch (ret)
             {
@@ -1167,7 +1167,7 @@ namespace Db2Source
         private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
         {
             ContentPresenter obj = App.FindVisualParent<ContentPresenter>(sender as DependencyObject);
-            ContextMenu menu = Resources["ContextMenuJoinTableCandidates"] as ContextMenu;
+            ContextMenu menu = FindResource("ContextMenuJoinTableCandidates") as ContextMenu;
             JoinTable joinTable = obj.Content as JoinTable;
             menu.DataContext = joinTable;
             menu.ItemsSource = null;

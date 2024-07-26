@@ -165,13 +165,13 @@ namespace Db2Source
         {
             if (Target is StoredFunction)
             {
-                _contextMenu_DropProcedure = Resources["dropFunctionContextMenu"] as ContextMenu;
-                _message_DropProcedure = (string)Resources["messageDropFunction"];
+                _contextMenu_DropProcedure = FindResource("dropFunctionContextMenu") as ContextMenu;
+                _message_DropProcedure = (string)FindResource("messageDropFunction");
             }
             else
             {
-                _contextMenu_DropProcedure = Resources["dropProcedureContextMenu"] as ContextMenu;
-                _message_DropProcedure = (string)Resources["messageDropProcedure"];
+                _contextMenu_DropProcedure = FindResource("dropProcedureContextMenu") as ContextMenu;
+                _message_DropProcedure = (string)FindResource("messageDropProcedure");
             }
         }
 
@@ -202,7 +202,7 @@ namespace Db2Source
             }
             if (!Target.Context.AllowOutputParameter)
             {
-                dataGridParameterValue.Header = (string)Resources["ParameterValueHeader"];
+                dataGridParameterValue.Header = (string)FindResource("ParameterValueHeader");
                 dataGridParameterNewValue.Visibility = Visibility.Collapsed;
             }
             List<ParamEditor> list = new List<ParamEditor>();
@@ -237,7 +237,7 @@ namespace Db2Source
                         DataGridControllerResult.Load(reader);
                         if (0 <= reader.RecordsAffected)
                         {
-                            AddLog(string.Format((string)Resources["messageRowsAffected"], reader.RecordsAffected), history, LogStatus.Normal, true);
+                            AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
                         }
                         else
                         {
@@ -269,8 +269,8 @@ namespace Db2Source
                 DateTime end = DateTime.Now;
                 TimeSpan time = end - start;
                 string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                AddLog(string.Format((string)Resources["messageExecuted"], s), history, LogStatus.Aux, false);
-                textBlockGridResult.Text = string.Format((string)Resources["messageRowsFound"], DataGridControllerResult.Rows.Count, s);
+                AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
+                textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), DataGridControllerResult.Rows.Count, s);
             }
         }
 

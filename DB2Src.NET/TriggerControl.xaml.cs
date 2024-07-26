@@ -107,7 +107,7 @@ namespace Db2Source
             }
             catch (Exception t)
             {
-                string recoverMsg = (string)Resources["messageRecovered"];
+                string recoverMsg = (string)FindResource("messageRecovered");
                 string[] s = Target.GetRecoverSQL(string.Empty, string.Empty, 0, false);
                 if (s != null && s.Length != 0)
                 {
@@ -117,11 +117,11 @@ namespace Db2Source
                     }
                     catch (Exception t2)
                     {
-                        recoverMsg = string.Format((string)Resources["messageRecoveryFailed"], ctx.GetExceptionMessage(t2));
+                        recoverMsg = string.Format((string)FindResource("messageRecoveryFailed"), ctx.GetExceptionMessage(t2));
                     }
                 }
                 Window owner = Window.GetWindow(this);
-                MessageBox.Show(owner, string.Format((string)Resources["messageFailed"], ctx.GetExceptionMessage(t), recoverMsg), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(owner, string.Format((string)FindResource("messageFailed"), ctx.GetExceptionMessage(t), recoverMsg), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -138,7 +138,7 @@ namespace Db2Source
 
         private void buttonDropTrigger_Click(object sender, RoutedEventArgs e)
         {
-            ContextMenu menu = (ContextMenu)Resources["contextMenuDropTrigger"];
+            ContextMenu menu = (ContextMenu)FindResource("contextMenuDropTrigger");
             menu.Placement = PlacementMode.Bottom;
             menu.PlacementTarget = sender as UIElement;
             menu.IsOpen = true;
@@ -177,7 +177,7 @@ namespace Db2Source
         private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropTrigger"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropTrigger"), Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

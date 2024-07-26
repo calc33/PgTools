@@ -199,7 +199,7 @@ namespace Db2Source
             string last = (string)comboBoxSettingCategory.SelectedValue;
             int idx = 0;
             List<NameValue> l = new List<NameValue>();
-            l.Add(new NameValue() { Name = string.Empty, Value = (string)Resources["categoryFilter_All"] });
+            l.Add(new NameValue() { Name = string.Empty, Value = (string)FindResource("categoryFilter_All") });
             foreach (string s in strs)
             {
                 if (last == s)

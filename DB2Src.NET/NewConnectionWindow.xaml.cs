@@ -186,7 +186,7 @@ namespace Db2Source
                     {
                         CheckBox newObj = new CheckBox()
                         {
-                            Content = (string)Resources["checkBoxTextShowPassword"],
+                            Content = (string)FindResource("checkBoxTextShowPassword"),
                             IsChecked = false,
                             VerticalAlignment = VerticalAlignment.Center,
                             Name = "checkBox" + prop.Name
@@ -620,14 +620,14 @@ namespace Db2Source
             }
             if (info != null)
             {
-                string s = (string)Resources["deleteConnectionInfoFormat"];
+                string s = (string)FindResource("deleteConnectionInfoFormat");
                 treeViewConnectionsDeleteConnection.Header = string.Format(s, info.Name);
                 treeViewConnectionsDeleteConnection.Tag = info;
                 treeViewConnectionsDeleteConnection.IsEnabled = true;
             }
             else
             {
-                string s = (string)Resources["deleteConnectionInfo"];
+                string s = (string)FindResource("deleteConnectionInfo");
                 treeViewConnectionsDeleteConnection.Header = s;
                 treeViewConnectionsDeleteConnection.Tag = null;
                 treeViewConnectionsDeleteConnection.IsEnabled = false;
@@ -647,8 +647,8 @@ namespace Db2Source
             {
                 return;
             }
-            string caption = (string)Resources["deleteConnectionInfoCaption"];
-            string msg = string.Format((string)Resources["deleteConnectionInfoMessage"], info.Name);
+            string caption = (string)FindResource("deleteConnectionInfoCaption");
+            string msg = string.Format((string)FindResource("deleteConnectionInfoMessage"), info.Name);
             MessageBoxResult ret = MessageBox.Show(this, msg, caption, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {

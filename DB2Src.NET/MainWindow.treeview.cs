@@ -202,19 +202,19 @@ namespace Db2Source
             item.Tag = node;
             item.FontWeight = node.IsBold ? FontWeights.Bold : FontWeights.Normal;
             item.Header = node.Name;
-            item.Style = Resources["TreeViewItemStyleSchema"] as Style;
+            item.Style = FindResource("TreeViewItemStyleSchema") as Style;
             if (node.IsGrouped)
             {
                 if (node.TargetType == typeof(Schema))
                 {
                     if (node.IsHidden)
                     {
-                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
-                        item.HeaderTemplate = Resources["ImageHiddenSchema"] as DataTemplate;
+                        item.Style = FindResource("TreeViewItemStyleGrayedSchema") as Style;
+                        item.HeaderTemplate = FindResource("ImageHiddenSchema") as DataTemplate;
                     }
                     else
                     {
-                        item.HeaderTemplate = Resources["ImageSchema"] as DataTemplate;
+                        item.HeaderTemplate = FindResource("ImageSchema") as DataTemplate;
                     }
                 }
                 else if (node.TargetType == typeof(Database))
@@ -223,27 +223,27 @@ namespace Db2Source
                     if (db == null)
                     {
                         SetIsCheckable(item, false);
-                        item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
-                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
+                        item.HeaderTemplate = FindResource("ImageDatabase") as DataTemplate;
+                        item.Style = FindResource("TreeViewItemStyleGrayedSchema") as Style;
                     }
                     else if (db.IsCurrent)
                     {
-                        item.HeaderTemplate = Resources["ImageDatabase"] as DataTemplate;
+                        item.HeaderTemplate = FindResource("ImageDatabase") as DataTemplate;
                         //item.MouseDoubleClick += TreeViewItemDatabase_MouseDoubleClick;
                         item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
                     }
                     else
                     {
                         SetIsCheckable(item, false);
-                        item.HeaderTemplate = Resources["ImageOtherDatabase"] as DataTemplate;
-                        item.Style = Resources["TreeViewItemStyleGrayedSchema"] as Style;
+                        item.HeaderTemplate = FindResource("ImageOtherDatabase") as DataTemplate;
+                        item.Style = FindResource("TreeViewItemStyleGrayedSchema") as Style;
                         item.ContextMenu = new ContextMenu();
                         string user = App.GetDefaultLoginUserForDatabase(db);
                         MenuItem mi1 = new MenuItem
                         {
                             Header = user,
                             Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, user),
-                            HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"],
+                            HeaderStringFormat = (string)FindResource("ConnectDatabaseFormat"),
                             FontWeight = FontWeights.Bold
                         };
                         mi1.Click += MenuItemOtherDatabase_Click;
@@ -256,14 +256,14 @@ namespace Db2Source
                             {
                                 Header = dba,
                                 Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, dba),
-                                HeaderStringFormat = (string)Resources["ConnectDatabaseFormat"]
+                                HeaderStringFormat = (string)FindResource("ConnectDatabaseFormat")
                             };
                             mi2.Click += MenuItemOtherDatabase_Click;
                             item.ContextMenu.Items.Add(mi2);
                         }
                         MenuItem mi3 = new MenuItem
                         {
-                            Header = (string)Resources["ConnectDatabaseNewUser"],
+                            Header = (string)FindResource("ConnectDatabaseNewUser"),
                             Tag = db.GetConnectionInfoFor(CurrentDataSet.ConnectionInfo, user)
                         };
                         mi3.Click += MenuItemOtherDatabaseNoUser_Click;
@@ -273,12 +273,12 @@ namespace Db2Source
                 }
                 else
                 {
-                    item.HeaderTemplate = Resources["ImageTables"] as DataTemplate;
+                    item.HeaderTemplate = FindResource("ImageTables") as DataTemplate;
                 }
             }
             else
             {
-                item.HeaderTemplate = Resources["ImageTable"] as DataTemplate;
+                item.HeaderTemplate = FindResource("ImageTable") as DataTemplate;
                 item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
             }
             item.ToolTip = node.Hint;

@@ -234,7 +234,7 @@ namespace Db2Source
 
         private void buttonOptions_Click(object sender, RoutedEventArgs e)
         {
-            ContextMenu menu = Resources["dropTableContextMenu"] as ContextMenu;
+            ContextMenu menu = FindResource("dropTableContextMenu") as ContextMenu;
             menu.PlacementTarget = buttonOptions;
             menu.Placement = PlacementMode.Bottom;
             menu.IsOpen = true;
@@ -243,7 +243,7 @@ namespace Db2Source
         private void menuItemDropTable_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropTable"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropTable"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

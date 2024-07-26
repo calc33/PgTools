@@ -33,7 +33,7 @@ namespace Db2Source
                 {
                     return _addField;
                 }
-                _addField = new Operation((string)Resources["AddFieldText"]);
+                _addField = new Operation((string)FindResource("AddFieldText"));
                 return _addField;
             }
         }
@@ -46,7 +46,7 @@ namespace Db2Source
                 {
                     return _deleteField;
                 }
-                _deleteField = new Operation((string)Resources["DeleteFieldText"]);
+                _deleteField = new Operation((string)FindResource("DeleteFieldText"));
                 return _deleteField;
             }
         }

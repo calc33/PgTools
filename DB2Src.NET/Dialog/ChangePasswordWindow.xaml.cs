@@ -113,7 +113,7 @@ namespace Db2Source
             UpdateIsPasswordMatched();
             if (!IsPasswordMatched)
             {
-                MessageBox.Show(this, (string)Resources["messageUnmatchedPasswords"], Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, (string)FindResource("messageUnmatchedPasswords"), Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
             QueryResultEventArgs arg = new QueryResultEventArgs();

@@ -164,7 +164,7 @@ namespace Db2Source
                 return;
             }
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)Resources["messageDropTablespace"], Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropTablespace"), Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

@@ -191,7 +191,7 @@ namespace Db2Source
         private void buttonOptions_Click(object sender, RoutedEventArgs e)
         {
             ContextMenu menu;
-            menu = (ContextMenu)Resources["dropSequenceContextMenu"];
+            menu = (ContextMenu)FindResource("dropSequenceContextMenu");
             menu.PlacementTarget = buttonOptions;
             menu.Placement = PlacementMode.Bottom;
             menu.IsOpen = true;
@@ -201,7 +201,7 @@ namespace Db2Source
         private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)Resources["messageDropSequence"], Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropSequence"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

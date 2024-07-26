@@ -44,7 +44,7 @@ namespace Db2Source
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             WindowLocator.AdjustMaxHeightToScreen(this);
-            dataGridColumnFontButton.CellTemplate = Resources["FontButtonTemplate"] as DataTemplate;
+            dataGridColumnFontButton.CellTemplate = FindResource("FontButtonTemplate") as DataTemplate;
         }
 
         private void Window_LocationChanged(object sender, EventArgs e)

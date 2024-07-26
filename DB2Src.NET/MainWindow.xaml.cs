@@ -215,7 +215,7 @@ namespace Db2Source
                 {
                     if (ch != c)
                     {
-                        throw new ArgumentException((string)Resources["InvalidIndentText"]);
+                        throw new ArgumentException((string)FindResource("InvalidIndentText"));
                     }
                 }
                 Indent = value.Length;
@@ -400,7 +400,7 @@ namespace Db2Source
             if (CurrentDataSet == null)
             {
                 Title = TitleBase;
-                treeViewItemTop.Header = (string)Resources["TreeViewItemTopHeader"];
+                treeViewItemTop.Header = (string)FindResource("TreeViewItemTopHeader");
                 treeViewItemTop.Items.Clear();
                 return;
             }
@@ -1704,7 +1704,7 @@ namespace Db2Source
             int idxByObj = menuItemFilterByObjectName.IsChecked ? 1 : 0;
             int idxByCol = menuItemFilterByColumnName.IsChecked ? 1 : 0;
             string resName = TextBoxFilterTooltipResourceKeyMap[idxByObj, idxByCol];
-            textBoxFilter.ToolTip = (string)Resources[resName];
+            textBoxFilter.ToolTip = (string)FindResource(resName);
             textBoxFilter.IsEnabled = TextBoxFilterEnabledMap[idxByObj, idxByCol];
             DelayedFilterTreeView();
         }
