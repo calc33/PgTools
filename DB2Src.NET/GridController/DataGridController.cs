@@ -9,6 +9,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -587,7 +588,7 @@ namespace Db2Source
             BindingOperations.SetBinding(this, UseRegexProperty, new Binding("MatchByRegex") { Source = MainWindow.Current });
         }
 
-        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader)
+        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader, CancellationToken cancellationToken)
         {
             int n = reader.FieldCount;
             Fields = new ColumnInfo[n];
@@ -607,6 +608,7 @@ namespace Db2Source
             while (reader.Read())
             {
                 rows.Add(new Row(this, reader));
+                cancellationToken.ThrowIfCancellationRequested();
             }
             await dispatcher.InvokeAsync(() =>
             {
@@ -614,6 +616,7 @@ namespace Db2Source
                 foreach (Row row in rows)
                 {
                     Rows.Add(row);
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 IsModified = false;
             });
@@ -658,7 +661,7 @@ namespace Db2Source
                 UpdateGrid();
             }
         }
-        public void Load(IDataReader reader, Table table)
+        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader, Table table, CancellationToken cancellationToken)
         {
             Table = table;
             try
@@ -684,7 +687,7 @@ namespace Db2Source
             }
             finally
             {
-                UpdateGrid();
+                await UpdateGridAsync(dispatcher, cancellationToken);
             }
         }
 
@@ -875,6 +878,10 @@ namespace Db2Source
             UpdateGridColumns();
             Grid.ItemsSource = null;
             Grid.ItemsSource = Rows;
+        }
+        public async Task UpdateGridAsync(Dispatcher dispatcher, CancellationToken cancellationToken)
+        {
+            await dispatcher.InvokeAsync(UpdateGrid);
         }
 
         private void Grid_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Db2Source
@@ -99,7 +100,7 @@ namespace Db2Source
 
     public sealed class DataArray : ICollection<object>
     {
-        private object[] _data;
+        private readonly object[] _data;
         public DataArray(int length)
         {
             _data = new object[length];
@@ -482,8 +483,7 @@ namespace Db2Source
             {
                 return Environment.NewLine;
             }
-            string nl;
-            if (NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            if (NewLineRuleToNewLine.TryGetValue(NewLineRule, out string nl))
             {
                 return nl;
             }
@@ -496,8 +496,7 @@ namespace Db2Source
                 return value.ToString();
             }
             StringBuilder buf = new StringBuilder(value.Length);
-            string nl;
-            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out string nl))
             {
                 return value.ToString();
             }
@@ -536,8 +535,7 @@ namespace Db2Source
                 return value;
             }
             StringBuilder buf = new StringBuilder(value.Length);
-            string nl;
-            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out nl))
+            if (!NewLineRuleToNewLine.TryGetValue(NewLineRule, out string nl))
             {
                 return value;
             }
@@ -590,9 +588,9 @@ namespace Db2Source
                 {
                     buf.Append("null");
                 }
-                else if (p.Value is string)
+                else if (p.Value is string str)
                 {
-                    buf.Append(ToLiteralStr((string)p.Value));
+                    buf.Append(ToLiteralStr(str));
                 }
                 else
                 {
@@ -939,6 +937,8 @@ namespace Db2Source
         /// <returns></returns>
         public abstract SQLParts SplitSQL(string sql);
         //public abstract IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters);
+
+        public abstract Task<IDataReader> ExecuteReaderAsync(IDbCommand command, CancellationToken cancellationToken);
 
         public abstract string[] GetSQL(Table table, string prefix, string postfix, int indent, bool addNewline, bool includePrimaryKey);
         public abstract string[] GetSQL(View table, string prefix, string postfix, int indent, bool addNewline);
@@ -1600,8 +1600,7 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("type");
             }
-            DbType ret;
-            if (!TypeToDbType.TryGetValue(type, out ret))
+            if (!TypeToDbType.TryGetValue(type, out DbType ret))
             {
                 throw new ArgumentException();
             }

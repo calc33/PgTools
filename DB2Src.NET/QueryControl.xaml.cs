@@ -20,6 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using static Db2Source.QueryHistory;
 
 namespace Db2Source
 {
@@ -32,8 +33,6 @@ namespace Db2Source
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(QueryControl));
 
         private ParameterStoreCollection _parameters = new ParameterStoreCollection();
-        private string _historyPath = System.IO.Path.Combine(Db2SourceContext.AppDataDir, "History",
-            string.Format("{0:yyMMddHHmmss}-{1}.sql", DateTime.Now, System.Diagnostics.Process.GetCurrentProcess().Id));
         private void UpdateDataGridParameters()
         {
             dataGridParameters.ItemsSource = null;
@@ -43,9 +42,9 @@ namespace Db2Source
             ColumnDefinition c1 = gridSql.ColumnDefinitions[1];
             if (dataGridParameters.Visibility == Visibility.Visible)
             {
-                if (c1.Tag is GridLength)
+                if (c1.Tag is GridLength length)
                 {
-                    c1.Width = (GridLength)c1.Tag;
+                    c1.Width = length;
                     c1.Tag = null;
                 }
             }
@@ -139,19 +138,23 @@ namespace Db2Source
         }
         private LogListBoxItem NewLogListBoxItem(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos)
         {
-            LogListBoxItem item = new LogListBoxItem();
-            item.Time = DateTime.Now;
-            item.Status = status;
-            item.Message = text;
-            item.Query = query;
-            item.ErrorPosition = errorPos;
+            LogListBoxItem item = new LogListBoxItem
+            {
+                Time = DateTime.Now,
+                Status = status,
+                Message = text,
+                Query = query,
+                ErrorPosition = errorPos
+            };
             return item;
         }
         private ErrorListBoxItem NewErrorListBoxItem(string text, Tuple<int, int> errorPos)
         {
-            ErrorListBoxItem item = new ErrorListBoxItem();
-            item.Message = text;
-            item.ErrorPosition = errorPos;
+            ErrorListBoxItem item = new ErrorListBoxItem
+            {
+                Message = text,
+                ErrorPosition = errorPos
+            };
             return item;
         }
 
@@ -179,8 +182,7 @@ namespace Db2Source
 
         private void ListBoxErrors_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            ErrorListBoxItem item = sender as ErrorListBoxItem;
-            if (item == null)
+            if (!(sender is ErrorListBoxItem item))
             {
                 return;
             }
@@ -213,24 +215,114 @@ namespace Db2Source
             AddLog(e.Text, new QueryHistory.Query(e.Command), e.Status, false);
         }
 
-        private IDbCommand _currentCommand = null;
-        private CancellationTokenSource _cancellationToken = null;
-        private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls, int commandTimeout)
+        private QueryFaith _fetchingFaith = QueryFaith.Idle;
+        private readonly object _fetchingFaithLock = new object();
+        private DispatcherTimer _fetcingCooldownTimer = null;
+        private CancellationTokenSource _fetchingCancellation = null;
+
+        private void UpdateButtonFetch()
         {
-            _cancellationToken = new CancellationTokenSource();
+            buttonFetch.IsEnabled = (_fetchingFaith != QueryFaith.Startup);
+            if (_fetchingFaith != QueryFaith.Abortable)
+            {
+                buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageExec20");
+            }
+            else
+            {
+                buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageAbort20");
+            }
+        }
+
+        private void FetchingCooldownTimer_Timer(object sender, EventArgs e)
+        {
+            if (_fetcingCooldownTimer != null)
+            {
+                _fetcingCooldownTimer.Stop();
+                _fetcingCooldownTimer = null;
+            }
+            EndStartupFetching();
+        }
+
+        /// <summary>
+        /// クエリ実行開始状態にする(_fetchingFaith: Idle → Startup)
+        /// クエリ開始後1秒間は中断不可
+        /// </summary>
+        private void StartFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                if (_fetchingFaith != QueryFaith.Idle)
+                {
+                    return;
+                }
+                _fetchingFaith = QueryFaith.Startup;
+                _fetchingCancellation?.Dispose();
+                _fetchingCancellation = new CancellationTokenSource();
+            }
+            UpdateButtonFetch();
+            _fetcingCooldownTimer?.Stop();
+            _fetcingCooldownTimer = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Normal, FetchingCooldownTimer_Timer, Dispatcher);
+            _fetcingCooldownTimer.Start();
+        }
+
+        /// <summary>
+        /// クエリ中断可にする(クエリ実行開始後1秒間は中断不可)
+        /// _fetchingFaith: Startup → Abortable
+        /// </summary>
+        private void EndStartupFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                if (_fetchingFaith != QueryFaith.Startup)
+                {
+                    return;
+                }
+                _fetchingFaith = QueryFaith.Abortable;
+            }
+            Dispatcher.InvokeAsync(UpdateButtonFetch);
+        }
+
+        /// <summary>
+        /// クエリの実行を中断(_fetchingFaith: Abortableの時のみ中断可能)
+        /// </summary>
+        private void AbortFetching()
+        {
+            if (_fetchingFaith != QueryFaith.Abortable)
+            {
+                return;
+            }
+            _fetchingCancellation?.Cancel();
+            //CurrentDataSet.AbortQuery(cmd);
+        }
+
+        /// <summary>
+        /// クエリの実行が終了した(_fetchingFaith: Startup/Abortable→Ilde)
+        /// </summary>
+        private void EndFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                _fetchingFaith = QueryFaith.Idle;
+                _fetchingCancellation?.Dispose();
+                _fetchingCancellation = null;
+            }
+            Dispatcher.InvokeAsync(UpdateButtonFetch);
+        }
+
+        private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls)
+        {
             try
             {
                 await dispatcher.InvokeAsync(() =>
                 {
                     controller.Grid.ItemsSource = null;
                 });
-                using (IDbConnection conn = ctx.NewConnection(true, commandTimeout))
+                using (IDbConnection conn = ctx.NewConnection(true, 0))
                 {
                     bool aborted = false;
                     await dispatcher.InvokeAsync(() =>
                     {
-                        bool modified;
-                        Parameters = ParameterStoreCollection.GetParameterStores(sqls.ParameterNames, Parameters, out modified);
+                        Parameters = ParameterStoreCollection.GetParameterStores(sqls.ParameterNames, Parameters, out bool modified);
                         if (modified)
                         {
                             aborted = true;
@@ -261,66 +353,72 @@ namespace Db2Source
                         {
                             continue;
                         }
-                        IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn);
-                        ParameterStoreCollection stores = null;
-                        await Dispatcher.InvokeAsync(() =>
+                        using (IDbCommand cmd = ctx.GetSqlCommand(sql.SQL, Command_Log, conn))
                         {
-                            stores = ParameterStoreCollection.GetParameterStores(cmd, Parameters, out _);
-                        });
-                        DateTime start = DateTime.Now;
-                        QueryHistory.Query history = new QueryHistory.Query(cmd);
-                        try
-                        {
-                            _currentCommand = cmd;
-                            using (IDataReader reader = cmd.ExecuteReader())
+                            ParameterStoreCollection stores = null;
+                            await Dispatcher.InvokeAsync(() =>
                             {
-                                _currentCommand = null;
-                                await controller.LoadAsync(dispatcher, reader);
-                                if (0 <= reader.RecordsAffected)
+                                stores = ParameterStoreCollection.GetParameterStores(cmd, Parameters, out _);
+                            });
+                            DateTime start = DateTime.Now;
+                            Query history = new Query(cmd);
+                            try
+                            {
+                                using (IDataReader reader = await ctx.ExecuteReaderAsync(cmd, _fetchingCancellation.Token))
                                 {
-                                    await dispatcher.InvokeAsync(() =>
+                                    await controller.LoadAsync(dispatcher, reader, _fetchingCancellation.Token);
+                                    if (0 <= reader.RecordsAffected)
                                     {
-                                        AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
-                                    });
+                                        await dispatcher.InvokeAsync(() =>
+                                        {
+                                            AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
+                                        });
+                                    }
+                                    else if (0 < reader.FieldCount)
+                                    {
+                                        tabControlResult.SelectedItem = tabItemDataGrid;
+                                    }
                                 }
-                                else if (0 < reader.FieldCount)
-                                {
-                                    tabControlResult.SelectedItem = tabItemDataGrid;
-                                }
+                                ctx.History.AddHistory(history);
                             }
-                            ctx.History.AddHistory(history);
-                        }
-                        catch (OperationAbortedException)
-                        {
-                            await dispatcher.InvokeAsync(() =>
+                            catch (OperationAbortedException)
                             {
-                                AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
-                            });
-                        }
-                        catch (Exception t)
-                        {
-                            await dispatcher.InvokeAsync(() =>
+                                await dispatcher.InvokeAsync(() =>
+                                {
+                                    AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
+                                });
+                            }
+                            catch (OperationCanceledException)
                             {
-                                Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
-                                AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
-                                App.LogException(t);
-                                Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
-                            });
-                            return;
-                        }
-                        finally
-                        {
-                            _currentCommand = null;
-                            DateTime end = DateTime.Now;
-                            TimeSpan time = end - start;
-                            string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                            await dispatcher.InvokeAsync(() =>
+                                await dispatcher.InvokeAsync(() =>
+                                {
+                                    AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
+                                });
+                            }
+                            catch (Exception t)
                             {
-                                ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
-                                UpdateDataGridParameters();
-                                AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
-                                textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s);
-                            }, DispatcherPriority.Background);
+                                await dispatcher.InvokeAsync(() =>
+                                {
+                                    Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
+                                    AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
+                                    App.LogException(t);
+                                    Db2SrcDataSetController.ShowErrorPosition(t, textBoxSql, CurrentDataSet, sql.Offset);
+                                });
+                                return;
+                            }
+                            finally
+                            {
+                                DateTime end = DateTime.Now;
+                                TimeSpan time = end - start;
+                                string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+                                await dispatcher.InvokeAsync(() =>
+                                {
+                                    ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
+                                    UpdateDataGridParameters();
+                                    AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
+                                    textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s);
+                                }, DispatcherPriority.Background);
+                            }
                         }
                     }
                 }
@@ -330,16 +428,28 @@ namespace Db2Source
                     controller.UpdateGrid();
                 });
             }
+            catch(Exception t)
+            {
+                await dispatcher.InvokeAsync(() =>
+                {
+                    AddLog(CurrentDataSet.GetExceptionMessage(t), null, LogStatus.Error, true);
+                    App.LogException(t);
+                });
+                return;
+            }
             finally
             {
-                _cancellationToken.Dispose();
-                _cancellationToken = null;
+                EndFetching();
             }
         }
 
         private void UpdateDataGridResult(SQLParts sqls)
         {
-            Task _ = ExecuteSqlPartsAsync(Dispatcher.CurrentDispatcher, CurrentDataSet, DataGridControllerResult, sqls, App.Current.CommandTimeout);
+            StartFetching();
+            Dispatcher dispatcher = Dispatcher;
+            Db2SourceContext dataSet = CurrentDataSet;
+            DataGridController controller = DataGridControllerResult;
+            Task _ = ExecuteSqlPartsAsync(dispatcher, dataSet, controller, sqls);
         }
 
         private void Parameters_ParameterTextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -379,7 +489,6 @@ namespace Db2Source
             e.Handled = true;
         }
 
-        private bool _isFetching = false;
         private void Fetch()
         {
             Db2SourceContext ctx = CurrentDataSet;
@@ -405,39 +514,31 @@ namespace Db2Source
             UpdateDataGridResult(parts);
         }
 
-        private void AbortFetching()
-        {
-            _currentCommand?.Cancel();
-
-        }
-
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
-            if (!_isFetching)
+            switch (_fetchingFaith)
             {
-                _isFetching = true;
-                try
-                {
+                case QueryFaith.Idle:
                     Fetch();
-                }
-                catch
-                {
-                    _isFetching = false;
-                    throw;
-                }
-            }
-            else
-            {
-                AbortFetching();
+                    break;
+                case QueryFaith.Startup:
+                    break;
+                case QueryFaith.Abortable:
+                    AbortFetching();
+                    break;
+                default:
+                    break;
             }
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)
         {
             ParameterStoreCollection.AllParameters.ParameterTextChanged += Parameters_ParameterTextChanged;
-            DataGridControllerResult = new DataGridController();
-            //DataGridControllerResult.Context = CurrentDataSet;
-            DataGridControllerResult.Grid = dataGridResult;
+            DataGridControllerResult = new DataGridController
+            {
+                //Context = CurrentDataSet,
+                Grid = dataGridResult
+            };
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.Copy, listBoxLogCommandCopy_Executed));
             listBoxLog.CommandBindings.Add(new CommandBinding(ApplicationCommands.SelectAll, listBoxLogCommandSelAll_Executed));
             textBoxSql.CommandBindings.Add(new CommandBinding(QueryCommands.NormalizeSQL, textBoxSqlCommandNormalizeSql_Executed));
@@ -473,8 +574,10 @@ namespace Db2Source
 
         private void buttonHistory_Click(object sender, RoutedEventArgs e)
         {
-            HistoryWindow window = new HistoryWindow();
-            window.Owner = Window.GetWindow(this);
+            HistoryWindow window = new HistoryWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
             bool? ret = window.ShowDialog();
             if (!ret.HasValue || !ret.Value)
             {

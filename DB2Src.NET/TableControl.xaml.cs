@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,6 +20,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using static Db2Source.QueryHistory;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Db2Source
 {
@@ -317,38 +320,6 @@ namespace Db2Source
                 flag = (int.TryParse(textBoxLimitRow.Text, out n) && (n <= DataGridControllerResult.Rows.Count));
             }
             textBlockWarningLimit.Visibility = flag ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        private void UpdateDataGridResult(IDbCommand command)
-        {
-            dataGridResult.CancelEdit();
-            if (Target == null)
-            {
-                return;
-            }
-            DateTime start = DateTime.Now;
-            try
-            {
-                IDataReader reader = null;
-                try
-                {
-                    reader = command.ExecuteReader();
-                    DataGridControllerResult.Load(reader, Target);
-                }
-                catch (Exception t)
-                {
-                    Db2SourceContext ctx = Target.Context;
-                    ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, command);
-                    return;
-                }
-            }
-            finally
-            {
-                DateTime end = DateTime.Now;
-                TimeSpan time = end - start;
-                string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", DataGridControllerResult.Rows.Count, s);
-            }
         }
 
         private static bool IsChecked(CheckBox checkBox)
@@ -666,31 +637,199 @@ namespace Db2Source
             Dispatcher.InvokeAsync(UpdateTextBoxTemplateSql, DispatcherPriority.ApplicationIdle);
         }
 
+        private bool _inAutoFetching = false;
+
         private void AutoFetch()
         {
             if (!(checkBoxAutoFetch.IsChecked ?? false))
             {
                 return;
             }
-            // 10秒以上かかったら次回からは「起動時に検索」のチェックを外す
-            DateTime timeLimit = DateTime.Now.AddSeconds(10);
+            _inAutoFetching = true;
+            Fetch();
+        }
+        private bool _fetched = false;
+        private QueryFaith _fetchingFaith = QueryFaith.Idle;
+        private readonly object _fetchingFaithLock = new object();
+        private DispatcherTimer _fetcingCooldownTimer = null;
+        private CancellationTokenSource _fetchingCancellation = null;
+
+        private void UpdateButtonFetch()
+        {
+            buttonFetch.IsEnabled = (_fetchingFaith != QueryFaith.Startup);
+            if (_fetchingFaith != QueryFaith.Abortable)
+            {
+                buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageSearch20");
+            }
+            else
+            {
+                buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageAbort20");
+            }
+        }
+
+        private void FetchingCooldownTimer_Timer(object sender, EventArgs e)
+        {
+            _fetcingCooldownTimer?.Stop();
+            _fetcingCooldownTimer = null;
+            EndStartupFetching();
+        }
+
+        /// <summary>
+        /// クエリ実行開始状態にする(_fetchingFaith: Idle → Startup)
+        /// クエリ開始後1秒間は中断不可
+        /// </summary>
+        private void StartFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                if (_fetchingFaith != QueryFaith.Idle)
+                {
+                    return;
+                }
+                _fetchingFaith = QueryFaith.Startup;
+                _fetchingCancellation?.Dispose();
+                _fetchingCancellation = new CancellationTokenSource();
+            }
+            UpdateButtonFetch();
+            _fetcingCooldownTimer?.Stop();
+            _fetcingCooldownTimer = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Normal, FetchingCooldownTimer_Timer, Dispatcher);
+            _fetcingCooldownTimer.Start();
+        }
+
+        /// <summary>
+        /// クエリ中断可にする(クエリ実行開始後1秒間は中断不可)
+        /// _fetchingFaith: Startup → Abortable
+        /// </summary>
+        private void EndStartupFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                if (_fetchingFaith != QueryFaith.Startup)
+                {
+                    return;
+                }
+                _fetchingFaith = QueryFaith.Abortable;
+            }
+            Dispatcher.InvokeAsync(UpdateButtonFetch);
+        }
+
+        /// <summary>
+        /// クエリの実行を中断(_fetchingFaith: Abortableの時のみ中断可能)
+        /// </summary>
+        private void AbortFetching()
+        {
+            if (_fetchingFaith != QueryFaith.Abortable)
+            {
+                return;
+            }
+            _fetchingCancellation?.Cancel();
+            //CurrentDataSet.AbortQuery(cmd);
+        }
+
+        /// <summary>
+        /// クエリの実行が終了した(_fetchingFaith: Startup/Abortable→Ilde)
+        /// </summary>
+        private void EndFetching()
+        {
+            lock (_fetchingFaithLock)
+            {
+                _fetchingFaith = QueryFaith.Idle;
+
+                _fetchingCancellation?.Dispose();
+                _fetchingCancellation = null;
+
+                _fetcingCooldownTimer?.Stop();
+                _fetcingCooldownTimer = null;
+            }
+            Dispatcher.InvokeAsync(UpdateButtonFetch);
+            _inAutoFetching = false;
+        }
+
+        private async Task ExecuteCommandAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table, IDbCommand command)
+        {
+            DateTime start = DateTime.Now;
             try
             {
-                Fetch();
+                using (IDataReader reader = await dataSet.ExecuteReaderAsync(command, _fetchingCancellation.Token))
+                {
+                    await controller.LoadAsync(dispatcher, reader, table, _fetchingCancellation.Token);
+                }
+            }
+            catch (Exception t)
+            {
+                await dispatcher.InvokeAsync(() =>
+                {
+                    dataSet.OnLog(dataSet.GetExceptionMessage(t), LogStatus.Error, command);
+                });
+                return;
             }
             finally
             {
-                Dispatcher.InvokeAsync(() =>
+                DateTime end = DateTime.Now;
+                TimeSpan time = end - start;
+                await dispatcher.InvokeAsync(() =>
                 {
-                    if (timeLimit < DateTime.Now)
-                    {
-                        checkBoxAutoFetch.IsChecked = false;
-                        _setting.Save(this);
-                    }
-                }, DispatcherPriority.ApplicationIdle);
+                    string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+                    textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", controller.Rows.Count, s);
+                });
+                command.Dispose();
             }
         }
-        private bool _fetched = false;
+
+        private async Task ExecuteSqlAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table,string sql, int offset)
+        {
+            DateTime start = DateTime.Now;
+            try
+            {
+                using (IDbConnection conn = dataSet.NewConnection(true, 0))
+                {
+                    using (IDbCommand cmd = dataSet.GetSqlCommand(sql, null, conn))
+                    {
+                        try
+                        {
+                            await ExecuteCommandAsync(dispatcher, dataSet, controller, table, cmd);
+                        }
+                        catch (Exception t)
+                        {
+                            await dispatcher.InvokeAsync(() =>
+                            {
+                                dataSet.OnLog(dataSet.GetExceptionMessage(t), LogStatus.Error, cmd);
+                                Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, dataSet, offset);
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception t)
+            {
+                await dispatcher.InvokeAsync(() =>
+                {
+                    dataSet.OnLog(dataSet.GetExceptionMessage(t), LogStatus.Error, null);
+                });
+            }
+            finally
+            {
+                await dispatcher.InvokeAsync(UpdateTextBlockWarningLimit);
+                if (_inAutoFetching)
+                {
+                    DateTime end = DateTime.Now;
+                    TimeSpan time = end - start;
+                    // 「起動時に検索」で10秒以上かかったら次回からは「起動時に検索」のチェックを外す
+                    if (10 < time.TotalSeconds || _fetchingCancellation.IsCancellationRequested)
+                    {
+                        await Dispatcher.InvokeAsync(() =>
+                        {
+                            checkBoxAutoFetch.IsChecked = false;
+                            _setting.Save(this);
+                        });
+                    }
+                }
+                EndFetching();
+                GC.Collect(0);
+            }
+            _fetched = true;
+        }
+
         public void Fetch(string condition)
         {
             textBoxCondition.Text = condition;
@@ -743,35 +882,13 @@ namespace Db2Source
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
             string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80);
-            try
-            {
-                using (IDbConnection conn = ctx.NewConnection(true))
-                {
-                    using (IDbCommand cmd = ctx.GetSqlCommand(sql, null, conn))
-                    {
-                        try
-                        {
-                            UpdateDataGridResult(cmd);
-                        }
-                        catch (Exception t)
-                        {
-                            ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, cmd);
-                            Db2SrcDataSetController.ShowErrorPosition(t, textBoxCondition, ctx, offset);
-                        }
-                    }
-                }
-            }
-            catch (Exception t)
-            {
-                ctx.OnLog(ctx.GetExceptionMessage(t), LogStatus.Error, null);
-            }
-            finally
-            {
-                UpdateTextBlockWarningLimit();
-                GC.Collect(0);
-            }
-            _fetched = true;
+            StartFetching();
+            Dispatcher dispatcher = Dispatcher;
+            DataGridController controller = DataGridControllerResult;
+            Table table = Target;
+            Task _ = ExecuteSqlAsync(dispatcher, ctx, controller, table, sql, offset);
         }
+
         private void TryRefetch()
         {
             if (!_fetched)
@@ -817,7 +934,19 @@ namespace Db2Source
 
         private void buttonFetch_Click(object sender, RoutedEventArgs e)
         {
-            Fetch();
+            switch (_fetchingFaith)
+            {
+                case QueryFaith.Idle:
+                    Fetch();
+                    break;
+                case QueryFaith.Startup:
+                    break;
+                case QueryFaith.Abortable:
+                    AbortFetching();
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void checkBoxSource_Checked(object sender, RoutedEventArgs e)

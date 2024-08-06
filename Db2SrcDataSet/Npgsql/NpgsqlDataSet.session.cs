@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Npgsql;
 
@@ -126,6 +127,12 @@ namespace Db2Source
                 }
             }
             return null;
+        }
+        public override async Task<IDataReader> ExecuteReaderAsync(IDbCommand command, CancellationToken cancellationToken)
+        {
+            NpgsqlCommand cmd = command as NpgsqlCommand;
+            NpgsqlDataReader reader = await cmd.ExecuteReaderAsync(cancellationToken);
+            return reader;
         }
     }
 }

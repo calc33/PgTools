@@ -181,6 +181,7 @@
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ParameterStoreCollection.cs" />
+    <Compile Include="QueryFaith.cs" />
     <Compile Include="SelectSchemaTreeViewControl.xaml.cs">
       <DependentUpon>SelectSchemaTreeViewControl.xaml</DependentUpon>
     </Compile>
