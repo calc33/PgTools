@@ -234,6 +234,22 @@
                     <TextBlock Grid.Row="1" Text="実行" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
                 </Grid>
             </DataTemplate>
+            <DataTemplate x:Key="ImageAbort20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Canvas Grid.Row="0" Width="20" Height="20" HorizontalAlignment="Center" >
+                        <Rectangle Fill="#CC3333" Canvas.Left="4" Canvas.Top="4" Width="12" Height="12">
+                            <Rectangle.Stroke>
+                                <ImageBrush/>
+                            </Rectangle.Stroke>
+                        </Rectangle>
+                    </Canvas>
+                    <TextBlock Grid.Row="1" Text="中断" HorizontalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}"/>
+                </Grid>
+            </DataTemplate>
             <DataTemplate x:Key="ImageDropDown6">
                 <Canvas Width="6" Height="4" HorizontalAlignment="Center" VerticalAlignment="Center">
                     <Path Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" Data="M0,0 L6,0 L3,4 z"/>
