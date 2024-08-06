@@ -2874,7 +2874,9 @@ namespace Db2Source
                     IsCurrent = IsCurrent,
                     Version = version,
                     VersionNum = new int[] { v / 10000, v % 10000 },
-                    IsTemplate = datistemplate
+                    IsTemplate = datistemplate,
+                    LcCollate = datcollate,
+                    LcCtype = datctype
                 };
                 return ret;
             }
@@ -3488,8 +3490,6 @@ namespace Db2Source
                 {
                     l.Add(s.ToPgsqlSetting(Context));
                 }
-                db.LcCtype = l["lc_ctype"]?.Setting;
-                db.LcCollate = l["lc_collate"]?.Setting;
             }
 
             private void LoadFromPgRoles()
