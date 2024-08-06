@@ -153,8 +153,7 @@ namespace Db2Source
 
         protected internal override bool IsHiddenSchema(string schemaName)
         {
-            bool ret;
-            if (HiddenSchemaNames.TryGetValue(schemaName, out ret))
+            if (HiddenSchemaNames.TryGetValue(schemaName, out bool ret))
             {
                 return ret;
             }
@@ -292,8 +291,7 @@ namespace Db2Source
                 buf.Append(pName);
                 buf.Append("::");
                 buf.Append(p.BaseType);
-                NpgsqlDbType t;
-                if (!TypeToDbType.TryGetValue(p.ValueType, out t))
+                if (!TypeToDbType.TryGetValue(p.ValueType, out NpgsqlDbType t))
                 {
                     t = NpgsqlDbType.Text;
                 }
@@ -361,8 +359,7 @@ namespace Db2Source
             {
                 t = t.GetGenericArguments()[0];
             }
-            NpgsqlDbType dbt;
-            if (!TypeToDbType.TryGetValue(t, out dbt))
+            if (!TypeToDbType.TryGetValue(t, out NpgsqlDbType dbt))
             {
                 dbt = NpgsqlDbType.Text;
             }
@@ -377,9 +374,9 @@ namespace Db2Source
             using (IDbCommand cmd = GetSqlCommand("select " + expression, null, connection))
             {
                 object v = cmd.ExecuteScalar();
-                if (v is DateTime && ((DateTime)v).Kind == DateTimeKind.Utc)
+                if (v is DateTime time && time.Kind == DateTimeKind.Utc)
                 {
-                    v = ((DateTime)v).ToLocalTime();
+                    v = time.ToLocalTime();
                 }
                 return v;
             }
@@ -571,8 +568,7 @@ namespace Db2Source
         private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool noNewLine, bool addNewline)
         {
             string spc = GetIndent(indent);
-            string flds, prms;
-            GetInsertColumnsByParamsSql(table, indent + 1, noNewLine ? int.MaxValue : charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, noNewLine ? int.MaxValue : charPerLine, out string flds, out string prms);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
@@ -763,8 +759,7 @@ namespace Db2Source
             string prefix = " set";
             foreach (Column c in table.Columns)
             {
-                ColumnInfo info;
-                if (!name2col.TryGetValue(c.Name, out info))
+                if (!name2col.TryGetValue(c.Name, out ColumnInfo info))
                 {
                     continue;
                 }
@@ -780,8 +775,7 @@ namespace Db2Source
             string prefixAnd = Db2SourceContext.IndentText + "and ";
             foreach (string c in table.PrimaryKey.Columns)
             {
-                ColumnInfo info;
-                if (!name2col.TryGetValue(c, out info))
+                if (!name2col.TryGetValue(c, out ColumnInfo info))
                 {
                     continue;
                 }
@@ -871,8 +865,7 @@ namespace Db2Source
             buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, table.PrimaryKey));
             buf.Append(spc);
             buf.AppendLine("when not matched then insert (");
-            string flds, prms;
-            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out flds, out prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out string flds, out string prms);
             buf.AppendLine(flds);
             buf.Append(spc);
             buf.AppendLine(") values (");
@@ -1155,8 +1148,7 @@ namespace Db2Source
 
         public override SchemaObject[] GetStrongReferred(SchemaObject target)
         {
-            Table tbl = target as Table;
-            if (tbl == null)
+            if (!(target is Table tbl))
             {
                 return NoSchemas;
             }

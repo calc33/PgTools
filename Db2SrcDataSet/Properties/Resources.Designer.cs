@@ -418,7 +418,7 @@ namespace Db2Source.DataSet.Properties {
         ///   select
         ///  pid, datname, usename, application_name,
         ///  client_hostname, host(client_addr) as client_addr, client_port,
-        ///  wait_event_type, wait_event, &quot;state&quot;, query
+        ///  wait_event_type, wait_event, &quot;state&quot;
         ///from pg_catalog.pg_stat_activity
         /// に類似しているローカライズされた文字列を検索します。
         /// </summary>

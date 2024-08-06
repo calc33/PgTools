@@ -99,11 +99,7 @@ namespace Db2Source
         {
             string s = command.CommandText.TrimEnd();
             
-            Sql sql = _sqlList.FindBySql(s);
-            if (sql == null)
-            {
-                sql = new Sql(s);
-            }
+            Sql sql = _sqlList.FindBySql(s) ?? new Sql(s);
             return new Query(sql, command.Parameters);
         }
         public Query AddHistory(Query query)
@@ -187,10 +183,7 @@ namespace Db2Source
                     while (reader.Read())
                     {
                         Query query = new Query() { Id = reader.GetInt64(idxId), Sql = _sqlList.FindById(reader.GetInt64(idxSqlId)), LastExecuted = DateTime.FromOADate(reader.GetDouble(idxLastEx)) };
-                        if (list != null)
-                        {
-                            list.Add(query);
-                        }
+                        list?.Add(query);
                         if (paramDict != null)
                         {
                             paramDict[query.Id] = new List<Parameter>();
@@ -246,8 +239,7 @@ namespace Db2Source
                         {
                             p.Value = DBNull.Value;
                         }
-                        List<Parameter> prms;
-                        if (paramDict.TryGetValue(p.SqlId, out prms))
+                        if (paramDict.TryGetValue(p.SqlId, out List<Parameter> prms))
                         {
                             prms.Add(p);
                         }
@@ -400,7 +392,7 @@ namespace Db2Source
 
         public class SqlCollection: IList<Sql>
         {
-            private QueryHistory _owner;
+            private readonly QueryHistory _owner;
             private List<Sql> _list = new List<Sql>();
             private Dictionary<long, Sql> _idToSql = null;
             private bool _isValid = false;
@@ -458,8 +450,7 @@ namespace Db2Source
             public Sql FindById(long id)
             {
                 Update();
-                Sql sql;
-                if (!_idToSql.TryGetValue(id, out sql))
+                if (!_idToSql.TryGetValue(id, out Sql sql))
                 {
                     return null;
                 }
@@ -924,15 +915,15 @@ namespace Db2Source
                     case DbType.Date:
                     case DbType.DateTime:
                     case DbType.DateTime2:
-                        if (value is DateTime)
+                        if (value is DateTime time)
                         {
-                            return ((DateTime)value).ToString(DateTimeFormat, CultureInfo.CurrentCulture);
+                            return time.ToString(DateTimeFormat, CultureInfo.CurrentCulture);
                         }
                         break;
                     case DbType.DateTimeOffset:
-                        if (value is DateTimeOffset)
+                        if (value is DateTimeOffset offset)
                         {
-                            return ((DateTimeOffset)value).ToString(DateTimeOffsetFormat, CultureInfo.CurrentCulture);
+                            return offset.ToString(DateTimeOffsetFormat, CultureInfo.CurrentCulture);
                         }
                         break;
                     //case DbType.Object:

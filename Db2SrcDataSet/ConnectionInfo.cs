@@ -43,10 +43,7 @@ namespace Db2Source
             Title = title;
             Category = category;
             Command = command;
-            if (owner != null)
-            {
-                owner.ExtraCommands.Add(this);
-            }
+            owner?.ExtraCommands.Add(this);
         }
     }
     public class ExtraCommandCollecion: IList<ExtraCommand>, IList
@@ -218,8 +215,7 @@ namespace Db2Source
         }
         public static Type GetConnectionInfoType(string databaseType)
         {
-            Type t;
-            if (!_databaseTypeToType.TryGetValue(databaseType, out t))
+            if (!_databaseTypeToType.TryGetValue(databaseType, out Type t))
             {
                 return null;
             }
@@ -227,8 +223,7 @@ namespace Db2Source
         }
         public static ConnectionInfo NewConnectionInfo(string databaseType)
         {
-            Type t;
-            if (!_databaseTypeToType.TryGetValue(databaseType, out t))
+            if (!_databaseTypeToType.TryGetValue(databaseType, out Type t))
             {
                 return null;
             }

@@ -282,10 +282,7 @@ namespace Db2Source
             }
             finally
             {
-                if (lockStream != null)
-                {
-                    lockStream.Dispose();
-                }
+                lockStream?.Dispose();
             }
         }
 
