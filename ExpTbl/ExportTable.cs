@@ -237,34 +237,13 @@ namespace Db2Source
             Environment.Exit(1);
         }
 
-        public static bool ShowExceptionRecursive(Exception t)
-        {
-            ShowException(t);
-            return true;
-        }
-
         public static void ShowException(Exception t)
         {
-            if (t == null)
+            foreach (string s in Db2SourceContext.GetExceptionMessages(t))
             {
-                return;
+                Console.Error.WriteLine(s);
             }
-            if (t is AggregateException)
-            {
-                AggregateException ae = (AggregateException)t;
-                ae.Handle(ShowExceptionRecursive);
-            }
-            else if (t is FileNotFoundException)
-            {
-                FileNotFoundException ft = (FileNotFoundException)t;
-                Console.Error.WriteLine(ft.FileName + ": " + ft.Message);
-                Console.Error.Flush();
-            }
-            else
-            {
-                Console.Error.WriteLine(t.Message);
-                Console.Error.Flush();
-            }
+            Console.Error.Flush();
         }
 
         private static string ReadPassword()
@@ -323,8 +302,9 @@ namespace Db2Source
                     IDbConnection conn = info.NewConnection(true);
                     return conn;
                 }
-                catch
+                catch(Exception t)
                 {
+                    ShowException(t);
                     info.Password = ReadPassword();
                 }
             }

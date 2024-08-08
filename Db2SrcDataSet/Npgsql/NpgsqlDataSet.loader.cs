@@ -2736,28 +2736,39 @@ namespace Db2Source
                 {
                     extra.Add("window");
                 }
-                //switch (provolatile)
-                //{
-                //    case 'i':
-                //        extra.Add("immutable");
-                //        break;
-                //    case 's':
-                //        extra.Add("stable");
-                //        break;
-                //}
+                switch (provolatile)
+                {
+                    case 'i':
+                        extra.Add("immutable");
+                        break;
+                    //case 'v':
+                    //    extra.Add("volatile");    // default option
+                    //    break;
+                    case 's':
+                        extra.Add("stable");
+                        break;
+                }
                 if (proleakproof)
                 {
                     extra.Add("leakproof");
                 }
-                //if (proisstrict)
+                if (proisstrict)
+                {
+                    //extra.Add("returns null on null input");
+                    extra.Add("strict");
+                }
+                //else
                 //{
-                //    //extra.Add("returns null on null input");
-                //    extra.Add("strict");
+                //    extra.Add("called on null input");    // default option
                 //}
                 if (prosecdef)
                 {
                     extra.Add("security definer");
                 }
+                //else
+                //{
+                //    extra.Add("security invoker");    // default option
+                //}
                 switch (proparallel)
                 {
                     case 's':
@@ -2766,6 +2777,9 @@ namespace Db2Source
                     case 'r':
                         extra.Add("parallel restricted");
                         break;
+                    //case 'u':
+                    //    extra.Add("parallel unsafe"); // default option
+                    //    break;
                 }
                 if (procost != GetDefaultCost())
                 {

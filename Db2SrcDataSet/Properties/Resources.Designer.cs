@@ -61,6 +61,24 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   無効な認証指定 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string _28000 {
+            get {
+                return ResourceManager.GetString("28000", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   パスワード認証に失敗しました に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string _28P01 {
+            get {
+                return ResourceManager.GetString("28P01", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select pg_client_encoding() に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ClientEncoding_SQL {

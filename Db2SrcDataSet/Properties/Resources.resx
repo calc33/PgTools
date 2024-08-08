@@ -235,4 +235,10 @@
   <data name="GetLastExecutedQuery_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\GetLastExecutedQuery_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="28000" xml:space="preserve">
+    <value>無効な認証指定</value>
+  </data>
+  <data name="28P01" xml:space="preserve">
+    <value>パスワード認証に失敗しました</value>
+  </data>
 </root>

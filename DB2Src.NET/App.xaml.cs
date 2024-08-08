@@ -148,11 +148,10 @@ namespace Db2Source
 
         public static string GetExceptionMessage(Exception t)
         {
-            StringBuilder buf = new StringBuilder(t.Message);
-            for (Exception ex = t.InnerException; ex != null; ex = ex.InnerException)
+            StringBuilder buf = new StringBuilder();
+            foreach (string s in Db2SourceContext.GetExceptionMessages(t))
             {
-                buf.AppendLine();
-                buf.Append(ex.Message);
+                buf.AppendLine(s);
             }
             return buf.ToString();
         }

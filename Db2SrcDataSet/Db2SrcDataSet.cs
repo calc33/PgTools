@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Npgsql;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -355,6 +356,55 @@ namespace Db2Source
                     stream.Write(b, 0, b.Length);
                 }
             }
+        }
+
+        private static void AddException(List<string> buffer, Exception exception)
+        {
+            if (exception == null)
+            {
+                return;
+            }
+            if (exception is AggregateException)
+            {
+                AggregateException ae = (AggregateException)exception;
+                foreach (Exception t in ae.InnerExceptions)
+                {
+                    AddException(buffer, t);
+                }
+                return;
+            }
+            string message = exception.Message;
+            if (exception is FileNotFoundException)
+            {
+                FileNotFoundException fe = (FileNotFoundException)exception;
+                message = fe.FileName + ": " + fe.Message;
+            }
+            else if (exception is PostgresException)
+            {
+                // 文字化けが発生していたらローカルで用意したメッセージを表示する
+                if (message.Contains((Encoding.UTF8.DecoderFallback as DecoderReplacementFallback).DefaultString))
+                {
+                    PostgresException pe = (PostgresException)exception;
+                    string state = pe.Data["SqlState"].ToString();
+                    if (!string.IsNullOrEmpty(state))
+                    {
+                        string s = DataSet.Properties.Resources.ResourceManager.GetString(state);
+                        if (!string.IsNullOrEmpty(s) && s != state)
+                        {
+                            message = s;
+                        }
+                    }
+                }
+            }
+            buffer.Add(message);
+            AddException(buffer, exception.InnerException);
+        }
+
+        public static string[] GetExceptionMessages(Exception exception)
+        {
+            List<string> list = new List<string>();
+            AddException(list, exception);
+            return list.ToArray();
         }
 
         public static string IndentText { get; set; } = "  ";
