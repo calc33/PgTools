@@ -24,7 +24,7 @@ namespace Db2Source
             {
                 throw new ArgumentException("名前のないコントロールはレジストリに保存できません");
             }
-            string rPath = string.Empty;
+            string rPath = Path;
             string cPath = cName;
             List<string> paths = new List<string>();
             FrameworkElement obj = control.Parent as FrameworkElement;
@@ -75,7 +75,7 @@ namespace Db2Source
             //Register(window, window, "Top", ValueNameStyle.Property, new Int32Operator());
             Register(window, window, "Width", ValueNameStyle.Property, new DoubleOperator());
             Register(window, window, "Height", ValueNameStyle.Property, new DoubleOperator());
-            Register(string.Empty, "Maximized", window, "WindowState", new WindowStateOperator());
+            Register(Path, "Maximized", window, "WindowState", new WindowStateOperator());
         }
         public void Register(FrameworkElement root, TabControl control)
         {
@@ -98,6 +98,13 @@ namespace Db2Source
             Register(root, control, "RowDefinitions", ValueNameStyle.Property, new RowDefinitionCollectionOperator());
             Register(root, control, "ColumnDefinitions", ValueNameStyle.Property, new ColumnDefinitionCollectionOperator());
         }
+        public RegistryBinding(Window window)
+        {
+            if (window != null)
+            {
+				Path = window.GetType().Name;
+			}
+		}
     }
 
     public class RowDefinitionCollectionOperator : IRegistryOperator

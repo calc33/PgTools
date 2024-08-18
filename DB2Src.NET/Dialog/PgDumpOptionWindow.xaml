@@ -32,25 +32,24 @@
                     <StackPanel>
                         <StackPanel Orientation="Horizontal" Margin="0,2" HorizontalAlignment="Left">
                             <ComboBox x:Name="comboBoxFormat" SelectedValuePath="Option" DisplayMemberPath="Text" SelectedIndex="0" MinWidth="80" SelectionChanged="comboBoxFormat_SelectionChanged">
-                                <local:PgDumpFormatOption Text="テキスト" Option="p" CanCompress="True" IsFile="True" DefaultExt=".sql" DialogFilter="SQL File(*.sql)|*.sql"/>
+                                <local:PgDumpFormatOption Text="テキスト" Option="p" CanCompress="False" IsFile="True" DefaultExt=".sql" DialogFilter="SQL File(*.sql)|*.sql"/>
                                 <local:PgDumpFormatOption Text="カスタム" Option="c" CanCompress="True" IsFile="True" DefaultExt=".pgdump" DialogFilter="カスタム(*.pgdump)|*.pgdump"/>
-                                <local:PgDumpFormatOption Text="ディレクトリ" Option="d" CanCompress="True" IsFile="False"/>
+                                <local:PgDumpFormatOption Text="ディレクトリ" Option="d" CanCompress="False" IsFile="False"/>
                                 <local:PgDumpFormatOption Text="tar形式" Option="t" CanCompress="False" IsFile="True" DefaultExt=".tar" DialogFilter="TARアーカイブ(*.tar)|*.tar"/>
                             </ComboBox>
-                            <CheckBox x:Name="checkBoxCompress" Content="圧縮する" VerticalAlignment="Center" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}" Margin="4,0,0,0"/>
-                            <TextBlock Text="レベル：" VerticalAlignment="Center" Margin="4,0,0,0" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}"/>
-                            <ComboBox x:Name="comboBoxCompressLevel" SelectedIndex="5" VerticalAlignment="Center" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}">
+                            <ComboBox x:Name="comboBoxCompressLevel" Margin="4,0,0,0" SelectedValue="-Z 5" VerticalAlignment="Center" IsEnabled="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat}" Foreground="{Binding SelectedItem.CanCompress, ElementName=comboBoxFormat, Converter={StaticResource IsEnabledToColorConverter}}" SelectedValuePath="Value" DisplayMemberPath="Text" MinWidth="100">
                                 <ComboBox.Items>
-                                    <sys:Int32>0</sys:Int32>
-                                    <sys:Int32>1</sys:Int32>
-                                    <sys:Int32>2</sys:Int32>
-                                    <sys:Int32>3</sys:Int32>
-                                    <sys:Int32>4</sys:Int32>
-                                    <sys:Int32>5</sys:Int32>
-                                    <sys:Int32>6</sys:Int32>
-                                    <sys:Int32>7</sys:Int32>
-                                    <sys:Int32>8</sys:Int32>
-                                    <sys:Int32>9</sys:Int32>
+                                    <local:PgDumpCompressOption Value="" Text="圧縮しない"/>
+                                    <local:PgDumpCompressOption Value="-Z 0" Text="圧縮レベル0"/>
+                                    <local:PgDumpCompressOption Value="-Z 1" Text="圧縮レベル1"/>
+                                    <local:PgDumpCompressOption Value="-Z 2" Text="圧縮レベル2"/>
+                                    <local:PgDumpCompressOption Value="-Z 3" Text="圧縮レベル3"/>
+                                    <local:PgDumpCompressOption Value="-Z 4" Text="圧縮レベル4"/>
+                                    <local:PgDumpCompressOption Value="-Z 5" Text="圧縮レベル5"/>
+                                    <local:PgDumpCompressOption Value="-Z 6" Text="圧縮レベル6"/>
+                                    <local:PgDumpCompressOption Value="-Z 7" Text="圧縮レベル7"/>
+                                    <local:PgDumpCompressOption Value="-Z 8" Text="圧縮レベル8"/>
+                                    <local:PgDumpCompressOption Value="-Z 9" Text="圧縮レベル9"/>
                                 </ComboBox.Items>
                             </ComboBox>
                             <TextBlock Text="エンコーディング：" VerticalAlignment="Center" Margin="4,0,0,0"/>
@@ -161,10 +160,6 @@
             </StackPanel>
         </StackPanel>
         <StackPanel DockPanel.Dock="Bottom">
-            <DockPanel x:Name="dockPanelInput">
-                <TextBlock Text="入力：" DockPanel.Dock="Left" Margin="8,0,0,0"/>
-                <TextBox x:Name="textBoxInput" KeyUp="textBoxInput_KeyUp" />
-            </DockPanel>
             <StackPanel HorizontalAlignment="Right">
                 <Button Content="閉じる" Padding="10,2" Margin="6" Click="Button_Click"/>
             </StackPanel>

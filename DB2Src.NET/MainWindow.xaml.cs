@@ -928,13 +928,12 @@ namespace Db2Source
             {
                 return;
             }
-            _registryBinding = new RegistryBinding();
+            _registryBinding = new RegistryBinding(this);
             _registryBinding.Register(this);
             _registryBinding.Register(this, gridBase);
             _registryBinding.Register(string.Empty, "Indent", this, "Indent", new Int32Operator());
             _registryBinding.Register(string.Empty, "IndentChar", this, "IndentChar", new StringOperator());
             _registryBinding.Register(string.Empty, "IndentOffset", this, "IndentOffset", new Int32Operator());
-            _registryBinding.Register(string.Empty, "Maximized", this, "WindowState", new WindowStateOperator());
             _registryBinding.Register(string.Empty, "CommandTimeout", this, "CommandTimeout", new Int32Operator());
         }
 

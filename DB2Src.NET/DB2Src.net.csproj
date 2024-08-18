@@ -161,6 +161,7 @@
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialog\PgDumpCompressOption.cs" />
     <Compile Include="GridController\Axis.cs" />
     <Compile Include="GridController\AxisCollection.cs" />
     <Compile Include="GridController\AxisEntry.cs" />
@@ -188,6 +189,7 @@
     <Compile Include="SortOrderItem.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.cs" />
     <Compile Include="UserSetting\SchemaObjectSetting.db.cs" />
+    <Compile Include="Windows\ShellUtil.cs" />
     <Compile Include="Windows\CsvConverter.cs" />
     <Compile Include="Dialog\ColumnItem.cs" />
     <Compile Include="Dialog\DateRangeKindItem.cs" />

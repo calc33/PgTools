@@ -103,7 +103,7 @@ namespace Db2Source
 
         }
 
-        private static string QuotedString(string value, char quoteChar, Dictionary<char, bool> escapedChars)
+        public static string QuotedString(string value, char quoteChar, Dictionary<char, bool> escapedChars)
         {
             if (string.IsNullOrEmpty(value))
             {

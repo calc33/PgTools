@@ -408,7 +408,7 @@ namespace Db2Source
         }
         private static RegistryBinding InitRegistryBinding()
         {
-            RegistryBinding binding = new RegistryBinding();
+            RegistryBinding binding = new RegistryBinding(null);
             binding.Register("Connection", "ServerName", typeof(App), "Hostname", new StringOperator());
             binding.Register("Connection", "ServerPort", typeof(App), "Port", new Int32Operator());
             binding.Register("Connection", "DatabaseName", typeof(App), "Database", new StringOperator());
@@ -420,7 +420,7 @@ namespace Db2Source
 
         public static RegistryBinding NewRegistryBinding(ConnectionInfo info)
         {
-            RegistryBinding binding = new RegistryBinding();
+            RegistryBinding binding = new RegistryBinding(null);
             NpgsqlConnectionInfo obj = info as NpgsqlConnectionInfo;
             binding.Register("Connection", "ServerName", obj, "ServerName", new StringOperator());
             binding.Register("Connection", "ServerPort", obj, "ServerPort", new Int32Operator());
@@ -430,7 +430,7 @@ namespace Db2Source
             return binding;
         }
 
-        private RegistryBinding SettingsBinding = new RegistryBinding();
+        private RegistryBinding SettingsBinding = new RegistryBinding(null);
 
         private void RegisterFontPackBinding(string path, FontPack fontPack)
         {

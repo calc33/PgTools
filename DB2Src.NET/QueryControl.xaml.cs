@@ -95,8 +95,8 @@ namespace Db2Source
             {
                 return;
             }
-            _registryBinding = new RegistryBinding();
-            Window window = Window.GetWindow(this);
+			Window window = Window.GetWindow(this);
+			_registryBinding = new RegistryBinding(window);
             _registryBinding.Register(window, gridVertical);
             _registryBinding.Register(window, gridSql);
         }

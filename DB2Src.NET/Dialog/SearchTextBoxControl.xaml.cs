@@ -764,7 +764,7 @@ namespace Db2Source
             }
         }
 
-        private RegistryBinding _registryBinding = new RegistryBinding();
+        private RegistryBinding _registryBinding = new RegistryBinding(null);
         private void InitRegistryBinding()
         {
             _registryBinding.Register("SearchText", "Keyword", textBoxSearch, "Text", new StringOperator());

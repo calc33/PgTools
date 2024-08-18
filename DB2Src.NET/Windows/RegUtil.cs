@@ -255,7 +255,12 @@ namespace Db2Source
             }
             Operator.Write(key, ValueName, Control, ControlProperty);
         }
-    }
+
+		public override string ToString()
+		{
+			return ValueName;
+		}
+	}
     public class ValueBindingCollection: IList<ValueBinding>
     {
         private List<ValueBinding> _list = new List<ValueBinding>();

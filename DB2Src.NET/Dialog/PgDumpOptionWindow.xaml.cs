@@ -18,6 +18,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using IO = System.IO;
 using Microsoft.Win32;
+using Db2Source.Windows;
 
 namespace Db2Source
 {
@@ -138,29 +139,14 @@ namespace Db2Source
             }
             return l.ToArray();
         }
-        private static string GetEscapedFileName(string path)
-        {
-            StringBuilder buf = new StringBuilder();
-            buf.Append('"');
-            foreach (char c in path)
-            {
-                if (c == '"')
-                {
-                    buf.Append(c);
-                }
-                buf.Append(c);
-            }
-            buf.Append('"');
-            return buf.ToString();
-        }
+
         private string _exportDir;
         private string _exportFile;
-        private string _exportBat;
         private string GetCommandLineArgs()
         {
             StringBuilder buf = new StringBuilder();
             NpgsqlConnectionInfo info = DataSet.ConnectionInfo as NpgsqlConnectionInfo;
-            buf.AppendFormat("-h {0} -p {1} -d {2} -U {3}", info.ServerName, info.ServerPort, info.DatabaseName, info.UserName);
+            buf.AppendFormat("-h {0} -p {1} -d {2} -U {3}", ShellUtil.TryQuote(info.ServerName), info.ServerPort, ShellUtil.TryQuote(info.DatabaseName), ShellUtil.TryQuote(info.UserName));
             string s = comboBoxEncoding.SelectedValue.ToString();
             if (!string.IsNullOrEmpty(s))
             {
@@ -170,7 +156,7 @@ namespace Db2Source
             if (!string.IsNullOrEmpty(_exportFile))
             {
                 buf.Append(" -f ");
-                buf.Append(GetEscapedFileName(_exportFile));
+                buf.Append(ShellUtil.TryQuote(_exportFile));
             }
             if (IsChecked(radioButtonExportSchema))
             {
@@ -186,10 +172,14 @@ namespace Db2Source
                 buf.Append(" -F");
                 buf.Append(fmt);
             }
-            if (checkBoxCompress.IsEnabled && IsChecked(checkBoxCompress))
+            if (comboBoxCompressLevel.IsEnabled)
             {
-                buf.Append(" -Z ");
-                buf.Append(comboBoxCompressLevel.Text);
+                s = comboBoxCompressLevel.SelectedValue.ToString();
+                if (!string.IsNullOrEmpty(s))
+                {
+                    buf.Append(' ');
+                    buf.Append(s);
+                }
             }
             if (IsChecked(checkBoxBlobs))
             {
@@ -272,13 +262,6 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        private Process _runningProcess;
-        private void UpdateButtonExportEnabled()
-        {
-            buttonExport.IsEnabled = (_runningProcess == null);
-            dockPanelInput.Visibility = (_runningProcess == null) ? Visibility.Collapsed : Visibility.Visible;
-        }
-
         private List<string> _outputBuffer = new List<string>();
         private object _outputBufferLock = new object();
         private void UpdateTextBoxLog()
@@ -299,36 +282,7 @@ namespace Db2Source
             }
             textBoxLog.ScrollToEnd();
         }
-        private void WaitForProcess()
-        {
-            try
-            {
-                if (_runningProcess == null)
-                {
-                    return;
-                }
-                _runningProcess.OutputDataReceived += RunningProcess_OutputDataReceived;
-                _runningProcess.ErrorDataReceived += RunningProcess_OutputDataReceived;
-                _runningProcess.BeginOutputReadLine();
-                _runningProcess.BeginErrorReadLine();
-                _runningProcess.WaitForExit();
-                lock (_outputBufferLock)
-                {
-                    _outputBuffer.Add((string)FindResource("messageProcessTerminated") + Environment.NewLine);
-                }
-                Dispatcher.InvokeAsync(UpdateTextBoxLog);
-            }
-            finally
-            {
-                _runningProcess = null;
-                Dispatcher.InvokeAsync(UpdateButtonExportEnabled);
-                IO.File.Delete(_exportBat);
-            }
-        }
-        private async Task WaitForProcessAsync()
-        {
-            await Task.Run((Action)WaitForProcess);
-        }
+
         private void RunningProcess_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
             //if (string.IsNullOrEmpty(e.Data))
@@ -396,38 +350,22 @@ namespace Db2Source
             {
                 return;
             }
-            buttonExport.IsEnabled = false;
-            try
+            string exe = ShellUtil.TryQuote(comboBoxPgDump.SelectedValue.ToString());
+            string cmd = string.Format("/k \"CHCP 65001 > NUL & {0} {1}\"", exe, GetCommandLineArgs());
+            ProcessStartInfo info = new ProcessStartInfo()
             {
-                _exportBat = IO.Path.Combine(_exportDir, "_dump.bat");
-                string cmd = "pg_dump " + GetCommandLineArgs();
-                textBoxLog.Clear();
-                textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
-                textBoxLog.AppendText(cmd + Environment.NewLine);
-                IO.File.WriteAllLines(_exportBat, new string[] { "@ECHO OFF", "CHCP 65001 > NUL:", cmd });
-                ProcessStartInfo info = new ProcessStartInfo()
-                {
-                    FileName = _exportBat,
-                    //Arguments = cmd,
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    //RedirectStandardError = false,
-                    RedirectStandardInput = true,
-                    StandardOutputEncoding = Encoding.UTF8,
-                    StandardErrorEncoding = Encoding.UTF8,
-                    WorkingDirectory = _exportDir
-                };
-                _runningProcess = Process.Start(info);
-                _ = WaitForProcessAsync();
-                SaveSettingsToConnectionInfo();
-                SaveSettingsToRegistry();
-            }
-            finally
-            {
-                UpdateButtonExportEnabled();
-            }
+                FileName = "cmd.exe",
+                Arguments = cmd,
+                CreateNoWindow = false,
+                UseShellExecute = true,
+                RedirectStandardOutput = false,
+                RedirectStandardError = false,
+                RedirectStandardInput = false,
+                WorkingDirectory = _exportDir
+            };
+            Process.Start(info);
+            SaveSettingsToConnectionInfo();
+            SaveSettingsToRegistry();
         }
 
         private void buttonCheckCommandLine_Click(object sender, RoutedEventArgs e)
@@ -436,10 +374,10 @@ namespace Db2Source
             {
                 return;
             }
-            string exe = comboBoxPgDump.SelectedValue.ToString();
+            string exe = ShellUtil.TryQuote(comboBoxPgDump.SelectedValue.ToString());
             string cmd = exe + " " + GetCommandLineArgs();
             textBoxLog.Clear();
-            textBoxLog.AppendText("cd " + _exportDir + Environment.NewLine);
+            textBoxLog.AppendText("cd " + ShellUtil.TryQuote(_exportDir) + Environment.NewLine);
             textBoxLog.AppendText(cmd + Environment.NewLine);
             SaveSettingsToConnectionInfo();
             SaveSettingsToRegistry();
@@ -549,32 +487,32 @@ namespace Db2Source
             {
                 return;
             }
-            _registryBinding = new RegistryBinding();
-            _registryBinding.Register(window);
-            _registryBinding.Register(window, comboBoxPgDump);
-            _registryBinding.Register(window, comboBoxFormat);
-            _registryBinding.Register(window, checkBoxCompress);
-            _registryBinding.Register(window, comboBoxCompressLevel);
-            _registryBinding.Register(window, textBoxPath);
-            _registryBinding.Register(window, textBoxDir);
-            //_registryBinding.Register(window, radioButtonExportAll);
-            _registryBinding.Register(window, checkBoxClean);
-            _registryBinding.Register(window, checkBoxCreate);
-            _registryBinding.Register(window, radioButtonSchema);
-            //_registryBinding.Register(window, wrapPanelSchemas);
-            //_registryBinding.Register(window, radioButtonTable);
-            //_registryBinding.Register(window, textBoxTables);
-            //_registryBinding.Register(window, radioButtonExcludeTable);
-            //_registryBinding.Register(window, textBoxExcludeTables);
-            //_registryBinding.Register(window, radioButtonExcludeTableData);
-            //_registryBinding.Register(window, textBoxExcludeTablesData);
-            _registryBinding.Register(window, checkBoxFoldOption);
-            _registryBinding.Register(window, checkBoxUseJob);
-            _registryBinding.Register(window, textBoxNumJobs);
-            _registryBinding.Register(window, checkBoxLockTimeout);
-            _registryBinding.Register(window, textBoxLockTimeout);
-            _registryBinding.Register(window, checkBoxBlobs);
-            _registryBinding.Register(window, checkBoxExportOid);
+            _registryBinding = new RegistryBinding(this);
+            _registryBinding.Register(this);
+            _registryBinding.Register(this, comboBoxPgDump);
+            _registryBinding.Register(this, comboBoxFormat);
+            //_registryBinding.Register(this, checkBoxCompress);
+            _registryBinding.Register(this, comboBoxCompressLevel);
+            _registryBinding.Register(this, textBoxPath);
+            _registryBinding.Register(this, textBoxDir);
+            //_registryBinding.Register(this, radioButtonExportAll);
+            _registryBinding.Register(this, checkBoxClean);
+            _registryBinding.Register(this, checkBoxCreate);
+            _registryBinding.Register(this, radioButtonSchema);
+            //_registryBinding.Register(this, wrapPanelSchemas);
+            //_registryBinding.Register(this, radioButtonTable);
+            //_registryBinding.Register(this, textBoxTables);
+            //_registryBinding.Register(this, radioButtonExcludeTable);
+            //_registryBinding.Register(this, textBoxExcludeTables);
+            //_registryBinding.Register(this, radioButtonExcludeTableData);
+            //_registryBinding.Register(this, textBoxExcludeTablesData);
+            _registryBinding.Register(this, checkBoxFoldOption);
+            _registryBinding.Register(this, checkBoxUseJob);
+            _registryBinding.Register(this, textBoxNumJobs);
+            _registryBinding.Register(this, checkBoxLockTimeout);
+            _registryBinding.Register(this, textBoxLockTimeout);
+            _registryBinding.Register(this, checkBoxBlobs);
+            _registryBinding.Register(this, checkBoxExportOid);
         }
         public RegistryBinding RegistryBinding
         {
@@ -726,7 +664,6 @@ namespace Db2Source
             WindowLocator.AdjustMaxHeightToScreen(this);
             InitComboBoxPgDump();
             UpdateWrapPanelSchemas();
-            UpdateButtonExportEnabled();
             UpdateComboBoxEncoding();
             LoadSettingsFromRegistry();
             LoadSettingsFromConnectionInfo();
@@ -735,20 +672,6 @@ namespace Db2Source
         private void window_LocationChanged(object sender, EventArgs e)
         {
             WindowLocator.AdjustMaxHeightToScreen(this);
-        }
-
-        private void textBoxInput_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                Process p = _runningProcess;
-                if (p != null)
-                {
-                    p.StandardInput.WriteLine(textBoxInput.Text);
-                    textBoxInput.Text = string.Empty;
-                }
-                e.Handled = true;
-            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
