@@ -654,7 +654,7 @@ namespace Db2Source
         private DispatcherTimer _fetcingCooldownTimer = null;
         private CancellationTokenSource _fetchingCancellation = null;
 
-        private void UpdateButtonFetch()
+        private void UpdateControlsIsEnabled()
         {
             buttonFetch.IsEnabled = (_fetchingFaith != QueryFaith.Startup);
             if (_fetchingFaith != QueryFaith.Abortable)
@@ -665,6 +665,7 @@ namespace Db2Source
             {
                 buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageAbort20");
             }
+            textBoxCondition.IsEnabled = (_fetchingFaith == QueryFaith.Idle);
         }
 
         private void FetchingCooldownTimer_Timer(object sender, EventArgs e)
@@ -690,7 +691,7 @@ namespace Db2Source
                 _fetchingCancellation?.Dispose();
                 _fetchingCancellation = new CancellationTokenSource();
             }
-            UpdateButtonFetch();
+            UpdateControlsIsEnabled();
             _fetcingCooldownTimer?.Stop();
             _fetcingCooldownTimer = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Normal, FetchingCooldownTimer_Timer, Dispatcher);
             _fetcingCooldownTimer.Start();
@@ -710,7 +711,7 @@ namespace Db2Source
                 }
                 _fetchingFaith = QueryFaith.Abortable;
             }
-            Dispatcher.InvokeAsync(UpdateButtonFetch);
+            Dispatcher.InvokeAsync(UpdateControlsIsEnabled);
         }
 
         /// <summary>
@@ -741,7 +742,7 @@ namespace Db2Source
                 _fetcingCooldownTimer?.Stop();
                 _fetcingCooldownTimer = null;
             }
-            Dispatcher.InvokeAsync(UpdateButtonFetch);
+            Dispatcher.InvokeAsync(UpdateControlsIsEnabled);
             _inAutoFetching = false;
         }
 

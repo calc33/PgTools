@@ -18,6 +18,7 @@ namespace Db2Source
         public static readonly DependencyProperty MessageProperty = DependencyProperty.Register("Message", typeof(string), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnMessagePropertyChanged)));
         public static readonly DependencyProperty QueryProperty = DependencyProperty.Register("Query", typeof(QueryHistory.Query), typeof(LogListBoxItem), new PropertyMetadata(new PropertyChangedCallback(OnQueryPropertyChanged)));
         public static readonly DependencyProperty ErrorPositionProperty = DependencyProperty.Register("ErrorPosition", typeof(Tuple<int,int>), typeof(LogListBoxItem));
+        public static readonly DependencyProperty IsQueryEditableProperty = DependencyProperty.Register("IsQueryEditable", typeof(bool), typeof(LogListBoxItem));
         public static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
         private static readonly Dictionary<LogStatus, Brush> LogStatusToBrush = new Dictionary<LogStatus, Brush>()
         {
@@ -85,6 +86,12 @@ namespace Db2Source
             {
                 SetValue(ErrorPositionProperty, value);
             }
+        }
+
+        public bool IsQueryEditable
+        {
+            get { return (bool)GetValue(IsQueryEditableProperty); }
+            set { SetValue(IsQueryEditableProperty, value); }
         }
 
         private void OnTimePropertyChanged(DependencyPropertyChangedEventArgs e)
@@ -163,6 +170,7 @@ namespace Db2Source
             buttonRedo.ToolTip = Properties.Resources.ButtonRedo_Tooltip;
             buttonRedo.Click += ButtonRedo_Click;
             buttonRedo.Visibility = Visibility.Collapsed;
+            buttonRedo.SetBinding(IsEnabledProperty, new Binding("IsQueryEditable") { Source = this });
             Grid.SetColumn(buttonRedo, 1);
             grid.Children.Add(buttonRedo);
 

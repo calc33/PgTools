@@ -20,6 +20,7 @@
         <sys:String x:Key="messageDropProcedure">ストアド手続きを削除します。削除したストアド手続きは元に戻せません。よろしいですか?</sys:String>
         <sys:String x:Key="messageDropFunction">ストアド関数を削除します。削除したストアド関数は元に戻せません。よろしいですか?</sys:String>
         <sys:String x:Key="messageExecuted">実行しました (所要時間 {0})</sys:String>
+        <sys:String x:Key="messageQueryAborted">中断しました</sys:String>
         <sys:String x:Key="messageRowsFound">{0}件見つかりました (所要時間 {1})</sys:String>
         <sys:String x:Key="messageRowsAffected">{0}行反映しました</sys:String>
         <sys:String x:Key="ParameterValueHeader">値</sys:String>
@@ -37,23 +38,9 @@
                 </Grid.RowDefinitions>
                 <DockPanel Margin="0,0,0,4">
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
-                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}">
-                                    <TextBlock Text="実行タイムアウト" Margin="2"/>
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBox x:Name="textBoxTimeout" MinWidth="50" Text="{Binding CommandTimeout, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Mode=TwoWay}" Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}" VerticalAlignment="Center" HorizontalContentAlignment="Right"/>
-                                        <TextBlock Text="秒 " Visibility="{Binding IsChecked, ElementName=buttonTimeoutSetting, Converter={StaticResource BooleanToVisibilityConverter}}" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <ToggleButton x:Name="buttonTimeoutSetting" ContentTemplate="{StaticResource ImageClock14}" VerticalAlignment="Bottom" ToolTip="ストアド関数の実行タイムアウト時間を設定" IsTabStop="False"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
                         <Button x:Name="buttonFetch" Padding="4,2" HorizontalContentAlignment="Center" ContentTemplate="{StaticResource ImageExec20}" Click="buttonFetch_Click" HorizontalAlignment="Left" VerticalAlignment="Top" MinWidth="40" MaxHeight="50" DockPanel.Dock="Right" Margin="2,0"/>
                     </StackPanel>
-                    <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False">
+                    <DataGrid x:Name="dataGridParameters" SelectionUnit="Cell" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" IsEnabled="{Binding IsQueryEditable, ElementName=userControl}">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="名前" IsReadOnly="True" Binding="{Binding ParameterName}"  MinWidth="64"/>
                             <DataGridCheckBoxColumn Header="Null" Binding="{Binding IsNull}"/>

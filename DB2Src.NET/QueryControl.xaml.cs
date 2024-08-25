@@ -31,6 +31,7 @@ namespace Db2Source
     {
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(QueryControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(QueryControl));
+        public static readonly DependencyProperty IsQueryEditableProperty = DependencyProperty.Register("IsQueryEditable", typeof(bool), typeof(QueryControl), new PropertyMetadata(true));
 
         private ParameterStoreCollection _parameters = new ParameterStoreCollection();
         private void UpdateDataGridParameters()
@@ -86,6 +87,12 @@ namespace Db2Source
             {
                 SetValue(DataGridControllerResultProperty, value);
             }
+        }
+
+        public bool IsQueryEditable
+        {
+            get { return (bool)GetValue(IsQueryEditableProperty); }
+            set { SetValue(IsQueryEditableProperty, value); }
         }
 
         private RegistryBinding _registryBinding = null;
@@ -146,6 +153,7 @@ namespace Db2Source
                 Query = query,
                 ErrorPosition = errorPos
             };
+            item.SetBinding(LogListBoxItem.IsQueryEditableProperty, new Binding("IsQueryEditable") { Source = this });
             return item;
         }
         private ErrorListBoxItem NewErrorListBoxItem(string text, Tuple<int, int> errorPos)
@@ -220,7 +228,7 @@ namespace Db2Source
         private DispatcherTimer _fetcingCooldownTimer = null;
         private CancellationTokenSource _fetchingCancellation = null;
 
-        private void UpdateButtonFetch()
+        private void UpdateControlsIsEnabled()
         {
             buttonFetch.IsEnabled = (_fetchingFaith != QueryFaith.Startup);
             if (_fetchingFaith != QueryFaith.Abortable)
@@ -231,6 +239,7 @@ namespace Db2Source
             {
                 buttonFetch.ContentTemplate = (DataTemplate)FindResource("ImageAbort20");
             }
+            IsQueryEditable = (_fetchingFaith == QueryFaith.Idle);
         }
 
         private void FetchingCooldownTimer_Timer(object sender, EventArgs e)
@@ -259,7 +268,7 @@ namespace Db2Source
                 _fetchingCancellation?.Dispose();
                 _fetchingCancellation = new CancellationTokenSource();
             }
-            UpdateButtonFetch();
+            UpdateControlsIsEnabled();
             _fetcingCooldownTimer?.Stop();
             _fetcingCooldownTimer = new DispatcherTimer(TimeSpan.FromSeconds(1.0), DispatcherPriority.Normal, FetchingCooldownTimer_Timer, Dispatcher);
             _fetcingCooldownTimer.Start();
@@ -279,7 +288,7 @@ namespace Db2Source
                 }
                 _fetchingFaith = QueryFaith.Abortable;
             }
-            Dispatcher.InvokeAsync(UpdateButtonFetch);
+            Dispatcher.InvokeAsync(UpdateControlsIsEnabled);
         }
 
         /// <summary>
@@ -306,7 +315,7 @@ namespace Db2Source
                 _fetchingCancellation?.Dispose();
                 _fetchingCancellation = null;
             }
-            Dispatcher.InvokeAsync(UpdateButtonFetch);
+            Dispatcher.InvokeAsync(UpdateControlsIsEnabled);
         }
 
         private async Task ExecuteSqlPartsAsync(Dispatcher dispatcher, Db2SourceContext ctx, DataGridController controller, SQLParts sqls)
