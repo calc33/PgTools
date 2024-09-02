@@ -109,6 +109,7 @@
     <Compile Include="Converter\IsErrorBrushConverter.cs" />
     <Compile Include="Converter\JoinKindToVisibilityConverter.cs" />
     <Compile Include="Converter\JoinTableCandidatesCountToEnabledConverter.cs" />
+    <Compile Include="Converter\LastConnectedConverter.cs" />
     <Compile Include="Converter\LevelWidthConverter.cs" />
     <Compile Include="Converter\MultiBooleanToVisibilityConverter.cs" />
     <Compile Include="Converter\NotNullTextConverter.cs" />

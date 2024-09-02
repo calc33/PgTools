@@ -237,6 +237,10 @@ namespace Db2Source
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
             Grid.SetRow(textBlockTitleColor, r);
             Grid.SetRow(stackPanelTitleColor, r);
+            r++;
+            GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+            Grid.SetRow(stackPanelLastConnected, r);
+            
             _lastTargetType = Target.GetType();
         }
 

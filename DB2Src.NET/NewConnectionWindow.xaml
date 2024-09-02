@@ -18,6 +18,7 @@
         <sys:String x:Key="deleteConnectionInfoCaption">削除</sys:String>
         <sys:String x:Key="deleteConnectionInfoMessage">{0}を削除します。よろしいですか。</sys:String>
         <!--<local:TreeViewConnectionSelector x:Key="TreeViewConnectionSelector"/>-->
+        <local:LastConnectedConverter x:Key="LastConnectedConverter"/>
         <Style x:Key="ToggleButtonStyle1" TargetType="{x:Type ToggleButton}">
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusVisual}"/>
             <Setter Property="Background" Value="{StaticResource Button.Static.Background}"/>
@@ -200,6 +201,7 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -217,6 +219,9 @@
                 <StackPanel x:Name="stackPanelTitleColor" Grid.Column="1" Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <Button x:Name="buttonTitleColor" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1" Width="40" VerticalAlignment="Stretch" Margin="2" Background="{Binding Target.BackgroundColor, Converter={StaticResource RGBToBrushConverter}, ElementName=window}" Click="buttonTitleColor_Click"/>
                     <CheckBox x:Name="checkBoxTitleColor" Content="既定値を使用" VerticalAlignment="Center" IsChecked="{Binding Target.UseDefaultBackgroundColor, ElementName=window}" Click="checkBoxTitleColor_Click"/>
+                </StackPanel>
+                <StackPanel x:Name="stackPanelLastConnected" Grid.Column="1" Grid.Row="3" Orientation="Horizontal">
+                    <TextBlock x:Name="textBlockLastConnected" Text="{Binding Target.LastConnected, ElementName=window, Converter={StaticResource LastConnectedConverter}, ConverterParameter=前回接続:\ ;yyyy/MM/dd\ HH:mm;(不明)}" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
                 </StackPanel>
             </Grid>
             <local:EquallyStackPanel HorizontalAlignment="Center" Orientation="Horizontal">
