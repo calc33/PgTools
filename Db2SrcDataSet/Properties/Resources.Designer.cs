@@ -301,6 +301,23 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select distinct rt.oid as source_oid, rv.oid as view_oid
+        ///from pg_class rt
+        ///  join pg_namespace nst on (rt.relnamespace = nst.oid)
+        ///  join pg_depend d on (d.refobjid = rt.oid and d.deptype = &apos;n&apos; and d.refobjsubid &lt;&gt; 0)
+        ///  join pg_rewrite rw on (d.objid = rw.oid)
+        ///  join pg_class rv on (rw.ev_class = rv.oid and rv.relkind in (&apos;v&apos;))
+        ///  join pg_namespace nsv on (rv.relnamespace = nsv.oid)
+        ///where rt.relkind in (&apos;r&apos;, &apos;v&apos;)
+        ///order by rt.oid, rv.oid に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgDepend_View_SQL {
+            get {
+                return ResourceManager.GetString("PgDepend_View_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select *
         ///from pg_catalog.pg_description に類似しているローカライズされた文字列を検索します。
         /// </summary>

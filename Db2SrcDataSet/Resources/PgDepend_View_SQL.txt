@@ -1,0 +1,6 @@
+select distinct d.refobjid as source_oid, rw.ev_class as view_oid
+from pg_depend d
+  join pg_rewrite rw on (d.objid = rw.oid)
+  join pg_class c on (d.refclassid = c.oid and c.relname in ('pg_class', 'pg_proc'))
+where d.deptype = 'n'
+order by d.refobjid, rw.ev_class

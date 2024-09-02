@@ -103,6 +103,11 @@ namespace Db2Source
             return Name;
         }
 
+        protected override int GetIdentifierDepth()
+        {
+            return 2;
+        }
+
         public string FullName
         {
             get
@@ -294,6 +299,10 @@ namespace Db2Source
         {
             return Schema.CollectionIndex.Objects;
         }
+
+        private static string[] EmptyStrArray = new string[0];
+        public string[] DependBy = EmptyStrArray;
+
         public override bool Equals(object obj)
         {
             if (!(obj is SchemaObject))

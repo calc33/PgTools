@@ -172,7 +172,7 @@ namespace Db2Source
         private static readonly string[] _settingControlNames = new string[] {
             "checkBoxDrop", "checkBoxSourceMain", "checkBoxSourceKeyCons", "checkBoxSourceRefCons", "checkBoxSourceCons",
             "checkBoxSourceComment", "checkBoxSourceTrigger", "checkBoxSourceIndex",
-            "checkBoxSourceReferredCons", "checkBoxSourceDropReferredCons", "checkBoxUpsert" };
+            "checkBoxSourceReferred", "checkBoxSourceDropReferred", "checkBoxUpsert" };
         public string[] SettingCheckBoxNames { get { return _settingControlNames; } }
 
         public DataGridController DataGridControllerResult
@@ -327,6 +327,56 @@ namespace Db2Source
             return checkBox.IsChecked.HasValue && checkBox.IsChecked.Value;
         }
 
+        private static void GetDropSQLByIdentifier(StringBuilder buffer, Db2SourceContext context, string identifier, Dictionary<string, bool> dropped)
+        {
+            if (dropped.ContainsKey(identifier))
+            {
+                return;
+            }
+            dropped[identifier] = true;
+            SchemaObject obj = context.Objects[identifier];
+            foreach (string id in obj.DependBy)
+            {
+                GetDropSQLByIdentifier(buffer, context, identifier, dropped);
+            }
+            if (obj is View view)
+            {
+                foreach (string s in context.GetDropSQL(view, true, string.Empty, ";", 0, false, true))
+                {
+                    buffer.Append(s);
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private static void GetSQLByIdenrtifier(StringBuilder buffer, Db2SourceContext context, string identifier, Dictionary<string, bool> created)
+        {
+            if (created.ContainsKey(identifier))
+            {
+                return;
+            }
+            created[identifier] = true;
+            SchemaObject obj = context.Objects[identifier];
+            if (obj is View view)
+            {
+                foreach (string s in context.GetSQL(view, string.Empty, ";", 0, true))
+                {
+                    buffer.Append(s);
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();    
+            }
+            foreach (string id in obj.DependBy)
+            {
+                GetSQLByIdenrtifier(buffer, context, identifier, created);
+            }
+        }
+
         private bool _isTextBoxSourceUpdating = false;
         private void UpdateTextBoxSource()
         {
@@ -345,7 +395,8 @@ namespace Db2Source
                 try
                 {
                     StringBuilder buf = new StringBuilder();
-                    if (IsChecked(checkBoxSourceDropReferredCons))
+                    int lastLength = buf.Length;
+                    if (IsChecked(checkBoxSourceDropReferred))
                     {
                         foreach (ForeignKeyConstraint f in Target.ReferFrom)
                         {
@@ -354,7 +405,12 @@ namespace Db2Source
                                 buf.Append(s);
                             }
                         }
-                        if (0 < buf.Length)
+                        Dictionary<string, bool> dropped = new Dictionary<string, bool>();
+                        foreach (string id in Target.DependBy)
+                        {
+                            GetDropSQLByIdentifier(buf, ctx, id, dropped);
+                        }
+                        if (lastLength < buf.Length)
                         {
                             buf.AppendLine();
                         }
@@ -376,7 +432,7 @@ namespace Db2Source
                     }
                     List<Constraint> list = new List<Constraint>(Target.Constraints);
                     list.Sort();
-                    int lastLength = buf.Length;
+                    lastLength = buf.Length;
                     foreach (Constraint c in list)
                     {
                         switch (c.ConstraintType)
@@ -479,7 +535,7 @@ namespace Db2Source
                             buf.AppendLine();
                         }
                     }
-                    if (IsChecked(checkBoxSourceReferredCons))
+                    if (IsChecked(checkBoxSourceReferred))
                     {
                         lastLength = buf.Length;
                         foreach (ForeignKeyConstraint f in Target.ReferFrom)
@@ -488,6 +544,11 @@ namespace Db2Source
                             {
                                 buf.Append(s);
                             }
+                        }
+                        Dictionary<string, bool> created = new Dictionary<string, bool>();
+                        foreach (string id in Target.DependBy)
+                        {
+                            GetSQLByIdenrtifier(buf, ctx, id, created);
                         }
                         if (lastLength < buf.Length)
                         {

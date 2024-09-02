@@ -429,8 +429,8 @@
                     <CheckBox x:Name="checkBoxSourceComment" Content="コメント" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceTrigger" Content="トリガー" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                     <CheckBox x:Name="checkBoxSourceIndex" Content="インデックス" IsChecked="True" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
-                    <CheckBox x:Name="checkBoxSourceReferredCons" Content="この表への参照" IsChecked="False" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
-                    <CheckBox x:Name="checkBoxSourceDropReferredCons" Content="この表への参照を削除" IsChecked="False" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceReferred" Content="この表への参照" IsChecked="False" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
+                    <CheckBox x:Name="checkBoxSourceDropReferred" Content="この表への参照を削除" IsChecked="False" VerticalAlignment="Center" Margin="2" Checked="checkBoxSource_Checked" Unchecked="checkBoxSource_Unchecked"/>
                 </WrapPanel>
                 <Grid>
                     <TextBox x:Name="textBoxSource" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Visible" IsReadOnly="True" IsReadOnlyCaretVisible="True" IsInactiveSelectionHighlightEnabled="True"

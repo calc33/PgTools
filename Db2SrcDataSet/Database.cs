@@ -141,6 +141,10 @@ namespace Db2Source
         {
             return Name;
         }
+        protected override int GetIdentifierDepth()
+        {
+            return 1;
+        }
 
         public virtual ConnectionInfo GetConnectionInfoFor(ConnectionInfo basedOn, string userName)
         {

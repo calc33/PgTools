@@ -46,6 +46,11 @@ namespace Db2Source
             return Name;
         }
 
+        protected override int GetIdentifierDepth()
+        {
+            return 1;
+        }
+
         public override bool HasBackup()
         {
             return _backup != null;

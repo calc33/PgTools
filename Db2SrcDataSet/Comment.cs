@@ -46,6 +46,11 @@ namespace Db2Source
             return Target;
         }
 
+        protected override int GetIdentifierDepth()
+        {
+            return 2;
+        }
+
         /// <summary>
         /// コメントが編集されていたらtrueを返す
         /// 変更を重ねて元と同じになった場合はfalseを返す
@@ -236,6 +241,10 @@ namespace Db2Source
         {
             return Db2SourceContext.JointIdentifier(Target, _column);
         }
+        protected override int GetIdentifierDepth()
+        {
+            return 3;
+        }
         public override ICommentable GetTarget()
         {
             Selectable o = Schema?.Objects[Target] as Selectable;
@@ -296,11 +305,11 @@ namespace Db2Source
         }
         protected override string GetFullIdentifier()
         {
-            return Target + "@" + Db2SourceContext.JointIdentifier(SchemaName, Owner);
+            return Db2SourceContext.JointIdentifier(SchemaName, Owner) + "@" + Target;
         }
         protected override string GetIdentifier()
         {
-            return Target + "@" + Owner;
+            return Owner + "@" + Target;
         }
         public override string EscapedTargetName(string baseSchemaName)
         {

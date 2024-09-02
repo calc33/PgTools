@@ -17,6 +17,11 @@ namespace Db2Source
             Schema = null;
         }
 
+        protected override int GetIdentifierDepth()
+        {
+            return 1;
+        }
+
         public override bool HasBackup()
         {
             return false;

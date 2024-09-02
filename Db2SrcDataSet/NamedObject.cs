@@ -24,6 +24,7 @@ namespace Db2Source
         }
         protected abstract string GetFullIdentifier();
         protected abstract string GetIdentifier();
+        protected abstract int GetIdentifierDepth();
         protected void InvalidateIdentifier()
         {
             IdentifierInvalidated?.Invoke(this, EventArgs.Empty);

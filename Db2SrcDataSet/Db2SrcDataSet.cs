@@ -654,13 +654,38 @@ namespace Db2Source
         {
             private readonly Db2SourceContext _owner;
             private readonly PropertyInfo _itemsProperty;
-            internal SchemaObjectCollection(Db2SourceContext owner, string itemsPropertyName)
+            private readonly int _identifierDepth;
+            internal SchemaObjectCollection(Db2SourceContext owner, string itemsPropertyName, int identifierDepth)
             {
                 _owner = owner;
                 _itemsProperty = typeof(Schema).GetProperty(itemsPropertyName);
+                _identifierDepth = identifierDepth;
                 if (_itemsProperty == null)
                 {
                     throw new ArgumentException(string.Format(DataSet.Db2srcDataSet.MessagePropertyNotFound, itemsPropertyName), "itemsPropertyName");
+                }
+            }
+            public T this[string schema, string table, string identifier]
+            {
+                get
+                {
+                    if (_identifierDepth < 3)
+                    {
+                        return null;
+                    }
+                    if (string.IsNullOrEmpty(table) || string.IsNullOrEmpty(identifier))
+                    {
+                        return null;
+                    }
+                    string s = string.IsNullOrEmpty(schema) ? _owner.CurrentSchema : schema;
+                    Schema sc = _owner.Schemas[s];
+                    if (sc == null)
+                    {
+                        return null;
+                    }
+                    NamedCollection objs = _itemsProperty.GetValue(sc) as NamedCollection;
+                    string id = JointIdentifier(table, identifier);
+                    return objs[id] as T;
                 }
             }
             public T this[string schema, string identifier]
@@ -698,6 +723,8 @@ namespace Db2Source
                             return this[null, s[0]];
                         case 2:
                             return this[s[0], s[1]];
+                        case 3:
+                            return this[s[0], s[1], s[2]];
                         default:
                             return null;
                     }
@@ -1662,15 +1689,15 @@ namespace Db2Source
         public Db2SourceContext(ConnectionInfo info)
         {
             ConnectionInfo = info;
-            Objects = new SchemaObjectCollection<SchemaObject>(this, "Objects");
-            Selectables = new SchemaObjectCollection<Selectable>(this, "Objects");
-            Tables = new SchemaObjectCollection<Table>(this, "Objects");
-            Views = new SchemaObjectCollection<View>(this, "Objects");
-            StoredFunctions = new SchemaObjectCollection<StoredFunction>(this, "Objects");
-            Comments = new SchemaObjectCollection<Comment>(this, "Comments");
-            Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints");
-            Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers");
-            Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences");
+            Objects = new SchemaObjectCollection<SchemaObject>(this, "Objects", 2);
+            Selectables = new SchemaObjectCollection<Selectable>(this, "Objects", 2);
+            Tables = new SchemaObjectCollection<Table>(this, "Objects", 2);
+            Views = new SchemaObjectCollection<View>(this, "Objects", 2);
+            StoredFunctions = new SchemaObjectCollection<StoredFunction>(this, "Objects", 2);
+            Comments = new SchemaObjectCollection<Comment>(this, "Comments", 2);
+            Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints", 2);
+            Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers", 3);
+            Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences", 2);
             SessionList = new SessionList(this, "Sessions");
             History = new QueryHistory(ConnectionInfo);
         }

@@ -99,6 +99,11 @@ namespace Db2Source
         {
             return Name;
         }
+        protected override int GetIdentifierDepth()
+        {
+            return 1;
+        }
+
         public void InvalidateColumns()
         {
             foreach (SchemaObject o in Objects)

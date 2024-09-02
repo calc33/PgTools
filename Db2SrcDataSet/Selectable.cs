@@ -35,6 +35,12 @@ namespace Db2Source
         {
             return Db2SourceContext.JointIdentifier(TableName, Name);
         }
+
+        protected override int GetIdentifierDepth()
+        {
+            return 3;
+        }
+
         private int _index;
         public int Index { get
             {

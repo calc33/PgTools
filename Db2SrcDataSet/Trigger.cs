@@ -270,11 +270,20 @@ namespace Db2Source
             return "Trigger";
         }
 
+        protected override string GetFullIdentifier()
+        {
+            return Db2SourceContext.JointIdentifier(TableSchema, TableName, Name);
+        }
         protected override string GetIdentifier()
         {
-            string s = Db2SourceContext.JointIdentifier(TableSchema, TableName);
-            return string.Format("{0}@{1}", Name, s);
+            return Db2SourceContext.JointIdentifier(TableName, Name);
         }
+
+        protected override int GetIdentifierDepth()
+        {
+            return 3;
+        }
+
         private TriggerTiming _timing;
         private string _timingText;
         private TriggerEvent _event;

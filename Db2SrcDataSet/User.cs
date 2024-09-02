@@ -145,6 +145,11 @@ namespace Db2Source
             return Id;
         }
 
+        protected override int GetIdentifierDepth()
+        {
+            return 1;
+        }
+
         public User(NamedCollection owner) : base(owner) { }
         public User(NamedCollection owner, User basedOn) : base(owner)
         {

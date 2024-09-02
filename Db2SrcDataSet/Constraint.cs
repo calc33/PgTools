@@ -50,6 +50,16 @@ namespace Db2Source
         {
             return "Constraint";
         }
+
+        protected override string GetFullIdentifier()
+        {
+            return Db2SourceContext.JointIdentifier(TableSchema, Name);
+        }
+        protected override string GetIdentifier()
+        {
+            return Name;
+        }
+
         public virtual ConstraintType ConstraintType { get; }
 
         //public override string Name

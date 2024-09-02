@@ -803,6 +803,9 @@ namespace Db2Source
 #pragma warning restore 0649
             //public abstract string Name { get; }
             public WeakReference<NamedObject> Generated;
+
+            public List<PgObject> DependBy = new List<PgObject>();
+
             public virtual void BeginFillReference(WorkingData working) { }
             public virtual void EndFillReference(WorkingData working) { }
             public abstract void FillReference(WorkingData working);
@@ -1105,6 +1108,13 @@ namespace Db2Source
                     }
                 }
                 v.InvalidateColumns();
+                List<string> l = new List<string>();
+                foreach (PgObject c in DependBy)
+                {
+                    l.Add(c.GetIdentifier(true));
+                }
+                l.Sort();
+                v.DependBy = l.ToArray();
                 Generated = new WeakReference<NamedObject>(v);
                 return v;
             }
@@ -1139,6 +1149,13 @@ namespace Db2Source
                     }
                 }
                 t.InvalidateColumns();
+                List<string> l = new List<string>();
+                foreach (PgObject c in DependBy)
+                {
+                    l.Add(c.GetIdentifier(true));
+                }
+                l.Sort();
+                t.DependBy = l.ToArray();
                 Generated = new WeakReference<NamedObject>(t);
                 return t;
             }
@@ -1690,7 +1707,7 @@ namespace Db2Source
             }
             public override string GetIdentifier(bool fullName)
             {
-                return fullName ? ToIdentifier(Schema?.nspname, Object?.relname, conname) : ToIdentifier(Object?.relname, conname);
+                return fullName ? ToIdentifier(Schema?.nspname, conname) : ToIdentifier(conname);
             }
 
             public override string ToString()
@@ -2058,83 +2075,112 @@ namespace Db2Source
                 return description;
             }
         }
-//        internal class PgDepend
-//        {
-//#pragma warning disable 0649
-//            public uint classid;
-//            public uint objid;
-//            public int objsubid;
-//            public uint refclassid;
-//            public uint refobjid;
-//            public int refobjsubid;
-//            public char deptype;
-//#pragma warning restore 0649
-//            public PgClass Object;
-//            public PgAttribute Attribute;
-//            public PgClass RefObject;
-//            public PgAttribute RefAttribute;
-//            public static PgDependCollection Depends;
-//            private const string SQL = "select classid, objid, objsubid, refclassid, refobjid, refobjsubid, deptype from pg_catalog.pg_depend";
-//            public static PgDependCollection Load(NpgsqlConnection connection, PgDependCollection store)
-//            {
-//                if (store == null)
-//                {
-//                    return new PgDependCollection(SQL, connection);
-//                }
-//                else
-//                {
-//                    store.Fill(SQL, connection, false);
-//                    return store;
-//                }
-//            }
-//            public static PgDependCollection Load(NpgsqlConnection connection)
-//            {
-//                Depends = new PgDependCollection(SQL, connection);
-//                return Depends;
-//            }
 
-//            public void FillReference(WorkingData working)
-//            {
-//                Object = null;
-//                Attribute = null;
-//                if (objsubid == 0)
-//                {
-//                    Object = working.PgClasses.FindByOid(objid);
-//                }
-//                else
-//                {
-//                    Attribute = working.PgAttributes.FindByOidNum(objid, objsubid);
-//                }
-//                RefObject = null;
-//                RefAttribute = null;
-//                if (objsubid == 0)
-//                {
-//                    RefObject = working.PgClasses.FindByOid(refobjid);
-//                }
-//                else
-//                {
-//                    RefAttribute = working.PgAttributes.FindByOidNum(refobjid, refobjsubid);
-//                }
-//            }
-//            public void BeginFillReference(WorkingData working) { }
-//            public void EndFillReference(WorkingData working) { }
-//            public Dependency ToDependency(WorkingData working)
-//            {
-//                SchemaObject obj = (Object.Generated as SchemaObject);
-//                SchemaObject robj = (RefObject.Generated as SchemaObject);
-//                if (obj == null || robj == null)
-//                {
-//                    return null;
-//                }
-//                return new Dependency(obj, robj);
-//                //if (obj is Index)
-//                //{
-//                //    return;
-//                //}
-//                //obj.ReferTo.Add(robj);
-//                //robj.ReferFrom.Add(obj);
-//            }
-//        }
+        internal class PgDependViewCollection : IReadOnlyList<PgDependView>
+        {
+            private readonly List<PgDependView> _items = new List<PgDependView>();
+
+            public void Fill(string sql, NpgsqlConnection connection, bool clearBeforeFill)
+            {
+                if (clearBeforeFill)
+                {
+                    _items.Clear();
+                }
+                using (NpgsqlCommand cmd = new NpgsqlCommand(sql, connection))
+                {
+                    LogDbCommand("PgDependViewCollection.Fill", cmd);
+                    try
+                    {
+                        using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            FieldInfo[] mapper = CreateMapper(reader, typeof(PgDependView));
+                            while (reader.Read())
+                            {
+                                PgDependView obj = new PgDependView();
+                                ReadObject(obj, reader, mapper);
+                                _items.Add(obj);
+                            }
+                        }
+                    }
+                    catch (PostgresException t) when (t.SqlState == ERROR_CODE_PERMISSION_DENIED) { }
+                }
+            }
+            public void BeginFillReference(WorkingData working)
+            {
+            }
+            public void EndFillReference(WorkingData working)
+            {
+                foreach (PgDependView obj in _items)
+                {
+                    if (obj.Source != null && obj.View != null)
+                    {
+                        obj.Source.DependBy.Add(obj.View);
+                    }
+                }
+            }
+            public void FillReference(WorkingData working)
+            {
+                foreach (PgDependView obj in _items)
+                {
+                    obj.FillReference(working);
+                }
+            }
+
+            public PgDependViewCollection(string sql, NpgsqlConnection connection)
+            {
+                Fill(sql, connection, false);
+            }
+            public PgDependViewCollection() { }
+
+            #region IReadOnlyList の実装
+            public int Count
+            {
+                get
+                {
+                    return _items.Count;
+                }
+            }
+
+            public IEnumerator<PgDependView> GetEnumerator()
+            {
+                return _items.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return ((IEnumerable)_items).GetEnumerator();
+            }
+
+            public PgDependView this[int index] { get { return _items[index]; } }
+            #endregion
+        }
+
+        internal class PgDependView
+        {
+#pragma warning disable 0649
+            public uint source_oid;
+            public uint view_oid;
+#pragma warning restore 0649
+            public PgObject Source;
+            public PgClass View;
+            public static PgDependViewCollection Load(NpgsqlConnection connection, PgDependViewCollection store)
+            {
+                if (store == null)
+                {
+                    return new PgDependViewCollection(DataSet.Properties.Resources.PgDepend_View_SQL, connection);
+                }
+                else
+                {
+                    store.Fill(DataSet.Properties.Resources.PgDepend_View_SQL, connection, false);
+                    return store;
+                }
+            }
+            public void FillReference(WorkingData working)
+            {
+                Source = (PgObject)working.PgClasses.FindByOid(source_oid) ?? working.PgProcs.FindByOid(source_oid);
+                View = working.PgClasses.FindByOid(view_oid);
+            }
+        }
         internal class PgTrigger: PgObject
         {
 #pragma warning disable 0649
@@ -2201,6 +2247,11 @@ namespace Db2Source
                 }
                 //Schema = working.PgNamespaces.FindByOid(tg)
                 //throw new NotImplementedException();
+            }
+            public override void EndFillReference(WorkingData working)
+            {
+                Procedure.DependBy.Add(this);
+                base.EndFillReference(working);
             }
             private static readonly string[] TimingToText = new string[] { string.Empty, "before", "after", "instead of" };
             public Trigger ToTrigger(NpgsqlDataSet context)
@@ -2790,6 +2841,13 @@ namespace Db2Source
                     extra.Add(string.Format("rows {0}", prorows));
                 }
                 fn.ExtraInfo = extra.ToArray();
+                List<string> l = new List<string>();
+                foreach (PgObject c in DependBy)
+                {
+                    l.Add(c.GetIdentifier(true));
+                }
+                l.Sort();
+                fn.DependBy = l.ToArray();
                 Generated = new WeakReference<NamedObject>(fn);
                 return fn;
             }
@@ -3192,6 +3250,7 @@ namespace Db2Source
             public PgObjectCollection<PgProc> PgProcs;
             public PgObjectCollection<PgRole> PgRoles;
             public PgSettingCollection PgSettings;
+            public PgDependViewCollection PgDependViews;
             public void FillAll(NpgsqlConnection connection)
             {
                 Context.LoadEncodings(connection);
@@ -3210,6 +3269,7 @@ namespace Db2Source
                 //PgDepends = PgDepend.Load(connection, null);
                 PgRoles = PgRole.Load(connection, null);
                 PgSettings = PgSetting.Load(connection, null);
+                PgDependViews = PgDependView.Load(connection, null);
 
                 PgNamespaces.BeginFillReference(this);
                 PgTablespaces.BeginFillReference(this);
@@ -3224,6 +3284,7 @@ namespace Db2Source
                 //PgDepends.BeginFillReference(this);
                 PgRoles.BeginFillReference(this);
                 PgSettings.BeginFillReference(this);
+                PgDependViews.BeginFillReference(this);
 
                 PgNamespaces.FillReference(this);
                 PgTablespaces.FillReference(this);
@@ -3240,6 +3301,7 @@ namespace Db2Source
                 //PgDepends.FillReference(this);
                 PgRoles.FillReference(this);
                 PgSettings.FillReference(this);
+                PgDependViews.FillReference(this);
 
                 PgNamespaces.UpdateNameToItem();
                 PgTablespaces.UpdateNameToItem();
@@ -3254,6 +3316,7 @@ namespace Db2Source
                 //PgDepends.UpdateNameToItem();
                 PgRoles.UpdateNameToItem();
                 //PgSettings.UpdateNameToItem();
+                //PgDependViews.UpdateNameToItem();
 
                 PgNamespaces.EndFillReference(this);
                 PgTablespaces.EndFillReference(this);
@@ -3268,6 +3331,7 @@ namespace Db2Source
                 //PgDepends.EndFillReference(this);
                 PgRoles.EndFillReference(this);
                 PgSettings.EndFillReference(this);
+                PgDependViews.EndFillReference(this);
 
                 LoadFromPgNamespaces();
                 LoadFromPgTablespaces();
