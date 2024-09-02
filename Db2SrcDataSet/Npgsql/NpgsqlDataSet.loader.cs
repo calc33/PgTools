@@ -2272,7 +2272,7 @@ namespace Db2Source
                 string def = null;
                 if (Procedure != null)
                 {
-                    def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, Target.Schema?.nspname, true) + "()";
+                    def = "execute procedure " + context.GetEscapedIdentifier(Procedure.Schema?.nspname, Procedure.proname, null, true) + "()";
                 }
                 Trigger t = new Trigger(context, Target.ownername, Target.Schema?.nspname, tgname, Target.Schema?.nspname, Target.relname, def, true)
                 {
