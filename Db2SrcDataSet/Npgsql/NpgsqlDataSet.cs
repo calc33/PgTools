@@ -995,7 +995,12 @@ namespace Db2Source
             }
             StringBuilder bufC = new StringBuilder();
             bool needAnd = false;
-            foreach (ColumnInfo f in owner.KeyFields)
+            ColumnInfo[] columns = owner.KeyFields;
+            if (columns == null || columns.Length == 0)
+            {
+                columns = owner.Fields;
+            }
+            foreach (ColumnInfo f in columns)
             {
                 if (needAnd)
                 {
@@ -1034,14 +1039,19 @@ namespace Db2Source
             {
                 throw new ApplicationException("更新対象の表が設定されていないため、削除できません");
             }
-            if (owner.KeyFields == null || owner.KeyFields.Length == 0)
-            {
-                throw new ApplicationException("主キーが設定されていないため、削除できません");
-            }
+            //if (owner.KeyFields == null || owner.KeyFields.Length == 0)
+            //{
+            //    throw new ApplicationException("主キーが設定されていないため、削除できません");
+            //}
             List<NpgsqlParameter> listP = new List<NpgsqlParameter>();
             StringBuilder bufC = new StringBuilder();
             bool needAnd = false;
-            foreach (ColumnInfo f in owner.KeyFields)
+            ColumnInfo[] columns = owner.KeyFields;
+            if (columns == null || columns.Length == 0)
+            {
+                columns = owner.Fields;
+            }
+            foreach (ColumnInfo f in columns)
             {
                 if (needAnd)
                 {
