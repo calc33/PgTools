@@ -139,7 +139,7 @@ namespace Db2Source
 
         public static Rect GetWorkingAreaOf(FrameworkElement element)
         {
-            Point p = element.PointToScreen(new Point());
+            Point p = element.PointToScreen(new Point(element.ActualWidth / 2, element.ActualHeight / 2));
             WinForm.Screen sc = WinForm.Screen.FromPoint(new WinDrawing.Point((int)p.X, (int)p.Y));
             return new Rect(sc.WorkingArea.X, sc.WorkingArea.Y, sc.WorkingArea.Width, sc.WorkingArea.Height);
         }
