@@ -445,6 +445,10 @@ namespace Db2Source
             {
                 return null;
             }
+            if (!GetIsPasswordStored())
+            {
+                return null;
+            }
             if (GetStoredPassword(ServerName, ServerPort, DatabaseName, UserName) == Password)
             {
                 // パスワードがpgpass.confにある場合は書き出さない

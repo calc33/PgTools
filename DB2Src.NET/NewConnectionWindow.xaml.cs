@@ -182,56 +182,69 @@ namespace Db2Source
                     GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                     r++;
 
-                    CheckBox cb = RequirePropertyControl<CheckBox>("checkBox" + prop.Name, r, 1, () =>
+                    StackPanel pnl = RequirePropertyControl<StackPanel>("stackPanel" + prop.Name, r, 1, () =>
                     {
-                        CheckBox newObj = new CheckBox()
+                        StackPanel newObj = new StackPanel()
                         {
-                            Content = (string)FindResource("checkBoxTextShowPassword"),
-                            IsChecked = false,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            Name = "checkBox" + prop.Name
+                            Orientation = Orientation.Horizontal
                         };
-                        RegisterName(newObj.Name, newObj);
-                        _propertyControls[newObj.Name] = newObj;
+                        {
+                            CheckBox cb = new CheckBox()
+                            {
+                                Content = (string)FindResource("checkBoxTextShowPassword"),
+                                IsChecked = false,
+                                VerticalAlignment = VerticalAlignment.Center,
+                                Name = "checkBox" + prop.Name
+                            };
+                            RegisterName(cb.Name, cb);
+                            _propertyControls[cb.Name] = cb;
 
-                        Binding b3 = new Binding("IsChecked")
-                        {
-                            ElementName = newObj.Name,
-                            Mode = BindingMode.OneWay,
-                            Converter = new BooleanToVisibilityConverter()
-                        };
-                        tb.SetBinding(VisibilityProperty, b3);
+							Binding b3 = new Binding("IsChecked")
+                            {
+                                ElementName = cb.Name,
+                                Mode = BindingMode.OneWay,
+                                Converter = new BooleanToVisibilityConverter()
+                            };
+                            tb.SetBinding(VisibilityProperty, b3);
 
-                        Binding b4 = new Binding("IsChecked")
-                        {
-                            ElementName = newObj.Name,
-                            Mode = BindingMode.OneWay,
-                            Converter = new InvertBooleanToVisibilityConverter()
-                        };
-                        pb.SetBinding(VisibilityProperty, b4);
+                            Binding b4 = new Binding("IsChecked")
+                            {
+                                ElementName = cb.Name,
+                                Mode = BindingMode.OneWay,
+                                Converter = new InvertBooleanToVisibilityConverter()
+                            };
+                            pb.SetBinding(VisibilityProperty, b4);
 
-                        Binding b5 = new Binding("IsEnabled")
-                        {
-                            RelativeSource = RelativeSource.Self,
-                            Mode = BindingMode.OneWay,
-                            Converter = new IsEnabledToColorConverter()
-                        };
-                        newObj.SetBinding(ForegroundProperty, b5);
-                        return newObj;
+                            Binding b5 = new Binding("IsEnabled")
+                            {
+                                RelativeSource = RelativeSource.Self,
+                                Mode = BindingMode.OneWay,
+                                Converter = new IsEnabledToColorConverter()
+                            };
+                            cb.SetBinding(ForegroundProperty, b5);
+                            newObj.Children.Add(cb);
+                        }
+						{
+                            CheckBox cb = new CheckBox()
+                            {
+                                Content = (string)FindResource("checkBoxTextSavePassword"),
+                                IsChecked = false,
+                                VerticalAlignment = VerticalAlignment.Center,
+                                Name = "checkBoxSavePassword",
+                                Margin = new Thickness(4, 0, 0, 0)
+							};
+							Binding b1 = new Binding("Target.IsPasswordStored")
+							{
+								ElementName = "window",
+								Mode = BindingMode.TwoWay
+							};
+							cb.SetBinding(CheckBox.IsCheckedProperty, b1);
+							RegisterName(cb.Name, cb);
+							_propertyControls[cb.Name] = cb;
+							newObj.Children.Add(cb);
+						}
+						return newObj;
                     });
-                    if (Target.IsPasswordHidden)
-                    {
-                        cb.IsEnabled = false;
-                        cb.IsChecked = false;
-                    }
-                    else
-                    {
-                        cb.IsEnabled = true;
-                    }
-                    if (cb.Parent == null)
-                    {
-                        GridProperties.Children.Add(cb);
-                    }
                 }
             }
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
@@ -244,7 +257,7 @@ namespace Db2Source
             _lastTargetType = Target.GetType();
         }
 
-        private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
+		private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             if (e.NewValue == e.OldValue)
             {
@@ -272,21 +285,24 @@ namespace Db2Source
 
         private void UpdateCheckBoxPasswordEnabled(TextBox textBox)
         {
-            if (!Target.IsPasswordHidden)
+            if (Target == null)
             {
                 return;
             }
-            if (!string.IsNullOrEmpty(textBox.Text))
+            if (Target.IsPasswordHidden && string.IsNullOrEmpty(textBox.Text))
             {
-                return;
-            }
-            Target.IsPasswordHidden = false;
-            CheckBox cb = FindName("checkBoxPassword") as CheckBox;
+				Target.IsPasswordHidden = false;
+			}
+			CheckBox cb = FindName("checkBoxPassword") as CheckBox;
             if (cb == null)
             {
                 return;
             }
             cb.IsEnabled = !Target.IsPasswordHidden;
+            if (!cb.IsEnabled)
+            {
+                cb.IsChecked = false;
+            }
         }
         private void TbPassword_TextChanged(object sender, TextChangedEventArgs e)
         {

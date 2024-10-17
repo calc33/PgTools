@@ -297,7 +297,8 @@ namespace Db2Source
         private string _serverName;
         private string _userName;
         private bool _isPasswordHidden;
-        [InputField("サーバー", 10)]
+        private bool? _isPasswordStored;
+		[InputField("サーバー", 10)]
         public string ServerName
         {
             get
@@ -329,7 +330,7 @@ namespace Db2Source
                     return;
                 }
                 _userName = value;
-                OnPropertyChanged("UserName");
+                OnPropertyChanged(nameof(UserName));
                 KeyPropertyChanged();
             }
         }
@@ -342,7 +343,7 @@ namespace Db2Source
         {
             get
             {
-                return Password;
+                return GetIsPasswordStored() ? Password : null;
             }
             set
             {
@@ -364,8 +365,30 @@ namespace Db2Source
                     return;
                 }
                 _isPasswordHidden = value;
-                OnPropertyChanged("IsPasswordHidden");
+                OnPropertyChanged(nameof(IsPasswordHidden));
             }
+        }
+
+        public bool? IsPasswordStored
+        {
+            get
+            {
+                return _isPasswordStored ?? !string.IsNullOrEmpty(Password);
+            }
+            set
+            {
+                if (_isPasswordStored == value)
+                {
+                    return;
+                }
+                _isPasswordStored = value;
+                OnPropertyChanged(nameof(IsPasswordStored));
+            }
+        }
+
+        public bool GetIsPasswordStored()
+        {
+            return _isPasswordStored ?? !string.IsNullOrEmpty(Password);
         }
 
         [JsonIgnore]
