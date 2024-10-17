@@ -366,7 +366,7 @@ namespace Db2Source
                     buf.Append(' ');
                 }
                 needComma = true;
-                buf.Append(o.ToString());
+                buf.Append(o != null ? o.ToString() : "(null)");
             }
             buf.Append(")");
             lines.Append(buf.ToString());
