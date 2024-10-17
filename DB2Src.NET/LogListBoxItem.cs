@@ -192,26 +192,4 @@ namespace Db2Source
             return textBlockText.Text;
         }
     }
-
-    //public class LogStatusToBrushConverter: IValueConverter
-    //{
-    //    private static readonly Brush ErrorBrush = new SolidColorBrush(Colors.Red);
-    //    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        switch ((LogStatus)value)
-    //        {
-    //            case LogStatus.Normal:
-    //                return SystemColors.ControlTextBrush;
-    //            case LogStatus.Error:
-    //                return ErrorBrush;
-    //            default:
-    //                return SystemColors.ControlTextBrush;
-    //        }
-    //    }
-
-    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
 }
