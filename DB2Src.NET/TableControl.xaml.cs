@@ -1338,21 +1338,21 @@ namespace Db2Source
 
         private void DataGridCell_Selected(object sender, RoutedEventArgs e)
         {
-            DataGridCell cell = e.OriginalSource as DataGridCell;
-            if (cell == null)
-            {
-                return;
-            }
-            if (!(cell.DataContext is Row))
-            {
-                // NewItemPlaceHolderで編集モードに入ると行が挿入されるため編集モードに入らない
-                return;
-            }
-            DataGrid gr = App.FindVisualParent<DataGrid>(cell);
-            if (gr != null)
-            {
-                gr.BeginEdit(e);
-            }
+            //DataGridCell cell = e.OriginalSource as DataGridCell;
+            //if (cell == null)
+            //{
+            //    return;
+            //}
+            //if (!(cell.DataContext is Row))
+            //{
+            //    // NewItemPlaceHolderで編集モードに入ると行が挿入されるため編集モードに入らない
+            //    return;
+            //}
+            //DataGrid gr = App.FindVisualParent<DataGrid>(cell);
+            //if (gr != null)
+            //{
+            //    gr.BeginEdit(e);
+            //}
         }
 
         private void buttonAddJoin_Click(object sender, RoutedEventArgs e)
