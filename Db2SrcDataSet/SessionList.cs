@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
-    public class SessionList: SchemaObject
+    public class SessionList : SchemaObject
     {
         public List<ISession> GetSessions()
         {
             return new List<ISession>(Context.GetSessions());
         }
-        public SessionList(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, Schema.CollectionIndex.None)
+        public SessionList(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, NamespaceIndex.Sessions)
         {
-            Schema = null;
+        }
+
+        public override NamespaceIndex GetCollectionIndex()
+        {
+            return NamespaceIndex.Sessions;
         }
 
         protected override int GetIdentifierDepth()

@@ -327,7 +327,7 @@ namespace Db2Source
                     continue;
                 }
                 string schemaDir = Path.Combine(baseDir, s.Name);
-                foreach (SchemaObject obj in s.Objects)
+                foreach (SchemaObject obj in dataSet.Objects.GetFiltered(s.Name))
                 {
                     StringBuilder buf = new StringBuilder();
                     if (obj is Table)

@@ -163,5 +163,10 @@ namespace Db2Source
             IsPasswordShadowed = basedOn.IsPasswordShadowed;
             PasswordExpiration = basedOn.PasswordExpiration;
         }
-    }
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+            return NamespaceIndex.Users;
+		}
+	}
 }

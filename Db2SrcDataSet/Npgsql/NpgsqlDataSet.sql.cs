@@ -146,7 +146,7 @@ namespace Db2Source
             int n = table.Columns.Count - 1;
             for (int i = 0; i < n; i++)
             {
-                string s = table.Columns[i].Name;
+                string s = GetEscapedIdentifier(table.Columns[i].Name, true);
                 if (i == 0 || PreferredCharsPerLine < l + s.Length + 1)
                 {
                     buf.AppendLine();
@@ -163,7 +163,7 @@ namespace Db2Source
                 l += s.Length + 1;
             }
             {
-                string s = table.Columns[n].Name;
+                string s = GetEscapedIdentifier(table.Columns[n].Name, true);
                 if (PreferredCharsPerLine < l + s.Length + 1)
                 {
                     buf.AppendLine();
@@ -262,6 +262,22 @@ namespace Db2Source
                 return string.Format("{0}{1}constraint {2} {3}", GetIndent(indent), pre, GetEscapedIdentifier(constraint.Name, true), ConstraintTypeToStr[constraint.ConstraintType]);
             }
         }
+        private void AppendColumnNamesSQL(StringBuilder builder, string[] columnNames)
+        {
+            if (columnNames == null || columnNames.Length == 0)
+            {
+                builder.Append(" ()");
+                return;
+            }
+            builder.Append(" (");
+            builder.Append(GetEscapedIdentifier(columnNames[0], true));
+            for (int i = 1; i < columnNames.Length; i++)
+            {
+                builder.Append(", ");
+                builder.Append(GetEscapedIdentifier(columnNames[i], true));
+            }
+            builder.Append(')');
+        }
         public override string[] GetSQL(KeyConstraint constraint, string prefix, string postfix, int indent, bool addAlterTable, bool addNewline)
         {
             if (constraint == null)
@@ -274,14 +290,7 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
-            string delim = " (";
-            foreach (string c in constraint.Columns)
-            {
-                buf.Append(delim);
-                buf.Append(c);
-                delim = ", ";
-            }
-            buf.Append(')');
+            AppendColumnNamesSQL(buf, constraint.Columns);
             if (constraint.Deferrable)
             {
                 buf.Append(" deferrable");
@@ -326,25 +335,12 @@ namespace Db2Source
             }
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
-            string delim = " (";
-            foreach (string c in constraint.Columns)
-            {
-                buf.Append(delim);
-                buf.Append(c);
-                delim = ", ";
-            }
-            buf.Append(") references ");
+            AppendColumnNamesSQL(buf, constraint.Columns);
+            buf.Append(" references");
             buf.Append(rcons.Table.EscapedIdentifier(CurrentSchema));
             if (rcons.ConstraintType == ConstraintType.Unique)
             {
-                delim = "(";
-                foreach (string c in rcons.Columns)
-                {
-                    buf.Append(delim);
-                    buf.Append(c);
-                    delim = ", ";
-                }
-                buf.Append(')');
+                AppendColumnNamesSQL(buf, rcons.Columns);
             }
             string rule = ForeignKeyRuleToStr[constraint.UpdateRule];
             if (!string.IsNullOrEmpty(rule))
@@ -607,7 +603,7 @@ namespace Db2Source
                     buf.Append(index.IndexType);
                     buf.Append(' ');
                 }
-                buf.Append(StrUtil.DelimitedText(index.Columns, ", ", "(", ")"));
+                AppendColumnNamesSQL(buf, index.Columns);
             }
             buf.Append(postfix);
             if (addNewline)
@@ -1182,6 +1178,38 @@ namespace Db2Source
             return new string[] { buf.ToString() };
         }
 
+        public string[] GetSQL(PgsqlExtension extension, string prefix, string postfix, int indent, bool addNewline)
+        {
+            StringBuilder buf = new StringBuilder();
+            string spc = GetIndent(indent);
+            buf.Append(spc);
+            buf.Append(prefix);
+            buf.Append("create extension if not exists ");
+            buf.Append(GetEscapedIdentifier(extension.Name, true));
+            StringBuilder buf2 = new StringBuilder();
+            if (extension.Relocatable && !string.IsNullOrEmpty(extension.SchemaName))
+            {
+                buf2.Append(" schema ");
+                buf2.Append(extension.SchemaName);
+            }
+            if (!string.IsNullOrEmpty(extension.Version) && (extension.Version != extension.DefaultVersion))
+            {
+                buf2.Append(" version ");
+                buf2.Append(extension.Version);
+            }
+            if (0 < buf2.Length)
+            {
+                buf.Append(" with");
+                buf.Append(buf2.ToString());
+            }
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return new string[] { buf.ToString() };
+        }
+
         public override string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline)
         {
             PgsqlTablespace tsA = after as PgsqlTablespace;
@@ -1612,6 +1640,29 @@ namespace Db2Source
                 buf.Append("if exists ");
             }
             buf.Append(GetEscapedIdentifier(user.Name, true));
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return new string[] { buf.ToString() };
+        }
+
+        public string[] GetDropSQL(PgsqlExtension extension, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            if (extension == null)
+            {
+                return StrUtil.EmptyStringArray;
+            }
+            StringBuilder buf = new StringBuilder();
+            buf.Append(prefix);
+            buf.Append("drop extension ");
+            if (ifExists)
+            {
+                buf.Append("if exists ");
+
+            }
+            buf.Append(GetEscapedIdentifier(extension.Name, true));
             buf.Append(postfix);
             if (addNewline)
             {

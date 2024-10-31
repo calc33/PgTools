@@ -25,6 +25,10 @@ namespace Db2Source
             {
                 return;
             }
+            if (!string.IsNullOrEmpty(table.Extension))
+            {
+                return;
+            }
             AppendToBuffer(buffer, DataSet.GetSQL(table, string.Empty, ";", 0, true, true));
             buffer.AppendLine();
             List<Constraint> list = new List<Constraint>(table.Constraints);
@@ -94,7 +98,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(view, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(view.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(view, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(view.CommentText))
             {
                 AppendToBuffer(buffer, DataSet.GetSQL(view.Comment, string.Empty, ";", 0, true));
@@ -123,7 +131,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(function, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(function.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(function, string.Empty, ";", 0, true));
             if (!string.IsNullOrEmpty(function.CommentText))
             {
                 AppendToBuffer(buffer, DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
@@ -135,7 +147,11 @@ namespace Db2Source
             {
                 return;
             }
-            if (!string.IsNullOrEmpty(sequence.OwnedTableName))
+			if (!string.IsNullOrEmpty(sequence.Extension))
+			{
+				return;
+			}
+			if (!string.IsNullOrEmpty(sequence.OwnedTableName))
             {
                 return;
             }
@@ -147,7 +163,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(type.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportEnumType(StringBuilder buffer, PgsqlEnumType type)
         {
@@ -155,7 +175,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(type.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportBasicType(StringBuilder buffer, PgsqlBasicType type)
         {
@@ -163,7 +187,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(type.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportRangeType(StringBuilder buffer, PgsqlRangeType type)
         {
@@ -171,7 +199,11 @@ namespace Db2Source
             {
                 return;
             }
-            AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(type.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(type, string.Empty, ";", 0, true));
         }
         private void ExportSchema_(StringBuilder buffer, Schema schema)
         {
@@ -181,6 +213,19 @@ namespace Db2Source
             }
             AppendToBuffer(buffer, DataSet.GetSQL(schema, string.Empty, ";", 0, true));
         }
+        private void ExportExtension(StringBuilder buffer, PgsqlExtension extension)
+        {
+            if (extension == null)
+            {
+                return;
+            }
+            if (extension.IsHidden)
+            {
+                return;
+            }
+            AppendToBuffer(buffer, (DataSet as NpgsqlDataSet).GetSQL(extension, string.Empty, ";", 0, true));
+        }
+
         private async Task ExportAsync(Db2SourceContext dataSet, List<string> schemas, List<string> excludedSchemas, string baseDir, Encoding encoding)
         {
             encoding = encoding ?? Encoding.UTF8;
@@ -209,7 +254,7 @@ namespace Db2Source
                 }
                 Console.Error.WriteLine(s.Name + "を出力しています");
                 string schemaDir = Path.Combine(baseDir, s.Name);
-                foreach (SchemaObject obj in s.Objects)
+                foreach (SchemaObject obj in DataSet.Objects.GetFiltered(s.Name))
                 {
                     StringBuilder buf = new StringBuilder();
                     if (obj is Table)
@@ -271,6 +316,21 @@ namespace Db2Source
                         {
                             sw.Write(DataSet.NormalizeNewLine(buf));
                         }
+                    }
+                }
+            }
+            foreach (PgsqlExtension ext in (DataSet as NpgsqlDataSet).Extensions)
+            {
+                StringBuilder buf = new StringBuilder();
+                ExportExtension(buf, ext);
+                if (buf.Length != 0)
+                {
+                    string dir = Path.Combine(baseDir, ext.GetExportFolderName());
+                    string path = Path.Combine(dir, ext.Name + ".sql");
+                    Directory.CreateDirectory(dir);
+                    using (StreamWriter sw = new StreamWriter(path, false, encoding))
+                    {
+                        sw.Write(DataSet.NormalizeNewLine(buf));
                     }
                 }
             }

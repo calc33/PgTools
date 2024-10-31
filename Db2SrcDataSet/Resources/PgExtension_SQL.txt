@@ -1,0 +1,5 @@
+select
+  x.oid, x.extname, x.extowner, x.extnamespace, x.extrelocatable, x.extversion, x.extconfig, 
+  x.extcondition, e.default_version
+from pg_catalog.pg_extension x
+  join pg_available_extensions() e(name, default_version) on (x.extname = e.name)

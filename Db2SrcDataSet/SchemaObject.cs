@@ -46,6 +46,7 @@ namespace Db2Source
     public abstract partial class SchemaObject : NamedObject, ICommentable, IComparable
     {
         private Schema _schema;
+        private string _schemaName;
         private string _name;
         //protected SchemaObject _old;
         public Db2SourceContext Context { get; private set; }
@@ -54,18 +55,38 @@ namespace Db2Source
 
         public string Prefix { get; set; }
         public string Owner { get; set; }
+        private void UpdateSchema()
+        {
+            if (_schema != null)
+            {
+                return;
+            }
+            _schema = Context.Schemas[_schemaName];
+        }
         public Schema Schema
         {
             get
             {
+                UpdateSchema();
                 return _schema;
             }
-            protected set
+        }
+        public string SchemaName
+        {
+            get
             {
-                _schema = value;
+                return _schemaName;
+            }
+            set
+            {
+                if (_schemaName == value)
+                {
+                    return;
+                }
+                _schemaName = value;
+                _schema = null;
             }
         }
-        public string SchemaName { get { return _schema?.Name; } }
         public string Name
         {
             get { return _name; }
@@ -135,7 +156,7 @@ namespace Db2Source
         protected void RestoreFrom(SchemaObject backup)
         {
             Owner = backup.Owner;
-            _schema = backup.Schema;
+            //_schema = backup.Schema;
             Name = backup.Name;
             Triggers = new TriggerCollection(this, backup.Triggers);
         }
@@ -223,6 +244,8 @@ namespace Db2Source
         public string SqlDef { get; set; } = null;
         public TriggerCollection Triggers { get; private set; }
 
+        public string Extension { get; set; }
+
         void ICommentable.OnCommentChanged(CommentChangedEventArgs e)
         {
             OnPropertyChanged("CommentText");
@@ -240,11 +263,11 @@ namespace Db2Source
             UpdateColumnChanged?.Invoke(this, e);
         }
 
-        internal SchemaObject(Db2SourceContext context, string owner, string schema, string objectName, Schema.CollectionIndex index) : base(context.RequireSchema(schema)?.GetCollection(index))
-        {
-            Context = context;
+		internal SchemaObject(Db2SourceContext context, string owner, string schema, string objectName, NamespaceIndex index) : base(context.GetNamedCollection(index))
+		{
+			Context = context;
             Owner = owner;
-            _schema = context.RequireSchema(schema);
+            _schemaName = schema;
             Name = objectName;
             Triggers = new TriggerCollection(this);
         }
@@ -252,8 +275,8 @@ namespace Db2Source
         {
             Context = basedOn.Context;
             Owner = basedOn.Owner;
-            _schema = basedOn.Schema;
-            Name = basedOn.Name;
+			_schemaName = basedOn.SchemaName;
+			Name = basedOn.Name;
             Triggers = new TriggerCollection(this);
             foreach (Trigger t in basedOn.Triggers)
             {
@@ -269,10 +292,6 @@ namespace Db2Source
             }
             if (disposing)
             {
-                if (Schema != null)
-                {
-                    Schema.GetCollection(GetCollectionIndex())?.Remove(this);
-                }
                 Triggers.Dispose();
                 Comment?.Dispose();
             }
@@ -281,10 +300,7 @@ namespace Db2Source
         public override void Release()
         {
             base.Release();
-            if (Schema != null)
-            {
-                Schema.GetCollection(GetCollectionIndex())?.Invalidate();
-            }
+            Context.GetNamedCollection(GetCollectionIndex())?.Invalidate();
             Triggers.Release();
             Comment?.Release();
         }
@@ -295,26 +311,21 @@ namespace Db2Source
         {
             Triggers.Invalidate();
         }
-        public virtual Schema.CollectionIndex GetCollectionIndex()
-        {
-            return Schema.CollectionIndex.Objects;
-        }
 
         private static string[] EmptyStrArray = new string[0];
-        public string[] DependBy = EmptyStrArray;
+        public string[] DependBy { get; set; } = EmptyStrArray;
 
         public override bool Equals(object obj)
         {
-            if (!(obj is SchemaObject))
+            if (!(obj is SchemaObject sc))
             {
                 return false;
             }
-            SchemaObject sc = (SchemaObject)obj;
-            return Schema.Equals(sc.Schema) && (FullIdentifier == sc.FullIdentifier);
+            return FullIdentifier == sc.FullIdentifier;
         }
         public override int GetHashCode()
         {
-            return ((Schema != null) ? Schema.GetHashCode() : 0) + (string.IsNullOrEmpty(Name) ? 0 : Name.GetHashCode());
+            return GetFullIdentifier().GetHashCode();
         }
         public override string ToString()
         {
@@ -323,17 +334,11 @@ namespace Db2Source
 
         public override int CompareTo(object obj)
         {
-            if (!(obj is SchemaObject))
+            if (!(obj is SchemaObject sc))
             {
                 return -1;
             }
-            SchemaObject sc = (SchemaObject)obj;
-            int ret = Schema.Compare(Schema, sc.Schema);
-            if (ret != 0)
-            {
-                return ret;
-            }
-            ret = string.Compare(FullIdentifier, sc.FullIdentifier);
+            int ret = string.Compare(FullIdentifier, sc.FullIdentifier);
             return ret;
         }
     }
@@ -341,7 +346,6 @@ namespace Db2Source
     public interface IDb2SourceInfo
     {
         Db2SourceContext Context { get; }
-        Schema Schema { get; }
     }
 
     public interface IDbTypeDef

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 namespace Db2Source
 {
-    public class Index: SchemaObject
+    public class Index : SchemaObject
     {
         private Selectable _table;
         private string _tableSchema;
@@ -31,7 +31,7 @@ namespace Db2Source
             {
                 return;
             }
-            _table = Context?.Objects[TableSchema, TableName] as Selectable;
+            _table = Context?.Selectables[TableSchema, TableName];
             _table?.InvalidateIndexes();
         }
         private void UpdateIndex_()
@@ -134,10 +134,6 @@ namespace Db2Source
         {
             return "Index";
         }
-        public override Schema.CollectionIndex GetCollectionIndex()
-        {
-            return Schema.CollectionIndex.Indexes;
-        }
 
         internal Index _backup;
         public override bool HasBackup()
@@ -195,7 +191,7 @@ namespace Db2Source
             }
         }
 
-        public Index(Db2SourceContext context, string owner, string schema, string indexName, string tableSchema, string tableName, string[] columns, string definition) : base(context, owner, schema, indexName, Schema.CollectionIndex.Indexes)
+        public Index(Db2SourceContext context, string owner, string schema, string indexName, string tableSchema, string tableName, string[] columns, string definition) : base(context, owner, schema, indexName, NamespaceIndex.Indexes)
         {
             //_schema = context.RequireSchema(schema);
             //_name = indexName;
@@ -204,7 +200,7 @@ namespace Db2Source
             Columns = columns;
             //_definition = definition;
         }
-        public Index(NamedCollection owner, Index basedOn): base(owner, basedOn)
+        public Index(NamedCollection owner, Index basedOn) : base(owner, basedOn)
         {
             _tableSchema = basedOn.TableSchema;
             _tableName = basedOn.TableName;
@@ -212,6 +208,11 @@ namespace Db2Source
             IsImplicit = basedOn.IsImplicit;
             IndexType = basedOn.IndexType;
             Columns = (string[])basedOn.Columns.Clone();
+        }
+
+        public override NamespaceIndex GetCollectionIndex()
+        {
+            return NamespaceIndex.Indexes;
         }
     }
     public sealed class IndexCollection : IList<Index>, IList
@@ -253,11 +254,11 @@ namespace Db2Source
                         return;
                     }
                     _list = new List<Index>();
-                    if (_owner == null || _owner.Schema == null)
+                    if (_owner == null)
                     {
                         return;
                     }
-                    foreach (Index c in _owner.Schema.Indexes)
+                    foreach (Index c in _owner.Context.Indexes)
                     {
                         if (c == null)
                         {

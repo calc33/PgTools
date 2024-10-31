@@ -16,15 +16,34 @@ namespace Db2Source
         }
         internal Column _backup = null;
         public Db2SourceContext Context { get; private set; }
-        public Schema Schema { get; private set; }
-        public string SchemaName
+        public Schema Schema
         {
             get
             {
-                return Schema?.Name;
+                UpdateSelectable();
+                return _schema;
             }
         }
+
+        public string SchemaName
+        {
+            get { return _schemaName; }
+            private set
+            {
+				if (_schemaName == value)
+				{
+					return;
+				}
+				_schemaName = value;
+				_schema = null;
+				_owner = null;
+				InvalidateIdentifier();
+				OnPropertyChanged("SchemaName");
+			}
+		}
+        private string _schemaName;
         private string _tableName;
+        private Schema _schema;
         private Selectable _owner;
         private string _name;
         protected override string GetFullIdentifier()
@@ -66,6 +85,7 @@ namespace Db2Source
                     return;
                 }
                 _tableName = value;
+                _schema = null;
                 _owner = null;
                 InvalidateIdentifier();
                 OnPropertyChanged("TableName");
@@ -84,14 +104,15 @@ namespace Db2Source
             return Context.GetEscapedIdentifier(SchemaName, new string[] { TableName, Name }, baseSchemaName, true);
         }
 
-        private void UpdateSelectable()
+        internal void UpdateSelectable()
         {
-            if (_owner != null)
+            if (_owner != null && _schema != null)
             {
                 return;
             }
 
-            _owner = Context.Selectables[SchemaName, _tableName];
+            _schema = Context.Schemas[_schemaName];
+            _owner = Context.Selectables[_schemaName, _tableName];
         }
 
         internal Column Backup(Selectable owner)
@@ -184,7 +205,12 @@ namespace Db2Source
                 throw new ArgumentException();
             }
             Column c = (Column)obj;
-            int ret = string.Compare(TableName, c.TableName);
+			int ret = string.Compare(SchemaName, c.SchemaName);
+			if (ret != 0)
+			{
+				return ret;
+			}
+			ret = string.Compare(TableName, c.TableName);
             if (ret != 0)
             {
                 return ret;
@@ -473,15 +499,17 @@ namespace Db2Source
 
         public HiddenLevel HiddenLevel { get; set; } = HiddenLevel.Visible;
 
-        internal Column(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Columns)
+        internal Column(Db2SourceContext context, string schema, string table, string name) : base(context.Columns)
         {
             Context = context;
-            Schema = context.RequireSchema(schema);
+            SchemaName = schema;
+            TableName = table;
+            Name = name;
         }
         internal Column(Selectable owner, Column basedOn): base(null)
         {
             _owner = owner;
-            Schema = basedOn.Schema;
+            SchemaName = basedOn.SchemaName;
             Index = basedOn.Index;
             TableName = basedOn.TableName;
             Name = basedOn.Name;
@@ -497,7 +525,13 @@ namespace Db2Source
             Comment = basedOn.Comment;
             HiddenLevel = basedOn.HiddenLevel;
         }
-        protected override void Dispose(bool disposing)
+
+		public override NamespaceIndex GetCollectionIndex()
+        {
+            return NamespaceIndex.Columns;
+        }
+
+		protected override void Dispose(bool disposing)
         {
             if (IsDisposed)
             {
@@ -505,10 +539,7 @@ namespace Db2Source
             }
             if (disposing)
             {
-                if (Schema != null)
-                {
-                    Schema.Columns.Remove(this);
-                }
+                Context.Columns.Remove(this);
                 Comment?.Dispose();
             }
             base.Dispose(disposing);
@@ -516,10 +547,7 @@ namespace Db2Source
         public override void Release()
         {
             base.Release();
-            if (Schema != null)
-            {
-                Schema.Columns.Invalidate();
-            }
+            Context.Columns.Invalidate();
             Comment?.Release();
         }
     }
@@ -553,14 +581,13 @@ namespace Db2Source
             {
                 return;
             }
-            //_list = new List<Column>[] { new List<Column>(), new List<Column>() };
             _list = new List<Column>();
             List<Column> hidden = new List<Column>();
-            if (_owner == null || _owner.Schema == null)
+            if (_owner == null)
             {
                 return;
             }
-            foreach (Column c in _owner.Schema.Columns)
+            foreach (Column c in _owner.Context.Columns.GetFiltered(_owner.FullIdentifier))
             {
                 if (c.Table == null)
                 {
@@ -1105,7 +1132,7 @@ namespace Db2Source
             }
         }
 
-        internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, Schema.CollectionIndex.Objects)
+        internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, NamespaceIndex.Objects)
         {
             Columns = new ColumnCollection(this);
             Indexes = new IndexCollection(this);
@@ -1120,7 +1147,11 @@ namespace Db2Source
             basedOn.BackupColumns(this);
         }
 
-        protected override void Dispose(bool disposing)
+		public override NamespaceIndex GetCollectionIndex()
+		{
+            return NamespaceIndex.Objects;
+		}
+		protected override void Dispose(bool disposing)
         {
             if (IsDisposed)
             {
@@ -1149,6 +1180,10 @@ namespace Db2Source
 
         public override void InvalidateColumns()
         {
+            //foreach (Column column in Context.Columns.GetFiltered(FullIdentifier))
+            //{
+            //    column.UpdateSelectable();
+            //}
             Columns.Invalidate();
         }
 

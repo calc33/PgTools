@@ -76,5 +76,26 @@
                 </DataGrid>
             </DockPanel>
         </TabItem>
+        <TabItem Header="Extension" Height="22" VerticalAlignment="Top">
+            <DockPanel>
+                <ListBox x:Name="listBoxExtensions" DisplayMemberPath="Name" ItemsSource="{Binding Target.Context.Extensions, ElementName=userControl}" DockPanel.Dock="Left" MinWidth="100"/>
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,2">
+                        <TextBlock Text="名前：" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding SelectedItem.Name, ElementName=listBoxExtensions, Mode=OneWay}" MinWidth="100" VerticalAlignment="Center" IsReadOnly="True"/>
+                        <TextBlock Text="スキーマ：" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBox Text="{Binding SelectedItem.Schema.Name, ElementName=listBoxExtensions, Mode=OneWay}" MinWidth="100" VerticalAlignment="Center" IsReadOnly="True"/>
+                        <TextBlock Text="バージョン：" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBox Text="{Binding SelectedItem.Version, ElementName=listBoxExtensions, Mode=OneWay}" MinWidth="64" VerticalAlignment="Center" IsReadOnly="True"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="2,0">
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Top" Text="インストールされた関数"/>
+                            <ListBox MinWidth="100" ItemsSource="{Binding SelectedItem.DependBy, ElementName=listBoxExtensions, Mode=OneWay}"/>
+                        </DockPanel>
+                    </StackPanel>
+                </DockPanel>
+            </DockPanel>
+        </TabItem>
     </TabControl>
 </UserControl>

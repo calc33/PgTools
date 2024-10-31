@@ -23,7 +23,7 @@ namespace Db2Source
 
     public abstract class Constraint : SchemaObject, IComparable, IConstraint
     {
-        internal Constraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred) : base(context, owner, schema, name, Schema.CollectionIndex.Constraints)
+        internal Constraint(Db2SourceContext context, string owner, string schema, string name, string tableSchema, string tableName, bool isNoName, bool deferrable, bool deferred) : base(context, owner, schema, name, NamespaceIndex.Constraints)
         {
             _tableSchema = tableSchema;
             _tableName = tableName;
@@ -42,7 +42,13 @@ namespace Db2Source
             _deferrable = basedOn.Deferrable;
             _deferred = basedOn.Deferred;
         }
-        public override string GetSqlType()
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Constraints;
+		}
+
+		public override string GetSqlType()
         {
             return "CONSTRAINT";
         }
@@ -78,11 +84,6 @@ namespace Db2Source
         {
             base.NameChanged(oldValue);
             InvalidateIsTemporaryName();
-        }
-
-        public override Schema.CollectionIndex GetCollectionIndex()
-        {
-            return Schema.CollectionIndex.Constraints;
         }
 
         private bool? _isTemporaryName;
@@ -692,12 +693,12 @@ namespace Db2Source
                 return;
             }
             _list = new List<Constraint>();
-            if (_owner == null || _owner.Schema == null)
+            if (_owner == null)
             {
                 return;
             }
 
-            foreach (Constraint c in _owner.Schema.Constraints)
+            foreach (Constraint c in _owner.Context.Constraints)
             {
                 if (c == null)
                 {

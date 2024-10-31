@@ -780,13 +780,8 @@ namespace Db2Source
             return new TriggerComment(Context, SchemaName, TableName, Name, commentText, false);
         }
 
-
-        public override Schema.CollectionIndex GetCollectionIndex()
-        {
-            return Schema.CollectionIndex.Triggers;
-        }
         public string[] ExtraInfo { get; set; }
-        internal Trigger(Db2SourceContext context, string owner, string triggerSchema, string triggerName, string tableSchema, string tableName, string defintion, bool isLoaded) : base(context, owner, triggerSchema, triggerName, Schema.CollectionIndex.Triggers)
+        internal Trigger(Db2SourceContext context, string owner, string triggerSchema, string triggerName, string tableSchema, string tableName, string defintion, bool isLoaded) : base(context, owner, triggerSchema, triggerName, NamespaceIndex.Triggers)
         {
             _updateEventColumns = new StringCollection(this);
             _tableSchema = tableSchema;
@@ -807,6 +802,11 @@ namespace Db2Source
             //_oldDefinition = _definition;
         }
 
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Triggers;
+		}
+		
         public string[] GetAlterSQL(string prefix, string postfix, int indent, bool addNewline)
         {
             if (_backup == null)
@@ -892,11 +892,11 @@ namespace Db2Source
                 return;
             }
             _list = new List<Trigger>();
-            if (_owner == null || _owner.Schema == null)
+            if (_owner == null)
             {
                 return;
             }
-            foreach (Trigger t in _owner.Schema.Triggers)
+            foreach (Trigger t in _owner.Context.Triggers)
             {
                 if (t == null)
                 {

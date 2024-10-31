@@ -202,14 +202,14 @@ namespace Db2Source
                 && DictionaryEquals(_attributes, _backup._attributes);
         }
 
-        public Database(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, Schema.CollectionIndex.None)
+        public Database(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, NamespaceIndex.Databases)
         {
-            Schema = null;
+            //Schema = null;
         }
 
         public Database(Database basedOn) : base(null, basedOn)
         {
-            Schema = null;
+            //Schema = null;
             DbaUserName = basedOn.DbaUserName;
             Encoding = basedOn.Encoding;
             DefaultTablespace= basedOn.DefaultTablespace;
@@ -219,6 +219,11 @@ namespace Db2Source
             _attributes = new Dictionary<string, object>(basedOn._attributes);
         }
 
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Databases;
+		}
+		
         //public event PropertyChangedEventHandler PropertyChanged;
         //protected void OnPropertyChanged(string propertyName)
         //{

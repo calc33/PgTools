@@ -721,7 +721,7 @@ namespace Db2Source
             }
         }
         //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string definition, bool isLoaded) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects)
+        public StoredFunction(Db2SourceContext context, string owner, string schema, string objectName, string definition, bool isLoaded) : base(context, owner, schema, objectName, NamespaceIndex.Objects)
         {
             Parameters = new ParameterCollection(this);
             _definition = definition;
@@ -730,5 +730,10 @@ namespace Db2Source
                 _oldDefinition = _definition;
             }
         }
-    }
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Objects;
+		}
+	}
 }

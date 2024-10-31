@@ -676,7 +676,14 @@ namespace Db2Source
             }
             App.Connections.Delete(info);
             TreeViewItem parent = item.Parent as TreeViewItem;
-            parent.Items.Remove(item);
-        }
+            if (parent != null)
+            {
+				parent.Items.Remove(item);
+			}
+            else
+            {
+                treeViewConnections.Items.Remove(item);
+			}
+		}
     }
 }

@@ -25,12 +25,23 @@ namespace Db2Source
     public class Comment : NamedObject, IDb2SourceInfo
     {
         public Db2SourceContext Context { get; private set; }
-        public Schema Schema { get; private set; }
+
+        private string _schemaName;
         public string SchemaName
         {
             get
             {
-                return Schema?.Name;
+                return _schemaName;
+			}
+            private set
+            {
+                if (_schemaName != value)
+                {
+                    return;
+                }
+                _schemaName = value;
+                InvalidateIdentifier();
+				OnPropertyChanged(nameof(SchemaName));
             }
         }
         public virtual string GetCommentType()
@@ -143,7 +154,7 @@ namespace Db2Source
         }
         public virtual ICommentable GetTarget()
         {
-            SchemaObject o = Schema?.Objects[Target];
+            SchemaObject o = Context.Objects[SchemaName, Target];
             return o;
         }
         public void Link()
@@ -169,23 +180,27 @@ namespace Db2Source
             return Context.GetEscapedIdentifier(SchemaName, Owner, baseSchemaName, true);
         }
 
-        internal Comment(Db2SourceContext context, string schema) : base(context.RequireSchema(schema).Comments)
+        internal Comment(Db2SourceContext context, string schema) : base(context.Comments)
         {
             Context = context;
-            Schema = context.RequireSchema(schema);
+            _schemaName = schema;
         }
 
-        internal Comment(Db2SourceContext context, string schema, string target, string owner, string comment, bool isLoaded) : base(context.RequireSchema(schema)?.Comments)
+        internal Comment(Db2SourceContext context, string schema, string target, string owner, string comment, bool isLoaded) : base(context.Comments)
         {
             Context = context;
-            Schema = context.RequireSchema(schema);
-            Target = target;
+			_schemaName = schema;
+			Target = target;
             Owner = owner;
             Text = comment;
             if (isLoaded)
             {
                 _oldText = Text;
             }
+        }
+        public override NamespaceIndex GetCollectionIndex()
+        {
+            return NamespaceIndex.Comments;
         }
 
         protected override void Dispose(bool disposing)
@@ -196,21 +211,14 @@ namespace Db2Source
             }
             if (disposing)
             {
-                if (Schema != null)
-                {
-                    Schema.Comments.Remove(this);
-                }
+                Context.Comments.Remove(this);
             }
             base.Dispose(disposing);
         }
         public override void Release()
         {
             base.Release();
-            if (Schema != null)
-            {
-                Schema.Comments.Invalidate();
-            }
-            Schema = null;
+            Context.Comments.Invalidate();
         }
     }
 
@@ -247,13 +255,7 @@ namespace Db2Source
         }
         public override ICommentable GetTarget()
         {
-            Selectable o = Schema?.Objects[Target] as Selectable;
-            if (o == null)
-            {
-                return null;
-            }
-            Column c = o.Columns[Column];
-            return c;
+            return Context.Columns[SchemaName, Target, Column];
         }
         public override string EscapedTargetName(string baseSchemaName)
         {
@@ -286,7 +288,7 @@ namespace Db2Source
 
         public override ICommentable GetTarget()
         {
-            SchemaObject o = Schema?.Objects[Identifier];
+            SchemaObject o = Context.Objects[SchemaName, Identifier];
             return o;
         }
 
@@ -324,7 +326,7 @@ namespace Db2Source
         }
         public override ICommentable GetTarget()
         {
-            Selectable o = Schema?.Objects[Owner] as Selectable;
+            Selectable o = Context.Selectables[SchemaName, Owner];
             if (o == null)
             {
                 return null;
@@ -345,7 +347,7 @@ namespace Db2Source
         }
         public override ICommentable GetTarget()
         {
-            Table o = Schema?.Objects[Owner] as Table;
+            Table o = Context.Tables[SchemaName, Owner];
             if (o == null)
             {
                 return null;

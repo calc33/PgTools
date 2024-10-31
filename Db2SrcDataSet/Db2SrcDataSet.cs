@@ -12,7 +12,24 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
-    public enum LogStatus
+	public enum NamespaceIndex
+	{
+		None = 0,
+		Schemas = 1,
+		Objects = 2,
+		Columns = 3,
+		Constraints = 4,
+		Comments = 5,
+		Indexes = 6,
+		Triggers = 7,
+		Sequences = 8,
+		Extension = 9,
+		Tablespaces = 10,
+        Databases = 11,
+		Users = 12,
+        Sessions = 13,
+	}
+	public enum LogStatus
     {
         Normal = 0,
         Error = 1,
@@ -1165,18 +1182,48 @@ namespace Db2Source
 
         public abstract IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld);
         public abstract IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld);
-        public NamedCollection<Schema> Schemas { get; } = new NamedCollection<Schema>();
-        public NamedCollection<User> Users { get; } = new NamedCollection<User>();
-        public NamedCollection<Tablespace> Tablespaces { get; } = new NamedCollection<Tablespace>();
-        public SchemaObjectCollection<SchemaObject> Objects { get; private set; }
-        public SchemaObjectCollection<Selectable> Selectables { get; private set; }
-        public SchemaObjectCollection<Table> Tables { get; private set; }
-        public SchemaObjectCollection<View> Views { get; private set; }
-        public SchemaObjectCollection<StoredFunction> StoredFunctions { get; private set; }
-        public SchemaObjectCollection<Comment> Comments { get; private set; }
-        public SchemaObjectCollection<Constraint> Constraints { get; private set; }
-        public SchemaObjectCollection<Trigger> Triggers { get; private set; }
-        public SchemaObjectCollection<Sequence> Sequences { get; private set; }
+		
+        private NamedCollection[] _namespaces;
+        public NamedCollection GetNamedCollection(NamespaceIndex index)
+        {
+            int i = (int)index;
+            if (i < 0 || _namespaces.Length <= i)
+            {
+                throw new ArgumentOutOfRangeException("index");
+            }
+            return _namespaces[i];
+        }
+        public T Find<T>(NamedObjectId id) where T: NamedObject
+        {
+            return GetNamedCollection(id.Index)?[id.Identifier] as T;
+        }
+        public T Find<T>(NamespaceIndex index, string identifier) where T: NamedObject
+        {
+			return GetNamedCollection(index)?[identifier] as T;
+		}
+        public T FindRegistered<T>(T obj) where T: NamedObject
+        {
+            return Find<T>(new NamedObjectId(obj));
+        }
+
+		public NamedCollection<Schema> Schemas { get; } = new NamedCollection<Schema>();
+		public NamedCollection<SchemaObject> Objects { get; } = new NamedCollection<SchemaObject>();
+		public FilteredNamedCollection<Selectable> Selectables { get; }
+		public FilteredNamedCollection<Table> Tables { get; }
+		public FilteredNamedCollection<View> Views { get; }
+		public FilteredNamedCollection<StoredFunction> StoredFunctions { get; }
+		public NamedCollection<Column> Columns { get; } = new NamedCollection<Column>();
+		public NamedCollection<Constraint> Constraints { get; } = new NamedCollection<Constraint>();
+		public NamedCollection<Comment> Comments { get; } = new NamedCollection<Comment>();
+		public NamedCollection<Index> Indexes { get; } = new NamedCollection<Index>();
+		public NamedCollection<Trigger> Triggers { get; } = new NamedCollection<Trigger>();
+		public NamedCollection<Sequence> Sequences { get; } = new NamedCollection<Sequence>();
+		public NamedCollection<PgsqlExtension> Extensions { get; } = new NamedCollection<PgsqlExtension>();
+		public NamedCollection<Tablespace> Tablespaces { get; } = new NamedCollection<Tablespace>();
+		public NamedCollection<Database> Databases { get; } = new NamedCollection<Database>();
+		public NamedCollection<User> Users { get; } = new NamedCollection<User>();
+		public NamedCollection<SessionList> Sessions { get; } = new NamedCollection<SessionList>();
+
         /// <summary>
         /// 文字列のnullをDbNullに置換
         /// </summary>
@@ -1352,34 +1399,22 @@ namespace Db2Source
 
         public void InvalidateColumns()
         {
-            foreach (Schema s in Schemas)
-            {
-                s.InvalidateColumns();
-            }
+            Columns.Invalidate();
         }
 
         public void InvalidateConstraints()
         {
-            foreach (Schema s in Schemas)
-            {
-                s.InvalidateConstraints();
-            }
+            Constraints.Invalidate();
         }
 
         public void InvalidateTriggers()
         {
-            foreach (Schema s in Schemas)
-            {
-                s.InvalidateTriggers();
-            }
+            Triggers.Invalidate();
         }
 
         public void InvalidateIndexes()
         {
-            foreach (Schema s in Schemas)
-            {
-                s.InvalidateIndexes();
-            }
+            Indexes.Invalidate();
         }
 
         public event EventHandler<SchemaObjectReplacedEventArgs> SchemaObjectReplaced;
@@ -1394,15 +1429,11 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("table");
             }
-            Schema sch = table.Schema;
-            //string schnm = sch.Name;
-            string objid = table.FullIdentifier;
-            Schema.CollectionIndex idx = table.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
                 Refresh(table, conn);
             }
-            Table newObj = sch.GetCollection(idx)[objid] as Table;
+            Table newObj = FindRegistered(table);
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, table));
             return newObj;
         }
@@ -1412,19 +1443,11 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("view");
             }
-            Schema sch = view.Schema;
-            //string schnm = sch.Name;
-            string objid = view.FullIdentifier;
-            Schema.CollectionIndex idx = view.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
                 Refresh(view, conn);
-                //LoadSchema(conn, false);
-                //LoadView(schnm, objid, conn);
-                //LoadColumn(schnm, objid, conn);
-                //LoadComment(schnm, objid, conn);
             }
-            View newObj = sch.GetCollection(idx)[objid] as View;
+            View newObj = FindRegistered(view);
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, view));
             return newObj;
         }
@@ -1435,10 +1458,6 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("type");
             }
-            Schema sch = type.Schema;
-            //string schnm = sch.Name;
-            string objid = type.FullIdentifier;
-            Schema.CollectionIndex idx = type.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
                 LoadSchema(conn, false);
@@ -1446,7 +1465,7 @@ namespace Db2Source
                 //LoadColumn(schnm, objid, conn);
                 //LoadComment(schnm, objid, conn);
             }
-            ComplexType newObj = sch.GetCollection(idx)[objid] as ComplexType;
+            ComplexType newObj = FindRegistered(type);
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, type));
             return newObj;
         }
@@ -1457,14 +1476,11 @@ namespace Db2Source
             {
                 throw new ArgumentNullException("function");
             }
-            Schema sch = function.Schema;
-            string objid = function.FullIdentifier;
-            Schema.CollectionIndex idx = function.GetCollectionIndex();
             using (IDbConnection conn = NewConnection(true))
             {
                 Refresh(function, conn);
             }
-            StoredFunction newObj = sch.GetCollection(idx)[objid] as StoredFunction;
+            StoredFunction newObj = FindRegistered(function);
             OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, function));
             return newObj;
         }
@@ -1689,17 +1705,29 @@ namespace Db2Source
         public Db2SourceContext(ConnectionInfo info)
         {
             ConnectionInfo = info;
-            Objects = new SchemaObjectCollection<SchemaObject>(this, "Objects", 2);
-            Selectables = new SchemaObjectCollection<Selectable>(this, "Objects", 2);
-            Tables = new SchemaObjectCollection<Table>(this, "Objects", 2);
-            Views = new SchemaObjectCollection<View>(this, "Objects", 2);
-            StoredFunctions = new SchemaObjectCollection<StoredFunction>(this, "Objects", 2);
-            Comments = new SchemaObjectCollection<Comment>(this, "Comments", 2);
-            Constraints = new SchemaObjectCollection<Constraint>(this, "Constraints", 2);
-            Triggers = new SchemaObjectCollection<Trigger>(this, "Triggers", 3);
-            Sequences = new SchemaObjectCollection<Sequence>(this, "Sequences", 2);
-            SessionList = new SessionList(this, "Sessions");
-            History = new QueryHistory(ConnectionInfo);
+            _namespaces = new NamedCollection[]
+            {
+                null,
+                Schemas,
+                Objects,
+                Columns,
+                Constraints,
+                Comments,
+                Indexes,
+                Triggers,
+                Sequences,
+                Extensions,
+                Tablespaces,
+                Databases,
+                Users,
+                Sessions
+            };
+            Selectables = new FilteredNamedCollection<Selectable>(Objects);
+		    Tables = new FilteredNamedCollection<Table>(Objects);
+            Views = new FilteredNamedCollection<View>(Objects);
+            StoredFunctions = new FilteredNamedCollection<StoredFunction>(Objects);
+
+    		History = new QueryHistory(ConnectionInfo);
         }
 
         public override string ToString()

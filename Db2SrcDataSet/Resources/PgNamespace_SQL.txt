@@ -1,1 +1,3 @@
-select ns.oid, ns.nspname, ns.nspowner from pg_namespace ns order by ns.nspname
+select ns.oid, ns.nspname, ns.nspowner, pg_get_userbyid(ns.nspowner) as ownername
+from pg_namespace
+ns order by ns.nspname

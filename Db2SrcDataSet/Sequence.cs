@@ -122,7 +122,7 @@ namespace Db2Source
                 && OwnedColumnName == seq.OwnedColumnName;
         }
 
-        internal Sequence(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects) { }
+        internal Sequence(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, NamespaceIndex.Objects) { }
 
         internal Sequence(NamedCollection owner, Sequence basedOn) : base(owner, basedOn)
         {
@@ -136,5 +136,10 @@ namespace Db2Source
             OwnedTableName = basedOn.OwnedTableName;
             OwnedColumnName = basedOn.OwnedColumnName;
         }
-    }
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Objects;
+		}
+	}
 }

@@ -102,5 +102,10 @@ namespace Db2Source
             Name = basedOn.Name;
             Path = basedOn.Path;
         }
-    }
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Tablespaces;
+		}
+	}
 }

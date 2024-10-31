@@ -309,8 +309,7 @@ namespace Db2Source
                 SchemaObject o = p?.GetValue(c) as SchemaObject;
                 if (o != null)
                 {
-                    Schema sch = CurrentDataSet.Schemas[o.SchemaName];
-                    o = sch?.GetCollection(o.GetCollectionIndex())[o.Identifier] as SchemaObject;
+                    o = CurrentDataSet.FindRegistered(o);
                 }
                 if (o != null)
                 {

@@ -25,7 +25,7 @@ namespace Db2Source
                 List<StoredFunction> funcs = new List<StoredFunction>();
                 List<StoredFunction> trFuncs = new List<StoredFunction>();
                 List<Sequence> seqs = new List<Sequence>();
-                foreach (SchemaObject obj in sc.Objects)
+                foreach (SchemaObject obj in Objects.GetFiltered(sc.Name))
                 {
                     if (obj is Table)
                     {

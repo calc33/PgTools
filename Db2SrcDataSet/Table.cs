@@ -301,7 +301,7 @@ namespace Db2Source
                 return;
             }
 
-            foreach (Constraint c in _owner.Schema.Constraints)
+            foreach (Constraint c in _owner.Context.Constraints)
             {
                 ForeignKeyConstraint fc = c as ForeignKeyConstraint;
                 if (fc == null)

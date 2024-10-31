@@ -32,8 +32,9 @@ namespace Db2Source
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
-        public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl));
-        public static readonly DependencyProperty IsQueryEditableProperty = DependencyProperty.Register("IsQueryEditable", typeof(bool), typeof(StoredProcedureControl), new PropertyMetadata(true));
+		public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnIsEditingPropertyChanged)));
+		public static readonly DependencyProperty IsReadOnlyProperty = DependencyProperty.Register("IsReadOnly", typeof(bool), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnIsReadOnlyPropertyChanged)));
+		public static readonly DependencyProperty IsQueryEditableProperty = DependencyProperty.Register("IsQueryEditable", typeof(bool), typeof(StoredProcedureControl), new PropertyMetadata(true));
 
         private StoredProcedureSetting _setting = null;
 
@@ -116,7 +117,19 @@ namespace Db2Source
             }
         }
 
-        public bool IsQueryEditable
+		public bool IsReadOnly
+		{
+			get
+			{
+				return (bool)GetValue(IsReadOnlyProperty);
+			}
+			set
+			{
+				SetValue(IsReadOnlyProperty, value);
+			}
+		}
+
+		public bool IsQueryEditable
         {
             get
             {
@@ -194,6 +207,7 @@ namespace Db2Source
         {
             Dispatcher.InvokeAsync(() =>
             {
+                IsReadOnly = !string.IsNullOrEmpty(Target?.Extension);
                 UpdateDataGridParameters();
                 UpdateTabItemExecuteVisibility();
                 UpdateTextBoxSource();
@@ -204,12 +218,30 @@ namespace Db2Source
             });
         }
 
-        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+		private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
         {
             (target as StoredProcedureControl)?.OnTargetPropertyChanged(e);
         }
 
-        private void UpdateDataGridParameters()
+		private void OnIsEditingPropertyChanged(DependencyPropertyChangedEventArgs e)
+        {
+
+        }
+		private static void OnIsEditingPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+		{
+			(target as StoredProcedureControl)?.OnIsEditingPropertyChanged(e);
+		}
+
+		private void OnIsReadOnlyPropertyChanged(DependencyPropertyChangedEventArgs e)
+		{
+
+		}
+		private static void OnIsReadOnlyPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+		{
+			(target as StoredProcedureControl)?.OnIsReadOnlyPropertyChanged(e);
+		}
+
+		private void UpdateDataGridParameters()
         {
             if (Target == null)
             {
@@ -346,20 +378,24 @@ namespace Db2Source
                         command.Transaction = txn;
                         using (IDataReader reader = await context.ExecuteReaderAsync(command, _executingCancellation.Token))
                         {
-                            IEnumerable l = dataGridParameters.ItemsSource;
-                            dataGridParameters.ItemsSource = null;
-                            dataGridParameters.ItemsSource = l;
-                            await controller.LoadAsync(dispatcher, reader, _executingCancellation.Token);
+							_ = dispatcher.InvokeAsync(() =>
+                            {
+                                IEnumerable l = dataGridParameters.ItemsSource;
+                                dataGridParameters.ItemsSource = null;
+                                dataGridParameters.ItemsSource = l;
+                            });
+
+							await controller.LoadAsync(dispatcher, reader, _executingCancellation.Token);
                             if (0 <= reader.RecordsAffected)
                             {
-                                await dispatcher.InvokeAsync(() =>
+								_ = dispatcher.InvokeAsync(() =>
                                 {
                                     AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
                                 });
                             }
                             else
                             {
-                                await dispatcher.InvokeAsync(() =>
+								_ = dispatcher.InvokeAsync(() =>
                                 {
                                     tabControlResult.SelectedItem = tabItemDataGrid;
                                 });
@@ -376,21 +412,21 @@ namespace Db2Source
                 }
                 catch (OperationAbortedException)
                 {
-                    await dispatcher.InvokeAsync(() =>
+					_ = dispatcher.InvokeAsync(() =>
                     {
                         AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                     });
                 }
                 catch (OperationCanceledException)
                 {
-                    await dispatcher.InvokeAsync(() =>
+					_ = dispatcher.InvokeAsync(() =>
                     {
                         AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                     });
                 }
                 catch (Exception t)
                 {
-                    await dispatcher.InvokeAsync(() =>
+					_ = dispatcher.InvokeAsync(() =>
                     {
                         Db2SourceContext ctx = Target.Context;
                         string msg = ctx.GetExceptionMessage(t);
@@ -404,14 +440,15 @@ namespace Db2Source
                     DateTime end = DateTime.Now;
                     TimeSpan time = end - start;
                     string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                    await dispatcher.InvokeAsync(() =>
+                    _ = dispatcher.InvokeAsync(() =>
                     {
                         AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
                         textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), DataGridControllerResult.Rows.Count, s);
                     });
                 }
-            }
-        }
+				_ = dispatcher.InvokeAsync(controller.UpdateGrid);
+			}
+		}
 
         private static bool IsChecked(CheckBox checkBox)
         {

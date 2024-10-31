@@ -301,15 +301,32 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   select distinct rt.oid as source_oid, rv.oid as view_oid
-        ///from pg_class rt
-        ///  join pg_namespace nst on (rt.relnamespace = nst.oid)
-        ///  join pg_depend d on (d.refobjid = rt.oid and d.deptype = &apos;n&apos; and d.refobjsubid &lt;&gt; 0)
+        ///   select d.deptype,
+        ///  d.classid, c.relname as classname,
+        ///  d.objid, d.objsubid,
+        ///  d.refclassid, rc.refclassname,
+        ///  d.refobjid, d.refobjsubid
+        ///from pg_depend d
+        ///  join pg_class c on (d.classid = c.oid)
+        ///  join pg_class rc on (d.refclassid = rc.oid)
+        ///where (d.deptype = &apos;e&apos; -- pg_extensionの依存関係 objid:pg_proc他 refobjid:pg_extension
+        ///    or (d.deptype = &apos;n&apos; -- pg_triggerとpg_procの依存関係 objid:pg_trigger refobjid:pg_proc
+        ///      and d.classid in (select oid from pg_class where relname = &apos;pg_trigger&apos;)
+        ///      and d.r [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgDepend_SQL {
+            get {
+                return ResourceManager.GetString("PgDepend_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select distinct d.refobjid as source_oid, rw.ev_class as view_oid
+        ///from pg_depend d
         ///  join pg_rewrite rw on (d.objid = rw.oid)
-        ///  join pg_class rv on (rw.ev_class = rv.oid and rv.relkind in (&apos;v&apos;))
-        ///  join pg_namespace nsv on (rv.relnamespace = nsv.oid)
-        ///where rt.relkind in (&apos;r&apos;, &apos;v&apos;)
-        ///order by rt.oid, rv.oid に類似しているローカライズされた文字列を検索します。
+        ///  join pg_class c on (d.refclassid = c.oid and c.relname in (&apos;pg_class&apos;, &apos;pg_proc&apos;))
+        ///where d.deptype = &apos;n&apos;
+        ///order by d.refobjid, rw.ev_class に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgDepend_View_SQL {
             get {
@@ -324,6 +341,19 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgDescription_SQL {
             get {
                 return ResourceManager.GetString("PgDescription_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select
+        ///  oid, extname, extowner, extnamespace, extrelocatable, extversion, extconfig, 
+        ///  extcondition
+        ///from pg_catalog.pg_extension
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgExtension_SQL {
+            get {
+                return ResourceManager.GetString("PgExtension_SQL", resourceCulture);
             }
         }
         
@@ -343,7 +373,9 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
-        ///   select ns.oid, ns.nspname, ns.nspowner from pg_namespace ns order by ns.nspname に類似しているローカライズされた文字列を検索します。
+        ///   select ns.oid, ns.nspname, ns.nspowner, pg_get_userbyid(ns.nspowner) as ownername
+        ///from pg_namespace
+        ///ns order by ns.nspname に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgNamespace_SQL {
             get {

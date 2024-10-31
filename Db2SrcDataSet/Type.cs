@@ -21,9 +21,14 @@ namespace Db2Source
 
         //public TypeReferenceCollection ReferFrom { get; } = new TypeReferenceCollection();
 
-        internal Type_(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, Schema.CollectionIndex.Objects) { }
+        internal Type_(Db2SourceContext context, string owner, string schema, string objectName) : base(context, owner, schema, objectName, NamespaceIndex.Objects) { }
         internal Type_(NamedCollection owner, Type_ basedOn) : base(owner, basedOn) { }
-    }
+
+		public override NamespaceIndex GetCollectionIndex()
+		{
+            return NamespaceIndex.Objects;
+		}
+	}
 
     //public class TypeReference
     //{

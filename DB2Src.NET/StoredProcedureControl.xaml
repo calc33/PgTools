@@ -84,14 +84,28 @@
                         <ToolBar>
                             <Button x:Name="buttonRefreshSchema" Margin="1,2" ToolTip="定義情報を再読込" ContentTemplate="{StaticResource ImageRollback14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False" Click="buttonRefreshSchema_Click"/>
                             <Separator/>
-                            <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Focusable="False"/>
+                            <ToggleButton x:Name="buttonEdit" Margin="1,2" ToolTip="編集" ContentTemplate="{StaticResource ImageEdit14}" IsChecked="{Binding IsEditing, ElementName=userControl}" Focusable="False">
+                                <ToggleButton.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource MultiBooleanAndConverter}">
+                                        <Binding Path="IsEditing" ElementName="userControl" Converter="{StaticResource InvertBooleanConverter}"/>
+                                        <Binding Path="IsReadOnly" ElementName="userControl" Converter="{StaticResource InvertBooleanConverter}"/>
+                                    </MultiBinding>
+                                </ToggleButton.IsEnabled>
+                            </ToggleButton>
                             <Separator/>
                             <Button x:Name="buttonApplySchema" Margin="1,2" ToolTip="変更をDBに適用" ContentTemplate="{StaticResource ImageApply14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonApplySchema_Click" Focusable="False"/>
                             <Button x:Name="buttonRevertSchema" Margin="1,2" ToolTip="変更を取消し" ContentTemplate="{StaticResource ImageRevert14}" IsEnabled="{Binding IsEditing, ElementName=userControl}" Click="buttonRevertSchema_Click" Focusable="False"/>
                             <Separator/>
                             <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
                             <Separator/>
-                            <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" IsEnabled="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanConverter}}" Click="buttonOptions_Click" Focusable="False"/>
+                            <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" Click="buttonOptions_Click" Focusable="False">
+                                <Button.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource MultiBooleanAndConverter}">
+                                        <Binding Path="IsEditing" ElementName="userControl" Converter="{StaticResource InvertBooleanConverter}"/>
+                                        <Binding Path="IsReadOnly" ElementName="userControl" Converter="{StaticResource InvertBooleanConverter}"/>
+                                    </MultiBinding>
+                                </Button.IsEnabled> 
+                            </Button>
                         </ToolBar>
                     </ToolBarTray>
                     <StackPanel Orientation="Horizontal" Margin="2,2">
@@ -102,6 +116,8 @@
                             <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
                         </Grid>
+                        <TextBlock Text="Extension：" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Extension, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center"/>
                     </StackPanel>
                     <TextBox IsReadOnly="True" Text="{Binding Target.HeaderDef, ElementName=userControl, Mode=OneWay}" HorizontalAlignment="Stretch" Margin="2,1" TextWrapping="Wrap"/>
                 </StackPanel>

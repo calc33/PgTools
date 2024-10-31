@@ -361,7 +361,7 @@ namespace Db2Source
                     }
                     TreeNode nodeSc = new TreeNode(this, null, sc) { IsExpanded = false };
                     List<TreeNode> lTbl = new List<TreeNode>();
-                    foreach (SchemaObject obj in sc.Objects)
+                    foreach (SchemaObject obj in DataSet.Objects.GetFiltered(sc.Name))
                     {
                         if (!(obj is Table))
                         {

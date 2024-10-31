@@ -368,7 +368,7 @@ namespace Db2Source
                                     await controller.LoadAsync(dispatcher, reader, _fetchingCancellation.Token);
                                     if (0 <= reader.RecordsAffected)
                                     {
-                                        await dispatcher.InvokeAsync(() =>
+										_ = dispatcher.InvokeAsync(() =>
                                         {
                                             AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
                                         });
@@ -382,21 +382,21 @@ namespace Db2Source
                             }
                             catch (OperationAbortedException)
                             {
-                                await dispatcher.InvokeAsync(() =>
+								_ = dispatcher.InvokeAsync(() =>
                                 {
                                     AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                                 });
                             }
                             catch (OperationCanceledException)
                             {
-                                await dispatcher.InvokeAsync(() =>
+								_ = dispatcher.InvokeAsync(() =>
                                 {
                                     AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                                 });
                             }
                             catch (Exception t)
                             {
-                                await dispatcher.InvokeAsync(() =>
+                                _ = dispatcher.InvokeAsync(() =>
                                 {
                                     Tuple<int, int> errPos = CurrentDataSet.GetErrorPosition(t, sql.SQL, 0);
                                     AddLog(CurrentDataSet.GetExceptionMessage(t), history, LogStatus.Error, true, errPos);
@@ -410,7 +410,7 @@ namespace Db2Source
                                 DateTime end = DateTime.Now;
                                 TimeSpan time = end - start;
                                 string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                                await dispatcher.InvokeAsync(() =>
+                                _ = dispatcher.InvokeAsync(() =>
                                 {
                                     ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
                                     UpdateDataGridParameters();
@@ -421,7 +421,7 @@ namespace Db2Source
                         }
                     }
                 }
-                await dispatcher.InvokeAsync(() =>
+                _ = dispatcher.InvokeAsync(() =>
                 {
                     Parameters.Save();
                     controller.UpdateGrid();
@@ -429,7 +429,7 @@ namespace Db2Source
             }
             catch(Exception t)
             {
-                await dispatcher.InvokeAsync(() =>
+				_ = dispatcher.InvokeAsync(() =>
                 {
                     AddLog(CurrentDataSet.GetExceptionMessage(t), null, LogStatus.Error, true);
                     App.LogException(t);

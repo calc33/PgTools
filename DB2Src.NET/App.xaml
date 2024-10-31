@@ -31,6 +31,7 @@
             <local:NotNullToBooleanConverter x:Key="NotNullToBooleanConverter"/>
             <local:NotNullOrEmptyToBooleanConverter x:Key="NotNullOrEmptyToBooleanConverter"/>
             <local:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
+            <local:MultiBooleanAndConverter x:Key="MultiBooleanAndConverter"/>
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>

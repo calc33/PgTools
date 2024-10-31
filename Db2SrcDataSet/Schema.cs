@@ -8,18 +8,6 @@ namespace Db2Source
 {
     public class Schema : NamedObject, IComparable
     {
-        public enum CollectionIndex
-        {
-            None = 0,
-            Objects = 1,
-            Constraints = 2,
-            Columns = 3,
-            Comments = 4,
-            Indexes = 5,
-            Triggers = 6,
-            Sequences = 7,
-            //Procedures = 8,
-        }
         public Db2SourceContext Context { get; private set; }
 
         private string _name;
@@ -70,27 +58,17 @@ namespace Db2Source
             }
         }
 
-        private NamedCollection[] _collections;
-        public NamedCollection GetCollection(CollectionIndex index)
+        internal Schema(Db2SourceContext context, string name) : base(context.Schemas)
         {
-            return _collections[(int)index];
-        }
-        //public NamedCollection<SchemaObject> Nones { get; } = new NamedCollection<SchemaObject>();
-        public NamedCollection<SchemaObject> Objects { get; } = new NamedCollection<SchemaObject>();
-        public NamedCollection<Column> Columns { get; } = new NamedCollection<Column>();
-        public NamedCollection<Comment> Comments { get; } = new NamedCollection<Comment>();
-        public NamedCollection<Constraint> Constraints { get; } = new NamedCollection<Constraint>();
-        public NamedCollection<Index> Indexes { get; } = new NamedCollection<Index>();
-        public NamedCollection<Trigger> Triggers { get; } = new NamedCollection<Trigger>();
-        public NamedCollection<Sequence> Sequences { get; } = new NamedCollection<Sequence>();
-        //public NamedCollection<StoredFunction> Procedures { get; } = new NamedCollection<StoredFunction>();
-        internal Schema(Db2SourceContext owner, string name) : base(owner.Schemas)
-        {
-            Context = owner;
+            Context = context;
             Name = name;
-            _collections = new NamedCollection[] { null, Objects, Constraints, Columns, Comments, Indexes, Triggers, Sequences /*, Procedures */ };
         }
 
+		public override NamespaceIndex GetCollectionIndex()
+		{
+			return NamespaceIndex.Schemas;
+		}
+		
         protected override string GetFullIdentifier()
         {
             return Name;
@@ -102,99 +80,6 @@ namespace Db2Source
         protected override int GetIdentifierDepth()
         {
             return 1;
-        }
-
-        public void InvalidateColumns()
-        {
-            foreach (SchemaObject o in Objects)
-            {
-                o.InvalidateColumns();
-            }
-        }
-
-        public void InvalidateConstraints()
-        {
-            foreach (SchemaObject o in Objects)
-            {
-                (o as Table)?.InvalidateConstraints();
-            }
-        }
-
-        public void InvalidateTriggers()
-        {
-            foreach (SchemaObject o in Objects)
-            {
-                o.InvalidateTriggers();
-            }
-        }
-
-        public void InvalidateIndexes()
-        {
-            foreach (SchemaObject o in Objects)
-            {
-                (o as Table)?.InvalidateIndexes();
-            }
-        }
-        //public void InvalidateSequences()
-        //{
-        //    foreach (SchemaObject o in Objects)
-        //    {
-        //        (o as Table)?.invalidateSequences();
-        //    }
-        //}
-
-        private Dictionary<string, string[]> _storedProcToTrigger = null;
-
-        internal void InvalidateStoredProcToTrigger()
-        {
-            _storedProcToTrigger = null;
-        }
-        internal void UpdateStoredProcToTrigger()
-        {
-            if (_storedProcToTrigger != null)
-            {
-                return;
-            }
-            Dictionary<string, List<string>> dict = new Dictionary<string, List<string>>();
-            foreach (Trigger t in Triggers)
-            {
-                string key = t.ProcedureSchema + "." + t.ProcedureName + "()";
-                List<string> l;
-                if (!dict.TryGetValue(key, out l))
-                {
-                    l = new List<string>();
-                    dict.Add(key, l);
-                }
-                string v = t.FullIdentifier;
-                l.Add(v);
-            }
-            _storedProcToTrigger = new Dictionary<string, string[]>();
-            foreach (var kv in dict)
-            {
-                kv.Value.Sort();
-                _storedProcToTrigger.Add(kv.Key, kv.Value.ToArray());
-            }
-        }
-
-        private static readonly Trigger[] NoTrigger = new Trigger[0];
-        public Trigger[] GetCallingTriggers(StoredFunction triggerFunction)
-        {
-            UpdateStoredProcToTrigger();
-            string[] triggerNames;
-            if (!_storedProcToTrigger.TryGetValue(triggerFunction.FullIdentifier, out triggerNames))
-            {
-                return NoTrigger;
-            }
-            List<Trigger> l = new List<Trigger>();
-            foreach (string s in triggerNames)
-            {
-                Trigger tr = Triggers[s];
-                if (tr != null)
-                {
-                    l.Add(tr);
-                }
-            }
-            return l.ToArray();
         }
 
         public override bool HasBackup()
