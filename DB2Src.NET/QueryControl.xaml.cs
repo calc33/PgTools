@@ -416,7 +416,7 @@ namespace Db2Source
                                     UpdateDataGridParameters();
                                     AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
                                     textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s);
-                                }, DispatcherPriority.Background);
+                                });
                             }
                         }
                     }
