@@ -1,0 +1,4 @@
+select pg_sequence_last_value(r.oid) as seq
+from pg_class r
+  join pg_namespace ns on (r.relnamespace = ns.oid and ns.nspname = :seqowner)
+where r.relname = :seqname

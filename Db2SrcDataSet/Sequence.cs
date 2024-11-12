@@ -13,12 +13,13 @@ namespace Db2Source
             return "Sequence";
         }
 
-        public string StartValue { get; set; }
-        public string MinValue { get; set; }
-        public string MaxValue { get; set; }
-        public string Increment { get; set; }
+        public long StartValue { get; set; }
+        public long MinValue { get; set; }
+        public long MaxValue { get; set; }
+        public long Increment { get; set; }
         public bool IsCycled { get; set; }
-        public int Cache { get; set; } = 1;
+        public long Cache { get; set; } = 1;
+        public long Current { get; set; }
         public string OwnedSchemaName { get; set; }
         public string OwnedTableName { get; set; }
         public string OwnedColumnName { get; set; }
@@ -44,6 +45,14 @@ namespace Db2Source
             get
             {
                 return GetOwnedColumn();
+            }
+        }
+
+        public bool HasOwnedColumn
+        {
+            get
+            {
+                return GetOwnedColumn() != null;
             }
         }
 

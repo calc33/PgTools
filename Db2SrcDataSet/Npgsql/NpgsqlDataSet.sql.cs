@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Db2Source
 {
-    partial class NpgsqlDataSet
+	partial class NpgsqlDataSet
     {
         private static string _Expand(string[] strs)
         {
@@ -682,22 +682,22 @@ namespace Db2Source
             buf.Append(prefix);
             buf.Append("create sequence ");
             buf.Append(sequence.EscapedIdentifier(CurrentSchema));
-            if (!string.IsNullOrEmpty(sequence.Increment))
+            if (sequence.Increment != 1)
             {
                 buf.Append(" increment ");
                 buf.Append(sequence.Increment);
             }
-            if (!string.IsNullOrEmpty(sequence.MinValue))
+            if (sequence.MinValue != (0 < sequence.Increment ? 1 : long.MinValue))
             {
                 buf.Append(" minvalue ");
                 buf.Append(sequence.MinValue);
             }
-            if (!string.IsNullOrEmpty(sequence.MaxValue))
+            if (sequence.MaxValue != (0 < sequence.Increment ? long.MaxValue : -1))
             {
                 buf.Append(" maxvalue ");
                 buf.Append(sequence.MaxValue);
             }
-            if (!string.IsNullOrEmpty(sequence.StartValue))
+            if (sequence.StartValue != (0 < sequence.Increment ? sequence.MinValue : sequence.MaxValue))
             {
                 buf.Append(" start ");
                 buf.Append(sequence.StartValue);
@@ -722,8 +722,36 @@ namespace Db2Source
             return new string[] { buf.ToString() };
         }
 
-        //private static readonly string[] ParameterDirectionStr = { "", "", "out ", "inout ", "variadic ", "variadic ", "variadic out ", "variadic inout ", "result " };
-        private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", "variadic ", "table ", "result " };
+        public override string[] GetResetSequenceSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (!sequence.HasOwnedColumn)
+            {
+                return StrUtil.EmptyStringArray;
+            }
+            StringBuilder buf = new StringBuilder();
+			string spc = GetIndent(indent);
+
+			buf.Append(spc);
+			buf.Append(prefix);
+            buf.AppendFormat("select setval('{0}'::regclass, x.val)", sequence.EscapedIdentifier(CurrentSchema));
+            buf.AppendLine();
+            buf.Append(spc);
+            Column c = sequence.OwnedColumn;
+			buf.AppendFormat("from (select {0}({1}) as val from {2}) x",
+                0 < sequence.Increment ? "max" : "min", c.EscapedName, c.Table.EscapedIdentifier(CurrentSchema));
+			buf.AppendLine();
+			buf.Append(spc);
+			buf.Append(" where x.val is not null");
+			buf.Append(postfix);
+			if (addNewline)
+			{
+				buf.AppendLine();
+			}
+            return new string[] { buf.ToString() };
+		}
+
+		//private static readonly string[] ParameterDirectionStr = { "", "", "out ", "inout ", "variadic ", "variadic ", "variadic out ", "variadic inout ", "result " };
+		private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", "variadic ", "table ", "result " };
         private string GetParameterDirectionStr(ParameterDirection direction)
         {
             int i = (int)direction;

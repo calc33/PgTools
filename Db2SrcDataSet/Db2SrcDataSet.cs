@@ -1079,7 +1079,9 @@ namespace Db2Source
         public abstract string[] GetDropSQL(Tablespace tablespace, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string[] GetDropSQL(User user, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
 
-        protected abstract void LoadEncodings(IDbConnection connection);
+        public abstract string[] GetResetSequenceSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline);
+
+		protected abstract void LoadEncodings(IDbConnection connection);
         public abstract string GetServerEncoding();
         public abstract string GetClientEncoding();
         public abstract string[] GetEncodings();
@@ -1332,7 +1334,13 @@ namespace Db2Source
         public abstract SchemaObject Refresh(SchemaObject obj, IDbConnection connection);
         public abstract void RefreshSettings(IDbConnection connection);
         public abstract void RefreshTablespaces(IDbConnection connection);
-        public void RefreshTablespaces()
+
+		public abstract long? GetCurrentSequenceValue(Sequence sequence, IDbConnection connection);
+		public abstract void SetSequenceValue(long value, Sequence sequence, IDbConnection connection);
+		public abstract long? GetMaxValueOfColumn(Column column, IDbConnection connection);
+		public abstract long? GetMinValueOfColumn(Column column, IDbConnection connection);
+
+		public void RefreshTablespaces()
         {
             using (IDbConnection conn = NewConnection(true))
             {

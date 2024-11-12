@@ -254,6 +254,7 @@
     <None Include="Resources\PgDepend_View_SQL.txt" />
     <None Include="Resources\PgExtension_SQL.txt" />
     <None Include="Resources\PgDepend_SQL.txt" />
+    <None Include="Resources\GetLastSequence_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

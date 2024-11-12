@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 //using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using Db2Source.DataSet.Properties;
 using Npgsql;
 using NpgsqlTypes;
 using static Db2Source.NpgsqlDataSet;
@@ -1335,20 +1336,20 @@ namespace Db2Source
                 }
                 seq = new Sequence(context, ownername, Schema?.nspname, relname)
                 {
-                    StartValue = start_value.ToString(),
+                    StartValue = start_value,
                     Extension = Extension
                 };
                 if (0 < increment)
                 {
-                    seq.MinValue = (minimum_value != 1) ? minimum_value.ToString() : null;
-                    seq.MaxValue = (maximum_value != long.MaxValue) ? maximum_value.ToString() : null;
+                    seq.MinValue = minimum_value;
+                    seq.MaxValue = maximum_value;
                 }
                 else
                 {
-                    seq.MinValue = (minimum_value != long.MinValue) ? minimum_value.ToString() : null;
-                    seq.MaxValue = (maximum_value != -1) ? maximum_value.ToString() : null;
+                    seq.MinValue = minimum_value;
+                    seq.MaxValue = maximum_value;
                 }
-                seq.Increment = (increment != 1) ? increment.ToString() : null;
+                seq.Increment = increment;
                 seq.IsCycled = cycle_option;
                 seq.OwnedSchemaName = owned_schema;
                 seq.OwnedTableName = owned_table;
@@ -4331,7 +4332,8 @@ namespace Db2Source
             throw new NotImplementedException(string.Format("{0} {1} is not supported.", obj.GetType().FullName, obj.FullName));
             //return obj;
         }
-        public class SetOfReturnType : IReturnType
+
+		public class SetOfReturnType : IReturnType
         {
             public string DataType { get; set; }
 
