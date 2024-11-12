@@ -14,6 +14,13 @@
             <MenuItem Header="シーケンスを削除" Click="menuItemDropProcedue_Click"/>
         </ContextMenu>
         <sys:String x:Key="messageDropSequence">シーケンスを削除します。削除したシーケンスは元に戻せません。よろしいですか?</sys:String>
+        <sys:String x:Key="messageEmptyOwnedColumn">値を更新できません。レコードが空です。</sys:String>
+        <sys:String x:Key="messageUpdateSequenceByOwnedColumnFmt">シーケンスに所有列の{0}を設定します。よろしいですか。</sys:String>
+        <sys:String x:Key="messageConfirmUpdateSequenceFmt">現在のシーケンス値で問題ありませんが更新しますか?(現在値:{0} 更新値:{1})</sys:String>
+        <sys:String x:Key="textMaximum">最大値</sys:String>
+        <sys:String x:Key="textMinimum">最小値</sys:String>
+        <sys:String x:Key="buttonResetSequenceTooltipMaximum">シーケンスに所有列の最大値をセット</sys:String>
+        <sys:String x:Key="buttonResetSequenceTooltipMinimum">シーケンスに所有列の最小値をセット</sys:String>
     </UserControl.Resources>
     <TabControl x:Name="tabControlMain">
         <TabItem Header="情報">
@@ -43,6 +50,45 @@
                             <ComboBox IsEditable="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" ItemsSource="{Binding Target.Context.UserIds, ElementName=userControl}" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
                             <TextBox Padding="0,2" IsReadOnly="True" Text="{Binding Target.Owner, ElementName=userControl}" MinWidth="120" VerticalAlignment="Center" Visibility="{Binding IsEditing, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}"/>
                         </Grid>
+                    </StackPanel>
+                    <WrapPanel Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="開始：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.StartValue, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="40"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="増加：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.Increment, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="20"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="最小値：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.MinValue, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="64"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="最大値：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.MaxValue, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="64"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="キャッシュ：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.Cache, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="20"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,8,0">
+                            <TextBlock Text="現在値：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding CurrentValue, ElementName=userControl}" HorizontalContentAlignment="Right" VerticalAlignment="Center" MinWidth="40"/>
+                            <Button x:Name="buttonRefreshCurrentValue" ToolTip="現在値を更新" ContentTemplate="{StaticResource ImageRollback12}"  Padding="1,0" Margin="2,2,0,2" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" VerticalAlignment="Stretch" Click="buttonRefreshCurrentValue_Click"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal"  Margin="0,0,8,0" Visibility="{Binding Target.HasOwnedColumn, ElementName=userControl, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <TextBlock Text="所有列：" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding Target.OwnedColumn.Identifier, ElementName=userControl, Mode=OneWay}" MinWidth="120" VerticalAlignment="Center"/>
+                            <TextBlock Text="(" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding OrdinalDescription, ElementName=userControl}" VerticalAlignment="Center"/>
+                            <TextBox Margin="0,2" IsReadOnly="True" Text="{Binding OwnedColumnValue, ElementName=userControl, Mode=OneWay}" MinWidth="40" HorizontalContentAlignment="Right" VerticalAlignment="Center"/>
+                            <TextBlock Text=")" VerticalAlignment="Center"/>
+                            <Button x:Name="buttonResetSequence" Content="リセット" ToolTip="シーケンスに所有列の最大値(最小値)をセット" Click="buttonResetSequence_Click" Padding="2,0" Margin="2,2,0,2" VerticalAlignment="Stretch"/>
+                        </StackPanel>
+                    </WrapPanel>
+                    <StackPanel Orientation="Horizontal">
+
                     </StackPanel>
                 </StackPanel>
                 <TextBox Grid.Row="1" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0" Text="{Binding Target.CommentText, ElementName=userControl}" MinHeight="34" AcceptsReturn="True" HorizontalScrollBarVisibility="Visible" ToolTip="(コメント)" />
