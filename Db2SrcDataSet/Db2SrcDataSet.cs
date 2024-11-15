@@ -1735,6 +1735,7 @@ namespace Db2Source
             Views = new FilteredNamedCollection<View>(Objects);
             StoredFunctions = new FilteredNamedCollection<StoredFunction>(Objects);
 
+            SessionList = new SessionList(this, "Sessions");
     		History = new QueryHistory(ConnectionInfo);
         }
 

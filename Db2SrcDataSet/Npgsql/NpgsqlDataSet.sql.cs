@@ -6,7 +6,7 @@ using Npgsql;
 
 namespace Db2Source
 {
-	partial class NpgsqlDataSet
+    partial class NpgsqlDataSet
     {
         private static string _Expand(string[] strs)
         {
@@ -729,29 +729,29 @@ namespace Db2Source
                 return StrUtil.EmptyStringArray;
             }
             StringBuilder buf = new StringBuilder();
-			string spc = GetIndent(indent);
+            string spc = GetIndent(indent);
 
-			buf.Append(spc);
-			buf.Append(prefix);
+            buf.Append(spc);
+            buf.Append(prefix);
             buf.AppendFormat("select setval('{0}'::regclass, x.val)", sequence.EscapedIdentifier(CurrentSchema));
             buf.AppendLine();
             buf.Append(spc);
             Column c = sequence.OwnedColumn;
-			buf.AppendFormat("from (select {0}({1}) as val from {2}) x",
+            buf.AppendFormat("from (select {0}({1}) as val from {2}) x",
                 0 < sequence.Increment ? "max" : "min", c.EscapedName, c.Table.EscapedIdentifier(CurrentSchema));
-			buf.AppendLine();
-			buf.Append(spc);
-			buf.Append(" where x.val is not null");
-			buf.Append(postfix);
-			if (addNewline)
-			{
-				buf.AppendLine();
-			}
+            buf.AppendLine();
+            buf.Append(spc);
+            buf.Append(" where x.val is not null");
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
             return new string[] { buf.ToString() };
-		}
+        }
 
-		//private static readonly string[] ParameterDirectionStr = { "", "", "out ", "inout ", "variadic ", "variadic ", "variadic out ", "variadic inout ", "result " };
-		private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", "variadic ", "table ", "result " };
+        //private static readonly string[] ParameterDirectionStr = { "", "", "out ", "inout ", "variadic ", "variadic ", "variadic out ", "variadic inout ", "result " };
+        private static readonly string[] ParameterDirectionStr = { string.Empty, string.Empty, "out ", "inout ", "variadic ", "table ", "result " };
         private string GetParameterDirectionStr(ParameterDirection direction)
         {
             int i = (int)direction;

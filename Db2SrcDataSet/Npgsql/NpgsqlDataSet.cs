@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 
 namespace Db2Source
 {
-    public partial class NpgsqlDataSet: Db2SourceContext
+    public partial class NpgsqlDataSet : Db2SourceContext
     {
         public enum ParameterDir
         {
@@ -639,7 +639,8 @@ namespace Db2Source
                 w = spc.Length + 2;
             }
             Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
-            foreach (ColumnInfo info in data.Keys){
+            foreach (ColumnInfo info in data.Keys)
+            {
                 name2col.Add(info.Name, info);
             }
             foreach (Column c in table.Columns)
@@ -919,7 +920,8 @@ namespace Db2Source
                     bufP.Append(", ");
                 }
                 bufF.Append(GetEscapedIdentifier(f.Name, true));
-                if (row[f.Index] == null || row[f.Index] is DBNull) {
+                if (row[f.Index] == null || row[f.Index] is DBNull)
+                {
                     if (f.IsDefaultDefined)
                     {
                         bufP.Append("DEFAULT");
@@ -1006,7 +1008,8 @@ namespace Db2Source
                 if (needAnd)
                 {
                     bufC.Append("  and ");
-                } else
+                }
+                else
                 {
                     bufC.Append("where ");
                 }
@@ -1166,92 +1169,92 @@ namespace Db2Source
             return GetStrongReferred(tbl);
         }
 
-		public override long? GetCurrentSequenceValue(Sequence sequence, IDbConnection connection)
-		{
-			if (connection == null)
-			{
-				throw new ArgumentNullException("connection");
-			}
-			NpgsqlConnection conn = connection as NpgsqlConnection;
-			if (conn == null)
-			{
-				throw new ArgumentException("connectionがNpgsqlConnectionではありません");
-			}
-			using (var cmd = conn.CreateCommand())
-			{
-				cmd.CommandText = Resources.GetLastSequence_SQL;
-				cmd.Parameters.Add(new NpgsqlParameter("seqowner", sequence.SchemaName));
-				cmd.Parameters.Add(new NpgsqlParameter("seqname", sequence.Name));
-				object ret = cmd.ExecuteScalar();
-				if (ret == null || ret is DBNull)
-				{
-					return null;
-				}
-				return Convert.ToInt64(ret);
-			}
-		}
-		public override void SetSequenceValue(long value, Sequence sequence, IDbConnection connection)
-		{
-			if (connection == null)
-			{
-				throw new ArgumentNullException("connection");
-			}
-			NpgsqlConnection conn = connection as NpgsqlConnection;
-			if (conn == null)
-			{
-				throw new ArgumentException("connectionがNpgsqlConnectionではありません");
-			}
-			using (var cmd = conn.CreateCommand())
-			{
-				cmd.CommandText = string.Format("select setval('{0}'::regclass, :val)", sequence.EscapedIdentifier(null));
-				cmd.Parameters.Add(new NpgsqlParameter("val", NpgsqlDbType.Bigint) { Value = value });
-				cmd.ExecuteNonQuery();
-			}
-		}
-		public override long? GetMaxValueOfColumn(Column column, IDbConnection connection)
-		{
-			if (connection == null)
-			{
-				throw new ArgumentNullException("connection");
-			}
-			NpgsqlConnection conn = connection as NpgsqlConnection;
-			if (conn == null)
-			{
-				throw new ArgumentException("connectionがNpgsqlConnectionではありません");
-			}
-			using (var cmd = conn.CreateCommand())
-			{
-				cmd.CommandText = string.Format("select max({0}) from {1}", column.EscapedName, column.Table.EscapedIdentifier(null));
-				object ret = cmd.ExecuteScalar();
-				if (ret == null || ret is DBNull)
-				{
-					return null;
-				}
-				return Convert.ToInt64(ret);
-			}
-		}
+        public override long? GetCurrentSequenceValue(Sequence sequence, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (conn == null)
+            {
+                throw new ArgumentException("connectionがNpgsqlConnectionではありません");
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = Resources.GetLastSequence_SQL;
+                cmd.Parameters.Add(new NpgsqlParameter("seqowner", sequence.SchemaName));
+                cmd.Parameters.Add(new NpgsqlParameter("seqname", sequence.Name));
+                object ret = cmd.ExecuteScalar();
+                if (ret == null || ret is DBNull)
+                {
+                    return null;
+                }
+                return Convert.ToInt64(ret);
+            }
+        }
+        public override void SetSequenceValue(long value, Sequence sequence, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (conn == null)
+            {
+                throw new ArgumentException("connectionがNpgsqlConnectionではありません");
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = string.Format("select setval('{0}'::regclass, :val)", sequence.EscapedIdentifier(null));
+                cmd.Parameters.Add(new NpgsqlParameter("val", NpgsqlDbType.Bigint) { Value = value });
+                cmd.ExecuteNonQuery();
+            }
+        }
+        public override long? GetMaxValueOfColumn(Column column, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (conn == null)
+            {
+                throw new ArgumentException("connectionがNpgsqlConnectionではありません");
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = string.Format("select max({0}) from {1}", column.EscapedName, column.Table.EscapedIdentifier(null));
+                object ret = cmd.ExecuteScalar();
+                if (ret == null || ret is DBNull)
+                {
+                    return null;
+                }
+                return Convert.ToInt64(ret);
+            }
+        }
 
-		public override long? GetMinValueOfColumn(Column column, IDbConnection connection)
-		{
-			if (connection == null)
-			{
-				throw new ArgumentNullException("connection");
-			}
-			NpgsqlConnection conn = connection as NpgsqlConnection;
-			if (conn == null)
-			{
-				throw new ArgumentException("connectionがNpgsqlConnectionではありません");
-			}
-			using (var cmd = conn.CreateCommand())
-			{
-				cmd.CommandText = string.Format("select min({0}) from {1}", column.EscapedName, column.Table.EscapedIdentifier(null));
-				object ret = cmd.ExecuteScalar();
-				if (ret == null || ret is DBNull)
-				{
-					return null;
-				}
-				return Convert.ToInt64(ret);
-			}
-		}
-	}
+        public override long? GetMinValueOfColumn(Column column, IDbConnection connection)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+            NpgsqlConnection conn = connection as NpgsqlConnection;
+            if (conn == null)
+            {
+                throw new ArgumentException("connectionがNpgsqlConnectionではありません");
+            }
+            using (var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = string.Format("select min({0}) from {1}", column.EscapedName, column.Table.EscapedIdentifier(null));
+                object ret = cmd.ExecuteScalar();
+                if (ret == null || ret is DBNull)
+                {
+                    return null;
+                }
+                return Convert.ToInt64(ret);
+            }
+        }
+    }
 }
