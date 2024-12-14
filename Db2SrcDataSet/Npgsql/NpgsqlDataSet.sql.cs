@@ -336,7 +336,7 @@ namespace Db2Source
             StringBuilder buf = new StringBuilder();
             buf.Append(GetConstraintSqlBase(constraint, prefix, indent, addAlterTable));
             AppendColumnNamesSQL(buf, constraint.Columns);
-            buf.Append(" references");
+            buf.Append(" references ");
             buf.Append(rcons.Table.EscapedIdentifier(CurrentSchema));
             if (rcons.ConstraintType == ConstraintType.Unique)
             {
