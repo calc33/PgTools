@@ -178,7 +178,7 @@ namespace Db2Source
             }
 
             string[] sqls = App.CurrentDataSet.GetDropSQL(Current, true, string.Empty, string.Empty, 0, false, false);
-            if (App.ExecSqls(sqls))
+            if (App.ExecSqls(sqls, false, this))
             {
                 RemoveCurrent();
                 RefreshUsers();
@@ -221,7 +221,7 @@ namespace Db2Source
             {
                 sqls = App.CurrentDataSet.GetAlterSQL(Target, Current, string.Empty, string.Empty, 0, false);
             }
-            if (App.ExecSqls(sqls))
+            if (App.ExecSqls(sqls, false, this))
             {
                 IsEditing = false;
                 RefreshUsers();

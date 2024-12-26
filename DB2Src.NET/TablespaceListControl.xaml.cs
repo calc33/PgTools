@@ -175,7 +175,7 @@ namespace Db2Source
                 return;
             }
             string[] sqls = App.CurrentDataSet.GetDropSQL(Target, true, string.Empty, string.Empty, 0, false, false);
-            if (App.ExecSqls(sqls))
+            if (App.ExecSqls(sqls, false, this))
             {
                 RefreshTablespaces();
             }
@@ -221,7 +221,7 @@ namespace Db2Source
             {
                 sqls = App.CurrentDataSet.GetAlterSQL(Target, Current, string.Empty, string.Empty, 0, false);
             }
-            if (App.ExecSqls(sqls))
+            if (App.ExecSqls(sqls, false, this))
             {
                 IsEditing = false;
                 RefreshTablespaces();

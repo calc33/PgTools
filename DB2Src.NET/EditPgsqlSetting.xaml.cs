@@ -120,7 +120,7 @@ namespace Db2Source
         private void buttonApplyUserSetting_Click(object sender, RoutedEventArgs e)
         {
             string[] sql = (App.CurrentDataSet as NpgsqlDataSet).GetAlterSQL(Target, App.CurrentDataSet.ConnectionInfo.UserName, string.Empty, string.Empty, 0, false);
-            if (!App.ExecSqls(sql, true))
+            if (!App.ExecSqls(sql, true, this))
             {
                 return;
             }
@@ -130,7 +130,7 @@ namespace Db2Source
         private void buttonApplySystemSetting_Click(object sender, RoutedEventArgs e)
         {
             string[] sql = (App.CurrentDataSet as NpgsqlDataSet).GetAlterSQL(Target, string.Empty, string.Empty, 0, false);
-            if (!App.ExecSqls(sql, true))
+            if (!App.ExecSqls(sql, true, this))
             {
                 return;
             }

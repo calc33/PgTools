@@ -73,6 +73,7 @@ namespace Db2Source
             }
             return true;
         }
+
         /// <summary>
         /// 複数のSQLを順次実行してエラーが出たらエラーメッセージをダイアログで表示する
         /// エラーが出たら以降のSQLは実行しない
@@ -80,7 +81,7 @@ namespace Db2Source
         /// <param name="sqls">実行したいSQLの配列</param>
         /// <param name="forceDisconnect">SQL実行後に確実にセッションを切断したい場合はtrue</param>
         /// <returns>SQL実行に成功したらtrue, エラーが出たり実行できなかった場合はfalse</returns>
-        public static bool ExecSqls(string[] sqls, bool forceDisconnect = false)
+        public static bool ExecSqls(string[] sqls, bool forceDisconnect, DependencyObject sender)
         {
             Db2SourceContext ds = CurrentDataSet;
             if (ds == null)
@@ -95,13 +96,15 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    MessageBox.Show(Current.MainWindow, CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
+                    Window win = sender == null ? Current.MainWindow : Window.GetWindow(sender);
+                    MessageBox.Show(win, CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     LogException(sql, t);
                     return false;
                 }
             }
             return true;
         }
+        
         private void TabItemCloseButton_Click(object sender, RoutedEventArgs e)
         {
             TabItem item = (sender as Control).TemplatedParent as TabItem;
