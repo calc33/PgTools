@@ -330,8 +330,8 @@ namespace Db2Source
                         sw.Write(f);
                         prefix = ", ";
                     }
-                    sw.WriteLine(") FROM stdin;");
-                    while (reader.Read())
+					sw.WriteLine(string.Format(") FROM stdin WITH ENCODING '{0}';", encoding.WebName));
+					while (reader.Read())
                     {
                         object[] vals = new object[reader.FieldCount];
                         reader.GetValues(vals);
