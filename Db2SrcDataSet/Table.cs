@@ -47,7 +47,7 @@ namespace Db2Source
                 return l;
             }
         }
-        public ForeignKeyConstraint[] GetForeignKeysForColumn(string columnName)
+        public override ForeignKeyConstraint[] GetForeignKeysForColumn(string columnName)
         {
             List<ForeignKeyConstraint> l = new List<ForeignKeyConstraint>();
             foreach (ForeignKeyConstraint c in ReferTo)
@@ -102,7 +102,7 @@ namespace Db2Source
                 }
             }
         }
-        public KeyConstraint PrimaryKey
+        public override KeyConstraint PrimaryKey
         {
             get
             {
@@ -111,7 +111,7 @@ namespace Db2Source
             }
         }
 
-        public KeyConstraint FirstCandidateKey
+        public override KeyConstraint FirstCandidateKey
         {
             get
             {

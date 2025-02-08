@@ -481,10 +481,10 @@ namespace Db2Source
                 return Rows;
             }
         }
-        private Table _table;
-        public Table Table
-        {
-            get
+		private Selectable _table;
+		public Selectable Table
+		{
+			get
             {
                 return _table;
             }
@@ -495,9 +495,9 @@ namespace Db2Source
                     return;
                 }
                 _table = value;
-                SetKeyFields(_table?.FirstCandidateKey?.Columns);
-                //UpdateFieldComment();
-            }
+				SetKeyFields(_table?.FirstCandidateKey?.Columns);
+				//UpdateFieldComment();
+			}
         }
         public Db2SourceContext DataSet
         {
@@ -595,7 +595,7 @@ namespace Db2Source
             List<Row> rows = new List<Row>();
             for (int i = 0; i < n; i++)
             {
-                ColumnInfo fi = new ColumnInfo(reader, i);
+                ColumnInfo fi = new ColumnInfo(reader, i, null);
                 Column c = Table?.Columns[fi.Name];
                 if (c != null)
                 {
@@ -622,7 +622,7 @@ namespace Db2Source
             });
         }
 
-        private void LoadInternal(IDataReader reader)
+        private void LoadInternal(IDataReader reader, Selectable table)
         {
             if (Grid != null)
             {
@@ -633,13 +633,7 @@ namespace Db2Source
             Rows = new RowCollection(this);
             for (int i = 0; i < n; i++)
             {
-                ColumnInfo fi = new ColumnInfo(reader, i);
-                Column c = Table?.Columns[fi.Name];
-                if (c != null)
-                {
-                    fi.Comment = c.CommentText;
-                    fi.StringFormat = c.StringFormat;
-                }
+                ColumnInfo fi = new ColumnInfo(reader, i, table);
                 Fields[i] = fi;
                 _nameToField[fi.Name.ToLower()] = fi;
             }
@@ -649,41 +643,12 @@ namespace Db2Source
             }
             IsModified = false;
         }
-        public void Load(IDataReader reader)
-        {
-            Table = null;
-            try
-            {
-                LoadInternal(reader);
-            }
-            finally
-            {
-                UpdateGrid();
-            }
-        }
-        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader, Table table, CancellationToken cancellationToken)
+        public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader, Selectable table, CancellationToken cancellationToken)
         {
             Table = table;
             try
             {
-                LoadInternal(reader);
-                foreach (ColumnInfo info in Fields)
-                {
-                    Column c = table.Columns[info.Name];
-                    if (c == null)
-                    {
-                        continue;
-                    }
-                    info.Column = c;
-                    info.HiddenLevel = c.HiddenLevel;
-                    info.IsNotNull = c.NotNull;
-                    if (!string.IsNullOrEmpty(c.DefaultValue))
-                    {
-                        info.IsDefaultDefined = true;
-                        info.DefaultValueExpr = c.DefaultValue;
-                    }
-                    info.ForeignKeys = table.GetForeignKeysForColumn(info.Name);
-                }
+                LoadInternal(reader, table);
             }
             finally
             {
@@ -1557,7 +1522,7 @@ namespace Db2Source
 
         private void DoCopyTableAsInsert()
         {
-            if (Table == null)
+            if (!(Table is Table))
             {
                 return;
             }
@@ -1620,7 +1585,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                buf.Append(DataSet.GetInsertSql(Table, 0, 80, ";", values, true));
+                buf.Append(DataSet.GetInsertSql(Table as Table, 0, 80, ";", values, true));
             }
             DataObject obj = new DataObject();
             obj.SetData(DataFormats.Text, buf.ToString());
@@ -1630,7 +1595,7 @@ namespace Db2Source
 
         private void DoCopyTableAsUpdate()
         {
-            if (Table == null)
+            if (!(Table is Table))
             {
                 return;
             }
@@ -1721,7 +1686,7 @@ namespace Db2Source
                 {
                     keys = null;
                 }
-                buf.Append(DataSet.GetUpdateSql(Table, 0, 80, ";", values, keys));
+                buf.Append(DataSet.GetUpdateSql(Table as Table, 0, 80, ";", values, keys));
             }
             DataObject obj = new DataObject();
             obj.SetData(DataFormats.Text, buf.ToString());

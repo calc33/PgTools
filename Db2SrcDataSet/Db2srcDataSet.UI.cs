@@ -396,18 +396,23 @@ namespace Db2Source
             {
                 MethodInfo parseMethod = null;
                 Type valueType = null;
-                if (targetType.IsGenericType)
+                if (FieldType.IsGenericType)
                 {
-                    valueType = targetType.GetGenericArguments()[0];
+                    valueType = FieldType.GetGenericArguments()[0];
                     parseMethod = valueType.GetMethod("Parse", new Type[] { typeof(string) });
                 }
+                else if (FieldType.IsArray)
+                {
+                    valueType = FieldType.GetElementType();
+                    parseMethod = valueType.GetMethod("Parse", new Type[] { typeof(string) });
+				}
                 if (parseMethod == null)
                 {
                     return null;
                 }
-                s = s.Substring(1, s.Length - 1);
+                s = s.Substring(1, s.Length - 2);
                 Type lt = typeof(List<>).MakeGenericType(new Type[] { valueType });
-                IList l = lt.GetConstructor(Type.EmptyTypes) as IList;
+                IList l = lt.GetConstructor(Type.EmptyTypes).Invoke(null) as IList;
                 foreach (string v in s.Split(','))
                 {
                     l.Add(parseMethod.Invoke(null, new object[] { v.Trim() }));
@@ -430,11 +435,12 @@ namespace Db2Source
         {
             return _convertBack(value, targetType, parameter, culture);
         }
-        public ColumnInfo(IDataReader reader, int index)
+        public ColumnInfo(IDataReader reader, int index, Selectable table)
         {
             Index = index;
             Name = reader.GetName(Index);
-            Type ft = reader.GetFieldType(Index);
+            Column = table?.Columns[Name];
+            Type ft = Column?.ValueType ?? reader.GetFieldType(Index);
             if (ft.IsGenericType && ft.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 IsNullable = true;
@@ -447,7 +453,7 @@ namespace Db2Source
             AllowEmptyString = ft == typeof(string);
             IsString = ft == typeof(string);
             IsDateTime = ft == typeof(DateTime);
-            IsArray = ft == typeof(Array);
+            IsArray = (ft == typeof(Array)) || ft.IsArray;
             FieldType = ft;
             _convert = ConvertNone;
             _convertBack = ConvertNone;
@@ -456,8 +462,24 @@ namespace Db2Source
                 _convert = ConvertArray;
                 _convertBack = ConvertBackArray;
             }
-        }
-        public ColumnInfo()
+            if (Column != null)
+            {
+				Comment = Column.CommentText;
+				StringFormat = Column.StringFormat;
+				HiddenLevel = Column.HiddenLevel;
+				IsNotNull = Column.NotNull;
+				if (!string.IsNullOrEmpty(Column.DefaultValue))
+				{
+					IsDefaultDefined = true;
+					DefaultValueExpr = Column.DefaultValue;
+				}
+			}
+            if (table != null)
+            {
+				ForeignKeys = table.GetForeignKeysForColumn(Name);
+			}
+		}
+		public ColumnInfo()
         {
             Index = -1;
         }

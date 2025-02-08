@@ -365,7 +365,7 @@ namespace Db2Source
             {
                 using (IDataReader reader = await dataSet.ExecuteReaderAsync(command, _fetchingCancellation.Token))
                 {
-                    controller.Load(reader);
+                    await controller.LoadAsync(dispatcher, reader, Target, _fetchingCancellation.Token);
                 }
             }
             catch (Exception t)

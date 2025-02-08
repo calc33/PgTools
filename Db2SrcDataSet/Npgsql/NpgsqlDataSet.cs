@@ -59,6 +59,7 @@ namespace Db2Source
             { typeof(long), NpgsqlDbType.Bigint },
             { typeof(ulong), NpgsqlDbType.Bigint },
             { typeof(DateTime), NpgsqlDbType.Timestamp },
+            { typeof(TimeSpan), NpgsqlDbType.Interval },
             { typeof(float), NpgsqlDbType.Real },
             { typeof(double), NpgsqlDbType.Double },
             { typeof(decimal), NpgsqlDbType.Numeric },
@@ -356,6 +357,10 @@ namespace Db2Source
         private static NpgsqlDbType GetNpgsqlDbType(ColumnInfo info)
         {
             Type t = info.FieldType;
+            if (t.IsArray || t.IsGenericType && t.GetGenericTypeDefinition().IsAssignableFrom(typeof(IList<>)))
+            {
+                return NpgsqlDbType.Array;
+            }
             if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 t = t.GetGenericArguments()[0];
@@ -438,8 +443,8 @@ namespace Db2Source
             NpgsqlParameter param = parameters[isOld ? "old_" + info.Name : info.Name] as NpgsqlParameter;
             param.NpgsqlDbType = GetNpgsqlDbType(info);
             param.IsNullable = info.IsNullable;
-            param.Value = value ?? DBNull.Value;
-            return param;
+			param.Value = value ?? DBNull.Value;
+			return param;
         }
         public override IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld)
         {
@@ -903,7 +908,7 @@ namespace Db2Source
         }
         private void ExecuteInsert(IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
-            Table tbl = owner.Table;
+            Table tbl = owner.Table as Table;
             if (tbl == null)
             {
                 throw new ApplicationException("更新対象の表が設定されていないため、更新できません");
@@ -958,7 +963,7 @@ namespace Db2Source
 
         private void ExecuteUpdate(IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
-            Table tbl = owner?.Table;
+            Table tbl = owner?.Table as Table;
             if (tbl == null)
             {
                 throw new ApplicationException("更新対象の表が設定されていないため、更新できません");
@@ -1038,7 +1043,7 @@ namespace Db2Source
         }
         private void ExecuteDelete(IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
         {
-            Table tbl = owner?.Table;
+            Table tbl = owner?.Table as Table;
             if (tbl == null)
             {
                 throw new ApplicationException("更新対象の表が設定されていないため、削除できません");

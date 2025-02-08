@@ -1132,6 +1132,12 @@ namespace Db2Source
             }
         }
 
+		public virtual ForeignKeyConstraint[] GetForeignKeysForColumn(string columnName) { return Array.Empty<ForeignKeyConstraint>(); }
+
+		public virtual KeyConstraint PrimaryKey { get { return null; } }
+
+		public virtual KeyConstraint FirstCandidateKey { get { return null; } }
+		
         internal Selectable(Db2SourceContext context, string owner, string schema, string tableName) : base(context, owner, schema, tableName, NamespaceIndex.Objects)
         {
             Columns = new ColumnCollection(this);

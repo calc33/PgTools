@@ -3914,7 +3914,25 @@ namespace Db2Source
                 LoadFromPgDescription();
             }
 
-            public void FillDatabaseByName(string databaseName, WorkingData working, NpgsqlConnection connection)
+            public void FillSequenceByOid(uint oid, NpgsqlConnection connection)
+            {
+                PgClass.FillByOid(PgClasses, this, connection, oid);
+                PgDescription.FillByOid(PgDescriptions, this, connection, oid);
+
+                PgClasses.BeginFillReference(this);
+                PgDescriptions.BeginFillReference(this);
+
+				PgClasses.FillReference(this);
+				PgDescriptions.FillReference(this);
+
+				PgClasses.EndFillReference(this);
+				PgDescriptions.EndFillReference(this);
+
+                LoadFromPgClass();
+                LoadFromPgDescription();
+			}
+
+			public void FillDatabaseByName(string databaseName, WorkingData working, NpgsqlConnection connection)
             {
                 //PgRole.Load(connection);
                 //PgTablespace.Load(connection);
@@ -4262,7 +4280,34 @@ namespace Db2Source
         //    return Database;
         //}
 
-        public override void RefreshSettings(IDbConnection connection)
+        internal Sequence RefreshSequence(Sequence sequence, NpgsqlConnection connection)
+        {
+			string sch = sequence.SchemaName;
+			string name = sequence.Name;
+			if (_backend == null)
+			{
+				LoadSchema(connection, false);
+			}
+			else
+			{
+				uint? oid = PgClass.GetOid(connection, sequence.SchemaName, sequence.Name, 'S');
+				if (!oid.HasValue)
+				{
+					sequence.Release();
+					return null;
+				}
+				_backend.FillSelectableByOid(oid.Value, connection);
+			}
+			Sequence ret = Objects[sch, name] as Sequence;
+			if (ret != sequence)
+			{
+				sequence.ReplaceTo(ret);
+				sequence.Release();
+			}
+			return ret;
+		}
+
+		public override void RefreshSettings(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
             if (_backend == null)
@@ -4328,6 +4373,11 @@ namespace Db2Source
             {
                 return obj;
                 //return RefreshDatabase((PgsqlDatabase)obj, conn);
+            }
+            if (obj is Sequence)
+            {
+                return obj;
+                //RefreshSequence((Sequence)obj, conn);
             }
             throw new NotImplementedException(string.Format("{0} {1} is not supported.", obj.GetType().FullName, obj.FullName));
             //return obj;

@@ -26,6 +26,7 @@ namespace Db2Source
             { LogStatus.Error, ErrorBrush },
             { LogStatus.Aux, SystemColors.GrayTextBrush },
         };
+
         public DateTime Time
         {
             get

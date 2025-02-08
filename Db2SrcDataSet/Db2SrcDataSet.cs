@@ -267,7 +267,7 @@ namespace Db2Source
     }
     public interface IChangeSet
     {
-        Table Table { get; set; }
+        Selectable Table { get; set; }
         ColumnInfo[] KeyFields { get; }
         ColumnInfo[] Fields { get; }
         ColumnInfo GetFieldByName(string name);
