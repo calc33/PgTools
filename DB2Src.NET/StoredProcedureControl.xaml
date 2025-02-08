@@ -98,7 +98,7 @@
                             <Separator/>
                             <Button x:Name="buttonSearchSchema" Margin="1,2" ToolTip="検索" ContentTemplate="{StaticResource ImageSearch14}" Click="buttonSearchSchema_Click" Focusable="False"/>
                             <Separator/>
-                            <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" Click="buttonOptions_Click" Focusable="False">
+                            <Button x:Name="buttonOptions" Margin="1,2" ToolTip="削除" ContentTemplate="{StaticResource ImageTrash14}" Click="buttonDropProcedure_Click" Focusable="False">
                                 <Button.IsEnabled>
                                     <MultiBinding Converter="{StaticResource MultiBooleanAndConverter}">
                                         <Binding Path="IsEditing" ElementName="userControl" Converter="{StaticResource InvertBooleanConverter}"/>

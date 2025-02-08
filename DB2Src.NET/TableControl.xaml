@@ -13,6 +13,7 @@
         <sys:String x:Key="messageInvalidLimitRow">件数が数字ではありません</sys:String>
         <sys:String x:Key="messageConfirmSave">変更が保存されていません。保存しますか?</sys:String>
         <sys:String x:Key="messageConfirmSaveAndClose">"{0}"の変更が保存されていません。保存しますか?</sys:String>
+        <sys:String x:Key="messageRowsFound">{0}件見つかりました (クエリ {1}  所要時間 {2})</sys:String>
         <local:InvertBooleanConverter x:Key="InvertBooleanConverter"/>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:PgsqlColumnArrayToTextConverter x:Key="PgsqlColumnArrayToTextConverter"/>
@@ -379,7 +380,7 @@
                 </Grid.ColumnDefinitions>
                 <ListBox x:Name="listBoxTrigger" MinWidth="200" DisplayMemberPath="Name" ItemsSource="{Binding Target.Triggers, ElementName=userControl}" LayoutUpdated="dataGridTrigger_LayoutUpdated"/>
                 <GridSplitter Margin="0,0,-4,0" Width="4" />
-                <local:TriggerControl Grid.Column="1" Margin="6,2,2,2" Target="{Binding SelectedItem, ElementName=listBoxTrigger}"/>
+                <local:TriggerControl Grid.Column="1" Margin="6,2,2,2" Target="{Binding SelectedItem, ElementName=listBoxTrigger}" TargetDropped="TriggerControl_TargetDropped"/>
             </Grid>
         </TabItem>
         <TabItem Header="依存関係">

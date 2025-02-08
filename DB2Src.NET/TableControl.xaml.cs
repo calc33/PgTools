@@ -77,7 +77,7 @@ namespace Db2Source
     /// <summary>
     /// TableControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class TableControl: UserControl, ISchemaObjectWpfControl
+    public partial class TableControl : UserControl, ISchemaObjectWpfControl
     {
         public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Table), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty JoinTablesProperty = DependencyProperty.Register("JoinTables", typeof(JoinTableCollection), typeof(TableControl), new PropertyMetadata(new PropertyChangedCallback(OnJoinTablesPropertyChanged)));
@@ -230,7 +230,7 @@ namespace Db2Source
             InitializeComponent();
             JoinTables = new JoinTableCollection();
         }
-        
+
         private void OnTargetPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
             Dispatcher.InvokeAsync(() =>
@@ -369,7 +369,7 @@ namespace Db2Source
             }
             else
             {
-                throw new NotImplementedException();    
+                throw new NotImplementedException();
             }
             foreach (string id in obj.DependBy)
             {
@@ -646,7 +646,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty): string.Empty;
+            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
         }
 
         private void UpdateTextBoxDeleteSql()
@@ -807,13 +807,20 @@ namespace Db2Source
             _inAutoFetching = false;
         }
 
-        private async Task ExecuteCommandAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table, IDbCommand command)
+		private static string GetDurationText(TimeSpan time)
+		{
+			return string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+		}
+
+		private async Task ExecuteCommandAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table, IDbCommand command)
         {
             DateTime start = DateTime.Now;
+            DateTime sqlEnd = start;
             try
             {
                 using (IDataReader reader = await dataSet.ExecuteReaderAsync(command, _fetchingCancellation.Token))
                 {
+                    sqlEnd = DateTime.Now;
                     await controller.LoadAsync(dispatcher, reader, table, _fetchingCancellation.Token);
                 }
             }
@@ -828,17 +835,17 @@ namespace Db2Source
             finally
             {
                 DateTime end = DateTime.Now;
-                TimeSpan time = end - start;
-                await dispatcher.InvokeAsync(() =>
+				string s1 = GetDurationText(sqlEnd - start);
+				string s2 = GetDurationText(end - start);
+				await dispatcher.InvokeAsync(() =>
                 {
-                    string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                    textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", controller.Rows.Count, s);
+					textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s1, s2);
                 });
                 command.Dispose();
             }
         }
 
-        private async Task ExecuteSqlAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table,string sql, int offset)
+        private async Task ExecuteSqlAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, Table table, string sql, int offset)
         {
             DateTime start = DateTime.Now;
             try
@@ -1624,6 +1631,19 @@ namespace Db2Source
         private void checkBoxUpsert_Unchecked(object sender, RoutedEventArgs e)
         {
             UpdateTextBoxInsertSql();
+        }
+
+        private void TriggerControl_TargetDropped(object sender, EventArgs e)
+        {
+            TriggerControl ctl = sender as TriggerControl;
+            Trigger trigger = ctl?.Target;
+            if (trigger == null)
+            {
+                return;
+            }
+            listBoxTrigger.ItemsSource = null;
+            Target.Triggers.Remove(trigger);
+            listBoxTrigger.ItemsSource = Target.Triggers;
         }
     }
 

@@ -136,6 +136,13 @@ namespace Db2Source
             IsEditing = false;
         }
 
+        public event EventHandler TargetDropped;
+
+        private void OnTargetDropped()
+        {
+            TargetDropped?.Invoke(this, EventArgs.Empty);
+        }
+
         private void buttonDropTrigger_Click(object sender, RoutedEventArgs e)
         {
             ContextMenu menu = (ContextMenu)FindResource("contextMenuDropTrigger");
@@ -165,13 +172,7 @@ namespace Db2Source
             {
                 return;
             }
-            TabItem tab = App.FindLogicalParent<TabItem>(this);
-            if (tab != null)
-            {
-                (tab.Parent as TabControl).Items.Remove(tab);
-                Target.Release();
-                MainWindow.Current.FilterTreeView(true);
-            }
+            OnTargetDropped();
         }
 
         private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)

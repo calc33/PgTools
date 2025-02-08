@@ -773,7 +773,7 @@ namespace Db2Source
         }
 
         private ContextMenu _contextMenu_DropProcedure;
-        private void buttonOptions_Click(object sender, RoutedEventArgs e)
+        private void buttonDropProcedure_Click(object sender, RoutedEventArgs e)
         {
             _contextMenu_DropProcedure.PlacementTarget = buttonOptions;
             _contextMenu_DropProcedure.Placement = PlacementMode.Bottom;

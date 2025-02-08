@@ -156,11 +156,16 @@ namespace Db2Source
             return item;
         }
 
-        private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos = null)
-        {
-            LogListBoxItem item = NewLogListBoxItem(text, query, status, notice, errorPos);
-            item.RedoSql += Item_RedoSql;
-            listBoxLog.Items.Add(item);
+		private static string GetDurationText(TimeSpan time)
+		{
+			return string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+		}
+
+		private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos = null)
+		{
+			LogListBoxItem item = NewLogListBoxItem(text, query, status, notice, errorPos);
+			item.RedoSql += Item_RedoSql;
+			listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
             listBoxLog.ScrollIntoView(item);
             if (notice)
@@ -360,11 +365,13 @@ namespace Db2Source
                                 stores = ParameterStoreCollection.GetParameterStores(cmd, Parameters, out _);
                             });
                             DateTime start = DateTime.Now;
+                            DateTime sqlEnd = start;
                             Query history = new Query(cmd);
                             try
                             {
                                 using (IDataReader reader = await ctx.ExecuteReaderAsync(cmd, _fetchingCancellation.Token))
                                 {
+                                    sqlEnd = DateTime.Now;
                                     await controller.LoadAsync(dispatcher, reader, _fetchingCancellation.Token);
                                     if (0 <= reader.RecordsAffected)
                                     {
@@ -407,15 +414,15 @@ namespace Db2Source
                             }
                             finally
                             {
-                                DateTime end = DateTime.Now;
-                                TimeSpan time = end - start;
-                                string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                                _ = dispatcher.InvokeAsync(() =>
+								DateTime end = DateTime.Now;
+                                string s1 = GetDurationText(sqlEnd - start);
+                                string s2 = GetDurationText(end - start);
+								_ = dispatcher.InvokeAsync(() =>
                                 {
                                     ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
                                     UpdateDataGridParameters();
-                                    AddLog(string.Format((string)FindResource("messageExecuted"), s), history, LogStatus.Aux, false);
-                                    textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s);
+                                    AddLog(string.Format((string)FindResource("messageExecuted"), s1, s2), history, LogStatus.Aux, false);
+                                    textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s1, s2);
                                 });
                             }
                         }
