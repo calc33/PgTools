@@ -844,12 +844,53 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        //public override string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline)
-        //{
+        public override string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline)
+		{
+			string spc = GetIndent(indent);
+			StringBuilder buf = new StringBuilder();
+			buf.Append(spc);
+			buf.Append(prefix);
+			buf.Append("create or replace procedure ");
+			buf.Append(procedure.EscapedIdentifier(CurrentSchema));
+			buf.Append('(');
+			bool needComma = false;
+			foreach (Parameter p in procedure.Parameters)
+			{
+				if (needComma)
+				{
+					buf.Append(", ");
+				}
+				buf.Append(_Expand(GetSQL(p)));
+				needComma = true;
+			}
+			buf.Append(')');
+			buf.AppendLine();
+			if (!string.IsNullOrEmpty(procedure.Language))
+			{
+				buf.Append(spc);
+				buf.Append(" language ");
+				buf.AppendLine(procedure.Language);
+			}
+			foreach (string s in procedure.ExtraInfo)
+			{
+				buf.Append(spc);
+				buf.Append(' ');
+				buf.AppendLine(s);
+			}
+			buf.Append(spc);
+			buf.Append(" as $procedure$"); // Definitionの前後に改行が含まれるためここでは改行しない
+			buf.Append(procedure.Definition); // Definitionの前後に改行が含まれるためここでは改行しない
+			buf.Append(spc);
+			buf.Append("$procedure$");
+			buf.Append(postfix);
+			if (addNewline)
+			{
+				buf.AppendLine();
+			}
+			return new string[] { buf.ToString() };
+		}
 
-        //}
-
-        public override string[] GetAlterTableSQL(Table after, Table before)
+		public override string[] GetAlterTableSQL(Table after, Table before)
         {
             throw new NotImplementedException();
         }
@@ -1560,7 +1601,7 @@ namespace Db2Source
         {
             return GetDropSQLInternal(sequence, ifExists, prefix, postfix, indent, cascade, addNewline);
         }
-        private string GetSQLIdentifier(StoredFunction function, string baseSchemaName)
+        private string GetSQLIdentifier(StoredProcedureBase function, string baseSchemaName)
         {
             StringBuilder buf = new StringBuilder();
             buf.Append(function.EscapedIdentifier(baseSchemaName));
@@ -1616,7 +1657,35 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
-        //public override string GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+
+        public override string[] GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+		{
+			if (procedure == null)
+			{
+				return StrUtil.EmptyStringArray;
+			}
+			StringBuilder buf = new StringBuilder();
+			string spc = GetIndent(indent);
+			buf.Append(spc);
+			buf.Append(prefix);
+			buf.Append("drop procedure ");
+			if (ifExists)
+			{
+				buf.Append("if exists ");
+			}
+			buf.Append(GetSQLIdentifier(procedure, CurrentSchema));
+			if (cascade)
+			{
+				buf.Append(" cascade");
+			}
+			buf.Append(postfix);
+			if (addNewline)
+			{
+				buf.AppendLine();
+			}
+			return new string[] { buf.ToString() };
+		}
+		
         public override string[] GetDropSQL(ComplexType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
         {
             return GetDropSQLInternal(type, ifExists, prefix, postfix, indent, cascade, addNewline);

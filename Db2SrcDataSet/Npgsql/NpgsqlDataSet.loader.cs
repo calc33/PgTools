@@ -2159,7 +2159,7 @@ namespace Db2Source
                 }
                 else if (TargetProc != null)
                 {
-                    c = new StoredFunctionComment(context, TargetProc.Schema?.nspname, TargetProc.proname, TargetProc.GetArgTypeStrs(), description, true);
+                    c = new StoredProcecureBaseComment(context, TargetProc.Schema?.nspname, TargetProc.proname, TargetProc.GetArgTypeStrs(), description, true);
                 }
                 else if (TargetTrigger != null)
                 {
@@ -2847,25 +2847,36 @@ namespace Db2Source
                 return new TableReturnType(l.ToArray());
             }
 
-            public StoredFunction ToStoredFunction(NpgsqlDataSet context)
+            public StoredProcedureBase ToStoredProcedureBase(NpgsqlDataSet context)
             {
                 NamedObject o;
                 if (Generated != null && Generated.TryGetTarget(out o))
                 {
-                    return (StoredFunction)o;
+                    return (StoredProcedureBase)o;
                 }
-                StoredFunction fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
+                StoredProcedureBase fn;
+				if (prokind == 'p')
+				{
+					fn = new StoredProcedure(context, ownername, Schema?.nspname, proname, prosrc, true)
+					{
+						Extension = Extension,
+						Language = lanname
+					};
+				}
+				else
                 {
-                    ReturnType = GetReturnType(),
-                    //BaseType = ReturnType?.BaseType?.formatname
-                    Extension = Extension,
-                    Language = lanname
-                };
-                //if (fn.BaseType == null)
-                //{
-                //    fn.BaseType = fn.DataType;
-                //}
-                PgType[] args = AllArgTypes ?? ArgTypes;
+					fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
+					{
+						ReturnType = GetReturnType(),
+						Extension = Extension,
+						Language = lanname
+					};
+				}
+				//if (fn.BaseType == null)
+				//{
+				//    fn.BaseType = fn.DataType;
+				//}
+				PgType[] args = AllArgTypes ?? ArgTypes;
                 if (args != null)
                 {
                     for (int i = 0; i < args.Length; i++)
@@ -4074,7 +4085,7 @@ namespace Db2Source
             {
                 foreach (PgProc p in PgProcs)
                 {
-                    p.ToStoredFunction(Context);
+                    p.ToStoredProcedureBase(Context);
                 }
             }
 
@@ -4265,22 +4276,55 @@ namespace Db2Source
             }
             return ret;
         }
+		internal StoredProcedure RefreshStoredProcedure(StoredProcedure procedure, NpgsqlConnection connection)
+		{
+			if (_backend == null)
+			{
+				LoadSchema(connection, false);
+			}
+			else
+			{
+				List<string> args = new List<string>();
+				foreach (Parameter p in procedure.Parameters)
+				{
+					if ((p.Direction & ParameterDirection.Input) != 0)
+					{
+						args.Add(p.DataType);
+					}
+				}
+				uint? oid = PgProc.GetOid(_backend, connection, procedure.SchemaName, procedure.Name, args.ToArray());
+				if (!oid.HasValue)
+				{
+					procedure.Release();
+					return null;
+				}
+				_backend.FillProcByOid(oid.Value, connection);
+			}
+			string id = procedure.FullIdentifier;
+			StoredProcedure ret = Objects[id] as StoredProcedure;
+			if (ret != procedure)
+			{
+				procedure.ReplaceTo(ret);
+				procedure.Release();
+			}
+			return ret;
+		}
 
-        //private SchemaObject RefreshDatabase(PgsqlDatabase database, NpgsqlConnection connection)
-        //{
-        //    if (_backend == null)
-        //    {
-        //        LoadSchema(connection, false);
-        //        return DatabaseTemplates[database.Name];
-        //    }
-        //    else
-        //    {
-        //        _backend.FillDatabaseByName(database.Identifier, connection);
-        //    }
-        //    return Database;
-        //}
+		//private SchemaObject RefreshDatabase(PgsqlDatabase database, NpgsqlConnection connection)
+		//{
+		//    if (_backend == null)
+		//    {
+		//        LoadSchema(connection, false);
+		//        return DatabaseTemplates[database.Name];
+		//    }
+		//    else
+		//    {
+		//        _backend.FillDatabaseByName(database.Identifier, connection);
+		//    }
+		//    return Database;
+		//}
 
-        internal Sequence RefreshSequence(Sequence sequence, NpgsqlConnection connection)
+		internal Sequence RefreshSequence(Sequence sequence, NpgsqlConnection connection)
         {
 			string sch = sequence.SchemaName;
 			string name = sequence.Name;
@@ -4368,6 +4412,10 @@ namespace Db2Source
             if (obj is StoredFunction)
             {
                 return RefreshStoredFunction((StoredFunction)obj, conn);
+            }
+            if (obj is StoredProcedure)
+            {
+                return RefreshStoredProcedure((StoredProcedure)obj, conn);
             }
             if (obj is PgsqlDatabase)
             {

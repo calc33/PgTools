@@ -10,6 +10,7 @@
              d:DesignHeight="300" d:DesignWidth="627.692" Initialized="UserControl_Initialized">
     <UserControl.Resources>
         <sys:String x:Key="messageInvalidLimitRow">件数が数字ではありません</sys:String>
+        <sys:String x:Key="messageRowsFound">{0}件見つかりました (クエリ {1}  所要時間 {2})</sys:String>
         <local:IsEnabledToColorConverter x:Key="IsEnabledToColorConverter"/>
         <local:NotNullTextConverter x:Key="NotNullTextConverter"/>
         <Style x:Key="DataGridColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">

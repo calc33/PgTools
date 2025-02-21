@@ -268,7 +268,7 @@ namespace Db2Source
         }
     }
 
-    public class StoredFunctionComment : Comment
+    public class StoredProcecureBaseComment : Comment
     {
         private string[] _arguments = StrUtil.EmptyStringArray;
         protected override string GetFullIdentifier()
@@ -292,8 +292,8 @@ namespace Db2Source
             return o;
         }
 
-        internal StoredFunctionComment(Db2SourceContext context, string schema) : base(context, schema) { }
-        internal StoredFunctionComment(Db2SourceContext context, string schema, string func, string[] arguments, string comment, bool isLoaded) : base(context, schema, func, null, comment, isLoaded)
+        internal StoredProcecureBaseComment(Db2SourceContext context, string schema) : base(context, schema) { }
+        internal StoredProcecureBaseComment(Db2SourceContext context, string schema, string func, string[] arguments, string comment, bool isLoaded) : base(context, schema, func, null, comment, isLoaded)
         {
             _arguments = arguments;
         }

@@ -4,7 +4,6 @@ using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,7 +45,151 @@ namespace Db2Source
             //OnLog(e.Notice.Detail, LogStatus.Aux, null);
         }
 
-        public new static readonly Dictionary<Type, NpgsqlDbType> TypeToDbType = new Dictionary<Type, NpgsqlDbType>()
+        public static readonly Dictionary<string, NpgsqlDbType> TypeNameToDbType = new Dictionary<string, NpgsqlDbType>()
+		{
+			{ "boolean", NpgsqlDbType.Boolean },
+			{ "bool", NpgsqlDbType.Boolean },
+			{ "smallint", NpgsqlDbType.Smallint },
+			{ "integer", NpgsqlDbType.Integer },
+			{ "int2", NpgsqlDbType.Smallint },
+			{ "int4", NpgsqlDbType.Integer },
+			{ "bigint", NpgsqlDbType.Bigint },
+			{ "int8", NpgsqlDbType.Bigint },
+			{ "real", NpgsqlDbType.Real },
+			{ "float4", NpgsqlDbType.Real },
+			{ "money", NpgsqlDbType.Money },
+
+            //可変長
+            { "text", NpgsqlDbType.Text },
+			{ "citext", NpgsqlDbType.Citext },
+			{ "json", NpgsqlDbType.Json },
+			{ "jsonb", NpgsqlDbType.Jsonb },
+			{ "xml", NpgsqlDbType.Xml },
+
+            //固定長あり
+            { "character varying", NpgsqlDbType.Varchar },
+			{ "nvarchar", NpgsqlDbType.Varchar },
+			{ "varchar", NpgsqlDbType.Varchar },
+			{ "character", NpgsqlDbType.Char },
+			{ "char", NpgsqlDbType.Char },
+			{ "\"char\"", NpgsqlDbType.Char },
+			{ "name", NpgsqlDbType.Name },
+            //固定桁数あり
+            { "double precision", NpgsqlDbType.Double },
+			{ "numeric", NpgsqlDbType.Numeric },
+
+			{ "point", NpgsqlDbType.Point },
+			{ "lseg", NpgsqlDbType.LSeg },
+			{ "path", NpgsqlDbType.Path },
+			{ "polygon", NpgsqlDbType.Polygon },
+			{ "line", NpgsqlDbType.Line },
+			{ "circle", NpgsqlDbType.Circle },
+			{ "box", NpgsqlDbType.Box },
+			{ "bit", NpgsqlDbType.Bit },
+
+            // 固定桁数あり
+            { "bit varying", NpgsqlDbType.Varbit },
+			{ "hstore", NpgsqlDbType.Hstore },
+			{ "uuid", NpgsqlDbType.Uuid },
+			{ "inet", NpgsqlDbType.Inet },
+			{ "macaddr", NpgsqlDbType.MacAddr },
+			{ "tsquery", NpgsqlDbType.TsQuery },
+			{ "tsvector", NpgsqlDbType.TsVector },
+			//{ "abstime", NpgsqlDbType.Abstime },
+			{ "date", NpgsqlDbType.Date },
+			{ "timestamp", NpgsqlDbType.Timestamp },
+			{ "timestamp without time zone", NpgsqlDbType.Timestamp },
+			{ "timestamp with time zone", NpgsqlDbType.TimestampTz },
+			{ "time", NpgsqlDbType.Time },
+			{ "interval", NpgsqlDbType.Interval },
+			{ "time with time zone", NpgsqlDbType.TimeTz },
+
+			{ "bytea", NpgsqlDbType.Bytea },
+			{ "oid", NpgsqlDbType.Oid },
+			{ "xid", NpgsqlDbType.Xid },
+			{ "cid", NpgsqlDbType.Cid },
+
+            // 固定長あり
+            { "oidvector", NpgsqlDbType.Oidvector },
+			//{ "record", NpgsqlDbType.Record },
+			{ "array", NpgsqlDbType.Array },
+			//{ "void", null },
+
+            //配列
+            { "_xml", NpgsqlDbType.Array | NpgsqlDbType.Xml },
+			{ "_json", NpgsqlDbType.Array | NpgsqlDbType.Json },
+			{ "_line", NpgsqlDbType.Array | NpgsqlDbType.Line },
+			{ "_circle", NpgsqlDbType.Array | NpgsqlDbType.Circle },
+			{ "_money", NpgsqlDbType.Array | NpgsqlDbType.Money },
+			{ "_bool", NpgsqlDbType.Array | NpgsqlDbType.Boolean },
+			{ "_bytea", NpgsqlDbType.Array | NpgsqlDbType.Bytea },
+			{ "_char", NpgsqlDbType.Array | NpgsqlDbType.Char },
+			{ "_name", NpgsqlDbType.Array | NpgsqlDbType.Name },
+			{ "_int2", NpgsqlDbType.Array | NpgsqlDbType.Smallint },
+			{ "int2vector", NpgsqlDbType.Int2Vector },
+            { "_int2vector", NpgsqlDbType.Array | NpgsqlDbType.Int2Vector },
+            { "_int4", NpgsqlDbType.Array | NpgsqlDbType.Integer },
+            //{ "_regproc", typeof(string[]) },
+            { "_text", NpgsqlDbType.Array | NpgsqlDbType.Text },
+			{ "_oid", NpgsqlDbType.Array | NpgsqlDbType.Oid },
+            { "_tid", NpgsqlDbType.Array | NpgsqlDbType.Tid },
+            { "_xid", NpgsqlDbType.Array | NpgsqlDbType.Xid },
+			{ "_cid", NpgsqlDbType.Array | NpgsqlDbType.Cid },
+            { "_oidvector", NpgsqlDbType.Array | NpgsqlDbType.Oidvector },
+            { "_bpchar", NpgsqlDbType.Array | NpgsqlDbType.Char },
+			{ "_varchar", NpgsqlDbType.Array | NpgsqlDbType.Varchar },
+			{ "_int8", NpgsqlDbType.Array | NpgsqlDbType.Bigint },
+			{ "_point", NpgsqlDbType.Array | NpgsqlDbType.Point },
+			{ "_lseg", NpgsqlDbType.Array | NpgsqlDbType.LSeg },
+			{ "_path", NpgsqlDbType.Array | NpgsqlDbType.Path },
+			{ "_box", NpgsqlDbType.Array | NpgsqlDbType.Box },
+			{ "_float4", NpgsqlDbType.Array | NpgsqlDbType.Real },
+			{ "_float8", NpgsqlDbType.Array | NpgsqlDbType.Double },
+			//{ "_abstime", NpgsqlDbType.Array | NpgsqlDbType.Abstime },
+            //{ "_reltime", NpgsqlDbType.Array | NpgsqlDbType.Timestamp },
+            //{ "_tinterval", NpgsqlDbType.Array | NpgsqlDbType.Interval },
+			{ "_polygon", NpgsqlDbType.Array | NpgsqlDbType.Polygon },
+            //{ "_aclitem", typeof(string[]) },
+            { "_macaddr", NpgsqlDbType.Array | NpgsqlDbType.MacAddr },
+			{ "_inet", NpgsqlDbType.Array | NpgsqlDbType.Inet },
+            { "_cidr", NpgsqlDbType.Array | NpgsqlDbType.Cidr },
+            { "_cstring", NpgsqlDbType.Array | NpgsqlDbType.Varchar },
+			{ "_timestamp", NpgsqlDbType.Array | NpgsqlDbType.Timestamp },
+			{ "_date", NpgsqlDbType.Array | NpgsqlDbType.Date },
+			{ "_time", NpgsqlDbType.Array | NpgsqlDbType.Time },
+			{ "_timestamptz", NpgsqlDbType.Array | NpgsqlDbType.TimestampTz },
+			{ "_interval", NpgsqlDbType.Array | NpgsqlDbType.Interval },
+			{ "_numeric", NpgsqlDbType.Array | NpgsqlDbType.Numeric },
+			{ "_timetz", NpgsqlDbType.Array | NpgsqlDbType.TimeTz },
+			{ "_bit", NpgsqlDbType.Array | NpgsqlDbType.Bit },
+			{ "_varbit", NpgsqlDbType.Array | NpgsqlDbType.Varbit },
+            { "_refcursor", NpgsqlDbType.Array | NpgsqlDbType.Refcursor },
+            //{ "_regprocedure", NpgsqlDbType.Array | NpgsqlDbType. },
+            //{ "_regoper", NpgsqlDbType.Array | NpgsqlDbType. },
+            //{ "_regoperator", NpgsqlDbType.Array | NpgsqlDbType. },
+            //{ "_regclass", NpgsqlDbType.Array | NpgsqlDbType. },
+            { "_regtype", NpgsqlDbType.Array | NpgsqlDbType.Regtype },
+            //{ "_regrole", NpgsqlDbType.Array | NpgsqlDbType. },
+            //{ "_regnamespace", NpgsqlDbType.Array | NpgsqlDbType. },
+            { "_uuid", NpgsqlDbType.Array | NpgsqlDbType.Uuid },
+            { "_pg_lsn", NpgsqlDbType.Array | NpgsqlDbType.PgLsn },
+            { "_tsvector", NpgsqlDbType.Array | NpgsqlDbType.TsVector },
+            { "_gtsvector", NpgsqlDbType.Array | NpgsqlDbType.TsVector },
+            { "_tsquery", NpgsqlDbType.Array | NpgsqlDbType.TsQuery },
+            { "_regconfig", NpgsqlDbType.Array | NpgsqlDbType.Regconfig },
+            //{ "_regdictionary", NpgsqlDbType.Array | NpgsqlDbType. },
+            { "_jsonb", NpgsqlDbType.Array | NpgsqlDbType.Jsonb },
+            //{ "_txid_snapshot", NpgsqlDbType.Array | NpgsqlDbType. },
+            { "_int4range", NpgsqlDbType.Array | NpgsqlDbType.IntegerRange },
+            { "_numrange", NpgsqlDbType.Array | NpgsqlDbType.NumericRange },
+            { "_tsrange", NpgsqlDbType.Array | NpgsqlDbType.TimestampRange },
+            { "_tstzrange", NpgsqlDbType.Array | NpgsqlDbType.TimestampTzRange },
+            { "_daterange", NpgsqlDbType.Array | NpgsqlDbType.DateRange },
+            { "_int8range", NpgsqlDbType.Array | NpgsqlDbType.BigIntRange },
+            //{ "_record", NpgsqlDbType.Array | NpgsqlDbType. },
+		};
+
+		public new static readonly Dictionary<Type, NpgsqlDbType> TypeToDbType = new Dictionary<Type, NpgsqlDbType>()
         {
             { typeof(string), NpgsqlDbType.Text },
             { typeof(bool), NpgsqlDbType.Boolean },
@@ -261,10 +404,10 @@ namespace Db2Source
             return cmd;
         }
 
-        //[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
-        public override IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
-        {
-            if (connection != null && !(connection is NpgsqlConnection))
+		//[System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2100:SQL クエリのセキュリティ脆弱性を確認")]
+		public override IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
+		{
+			if (connection != null && !(connection is NpgsqlConnection))
             {
                 throw new ArgumentException("connectoin");
             }
@@ -293,11 +436,12 @@ namespace Db2Source
                 buf.Append(pName);
                 buf.Append("::");
                 buf.Append(p.BaseType);
-                if (!TypeToDbType.TryGetValue(p.ValueType, out NpgsqlDbType t))
+                NpgsqlDbType t;
+                if (!TypeNameToDbType.TryGetValue(p.BaseType, out t) && !TypeToDbType.TryGetValue(p.ValueType, out t))
                 {
                     t = NpgsqlDbType.Text;
                 }
-                NpgsqlParameter np = new NpgsqlParameter(pName, t)
+				NpgsqlParameter np = new NpgsqlParameter(pName, t)
                 {
                     Direction = p.Direction
                 };
@@ -314,7 +458,60 @@ namespace Db2Source
             return cmd;
         }
 
-        public override DataTable GetDataTable(string tableName, IDbConnection connection)
+		public override IDbCommand GetSqlCommand(StoredProcedure procedure, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
+		{
+			if (connection != null && !(connection is NpgsqlConnection))
+			{
+				throw new ArgumentException("connectoin");
+			}
+			if ((transaction != null) && !(transaction is NpgsqlTransaction))
+			{
+				throw new ArgumentException("transaction");
+			}
+			StringBuilder buf = new StringBuilder();
+			buf.Append("call ");
+			buf.Append(GetEscapedIdentifier(procedure.SchemaName, procedure.Name, null, true));
+			buf.Append("(");
+			bool needComma = false;
+			List<NpgsqlParameter> l = new List<NpgsqlParameter>();
+			foreach (Parameter p in procedure.Parameters)
+			{
+				if (p.Direction == ParameterDirection.Output)
+				{
+					continue;
+				}
+				string pName = p.ParameterName;
+				if (needComma)
+				{
+					buf.Append(", ");
+				}
+				buf.Append(':');
+				buf.Append(pName);
+				//buf.Append("::");
+				//buf.Append(p.BaseType);
+				NpgsqlDbType t;
+				if (!TypeNameToDbType.TryGetValue(p.BaseType, out t) && !TypeToDbType.TryGetValue(p.ValueType, out t))
+				{
+					t = NpgsqlDbType.Text;
+				}
+				NpgsqlParameter np = new NpgsqlParameter(pName, t)
+				{
+					Direction = p.Direction
+				};
+				l.Add(np);
+				needComma = true;
+			}
+			buf.Append(")");
+			NpgsqlCommand cmd = new NpgsqlCommand(buf.ToString(), connection as NpgsqlConnection, transaction as NpgsqlTransaction)
+			{
+				CommandType = CommandType.Text
+			};
+			cmd.Parameters.AddRange(l.ToArray());
+			LogConverter.NewLogConverter(cmd, logEvent);
+			return cmd;
+		}
+
+		public override DataTable GetDataTable(string tableName, IDbConnection connection)
         {
             if (connection == null)
             {

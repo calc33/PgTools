@@ -155,6 +155,8 @@
     <Compile Include="SortOrder.cs" />
     <Compile Include="SqliteUtil.cs" />
     <Compile Include="StoredFunction.cs" />
+    <Compile Include="StoredProcedure.cs" />
+    <Compile Include="StoredProcedureBase.cs" />
     <Compile Include="StrUtil.cs" />
     <Compile Include="Table.cs" />
     <Compile Include="Tablespace.cs" />

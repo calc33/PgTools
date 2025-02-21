@@ -1047,8 +1047,20 @@ namespace Db2Source
         public abstract string[] GetSQL(Sequence sequence, string prefix, string postfix, int indent, bool addNewline, bool skipOwned, bool ignoreOwned);
         public abstract string[] GetSQL(Parameter p);
         public abstract string[] GetSQL(StoredFunction function, string prefix, string postfix, int indent, bool addNewline);
-        //public abstract string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline);
-        public abstract string[] GetSQL(Type_ type, string prefix, string postfix, int indent, bool addNewline);
+		public abstract string[] GetSQL(StoredProcedure procedure, string prefix, string postfix, int indent, bool addNewline);
+		public string[] GetSQL(StoredProcedureBase procedure, string prefix, string postfix, int indent, bool addNewline)
+        {
+            if (procedure is StoredProcedure)
+            {
+                return GetSQL((StoredProcedure)procedure, prefix, postfix, indent, addNewline);
+            }
+            if (procedure is StoredFunction)
+            {
+                return GetSQL((StoredFunction)procedure, prefix, postfix, indent, addNewline);
+            }
+            throw new NotImplementedException();
+        }
+		public abstract string[] GetSQL(Type_ type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(ComplexType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(PgsqlEnumType type, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(PgsqlRangeType type, string prefix, string postfix, int indent, bool addNewline);
@@ -1070,9 +1082,21 @@ namespace Db2Source
         public abstract string[] GetDropSQL(Trigger trigger, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string[] GetDropSQL(Index index, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline );
         public abstract string[] GetDropSQL(Sequence sequence, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(StoredFunction function, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        //public abstract string[] GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
-        public abstract string[] GetDropSQL(ComplexType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+		public abstract string[] GetDropSQL(StoredFunction function, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+		public abstract string[] GetDropSQL(StoredProcedure procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
+        public string[] GetDropSQL(StoredProcedureBase procedure, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)
+        {
+            if (procedure is StoredProcedure)
+            {
+                return GetDropSQL((StoredProcedure)procedure, ifExists, prefix, postfix, indent, cascade, addNewline);
+            }
+            if (procedure is StoredFunction)
+            {
+                return GetDropSQL((StoredFunction)procedure, ifExists, prefix, postfix, indent, cascade, addNewline);
+            }
+            throw new NotImplementedException();
+        }
+		public abstract string[] GetDropSQL(ComplexType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string[] GetDropSQL(PgsqlEnumType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string[] GetDropSQL(PgsqlRangeType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
         public abstract string[] GetDropSQL(PgsqlBasicType type, bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline);
@@ -1214,6 +1238,7 @@ namespace Db2Source
 		public FilteredNamedCollection<Table> Tables { get; }
 		public FilteredNamedCollection<View> Views { get; }
 		public FilteredNamedCollection<StoredFunction> StoredFunctions { get; }
+		public FilteredNamedCollection<StoredProcedure> StoredProcedures { get; }
 		public NamedCollection<Column> Columns { get; } = new NamedCollection<Column>();
 		public NamedCollection<Constraint> Constraints { get; } = new NamedCollection<Constraint>();
 		public NamedCollection<Comment> Comments { get; } = new NamedCollection<Comment>();
@@ -1493,11 +1518,57 @@ namespace Db2Source
             return newObj;
         }
 
-        public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection);
-        public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
-        public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
 
-        public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
+		public StoredProcedure Revert(StoredProcedure procedure)
+		{
+			if (procedure == null)
+			{
+				throw new ArgumentNullException("procedure");
+			}
+			using (IDbConnection conn = NewConnection(true))
+			{
+				Refresh(procedure, conn);
+			}
+			StoredProcedure newObj = FindRegistered(procedure);
+			OnSchemaObjectReplaced(new SchemaObjectReplacedEventArgs(newObj, procedure));
+			return newObj;
+		}
+
+		public StoredProcedureBase Revert(StoredProcedureBase procedure)
+		{
+			if (procedure == null)
+			{
+				throw new ArgumentNullException("procedure");
+			}
+            if (procedure is StoredProcedure)
+            {
+                return Revert((StoredProcedure)procedure);
+            }
+            if (procedure is StoredFunction)
+            {
+                return Revert((StoredFunction)procedure);
+            }
+            throw new NotImplementedException();
+		}
+
+		public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection);
+        public abstract IDbCommand GetSqlCommand(string sqlCommand, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
+		public abstract IDbCommand GetSqlCommand(StoredFunction function, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
+		public abstract IDbCommand GetSqlCommand(StoredProcedure procedure, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction);
+		public IDbCommand GetSqlCommand(StoredProcedureBase procedure, EventHandler<LogEventArgs> logEvent, IDbConnection connection, IDbTransaction transaction)
+        {
+            if (procedure is StoredFunction)
+            {
+                return GetSqlCommand((StoredFunction)procedure, logEvent, connection, transaction);
+            }
+            if (procedure is StoredProcedure)
+            {
+                return GetSqlCommand((StoredProcedure)procedure, logEvent, connection, transaction);
+            }
+            throw new NotImplementedException();
+        }
+
+		public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
         public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine);
         /// <summary>
         /// データ付でINSERT文を生成する
@@ -1733,9 +1804,10 @@ namespace Db2Source
             Selectables = new FilteredNamedCollection<Selectable>(Objects);
 		    Tables = new FilteredNamedCollection<Table>(Objects);
             Views = new FilteredNamedCollection<View>(Objects);
-            StoredFunctions = new FilteredNamedCollection<StoredFunction>(Objects);
+			StoredFunctions = new FilteredNamedCollection<StoredFunction>(Objects);
+			StoredProcedures = new FilteredNamedCollection<StoredProcedure>(Objects);
 
-            SessionList = new SessionList(this, "Sessions");
+			SessionList = new SessionList(this, "Sessions");
     		History = new QueryHistory(ConnectionInfo);
         }
 

@@ -868,8 +868,9 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(Table), typeof(TableControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(View), typeof(ViewControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
-            MovableTabItem.RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
-            MovableTabItem.RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
+			MovableTabItem.RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
+			MovableTabItem.RegisterSchemaObjectControl(typeof(StoredProcedure), typeof(StoredProcedureControl));
+			MovableTabItem.RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlBasicType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
@@ -1787,6 +1788,11 @@ namespace Db2Source
                 return;
             }
             ctrl.AddRange(GetCheckedOnTreeViewDb<Table>());
+        }
+
+		private void menuItemSequenceList_Click(object sender, RoutedEventArgs e)
+		{
+
         }
     }
 }

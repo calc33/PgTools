@@ -5,6 +5,7 @@ select
   format_type(a.atttypid, a.atttypmod) as formattype,
   pg_get_expr(ad.adbin, ad.adrelid) as defaultexpr
 from pg_catalog.pg_attribute a
+  join pg_catalog.pg_class r on (a.attrelid = r.oid and relkind <> 't')
   left outer join pg_catalog.pg_attrdef ad on ((a.attrelid = ad.adrelid) AND (a.attnum = ad.adnum))
 where a.atttypid <> 0
 order by a.attrelid, a.attnum

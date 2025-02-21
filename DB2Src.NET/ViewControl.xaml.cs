@@ -358,14 +358,21 @@ namespace Db2Source
             _inAutoFetching = false;
         }
 
-        private async Task ExecuteCommandAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, IDbCommand command)
+		private static string GetDurationText(TimeSpan time)
+		{
+			return string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+		}
+
+		private async Task ExecuteCommandAsync(Dispatcher dispatcher, Db2SourceContext dataSet, DataGridController controller, IDbCommand command)
         {
             DateTime start = DateTime.Now;
+            DateTime sqlEnd = start;
             try
             {
                 using (IDataReader reader = await dataSet.ExecuteReaderAsync(command, _fetchingCancellation.Token))
                 {
-                    await controller.LoadAsync(dispatcher, reader, Target, _fetchingCancellation.Token);
+                    sqlEnd = DateTime.Now;
+					await controller.LoadAsync(dispatcher, reader, Target, _fetchingCancellation.Token);
                 }
             }
             catch (Exception t)
@@ -378,14 +385,14 @@ namespace Db2Source
             }
             finally
             {
-                DateTime end = DateTime.Now;
-                TimeSpan time = end - start;
-                await dispatcher.InvokeAsync(() =>
-                {
-                    string s = string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-                    textBlockGridResult.Text = string.Format("{0}件見つかりました。  所要時間 {1}", controller.Rows.Count, s);
-                });
-                command.Dispose();
+				DateTime end = DateTime.Now;
+				string s1 = GetDurationText(sqlEnd - start);
+				string s2 = GetDurationText(end - start);
+				await dispatcher.InvokeAsync(() =>
+				{
+					textBlockGridResult.Text = string.Format((string)FindResource("messageRowsFound"), controller.Rows.Count, s1, s2);
+				});
+				command.Dispose();
             }
         }
 

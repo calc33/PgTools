@@ -29,7 +29,7 @@ namespace Db2Source
     /// </summary>
     public partial class StoredProcedureControl: UserControl, ISchemaObjectWpfControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredFunction), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(StoredProcedureBase), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(StoredProcedureControl));
         public static readonly DependencyProperty DataGridResultMaxHeightProperty = DependencyProperty.Register("DataGridResultMaxHeight", typeof(double), typeof(StoredProcedureControl));
 		public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(StoredProcedureControl), new PropertyMetadata(new PropertyChangedCallback(OnIsEditingPropertyChanged)));
@@ -38,11 +38,11 @@ namespace Db2Source
 
         private StoredProcedureSetting _setting = null;
 
-        public StoredFunction Target
+        public StoredProcedureBase Target
         {
             get
             {
-                return (StoredFunction)GetValue(TargetProperty);
+                return (StoredProcedureBase)GetValue(TargetProperty);
             }
             set
             {
@@ -191,7 +191,7 @@ namespace Db2Source
 
         private void UpdateStringResources()
         {
-            if (Target is StoredFunction)
+            if (Target is StoredProcedureBase)
             {
                 _contextMenu_DropProcedure = FindResource("dropFunctionContextMenu") as ContextMenu;
                 _message_DropProcedure = (string)FindResource("messageDropFunction");
@@ -370,63 +370,53 @@ namespace Db2Source
             using (IDbConnection conn = context.NewConnection(true, App.Current.CommandTimeout))
             {
                 command.Connection = conn;
+                command.Transaction = null;
                 try
                 {
-                    IDbTransaction txn = conn.BeginTransaction();
-                    try
+                    using (IDataReader reader = await context.ExecuteReaderAsync(command, _executingCancellation.Token))
                     {
-                        command.Transaction = txn;
-                        using (IDataReader reader = await context.ExecuteReaderAsync(command, _executingCancellation.Token))
+                        _ = dispatcher.InvokeAsync(() =>
                         {
-							_ = dispatcher.InvokeAsync(() =>
-                            {
-                                IEnumerable l = dataGridParameters.ItemsSource;
-                                dataGridParameters.ItemsSource = null;
-                                dataGridParameters.ItemsSource = l;
-                            });
+                            IEnumerable l = dataGridParameters.ItemsSource;
+                            dataGridParameters.ItemsSource = null;
+                            dataGridParameters.ItemsSource = l;
+                        });
 
-							await controller.LoadAsync(dispatcher, reader, _executingCancellation.Token);
-                            if (0 <= reader.RecordsAffected)
+                        await controller.LoadAsync(dispatcher, reader, _executingCancellation.Token);
+                        if (0 <= reader.RecordsAffected)
+                        {
+                            _ = dispatcher.InvokeAsync(() =>
                             {
-								_ = dispatcher.InvokeAsync(() =>
-                                {
-                                    AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
-                                });
-                            }
-                            else
-                            {
-								_ = dispatcher.InvokeAsync(() =>
-                                {
-                                    tabControlResult.SelectedItem = tabItemDataGrid;
-                                });
-                            }
+                                AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
+                            });
                         }
-                        context.History.AddHistory(history);
-                        txn.Commit();
+                        else
+                        {
+                            _ = dispatcher.InvokeAsync(() =>
+                            {
+                                tabControlResult.SelectedItem = tabItemDataGrid;
+                            });
+                        }
                     }
-                    catch
-                    {
-                        txn.Rollback();
-                        throw;
-                    }
+                    context.History.AddHistory(history);
                 }
                 catch (OperationAbortedException)
                 {
-					_ = dispatcher.InvokeAsync(() =>
+                    _ = dispatcher.InvokeAsync(() =>
                     {
                         AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                     });
                 }
                 catch (OperationCanceledException)
                 {
-					_ = dispatcher.InvokeAsync(() =>
+                    _ = dispatcher.InvokeAsync(() =>
                     {
                         AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                     });
                 }
                 catch (Exception t)
                 {
-					_ = dispatcher.InvokeAsync(() =>
+                    _ = dispatcher.InvokeAsync(() =>
                     {
                         Db2SourceContext ctx = Target.Context;
                         string msg = ctx.GetExceptionMessage(t);
@@ -456,7 +446,7 @@ namespace Db2Source
         }
         private void UpdateTabItemExecuteVisibility()
         {
-            if (Target == null || Target.ReturnType.GetDefName() == "trigger")
+            if (Target == null)
             {
                 tabItemExecute.Visibility = Visibility.Collapsed;
             }
@@ -852,184 +842,6 @@ namespace Db2Source
         private void buttonRefreshSchema_Click(object sender, RoutedEventArgs e)
         {
             Target?.Context?.Refresh(Target);
-        }
-    }
-    public class ParamEditor: DependencyObject
-    {
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register("Value", typeof(string), typeof(ParamEditor), new PropertyMetadata(new PropertyChangedCallback(OnValuePropertyChanged)));
-        public static readonly DependencyProperty IsErrorProperty = DependencyProperty.Register("IsError", typeof(bool), typeof(ParamEditor));
-        public static readonly DependencyProperty StringFormatProperty = DependencyProperty.Register("StringFormat", typeof(string), typeof(ParamEditor));
-        public static readonly DependencyProperty IsNullProperty = DependencyProperty.Register("IsNull", typeof(bool), typeof(ParamEditor), new PropertyMetadata(new PropertyChangedCallback(OnIsNullPropertyChanged)));
-        public static readonly DependencyProperty NewValueProperty = DependencyProperty.Register("NewValue", typeof(string), typeof(ParamEditor));
-        private Parameter _parameter;
-        private IDbDataParameter _dbParameter;
-        public Parameter Parameter
-        {
-            get
-            {
-                return _parameter;
-            }
-            set
-            {
-                _parameter = value;
-                if (_parameter == null)
-                {
-                    return;
-                }
-                StringFormat = _parameter.StringFormat;
-                if (_parameter.DbParameter != null)
-                {
-                    DbParameter = _parameter.DbParameter;
-                }
-            }
-        }
-        public Type ValueType { get; set; }
-        public IDbDataParameter DbParameter
-        {
-            get
-            {
-                return _dbParameter;
-            }
-            set
-            {
-                if (_dbParameter == value)
-                {
-                    return;
-                }
-                _dbParameter = value;
-            }
-        }
-        private string GetStrValue()
-        {
-            if (DbParameter == null)
-            {
-                return null;
-            }
-            if (DbParameter.Value == null)
-            {
-                return null;
-            }
-            if (!string.IsNullOrEmpty(StringFormat))
-            {
-                string fmt = "{0:" + StringFormat + "}";
-                return string.Format(fmt, DbParameter.Value);
-            }
-            else
-            {
-                return DbParameter.Value.ToString();
-            }
-        }
-        public void RevertValue()
-        {
-            if (DbParameter == null)
-            {
-                return;
-            }
-            IsNull = ((DbParameter.Value == null) || (DbParameter.Value is DBNull));
-            Value = GetStrValue();
-        }
-        public void SetValue()
-        {
-            if (DbParameter == null)
-            {
-                return;
-            }
-            if (IsNull)
-            {
-                DbParameter.Value = DBNull.Value;
-            }
-            if (ValueType == typeof(string) || ValueType.IsSubclassOf(typeof(string)))
-            {
-                DbParameter.Value = string.IsNullOrEmpty(Value) ? (object)DBNull.Value : Value;
-                return;
-            }
-            if (string.IsNullOrEmpty(Value))
-            {
-                DbParameter.Value = DBNull.Value;
-                return;
-            }
-            MethodInfo mi = null;
-            if (!string.IsNullOrEmpty(StringFormat))
-            {
-                mi = ValueType.GetMethod("ParseExact", new Type[] { typeof(string), typeof(string) });
-                if (mi != null)
-                {
-                    DbParameter.Value = mi.Invoke(null, new object[] { Value, StringFormat });
-                    return;
-                }
-            }
-            mi = ValueType.GetMethod("Parse", new Type[] { typeof(string) });
-            if (mi == null)
-            {
-                throw new NotSupportedException();
-            }
-            DbParameter.Value = mi.Invoke(null, new object[] { Value });
-        }
-        public void RevertNewValue()
-        {
-            NewValue = GetStrValue();
-        }
-        public string ParameterName
-        {
-            get
-            {
-                return DbParameter?.ParameterName;
-            }
-        }
-
-        public string StringFormat
-        {
-            get { return (string)GetValue(StringFormatProperty); }
-            private set { SetValue(StringFormatProperty, value); }
-        }
-        public bool IsNull
-        {
-            get { return (bool)GetValue(IsNullProperty); }
-            set { SetValue(IsNullProperty, value); }
-        }
-        public string Value
-        {
-            get { return (string)GetValue(ValueProperty); }
-            set { SetValue(ValueProperty, value); }
-        }
-
-        public string NewValue
-        {
-            get { return (string)GetValue(NewValueProperty); }
-            set { SetValue(NewValueProperty, value); }
-        }
-
-        private void OnValuePropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (!string.IsNullOrEmpty(Value) && IsNull)
-            {
-                IsNull = false;
-            }
-        }
-
-        private static void OnValuePropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
-        {
-            (target as ParamEditor)?.OnValuePropertyChanged(e);
-        }
-
-        private void OnIsNullPropertyChanged(DependencyPropertyChangedEventArgs e)
-        {
-            if (IsNull && !string.IsNullOrEmpty(Value))
-            {
-                Value = null;
-            }
-        }
-
-        private static void OnIsNullPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
-        {
-            (target as ParamEditor)?.OnIsNullPropertyChanged(e);
-        }
-
-        //public ParamEditor() { }
-        public ParamEditor(Parameter param)
-        {
-            Parameter = param;
-            ValueType = param.ValueType;
         }
     }
 }

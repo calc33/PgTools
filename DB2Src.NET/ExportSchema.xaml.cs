@@ -18,7 +18,7 @@ namespace Db2Source
     /// <summary>
     /// ExportSchema.xaml の相互作用ロジック
     /// </summary>
-    public partial class ExportSchema: Window
+    public partial class ExportSchema : Window
     {
         private Db2SourceContext _dataSet;
         public Db2SourceContext DataSet
@@ -270,6 +270,19 @@ namespace Db2Source
                 AppendStrArray(buffer, dataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
             }
         }
+        private void ExportStoredProcedure(StringBuilder buffer, StoredProcedure procedure)
+        {
+            if (procedure == null)
+            {
+                return;
+            }
+            Db2SourceContext dataSet = procedure.Context;
+            AppendStrArray(buffer, dataSet.GetSQL(procedure, string.Empty, ";", 0, true));
+            if (!string.IsNullOrEmpty(procedure.CommentText))
+            {
+                AppendStrArray(buffer, dataSet.GetSQL(procedure.Comment, string.Empty, ";", 0, true));
+            }
+        }
         private void ExportSequence(StringBuilder buffer, Sequence sequence)
         {
             if (sequence == null)
@@ -319,7 +332,7 @@ namespace Db2Source
         {
             Dictionary<string, bool> exported = new Dictionary<string, bool>();
             await dataSet.LoadSchemaAsync();
-            foreach (string v in schemas) 
+            foreach (string v in schemas)
             {
                 Schema s = dataSet.Schemas[v];
                 if (s == null)
@@ -341,6 +354,10 @@ namespace Db2Source
                     else if (obj is StoredFunction)
                     {
                         ExportStoredFunction(buf, (StoredFunction)obj);
+                    }
+                    else if (obj is StoredProcedure)
+                    {
+                        ExportStoredProcedure(buf, (StoredProcedure)obj);
                     }
                     else if (obj is Sequence)
                     {

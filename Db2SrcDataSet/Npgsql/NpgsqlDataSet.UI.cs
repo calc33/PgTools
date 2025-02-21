@@ -22,9 +22,10 @@ namespace Db2Source
                 List<SchemaObject> types = new List<SchemaObject>();
                 List<Table> tbls = new List<Table>();
                 List<View> views = new List<View>();
-                List<StoredFunction> funcs = new List<StoredFunction>();
+				List<StoredProcedure> procs = new List<StoredProcedure>();
+				List<StoredFunction> funcs = new List<StoredFunction>();
                 List<StoredFunction> trFuncs = new List<StoredFunction>();
-                List<Sequence> seqs = new List<Sequence>();
+				List<Sequence> seqs = new List<Sequence>();
                 foreach (SchemaObject obj in Objects.GetFiltered(sc.Name))
                 {
                     if (obj is Table)
@@ -47,6 +48,11 @@ namespace Db2Source
                             funcs.Add(fn);
                         }
                     }
+                    if (obj is StoredProcedure)
+                    {
+                        StoredProcedure proc = (StoredProcedure)obj;
+                        procs.Add(proc);
+                    }
                     if (obj is Sequence)
                     {
                         seqs.Add((Sequence)obj);
@@ -58,6 +64,9 @@ namespace Db2Source
                 }
                 tbls.Sort();
                 views.Sort();
+                procs.Sort();
+                funcs.Sort();
+                trFuncs.Sort();
                 seqs.Sort();
                 types.Sort();
                 TreeNode nodeGrp;
@@ -90,8 +99,21 @@ namespace Db2Source
                 }
                 nodeGrp.Children = lGrp.ToArray();
 
-                lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("ストアド関数", "ストアド関数 ({0})", typeof(View), 0, false, false);
+                // ストアドプロシージャはPostgreSQL11以降の機能
+                if (procs.Count != 0 || 11 <= Database.VersionNum[0])
+                {
+                    lGrp = new List<TreeNode>();
+                    nodeGrp = new TreeNode("ストアドプロシージャ", "ストアドプロシージャ ({0})", typeof(StoredProcedure), 0, false, false);
+                    lSc.Add(nodeGrp);
+                    foreach (StoredProcedure proc in procs)
+                    {
+                        lGrp.Add(new TreeNode(proc));
+                    }
+                    nodeGrp.Children = lGrp.ToArray();
+                }
+
+				lGrp = new List<TreeNode>();
+                nodeGrp = new TreeNode("ストアド関数", "ストアド関数 ({0})", typeof(StoredFunction), 0, false, false);
                 lSc.Add(nodeGrp);
                 foreach (StoredFunction fn in funcs)
                 {
@@ -100,7 +122,7 @@ namespace Db2Source
                 nodeGrp.Children = lGrp.ToArray();
 
                 lGrp = new List<TreeNode>();
-                nodeGrp = new TreeNode("トリガー関数", "トリガー関数 ({0})", typeof(View), 1, false, false);
+                nodeGrp = new TreeNode("トリガー関数", "トリガー関数 ({0})", typeof(StoredFunction), 1, false, false);
                 lSc.Add(nodeGrp);
                 foreach (StoredFunction fn in trFuncs)
                 {

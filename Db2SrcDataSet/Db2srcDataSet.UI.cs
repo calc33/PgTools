@@ -212,8 +212,19 @@ namespace Db2Source
             return "Function";
         }
     }
+    partial class StoredProcedure
+    {
+		public override string GetSqlType()
+		{
+			return "PROCEDURE";
+		}
+		public override string GetExportFolderName()
+		{
+			return "Procedure";
+		}
+	}
 
-    public enum HiddenLevel
+	public enum HiddenLevel
     {
         Visible,
         Hidden,

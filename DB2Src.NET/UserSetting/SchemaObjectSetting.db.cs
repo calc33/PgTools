@@ -10,7 +10,7 @@ using static Db2Source.NpgsqlDataSet.TableReturnType;
 
 namespace Db2Source
 {
-    partial class SchemaObjectSetting: ICloneable
+    partial class SchemaObjectSetting : ICloneable
     {
         private static readonly TableDefinition[] UserConfigDefinitions = new TableDefinition[] {
             new TableDefinition()
@@ -218,12 +218,12 @@ namespace Db2Source
         }
         internal static long RequireId(SchemaObject target, SQLiteConnection connection)
         {
-            
+
             object o = ExecuteScalar(connection, "SELECT ID FROM SCHEMA_OBJECT WHERE UNIQNAME = @UNIQNAME", new ParameterDef("UNIQNAME", DbType.String, target.FullIdentifier));
             if (o == null || o is DBNull)
             {
                 o = ExecuteScalar(connection, "INSERT INTO SCHEMA_OBJECT (UNIQNAME, NAME, OBJECT_TYPE) VALUES (@UNIQNAME, @NAME, @OBJTYPE) RETURNING ID",
-                    new ParameterDef("UNIQNAME", DbType.String, target.FullIdentifier), 
+                    new ParameterDef("UNIQNAME", DbType.String, target.FullIdentifier),
                     new ParameterDef("NAME", DbType.String, target.FullName),
                     new ParameterDef("OBJTYPE", DbType.String, target.GetSqlType()));
             }
@@ -283,7 +283,7 @@ namespace Db2Source
                 }
             }
         }
-        
+
         private void SaveChanges()
         {
             using (SQLiteConnection conn = NewConnection())
@@ -383,7 +383,7 @@ namespace Db2Source
         {
             new PropertyBindingDef<StoredProcedureSetting>("PARAM_VALUES", DbType.String, "ParamValuesCSV"),
         };
-        public static StoredProcedureSetting Require(StoredFunction target)
+        public static StoredProcedureSetting Require(StoredProcedureBase target)
         {
             if (target == null)
             {
@@ -397,7 +397,7 @@ namespace Db2Source
             }
         }
 
-        internal StoredProcedureSetting(StoredFunction target, SQLiteConnection connection) : base(target, connection)
+        internal StoredProcedureSetting(StoredProcedureBase target, SQLiteConnection connection) : base(target, connection)
         {
             ObjectWrapper<StoredProcedureSetting>.Read(this, "FUNCTION_SETTING", Columns, KeyColumns, connection);
         }

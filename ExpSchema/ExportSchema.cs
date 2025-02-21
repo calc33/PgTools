@@ -141,7 +141,23 @@ namespace Db2Source
                 AppendToBuffer(buffer, DataSet.GetSQL(function.Comment, string.Empty, ";", 0, true));
             }
         }
-        private void ExportSequence(StringBuilder buffer, Sequence sequence)
+		private void ExportStoredProcedure(StringBuilder buffer, StoredProcedure procedure)
+		{
+			if (procedure == null)
+			{
+				return;
+			}
+			if (!string.IsNullOrEmpty(procedure.Extension))
+			{
+				return;
+			}
+			AppendToBuffer(buffer, DataSet.GetSQL(procedure, string.Empty, ";", 0, true));
+			if (!string.IsNullOrEmpty(procedure.CommentText))
+			{
+				AppendToBuffer(buffer, DataSet.GetSQL(procedure.Comment, string.Empty, ";", 0, true));
+			}
+		}
+		private void ExportSequence(StringBuilder buffer, Sequence sequence)
         {
             if (sequence == null)
             {
@@ -268,6 +284,10 @@ namespace Db2Source
                     else if (obj is StoredFunction)
                     {
                         ExportStoredFunction(buf, (StoredFunction)obj);
+                    }
+                    if (obj is StoredProcedure)
+                    {
+                        ExportStoredProcedure(buf, (StoredProcedure)obj);
                     }
                     else if (obj is Sequence)
                     {

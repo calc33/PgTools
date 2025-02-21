@@ -30,9 +30,18 @@ namespace Db2Source
             }
             return buf.ToString();
         }
+        public static string GetItemName(TreeViewItem item)
+        {
+            string s = (item.Tag as TreeNode)?.Name;
+            if (string.IsNullOrEmpty(s))
+            {
+                s = item.Header.ToString();
+			}
+			return s;
+        }
         private void SaveExpansionRecursive(TreeViewItem topItem, string basePath)
         {
-            string path = Path.Combine(basePath, EscapeForPath(topItem.Header.ToString()));
+            string path = Path.Combine(basePath, EscapeForPath(GetItemName(topItem)));
             _expansion[path] = topItem.IsExpanded;
             foreach (TreeViewItem v in topItem.Items)
             {
@@ -48,7 +57,7 @@ namespace Db2Source
             }
             GetTreeViewItemPathRecursive(buffer, current.Parent as TreeViewItem, topItem);
             buffer.Append(Path.DirectorySeparatorChar);
-            buffer.Append(current.Header.ToString());
+            buffer.Append(GetItemName(current));
         }
 
         private static TreeViewItem GetTreeViewItemByPath(string path, TreeViewItem topItem)
@@ -64,7 +73,7 @@ namespace Db2Source
                 bool found = false;
                 foreach (TreeViewItem item in sel.Items)
                 {
-                    if (item.Header.ToString() == s)
+                    if (GetItemName(item) == s)
                     {
                         sel = item;
                         found = true;
@@ -90,7 +99,7 @@ namespace Db2Source
         }
         private void RestoreExpansionRecursive(TreeViewItem item, string basePath)
         {
-            string path = Path.Combine(basePath, EscapeForPath(item.Header.ToString()));
+            string path = Path.Combine(basePath, EscapeForPath(GetItemName(item)));
             bool flag;
             if (!_expansion.TryGetValue(path, out flag))
             {

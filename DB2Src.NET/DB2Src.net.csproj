@@ -183,6 +183,7 @@
     <Compile Include="CrossTableViewer.xaml.cs">
       <DependentUpon>CrossTableViewer.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ParamEditor.cs" />
     <Compile Include="ParameterStoreCollection.cs" />
     <Compile Include="QueryFaith.cs" />
     <Compile Include="SelectSchemaTreeViewControl.xaml.cs">
