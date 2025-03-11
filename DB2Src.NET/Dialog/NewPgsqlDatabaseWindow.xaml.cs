@@ -194,9 +194,15 @@ namespace Db2Source
             textBoxDbName.Focus();
         }
 
-        private void window_LocationChanged(object sender, EventArgs e)
-        {
-            WindowLocator.AdjustMaxHeightToScreen(this);
-        }
-    }
+		private AggregatedEventDispatcher _locationChangedDispatcher;
+
+		private void window_LocationChanged(object sender, EventArgs e)
+		{
+			if (_locationChangedDispatcher == null)
+			{
+				_locationChangedDispatcher = new AggregatedEventDispatcher(Dispatcher, () => { WindowLocator.AdjustMaxHeightToScreen(this); }, new TimeSpan(0, 0, 3));
+			}
+			_locationChangedDispatcher.Touch();
+		}
+	}
 }

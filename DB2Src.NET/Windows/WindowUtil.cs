@@ -97,7 +97,7 @@ namespace Db2Source
             window.MaxHeight = s.Height;
         }
 
-        private static Size GetMaxSizeOnCurrentScreen(Window window)
+        public static Size GetSizeOfCurrentScreen(Window window)
         {
             Rect rect = GetWorkingAreaOf(window);
             Point p1 = window.PointFromScreen(new Point(rect.Left, rect.Top));
@@ -111,7 +111,7 @@ namespace Db2Source
             {
                 return;
             }
-            Size s = GetMaxSizeOnCurrentScreen(window);
+            Size s = GetSizeOfCurrentScreen(window);
             window.MaxWidth = s.Width;
             window.MaxHeight = s.Height;
         }
@@ -291,6 +291,46 @@ namespace Db2Source
         }
 
         //private static readonly Thickness ResizeDelta = new Thickness(10, 0, 15, 0);
+    }
+
+    /// <summary>
+    /// 継続的に送られてくるイベントが途切れたら処理を実行するクラス
+    /// </summary>
+    public class AggregatedEventDispatcher
+    {
+        private Dispatcher _dispatcher;
+        private TimeSpan _interval;
+        private DispatcherTimer _timer;
+        private DateTime _scheduled;
+        private Action _action;
+
+        public AggregatedEventDispatcher(Dispatcher dispatcher, Action action, TimeSpan interval)
+        {
+			_dispatcher = dispatcher;
+			_timer = null;
+			_interval = interval;
+            _action = action;
+        }
+
+        internal void Touch()
+        {
+            if (_timer == null)
+            {
+                _timer = new DispatcherTimer(new TimeSpan(0, 0, 0, 0, 200), DispatcherPriority.Normal, DispatcherTimer_Tick, _dispatcher);
+            }
+            _timer.Start();
+            _scheduled = DateTime.Now + _interval;
+        }
+
+        private void DispatcherTimer_Tick(object sender, EventArgs e)
+        {
+            if (_scheduled < DateTime.Now)
+            {
+                return;
+            }
+            _timer.Stop();
+            _action?.Invoke();
+        }
     }
 
     public class CloseOnDeactiveWindowHelper

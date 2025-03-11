@@ -47,12 +47,18 @@ namespace Db2Source
             dataGridColumnFontButton.CellTemplate = FindResource("FontButtonTemplate") as DataTemplate;
         }
 
-        private void Window_LocationChanged(object sender, EventArgs e)
-        {
-            WindowLocator.AdjustMaxHeightToScreen(this);
-        }
+		private AggregatedEventDispatcher _locationChangedDispatcher;
 
-        private void buttonOK_Click(object sender, RoutedEventArgs e)
+		private void Window_LocationChanged(object sender, EventArgs e)
+		{
+			if (_locationChangedDispatcher == null)
+			{
+				_locationChangedDispatcher = new AggregatedEventDispatcher(Dispatcher, () => { WindowLocator.AdjustMaxHeightToScreen(this); }, new TimeSpan(0, 0, 3));
+			}
+			_locationChangedDispatcher.Touch();
+		}
+
+		private void buttonOK_Click(object sender, RoutedEventArgs e)
         {
             for (int i = _fonts.Length - 1; 0 <= i; i--)
             {

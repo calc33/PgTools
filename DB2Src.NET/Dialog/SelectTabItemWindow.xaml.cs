@@ -272,9 +272,15 @@ namespace Db2Source
             WindowLocator.AdjustMaxHeightToScreen(this);
         }
 
-        private void window_LocationChanged(object sender, EventArgs e)
-        {
-            WindowLocator.AdjustMaxHeightToScreen(this);
-        }
-    }
+		private AggregatedEventDispatcher _locationChangedDispatcher;
+
+		private void window_LocationChanged(object sender, EventArgs e)
+		{
+			if (_locationChangedDispatcher == null)
+			{
+				_locationChangedDispatcher = new AggregatedEventDispatcher(Dispatcher, () => { WindowLocator.AdjustMaxHeightToScreen(this); }, new TimeSpan(0, 0, 3));
+			}
+			_locationChangedDispatcher.Touch();
+		}
+	}
 }

@@ -493,10 +493,12 @@ namespace Db2Source
             _registryBinding.Register(this, comboBoxFormat);
             //_registryBinding.Register(this, checkBoxCompress);
             _registryBinding.Register(this, comboBoxCompressLevel);
-            _registryBinding.Register(this, textBoxPath);
-            _registryBinding.Register(this, textBoxDir);
-            //_registryBinding.Register(this, radioButtonExportAll);
-            _registryBinding.Register(this, checkBoxClean);
+			//_registryBinding.Register(this, textBoxPath);
+			//_registryBinding.Register(this, textBoxDir);
+			_registryBinding.Register(this, textBoxPath);
+			_registryBinding.Register(this, textBoxDir);
+			//_registryBinding.Register(this, radioButtonExportAll);
+			_registryBinding.Register(this, checkBoxClean);
             _registryBinding.Register(this, checkBoxCreate);
             _registryBinding.Register(this, radioButtonSchema);
             //_registryBinding.Register(this, wrapPanelSchemas);
@@ -669,12 +671,18 @@ namespace Db2Source
             LoadSettingsFromConnectionInfo();
         }
 
-        private void window_LocationChanged(object sender, EventArgs e)
-        {
-            WindowLocator.AdjustMaxHeightToScreen(this);
-        }
+		private AggregatedEventDispatcher _locationChangedDispatcher;
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+		private void window_LocationChanged(object sender, EventArgs e)
+		{
+			if (_locationChangedDispatcher == null)
+			{
+				_locationChangedDispatcher = new AggregatedEventDispatcher(Dispatcher, () => { WindowLocator.AdjustMaxHeightToScreen(this); }, new TimeSpan(0, 0, 3));
+			}
+			_locationChangedDispatcher.Touch();
+		}
+
+		private void Button_Click(object sender, RoutedEventArgs e)
         {
             Dispatcher.InvokeAsync(Close, DispatcherPriority.ApplicationIdle);
         }
