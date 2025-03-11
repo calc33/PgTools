@@ -553,18 +553,30 @@ namespace Db2Source
         }
         private static NpgsqlDbType GetNpgsqlDbType(ColumnInfo info)
         {
-            Type t = info.FieldType;
-            if (t.IsArray || t.IsGenericType && t.GetGenericTypeDefinition().IsAssignableFrom(typeof(IList<>)))
+            Type ft = info.FieldType;
+            Type t = ft;
+            bool isArray = false;
+            if (ft.IsArray)
             {
-                return NpgsqlDbType.Array;
+                isArray = true;
+                t = ft.GetElementType();
             }
-            if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (ft.IsGenericType && ft.GetGenericTypeDefinition().IsAssignableFrom(typeof(IList<>)))
             {
-                t = t.GetGenericArguments()[0];
+				isArray = true;
+                t = ft.GetGenericArguments()[0];
+            }
+            if (ft.IsGenericType && ft.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                t = ft.GetGenericArguments()[0];
             }
             if (!TypeToDbType.TryGetValue(t, out NpgsqlDbType dbt))
             {
                 dbt = NpgsqlDbType.Text;
+            }
+            if (isArray)
+            {
+                dbt |= NpgsqlDbType.Array;
             }
             return dbt;
         }
