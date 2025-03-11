@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -330,7 +331,77 @@ namespace Db2Source
             }
             return ret;
         }
-        private delegate object ValueConverter(object value, Type targetType, object parameter, CultureInfo culture);
+
+		private static readonly Dictionary<char, bool> QuoteCharsDict = new Dictionary<char, bool>()
+{
+			{ '\n', true },
+			{ '\r', true },
+			{ '"', true },
+			{ '\'', true },
+			{ ',', true },
+		};
+
+		public static string TryQuoteString(string value)
+		{
+			bool needQuoted = false;
+			StringBuilder buf = new StringBuilder(value.Length * 2 + 2);
+			buf.Append('"');
+			foreach (char ch in value)
+			{
+				needQuoted |= QuoteCharsDict.ContainsKey(ch);
+				if (ch == '"')
+				{
+					buf.Append(ch);
+					buf.Append(ch);
+				}
+				else
+				{
+					buf.Append(ch);
+				}
+			}
+			buf.Append('"');
+			return needQuoted ? buf.ToString() : value;
+		}
+
+		public static string TryDequoteString(string value)
+		{
+			if (value == null || value.Length < 2)
+			{
+				return value;
+			}
+            if (value == "(null)")
+            {
+                return null;
+            }
+			char chQ = value[0];
+			char chE = value.Last();
+			if (chQ != '\'' && chQ != '"' || chQ != chE)
+			{
+				return value;
+			}
+			StringBuilder buf = new StringBuilder(value.Length);
+			bool wasQuote = false;
+			for (int i = 1, n = value.Length - 1; i < n; i++)
+			{
+				char ch = value[i];
+				if (ch == chQ)
+				{
+					if (wasQuote)
+					{
+						buf.Append(ch);
+					}
+					wasQuote = !wasQuote;
+				}
+				else
+				{
+					buf.Append(ch);
+					wasQuote = false;
+				}
+			}
+			return buf.ToString();
+		}
+
+		private delegate object ValueConverter(object value, Type targetType, object parameter, CultureInfo culture);
         private ValueConverter _convert;
         private ValueConverter _convertBack;
 
@@ -377,7 +448,7 @@ namespace Db2Source
                     buf.Append(' ');
                 }
                 needComma = true;
-                buf.Append(o != null ? o.ToString() : "(null)");
+                buf.Append(o != null ? TryQuoteString(o.ToString()) : "(null)");
             }
             buf.Append(")");
             lines.Append(buf.ToString());
@@ -416,8 +487,12 @@ namespace Db2Source
                 {
                     valueType = FieldType.GetElementType();
                     parseMethod = valueType.GetMethod("Parse", new Type[] { typeof(string) });
-				}
-                if (parseMethod == null)
+                }
+                if (parseMethod == null && valueType != null && valueType.IsAssignableFrom(typeof(string)))
+                {
+                    parseMethod = GetType().GetMethod("TryDequoteString", new Type[] { typeof(string) });
+                }
+				if (parseMethod == null)
                 {
                     return null;
                 }

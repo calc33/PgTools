@@ -136,8 +136,8 @@ namespace Db2Source.DataSet.Properties {
         ///  format_type(a.atttypid, a.atttypmod) as formattype,
         ///  pg_get_expr(ad.adbin, ad.adrelid) as defaultexpr
         ///from pg_catalog.pg_attribute a
-        ///  left outer join pg_catalog.pg_attrdef ad on ((a.attrelid = ad.adrelid) AND (a.attnum = ad.adnum))
-        ///where a.atttypi [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///  join pg_catalog.pg_class r on (a.attrelid = r.oid and relkind &lt;&gt; &apos;t&apos;)
+        ///  left outer join pg_catalog.pg_attrdef ad  [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgAttribute_SQL {
             get {
@@ -374,6 +374,30 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select
+        ///  oid, fdwname, fdwowner, fdwhandler, fdwvalidator, fdwoptions
+        ///from pg_catalog.pg_foreign_data_wrapper
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgForeignDataWrapper_SQL {
+            get {
+                return ResourceManager.GetString("PgForeignDataWrapper_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select
+        ///  oid, srvname, srvowner, srvfdw, srvtype, srvversion, srvoptions
+        ///from pg_catalog.pg_foreign_server
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgForeignServer_SQL {
+            get {
+                return ResourceManager.GetString("PgForeignServer_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select ft.ftrelid as oid, ft.ftoptions,
         ///  fs.srvname, fs.srvoptions,
         ///  fdw.fdwname
@@ -547,6 +571,18 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgType_SQL {
             get {
                 return ResourceManager.GetString("PgType_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select
+        ///  oid, umuser, umserver, umoptions
+        ///from pg_catalog.pg_user_mapping
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgUserMapping_SQL {
+            get {
+                return ResourceManager.GetString("PgUserMapping_SQL", resourceCulture);
             }
         }
         

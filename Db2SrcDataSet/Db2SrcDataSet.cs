@@ -12,23 +12,25 @@ using System.Threading.Tasks;
 
 namespace Db2Source
 {
-	public enum NamespaceIndex
-	{
-		None = 0,
-		Schemas = 1,
-		Objects = 2,
-		Columns = 3,
-		Constraints = 4,
-		Comments = 5,
-		Indexes = 6,
-		Triggers = 7,
-		Sequences = 8,
-		Extension = 9,
-		Tablespaces = 10,
+    public enum NamespaceIndex
+    {
+        None = 0,
+        Schemas = 1,
+        Objects = 2,
+        Columns = 3,
+        Constraints = 4,
+        Comments = 5,
+        Indexes = 6,
+        Triggers = 7,
+        Sequences = 8,
+        Extension = 9,
+        Tablespaces = 10,
         Databases = 11,
-		Users = 12,
+        Users = 12,
         Sessions = 13,
-	}
+        ForeignDataWrapper = 14,
+        ForeignServer = 15,
+    }
 	public enum LogStatus
     {
         Normal = 0,
@@ -1250,14 +1252,16 @@ namespace Db2Source
 		public NamedCollection<Database> Databases { get; } = new NamedCollection<Database>();
 		public NamedCollection<User> Users { get; } = new NamedCollection<User>();
 		public NamedCollection<SessionList> Sessions { get; } = new NamedCollection<SessionList>();
+        public NamedCollection<PgsqlForeignDataWrapper> ForeignDataWrappers { get; } = new NamedCollection<PgsqlForeignDataWrapper>();
+		public NamedCollection<PgsqlForeignServer> ForeignServers { get; } = new NamedCollection<PgsqlForeignServer>();
 
-        /// <summary>
-        /// 文字列のnullをDbNullに置換
-        /// </summary>
-        /// <param name="value"></param>
-        /// <param name="emptyIsNull"></param>
-        /// <returns></returns>
-        public static object ToDbStr(string value, bool emptyIsNull)
+		/// <summary>
+		/// 文字列のnullをDbNullに置換
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="emptyIsNull"></param>
+		/// <returns></returns>
+		public static object ToDbStr(string value, bool emptyIsNull)
         {
             if (value == null || (emptyIsNull && value == string.Empty))
             {
@@ -1799,8 +1803,10 @@ namespace Db2Source
                 Tablespaces,
                 Databases,
                 Users,
-                Sessions
-            };
+                Sessions,
+				ForeignDataWrappers,
+				ForeignServers,
+			};
             Selectables = new FilteredNamedCollection<Selectable>(Objects);
 		    Tables = new FilteredNamedCollection<Table>(Objects);
             Views = new FilteredNamedCollection<View>(Objects);

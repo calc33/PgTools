@@ -2,25 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Runtime.InteropServices;
-
-//using System.Reflection.Emit;
 using System.Text;
-using System.Threading.Tasks;
-using Db2Source.DataSet.Properties;
 using Npgsql;
 using NpgsqlTypes;
-using static Db2Source.NpgsqlDataSet;
 
 namespace Db2Source
 {
-    partial class NpgsqlDataSet
+	partial class NpgsqlDataSet
     {
         private const string ERROR_CODE_PERMISSION_DENIED = "42501";  // 42501:エラー:テーブルのアクセス許可が拒否されました
         private static void LogDbCommand(string prefix, NpgsqlCommand command)
@@ -3115,6 +3106,10 @@ namespace Db2Source
                 {
                     return working.PgExtensions.FindByOid(oid);
                 }
+                if (classid == working.PgTypeOid)
+                {
+                    return working.PgTypes.FindByOid(oid);
+                }
                 if (classid == working.PgProcOid)
                 {
                     return working.PgProcs.FindByOid(oid);
@@ -3131,7 +3126,15 @@ namespace Db2Source
                 {
                     return null;
                 }
-                throw new NotImplementedException(string.Format("FindByOid({0}) not implemented.", classid));
+                if (classid == working.PgForeignDataWrapperOid)
+                {
+                    return working.PgForeignDataWrappers.FindByOid(oid);
+                }
+				if (classid == working.PgForeignServerOid)
+				{
+					return working.PgForeignServers.FindByOid(oid);
+				}
+				throw new NotImplementedException(string.Format("FindByOid({0}) not implemented.", classid));
             }
             public void FillReference(WorkingData working)
             {
@@ -3500,7 +3503,137 @@ namespace Db2Source
             }
         }
 
-        private void LoadUserInfo(IDbConnection connection)
+        internal class PgForeignDataWrapper : PgObject
+        {
+#pragma warning disable 0649
+            public string fdwname;
+            public uint fdwowner;
+            public uint fdwhandler;
+            public uint fdwvalidator;
+            //public aclitem[] fdwacl;
+            public string[] fdwoptions;
+#pragma warning restore 0649
+            public PgRole Owner;
+            public PgProc Handler;
+            public PgProc Validator;
+            public static PgObjectCollection<PgForeignDataWrapper> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgForeignDataWrapper> store)
+            {
+                PgObjectCollection<PgForeignDataWrapper> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgForeignDataWrapper>(DataSet.Properties.Resources.PgForeignDataWrapper_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgForeignDataWrapper_SQL, working, connection, false);
+                }
+                return l;
+            }
+            public override void FillReference(WorkingData working)
+            {
+                Owner = working.PgRoles.FindByOid(fdwowner);
+                Handler = working.PgProcs.FindByOid(fdwhandler);
+                Validator = working.PgProcs.FindByOid(fdwvalidator);
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                return fdwname;
+            }
+
+            public PgsqlForeignDataWrapper ToPgsqlForeignDataWrapper(NpgsqlDataSet context)
+            {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (PgsqlForeignDataWrapper)o;
+                }
+
+                var ret = new PgsqlForeignDataWrapper(context, Owner?.rolname, null, fdwname)
+                {
+                    Handler = Handler?.proname,
+                    Validator = Validator?.proname,
+                    Options = fdwoptions
+                };
+                List<string> l = new List<string>();
+                TrimDependBy();
+                foreach (PgObject c in DependBy)
+                {
+                    l.Add(c.GetIdentifier(true));
+                }
+                l.Sort();
+                ret.DependBy = l.ToArray();
+                return ret;
+            }
+        }
+
+        internal class PgForeignServer : PgObject
+        {
+#pragma warning disable 0649
+            public string srvname;
+            public uint srvowner;
+            public uint srvfdw;
+            public string srvtype;
+            public string srvversion;
+            //public aclitem[] srvacl;
+            public string[] srvoptions;
+#pragma warning restore 0649
+            public PgRole Owner;
+            public PgForeignDataWrapper Fdw;
+
+			public static PgObjectCollection<PgForeignServer> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgForeignServer> store)
+			{
+				PgObjectCollection<PgForeignServer> l = store;
+				if (l == null)
+				{
+					l = new PgObjectCollection<PgForeignServer>(DataSet.Properties.Resources.PgForeignServer_SQL, working, connection);
+				}
+				else
+				{
+					l.Fill(DataSet.Properties.Resources.PgForeignDataWrapper_SQL, working, connection, false);
+				}
+				return l;
+			}
+			public override void FillReference(WorkingData working)
+			{
+				Owner = working.PgRoles.FindByOid(srvowner);
+                Fdw = working.PgForeignDataWrappers.FindByOid(srvfdw);
+			}
+
+			public override string GetIdentifier(bool fullName)
+			{
+				return srvname;
+			}
+
+			public PgsqlForeignServer ToPgsqlForeignServer(NpgsqlDataSet context)
+			{
+				NamedObject o;
+				if (Generated != null && Generated.TryGetTarget(out o))
+				{
+					return (PgsqlForeignServer)o;
+				}
+
+                var ret = new PgsqlForeignServer(context, Owner?.rolname, null, srvname)
+                {
+                    Fdw = Fdw.fdwname,
+                    ServerType = srvtype,
+                    Version = srvversion,
+                    Options = srvoptions
+                };
+				List<string> l = new List<string>();
+				TrimDependBy();
+				foreach (PgObject c in DependBy)
+				{
+					l.Add(c.GetIdentifier(true));
+				}
+				l.Sort();
+				ret.DependBy = l.ToArray();
+				return ret;
+			}
+
+		}
+
+		private void LoadUserInfo(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
             if (conn == null)
@@ -3626,7 +3759,9 @@ namespace Db2Source
             public PgObjectCollection<PgProc> PgProcs;
             public PgObjectCollection<PgRole> PgRoles;
             public PgObjectCollection<PgExtension> PgExtensions;
-            public PgSettingCollection PgSettings;
+            public PgObjectCollection<PgForeignDataWrapper> PgForeignDataWrappers;
+            public PgObjectCollection<PgForeignServer> PgForeignServers;
+			public PgSettingCollection PgSettings;
             public PgDependViewCollection PgDependViews;
             public PgDependCollection PgDepends;
 
@@ -3642,6 +3777,8 @@ namespace Db2Source
             public uint PgProcOid;
             public uint PgLanguageOid;
             public uint PgExtensionOid;
+            public uint PgForeignDataWrapperOid;
+            public uint PgForeignServerOid;
 
             public void FillAll(NpgsqlConnection connection)
             {
@@ -3657,8 +3794,10 @@ namespace Db2Source
                 PgProcOid = PgClass.GetOid(connection, "pg_catalog", "pg_proc", 'r').Value;
                 PgLanguageOid = PgClass.GetOid(connection, "pg_catalog", "pg_language", 'r').Value;
                 PgExtensionOid = PgClass.GetOid(connection, "pg_catalog", "pg_extension", 'r').Value;
+				PgForeignDataWrapperOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_data_wrapper", 'r').Value;
+				PgForeignServerOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_server", 'r').Value;
 
-                PgNamespaces = PgNamespace.Load(this, connection, null);
+				PgNamespaces = PgNamespace.Load(this, connection, null);
                 PgNamespaces.UpdateNameToItem();
                 PgCatalogOid = PgNamespaces.FindByName("pg_catalog").oid;
 
@@ -3675,7 +3814,9 @@ namespace Db2Source
                 PgDescriptions = PgDescription.Load(this, connection, null);
                 PgRoles = PgRole.Load(this, connection, null);
                 PgExtensions = PgExtension.Load(this, connection, null);
-                PgSettings = PgSetting.Load(this, connection, null);
+				PgForeignDataWrappers = PgForeignDataWrapper.Load(this, connection, null);
+				PgForeignServers = PgForeignServer.Load(this, connection, null);
+				PgSettings = PgSetting.Load(this, connection, null);
                 PgDependViews = PgDependView.Load(this, connection, null);
                 PgDepends = PgDepend.Load(this, connection, null);
 
@@ -3691,6 +3832,8 @@ namespace Db2Source
                 PgDescriptions.BeginFillReference(this);
                 PgRoles.BeginFillReference(this);
                 PgExtensions.BeginFillReference(this);
+                PgForeignDataWrappers.BeginFillReference(this);
+                PgForeignServers.BeginFillReference(this);
                 PgSettings.BeginFillReference(this);
                 PgDependViews.BeginFillReference(this);
                 PgDepends.BeginFillReference(this);
@@ -3709,6 +3852,8 @@ namespace Db2Source
                 PgDescriptions.FillReference(this);
                 PgRoles.FillReference(this);
                 PgExtensions.FillReference(this);
+                PgForeignDataWrappers.FillReference(this);
+                PgForeignServers.FillReference(this);
                 PgSettings.FillReference(this);
                 PgDependViews.FillReference(this);
                 PgDepends.FillReference(this);
@@ -3724,6 +3869,8 @@ namespace Db2Source
                 PgTriggers.UpdateNameToItem();
                 PgDescriptions.UpdateNameToItem();
                 PgExtensions.UpdateNameToItem();
+                PgForeignDataWrappers.UpdateNameToItem();
+                PgForeignServers.UpdateNameToItem();
                 PgRoles.UpdateNameToItem();
                 //PgSettings.UpdateNameToItem();
                 //PgDependViews.UpdateNameToItem();
@@ -3741,6 +3888,8 @@ namespace Db2Source
                 PgDescriptions.EndFillReference(this);
                 PgRoles.EndFillReference(this);
                 PgExtensions.EndFillReference(this);
+                PgForeignDataWrappers.EndFillReference(this);
+                PgForeignServers.EndFillReference(this);
                 PgSettings.EndFillReference(this);
                 PgDependViews.EndFillReference(this);
                 PgDepends.EndFillReference(this);
@@ -3756,6 +3905,8 @@ namespace Db2Source
                 LoadFromPgDescription();
                 LoadFromPgRoles();
                 LoadFromPgExtensions();
+                LoadFromPgForeignDataWrappers();
+                LoadFromPgForeignServers();
                 LoadFromPgSettings();
                 //LoadFromPgDepend();
             }
@@ -4048,8 +4199,23 @@ namespace Db2Source
                 }
             }
 
+            private void LoadFromPgForeignDataWrappers()
+            {
+                foreach (PgForeignDataWrapper fdw in PgForeignDataWrappers)
+                {
+					fdw.ToPgsqlForeignDataWrapper(Context);
+                }
+            }
 
-            private void LoadFromPgDatabases()
+            private void LoadFromPgForeignServers()
+            {
+                foreach (PgForeignServer svr in PgForeignServers)
+                {
+					svr.ToPgsqlForeignServer(Context);
+                }
+            }
+
+			private void LoadFromPgDatabases()
             {
                 List<PgsqlDatabase> lTmpl = new List<PgsqlDatabase>();
                 List<PgsqlDatabase> lOther = new List<PgsqlDatabase>();

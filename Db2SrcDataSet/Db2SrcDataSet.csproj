@@ -128,6 +128,8 @@
     <Compile Include="Npgsql\NpgsqlDataSet.UI.cs" />
     <Compile Include="Npgsql\PgsqlDatabase.cs" />
     <Compile Include="Npgsql\PgsqlExtension.cs" />
+    <Compile Include="Npgsql\PgsqlForeignDataWrapper.cs" />
+    <Compile Include="Npgsql\PgsqlForeignServer.cs" />
     <Compile Include="Npgsql\PgsqlSetting.cs" />
     <Compile Include="Npgsql\PgsqlTablespace.cs" />
     <Compile Include="Npgsql\PgsqlType.cs" />
@@ -257,6 +259,9 @@
     <None Include="Resources\PgExtension_SQL.txt" />
     <None Include="Resources\PgDepend_SQL.txt" />
     <None Include="Resources\GetLastSequence_SQL.txt" />
+    <None Include="Resources\PgForeignDataWrapper_SQL.txt" />
+    <None Include="Resources\PgForeignServer_SQL.txt" />
+    <None Include="Resources\PgUserMapping_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
