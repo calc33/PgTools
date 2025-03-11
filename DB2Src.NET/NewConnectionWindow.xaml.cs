@@ -55,7 +55,59 @@ namespace Db2Source
 
         public IDbConnection Result { get; private set; }
 
-        private TreeViewFilterKeyEventController _treeViewFilterController;
+        private double _fieldMaxWidth = 0;
+        private double _nameMaxWidth = 0;
+
+        private void UpdateMaxTextWidth()
+        {
+            Typeface typeface = new Typeface(FontFamily, FontStyle, FontWeight, FontStretch);
+            DpiScale dpi = VisualTreeHelper.GetDpi(this);
+			double wMax = WindowLocator.GetSizeOfCurrentScreen(this).Width / 2 - 80;
+            
+            _fieldMaxWidth = 0;
+            _nameMaxWidth = 0;
+            foreach (var info in ConnectionList)
+            {
+
+                foreach (PropertyInfo pi in info.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+                {
+                    InputFieldAttribute attr = (InputFieldAttribute)pi.GetCustomAttribute(typeof(InputFieldAttribute));
+                    if (attr == null)
+                    {
+                        continue;
+                    }
+                    if (attr.HiddenField)
+                    {
+                        continue;
+                    }
+                    string s = pi.GetValue(info) as string;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        FormattedText ft = new FormattedText(s, CultureInfo.CurrentUICulture, FlowDirection, typeface, FontSize, SystemColors.ControlTextBrush, dpi.PixelsPerDip)
+                        {
+                            MaxTextWidth = wMax
+                        };
+						_fieldMaxWidth = Math.Max(_fieldMaxWidth, ft.Width);
+                    }
+                }
+                if (!string.IsNullOrEmpty(info.Name))
+                {
+                    FormattedText ft = new FormattedText(info.Name, CultureInfo.CurrentUICulture, FlowDirection, typeface, FontSize, SystemColors.ControlTextBrush, dpi.PixelsPerDip)
+					{
+						MaxTextWidth = wMax
+					};
+                    _nameMaxWidth = Math.Max(_nameMaxWidth, ft.Width);
+                }
+            }
+			gridBase.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Auto);
+			StackPanelMain.HorizontalAlignment = HorizontalAlignment.Left;
+			GridProperties.ColumnDefinitions[1].Width = new GridLength(_fieldMaxWidth + 6, GridUnitType.Pixel);
+			textBlockConnectionName.Width = _nameMaxWidth;
+			// 個々の要素サイズを設定するとリサイズ時にもサイズ固定になるため
+            // この後LayoutUpdatedイベントにてリサイズ可能なように個々の要素の設定を調整する
+		}
+
+		private TreeViewFilterKeyEventController _treeViewFilterController;
 
         private static int ComparePropertyByInputFieldAttr(PropertyInfo item1, PropertyInfo item2)
         {
@@ -459,21 +511,42 @@ namespace Db2Source
             UpdateButtonShowConnectionsContentTemplate();
         }
 
-        private void window_Loaded(object sender, RoutedEventArgs e)
+		private void window_LayoutUpdated(object sender, EventArgs e)
+		{
+			// UpdateMaxTextWidth() によってサイズ設定した直後の場合、
+			// リサイズ可能なように個々の要素の設定を調整する
+			ColumnDefinition colDef = gridBase.ColumnDefinitions[0];
+            if (colDef.Width.IsAuto)
+            {
+				colDef.Width = new GridLength(colDef.ActualWidth, GridUnitType.Pixel);
+				textBlockConnectionName.Width = double.NaN;
+				GridProperties.ColumnDefinitions[1].Width = new GridLength(1, GridUnitType.Star);
+                StackPanelMain.HorizontalAlignment = HorizontalAlignment.Stretch;
+			}
+		}
+
+		private void window_Loaded(object sender, RoutedEventArgs e)
         {
-            _treeViewFilterController = new TreeViewFilterKeyEventController(treeViewConnections, textBoxFilterTreeView);
+            UpdateMaxTextWidth();
+			_treeViewFilterController = new TreeViewFilterKeyEventController(treeViewConnections, textBoxFilterTreeView);
             WindowLocator.AdjustMaxHeightToScreen(this);
             MinHeight = StackPanelMain.DesiredSize.Height + ActualHeight - (Content as Grid).ActualHeight;
             Height = ActualHeight;
             SizeToContent = SizeToContent.Width;
         }
 
-        private void window_LocationChanged(object sender, EventArgs e)
-        {
-            WindowLocator.AdjustMaxHeightToScreen(this);
-        }
+        private AggregatedEventDispatcher _locationChangedDispatcher;
 
-        private void UpdateTitleColor()
+		private void window_LocationChanged(object sender, EventArgs e)
+        {
+            if (_locationChangedDispatcher == null)
+            {
+                _locationChangedDispatcher = new AggregatedEventDispatcher(Dispatcher, () => { WindowLocator.AdjustMaxHeightToScreen(this); }, new TimeSpan(0, 0, 3));
+            }
+            _locationChangedDispatcher.Touch();
+		}
+
+		private void UpdateTitleColor()
         {
             //buttonTitleColor.GetBindingExpression(BackgroundProperty)?.UpdateSource();
             //checkBoxTitleColor.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();
@@ -685,5 +758,5 @@ namespace Db2Source
                 treeViewConnections.Items.Remove(item);
 			}
 		}
-    }
+	}
 }
