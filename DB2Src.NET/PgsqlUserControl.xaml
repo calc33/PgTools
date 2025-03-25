@@ -21,7 +21,7 @@
         <TextBlock Text="ユーザー名：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <TextBox x:Name="textBoxUserName" Grid.Column="1" Margin="0,2" Text="{Binding Target.Id, ElementName=userControl}" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" HorizontalAlignment="Left" MinWidth="100"/>
         <TextBlock Grid.Row="1" Text="パスワード：" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,3" Visibility="{Binding IsNew, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-        <TextBox x:Name="textBoxPassword" Grid.Row="1" Grid.Column="1" Margin="0,2" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" Visibility="{Binding IsNew, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Left" MinWidth="100"/>
+        <TextBox x:Name="textBoxPassword" Grid.Row="1" Grid.Column="1" Margin="0,2"  Text="{Binding Target.Password, ElementName=userControl}" IsReadOnly="{Binding IsReadOnly, ElementName=userControl}" Visibility="{Binding IsNew, ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}" HorizontalAlignment="Left" MinWidth="100"/>
         <TextBlock Grid.Row="2" Text="権限：" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         <WrapPanel x:Name="wrapPanelGrant" Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Visibility="{Binding IsReadOnly, ElementName=userControl, Converter={StaticResource InvertBooleanToVisibilityConverter}}">
             <CheckBox Content="ログイン可" Margin="0,2,4,2" IsChecked="{Binding Target.CanLogin, ElementName=userControl}"/>
