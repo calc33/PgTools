@@ -264,7 +264,7 @@
                     <MenuItem Header="すべて選択(_A)" InputGestureText="Ctrl+A" Command="ApplicationCommands.SelectAll"/>
                     <MenuItem Header="すべてのセルを選択(_A)" InputGestureText="Ctrl+Shift+A" Command="local:DataGridCommands.SelectAllCells"/>
                     <Separator/>
-                    <MenuItem Header="SQLを正規化(_R)" Command="local:QueryCommands.NormalizeSQL"/>
+                    <MenuItem Header="SQLの記法統一(_R)" Command="local:QueryCommands.NormalizeSQL" ToolTip="小文字に統一し、引用符が必要な識別子に引用符を付与する"/>
                 </MenuItem>
                 <MenuItem Header="検索(_S)">
                     <MenuItem Header="検索(_F)..." InputGestureText="Ctrl+F" Command="ApplicationCommands.Find"/>
@@ -278,6 +278,7 @@
                         <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ(_Q)" Click="menuItemAddQuery_Click"/>
                         <MenuItem x:Name="menuItemCount" Header="レコード件数一覧(_C)" Click="menuItemCount_Click"/>
                         <MenuItem x:Name="menuItemSessionList" Header="セッション一覧(_S)" Click="menuItemSessionList_Click"/>
+                        <!--<MenuItem x:Name="menuItemSequenceList" Header="シーケンス一覧(_E)" Click="menuItemSequenceList_Click"/>-->
                     </MenuItem>
                     <MenuItem x:Name="menuItemLogWindow" Header="_SQL実行ログ" IsCheckable="True" IsChecked="False"/>
                     <MenuItem x:Name="menuItemExportSchema" Header="スキーマ定義のエクスポート(_X)" Click="menuItemExportSchema_Click"/>
