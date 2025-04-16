@@ -427,14 +427,19 @@ namespace Db2Source
             _owner = owner;
             _added = false;
             _deleted = false;
-            _data = new DataArray(reader.FieldCount);
-            _old = new DataArray(reader.FieldCount);
-            for (int i = 0; i < _old.Length; i++)
+            _data = new DataArray(_owner.Fields.Length);
+            _old = new DataArray(_owner.Fields.Length);
+            for (int i = 0; i < _owner.Fields.Length; i++)
             {
+                ColumnInfo fi = _owner.Fields[i];
                 try
                 {
-                    _data[i] = reader.GetValue(i);
+                    _data[i] = reader.GetValue(fi.Index);
 
+                }
+                catch (InvalidCastException)
+                {
+                    _data[i] = NotSupportedColumn.Value;
                 }
                 catch (NotSupportedException)
                 {

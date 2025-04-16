@@ -591,20 +591,26 @@ namespace Db2Source
         public async Task LoadAsync(Dispatcher dispatcher, IDataReader reader, CancellationToken cancellationToken)
         {
             int n = reader.FieldCount;
-            Fields = new ColumnInfo[n];
+            List<ColumnInfo> cols = new List<ColumnInfo>();
             List<Row> rows = new List<Row>();
             for (int i = 0; i < n; i++)
             {
-                ColumnInfo fi = new ColumnInfo(reader, i, null);
-                Column c = Table?.Columns[fi.Name];
-                if (c != null)
+                try
                 {
-                    fi.Comment = c.CommentText;
-                    fi.StringFormat = c.StringFormat;
+                    ColumnInfo fi = new ColumnInfo(reader, i, null);
+                    Column c = Table?.Columns[fi.Name];
+                    if (c != null)
+                    {
+                        fi.Comment = c.CommentText;
+                        fi.StringFormat = c.StringFormat;
+                    }
+                    cols.Add(fi);
+                    _nameToField[fi.Name.ToLower()] = fi;
                 }
-                Fields[i] = fi;
-                _nameToField[fi.Name.ToLower()] = fi;
+                catch { }
             }
+            Fields = cols.ToArray();
+
             while (reader.Read())
             {
                 rows.Add(new Row(this, reader));
@@ -630,13 +636,20 @@ namespace Db2Source
             }
             int n = reader.FieldCount;
             Fields = new ColumnInfo[n];
+            List<ColumnInfo> cols = new List<ColumnInfo>();
             Rows = new RowCollection(this);
             for (int i = 0; i < n; i++)
             {
-                ColumnInfo fi = new ColumnInfo(reader, i, table);
-                Fields[i] = fi;
-                _nameToField[fi.Name.ToLower()] = fi;
+                try
+                {
+                    ColumnInfo fi = new ColumnInfo(reader, i, table);
+                    cols.Add(fi);
+                    _nameToField[fi.Name.ToLower()] = fi;
+                }
+                catch { }
             }
+            Fields = cols.ToArray();
+
             while (reader.Read())
             {
                 Rows.Add(new Row(this, reader));
@@ -690,7 +703,7 @@ namespace Db2Source
                     row.AcceptChanges();
                 }
             }
-            catch
+            catch (Exception t)
             {
                 txn.Rollback();
                 foreach (Row row in log)
@@ -702,6 +715,7 @@ namespace Db2Source
                         break;
                     }
                 }
+                Logger.Default.Log(t.ToString());
                 //throw;
             }
             finally
