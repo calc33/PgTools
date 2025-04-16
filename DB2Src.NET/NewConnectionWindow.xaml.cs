@@ -55,6 +55,35 @@ namespace Db2Source
 
         public IDbConnection Result { get; private set; }
 
+        private RegistryBinding _registryBinding = null;
+        private void RequireRegistryBinding()
+        {
+            if (_registryBinding != null)
+            {
+                return;
+            }
+            Window window = Window.GetWindow(this);
+            _registryBinding = new RegistryBinding(window);
+            _registryBinding.Register(window, tabControlConnections);
+        }
+        public RegistryBinding RegistryBinding
+        {
+            get
+            {
+                RequireRegistryBinding();
+                return _registryBinding;
+            }
+        }
+
+        public void LoadFromRegistry()
+        {
+            RegistryBinding.Load(App.RegistryFinder);
+        }
+
+        public void SaveToRegistry()
+        {
+            RegistryBinding.Save(App.RegistryFinder);
+        }
         private double _fieldMaxWidth = 0;
         private double _nameMaxWidth = 0;
 
@@ -481,6 +510,26 @@ namespace Db2Source
             ConnectionInfoTreeView.AddTreeViewItem(treeViewConnections.Items, ConnectionList/*, buttonSelectTargetMenuItem_Click*/);
         }
 
+        private static int CompareConnectionInfoByLastConnectedDesc(ConnectionInfo item1, ConnectionInfo item2)
+        {
+            return -DateTime.Compare(item1.LastConnected, item2.LastConnected);
+        }
+        private void InitListBoxRecentConnection()
+        {
+            List<ConnectionInfo> list = new List<ConnectionInfo>(ConnectionList.Count);
+            // 直近3ヶ月以内の接続に成功した接続先のみ表示
+            DateTime limit = DateTime.Today.AddMonths(-3);
+            foreach (ConnectionInfo item in ConnectionList)
+            {
+                if (!item.IsLastConnectionFailed && limit <= item.LastConnected)
+                {
+                    list.Add(item);
+                }
+            }
+            list.Sort(CompareConnectionInfoByLastConnectedDesc);
+            listBoxRecentConnections.ItemsSource = list;
+        }
+
         private void buttonSelectTargetMenuItem_Click(object sender, RoutedEventArgs e)
         {
             ConnectionInfo info = (sender as MenuItem)?.Tag as ConnectionInfo;
@@ -508,6 +557,7 @@ namespace Db2Source
             Target = info0;
             UpdateTitleColor();
             InitTreeViewConnections();
+            InitListBoxRecentConnection();
             UpdateButtonShowConnectionsContentTemplate();
         }
 
@@ -533,6 +583,7 @@ namespace Db2Source
             MinHeight = StackPanelMain.DesiredSize.Height + ActualHeight - (Content as Grid).ActualHeight;
             Height = ActualHeight;
             SizeToContent = SizeToContent.Width;
+            LoadFromRegistry();
         }
 
         private AggregatedEventDispatcher _locationChangedDispatcher;
@@ -546,7 +597,12 @@ namespace Db2Source
             _locationChangedDispatcher.Touch();
 		}
 
-		private void UpdateTitleColor()
+        private void window_Closed(object sender, EventArgs e)
+        {
+            SaveToRegistry();
+        }
+		
+        private void UpdateTitleColor()
         {
             //buttonTitleColor.GetBindingExpression(BackgroundProperty)?.UpdateSource();
             //checkBoxTitleColor.GetBindingExpression(CheckBox.IsCheckedProperty)?.UpdateSource();
@@ -670,12 +726,16 @@ namespace Db2Source
             {
                 return false;
             }
-            ConnectionInfo info = selectedItem.Tag as ConnectionInfo;
-            if (info == null)
+            return ShowSelectedConnection(selectedItem.Tag as ConnectionInfo);
+        }
+
+        private bool ShowSelectedConnection(ConnectionInfo item)
+        {
+            if (item == null)
             {
                 return false;
             }
-            Target = info;
+            Target = item;
             return true;
         }
 
@@ -758,5 +818,20 @@ namespace Db2Source
                 treeViewConnections.Items.Remove(item);
 			}
 		}
-	}
+
+        private void listBoxRecentConnections_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            ConnectionInfo info = listBoxRecentConnections.SelectedItem as ConnectionInfo;
+            if (info != null)
+            {
+                PerformClickAsync(buttonOK);
+                e.Handled = true;
+            }
+        }
+
+        private void listBoxRecentConnections_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ShowSelectedConnection(listBoxRecentConnections.SelectedItem as ConnectionInfo);
+        }
+    }
 }

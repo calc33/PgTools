@@ -10,7 +10,7 @@
         Title="新規データベース接続" Height="Auto" d:DesignHeight="154.939" WindowStyle="ToolWindow" ScrollViewer.VerticalScrollBarVisibility="Disabled"
         WindowStartupLocation="CenterScreen" SizeToContent="WidthAndHeight" Background="White"
         HorizontalAlignment="Left" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
-        Initialized="window_Initialized" LocationChanged="window_LocationChanged" Loaded="window_Loaded" LayoutUpdated="window_LayoutUpdated">
+        Initialized="window_Initialized" LocationChanged="window_LocationChanged" Loaded="window_Loaded" LayoutUpdated="window_LayoutUpdated" Closed="window_Closed">
     <Window.Resources>
         <sys:String x:Key="checkBoxTextShowPassword">パスワードを表示</sys:String>
         <sys:String x:Key="checkBoxTextSavePassword">パスワードを保存</sys:String>
@@ -233,21 +233,28 @@
                 <Button x:Name="buttonCancel" Grid.Column="2" Margin="5" Padding="5" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
             </local:EquallyStackPanel>
         </StackPanel>
-        <DockPanel x:Name="dockPanelConnections" Grid.Column="1" Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="4,0,0,0">
-            <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TextBox.Static.Border}" BorderThickness="1">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageSearch12}"/>
-                    <TextBox x:Name="textBoxFilterTreeView" BorderThickness="0" TextChanged="textBoxFilterTreeView_TextChanged" PreviewKeyDown="textBoxFilterTreeView_PreviewKeyDown"/>
+        <TabControl x:Name="tabControlConnections" MinWidth="200" TabStripPlacement="Bottom" Grid.Column="1" Margin="4,0,0,0">
+            <TabItem x:Name="tabItemAllConnections" Header="接続先一覧">
+                <DockPanel x:Name="dockPanelConnections" Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TextBox.Static.Border}" BorderThickness="1">
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageSearch12}"/>
+                            <TextBox x:Name="textBoxFilterTreeView" BorderThickness="0" TextChanged="textBoxFilterTreeView_TextChanged" PreviewKeyDown="textBoxFilterTreeView_PreviewKeyDown"/>
+                        </DockPanel>
+                    </Border>
+                    <TreeView x:Name="treeViewConnections" MouseDoubleClick="treeViewConnections_MouseDoubleClick" KeyDown="treeViewConnections_KeyDown" SelectedItemChanged="treeViewConnections_SelectedItemChanged" ContextMenuOpening="treeViewConnections_ContextMenuOpening">
+                        <TreeView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem x:Name="treeViewConnectionsDeleteConnection" Header="削除" Click="treeViewConnectionsDeleteConnection_Click"/>
+                            </ContextMenu>
+                        </TreeView.ContextMenu>
+                    </TreeView>
                 </DockPanel>
-            </Border>
-            <TreeView x:Name="treeViewConnections" MinWidth="200" MouseDoubleClick="treeViewConnections_MouseDoubleClick" KeyDown="treeViewConnections_KeyDown" SelectedItemChanged="treeViewConnections_SelectedItemChanged" ContextMenuOpening="treeViewConnections_ContextMenuOpening">
-                <TreeView.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem x:Name="treeViewConnectionsDeleteConnection" Header="削除" Click="treeViewConnectionsDeleteConnection_Click"/>
-                    </ContextMenu>
-                </TreeView.ContextMenu>
-            </TreeView>
-        </DockPanel>
+            </TabItem>
+            <TabItem x:Name="tabItemRecentConnections" Header="最近の接続">
+                <ListBox x:Name="listBoxRecentConnections" DisplayMemberPath="Name" SelectionChanged="listBoxRecentConnections_SelectionChanged" MouseDoubleClick="listBoxRecentConnections_MouseDoubleClick"/>
+            </TabItem>
+        </TabControl>
         <GridSplitter Grid.Column="1" HorizontalAlignment="Left" Width="4" Background="White" Visibility="{Binding Visibility, ElementName=dockPanelConnections}"/>
         <Grid x:Name="gridLoading" Grid.ColumnSpan="2" Background="#7FFFFFFF" Visibility="Collapsed">
             <TextBlock x:Name="textBlockConnecting" Text="データベースに接続中..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
