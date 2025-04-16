@@ -319,15 +319,17 @@ namespace Db2Source.DataSet.Properties {
         ///  d.refclassid,
         ///  d.refobjid, d.refobjsubid
         ///from pg_depend d
-        ///  join pg_class c on (d.classid = c.oid)
-        ///  join pg_class rc on (d.refclassid = rc.oid)
-        ///where (d.deptype = &apos;e&apos; -- pg_extensionの依存関係 objid:pg_proc他 refobjid:pg_extension
-        ///    or (d.deptype = &apos;n&apos; -- pg_triggerとpg_procの依存関係 objid:pg_trigger refobjid:pg_proc
-        ///      and d.classid = :pg_trigger_oid
-        ///      and d.refclassid = :pg_proc_oid
-        ///    )
-        ///  )
-        ///order by d.objid, d.objsubid, d.refobjid, d. [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
+        ///where d.deptype = &apos;e&apos; -- pg_extensionの依存関係 objid=pg_proc他 refobjid=pg_extension
+        ///union all select d.deptype,
+        ///  d.classid,
+        ///  d.objid, d.objsubid,
+        ///  d.refclassid,
+        ///  d.refobjid, d.refobjsubid
+        ///from pg_depend d
+        ///where d.deptype = &apos;n&apos; -- pg_triggerとpg_procの依存関係 objid=pg_trigger refobjid=pg_proc
+        ///  and d.classid = :pg_trigger_oid
+        ///  and d.refclassid = :pg_proc_oid
+        ///union all select d.deptyp [残りの文字列は切り詰められました]&quot;; に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string PgDepend_SQL {
             get {

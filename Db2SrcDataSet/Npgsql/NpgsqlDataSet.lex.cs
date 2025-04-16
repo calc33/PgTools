@@ -2,11 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Db2Source
 {
@@ -557,13 +554,18 @@ namespace Db2Source
                 {
                     return StrUtil.EmptyStringArray;
                 }
-                if (sql[0] != '$' || sql[sql.Length - 1] != '$')
-                {
-                    return new string[] { sql };
-                }
                 int p1 = sql.IndexOf('$', 1);
+                if (p1 == -1)
+                {
+                    return new string[] { sql, string.Empty, string.Empty };
+                }
                 string mark1 = sql.Substring(0, p1 + 1);
-                int p2 = sql.LastIndexOf('$', sql.Length - 2);
+                string body = sql.Substring(p1 + 1);
+                int p2 = body.LastIndexOf('$', body.Length - 2);
+                if (p2 == -1)
+                {
+                    return new string[] { mark1, body, string.Empty };
+                }
                 // 最後の改行コードを終端記号に含める(改行コードを残す)
                 if (0 < p2)
                 {
@@ -581,8 +583,8 @@ namespace Db2Source
                         p2--;
                     }
                 }
-                string mark2 = sql.Substring(p2);
-                string body = sql.Substring(p1 + 1, p2 - p1 - 1);
+                string mark2 = body.Substring(p2);
+                body = body.Substring(0, p2);
                 return new string[] { mark1, body, mark2 };
             }
 
@@ -882,6 +884,18 @@ namespace Db2Source
             return buf.ToString();
         }
 
+        private bool SkipSpace(IEnumerator<Token> enumerator)
+        {
+            for (Token t = enumerator.Current; t != null && (t.Kind == TokenKind.Space || t.Kind == TokenKind.NewLine || t.Kind == TokenKind.Comment); t = enumerator.Current)
+            {
+                if (!enumerator.MoveNext())
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public override SQLParts SplitSQL(string sql)
         {
             TokenizedSQL tsql = Tokenize(sql);
@@ -894,9 +908,9 @@ namespace Db2Source
             List<string> lParamAll = new List<string>();
             do
             {
-                for (Token t = enumerator.Current; t.Kind == TokenKind.Space || t.Kind == TokenKind.NewLine || t.Kind == TokenKind.Comment; t = enumerator.Current)
+                if (!SkipSpace(enumerator))
                 {
-                    enumerator.MoveNext();
+                    break;
                 }
                 List<string> lParam = new List<string>();
                 Token tStart = enumerator.Current;
@@ -954,25 +968,5 @@ namespace Db2Source
                 ParameterNames = lP.ToArray()
             };
         }
-        //public override IDbCommand[] Execute(SQLParts sqls, ref ParameterStoreCollection parameters)
-        //{
-        //    bool modified;
-        //    parameters = ParameterStore.GetParameterStores(sqls.ParameterNames, parameters, out modified);
-        //    if (modified)
-        //    {
-        //        return null;
-        //    }
-        //    List<IDbCommand> l = new List<IDbCommand>();
-        //    using (IDbConnection conn = Connection())
-        //    {
-        //        IDbTransaction txn = null;    // BEGIN / START TRANSACTION は後で実装
-        //        foreach (SQLPart sql in sqls.Items)
-        //        {
-        //            IDbCommand cmd = GetSqlCommand(sql.SQL, conn, txn);
-        //            l.Add(cmd);
-        //        }
-        //    }
-        //    return l.ToArray();
-        //}
     }
 }

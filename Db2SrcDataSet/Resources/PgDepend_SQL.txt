@@ -4,12 +4,24 @@ select d.deptype,
   d.refclassid,
   d.refobjid, d.refobjsubid
 from pg_depend d
-  join pg_class c on (d.classid = c.oid)
-  join pg_class rc on (d.refclassid = rc.oid)
-where (d.deptype = 'e' -- pg_extension‚ÌˆË‘¶ŠÖŒW objid:pg_proc‘¼ refobjid:pg_extension
-    or (d.deptype = 'n' -- pg_trigger‚Æpg_proc‚ÌˆË‘¶ŠÖŒW objid:pg_trigger refobjid:pg_proc
-      and d.classid = :pg_trigger_oid
-      and d.refclassid = :pg_proc_oid
-    )
-  )
-order by d.objid, d.objsubid, d.refobjid, d.refobjsubid
+where d.deptype = 'e' -- pg_extension‚ÌˆË‘¶ŠÖŒW objid=pg_proc‘¼ refobjid=pg_extension
+union all select d.deptype,
+  d.classid,
+  d.objid, d.objsubid,
+  d.refclassid,
+  d.refobjid, d.refobjsubid
+from pg_depend d
+where d.deptype = 'n' -- pg_trigger‚Æpg_proc‚ÌˆË‘¶ŠÖŒW objid=pg_trigger refobjid=pg_proc
+  and d.classid = :pg_trigger_oid
+  and d.refclassid = :pg_proc_oid
+union all select d.deptype,
+  d.classid,
+  d.objid, d.objsubid,
+  d2.refclassid,
+  d2.refobjid, d2.refobjsubid
+from pg_depend d
+  join pg_depend d2 on (d.refobjid = d2.objid and d2.refclassid = :pg_class_oid and d2.deptype = 'i')
+where d.deptype = 'n' -- pg_proc‚Æpg_class‚ÌˆË‘¶ŠÖŒW
+  and d.classid = :pg_proc_oid
+  and d.refclassid = :pg_type_oid
+order by objid, objsubid, refobjid, refobjsubid

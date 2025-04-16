@@ -1425,7 +1425,7 @@ namespace Db2Source
             //public char relkind;
 #pragma warning restore 0649
             public PgNamespace Schema;
-            //public PgClass Relation;
+            public PgClass Relation;
             public PgType BaseType;
             public bool IsArray;
             public PgType ElementType;
@@ -1466,6 +1466,7 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
                 Schema = working.PgNamespaces.FindByOid(typnamespace);
+                Relation = working.PgClasses.FindByOid(typrelid);
                 //ArrayType = working.PgTypes.FindByOid(typarray);
             }
 
@@ -2998,6 +2999,8 @@ namespace Db2Source
                 {
                     cmd.Parameters.Add(new NpgsqlParameter("pg_trigger_oid", NpgsqlTypes.NpgsqlDbType.Oid) { Value = working.PgTriggerOid });
                     cmd.Parameters.Add(new NpgsqlParameter("pg_proc_oid", NpgsqlTypes.NpgsqlDbType.Oid) { Value = working.PgProcOid });
+                    cmd.Parameters.Add(new NpgsqlParameter("pg_type_oid", NpgsqlTypes.NpgsqlDbType.Oid) { Value = working.PgTypeOid });
+                    cmd.Parameters.Add(new NpgsqlParameter("pg_class_oid", NpgsqlTypes.NpgsqlDbType.Oid) { Value = working.PgClassOid });
                     LogDbCommand("PgDependCollection.Fill", cmd);
                     try
                     {

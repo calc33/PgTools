@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -339,17 +340,23 @@ namespace Db2Source
             {
                 GetDropSQLByIdentifier(buffer, context, identifier, dropped);
             }
-            if (obj is View view)
+            object[] args = new object[] { obj, true, string.Empty, ";", (int)0, false, true };
+            Type[] argTypes = new Type[args.Length];
+            for (int i = 0; i < args.Length; i++)
             {
-                foreach (string s in context.GetDropSQL(view, true, string.Empty, ";", 0, false, true))
-                {
-                    buffer.Append(s);
-                }
+                argTypes[i] = args[i].GetType();
             }
-            else
+            MethodInfo method = context.GetType().GetMethod("GetDropSQL", argTypes);
+            if (method == null)
             {
                 throw new NotImplementedException();
             }
+            string[] sqls = (string[])method.Invoke(context, args);
+            foreach (string s in sqls)
+            {
+                buffer.Append(s);
+            }
+            buffer.AppendLine();
         }
 
         private static void GetSQLByIdenrtifier(StringBuilder buffer, Db2SourceContext context, string identifier, Dictionary<string, bool> created)
@@ -360,17 +367,24 @@ namespace Db2Source
             }
             created[identifier] = true;
             SchemaObject obj = context.Objects[identifier];
-            if (obj is View view)
+            object[] args = new object[] { obj, string.Empty, ";", (int)0, true };
+            Type[] argTypes = new Type[args.Length];
+            for (int i = 0; i < args.Length; i++)
             {
-                foreach (string s in context.GetSQL(view, string.Empty, ";", 0, true))
-                {
-                    buffer.Append(s);
-                }
+                argTypes[i] = args[i].GetType();
             }
-            else
+            MethodInfo method = context.GetType().GetMethod("GetSQL", argTypes);
+            if (method == null)
             {
                 throw new NotImplementedException();
             }
+            string[] sqls = (string[])method.Invoke(context, args);
+            foreach (string s in sqls)
+            {
+                buffer.Append(s);
+            }
+            buffer.AppendLine();
+
             foreach (string id in obj.DependBy)
             {
                 GetSQLByIdenrtifier(buffer, context, identifier, created);
