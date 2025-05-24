@@ -662,6 +662,7 @@ namespace Db2Source
             return Name;
         }
         public abstract string ToConnectionString(bool includePassord, int commandTimeout);
+        public abstract string GetExampleConnectionString(bool showDummyPassword);
         public abstract IDbConnection NewConnection(bool withOpening, int commandTimeout);
         public IDbConnection NewConnection(bool withOpening)
         {
@@ -1202,7 +1203,12 @@ namespace Db2Source
             return null;
         }
 
-        public override int DefaultCommandTimeout()
+		public override string GetExampleConnectionString(bool showDummyPassword)
+		{
+            return null;
+		}
+
+		public override int DefaultCommandTimeout()
         {
             return int.MaxValue;
         }

@@ -17,7 +17,7 @@ namespace Db2Source
     /// <summary>
     /// QueryControl.xaml の相互作用ロジック
     /// </summary>
-    public partial class QueryControl: UserControl, IRegistryStore
+    public partial class QueryControl : UserControl, IRegistryStore
     {
         public static readonly DependencyProperty CurrentDataSetProperty = DependencyProperty.Register("CurrentDataSet", typeof(Db2SourceContext), typeof(QueryControl));
         public static readonly DependencyProperty DataGridControllerResultProperty = DependencyProperty.Register("DataGridControllerResult", typeof(DataGridController), typeof(QueryControl));
@@ -92,8 +92,8 @@ namespace Db2Source
             {
                 return;
             }
-			Window window = Window.GetWindow(this);
-			_registryBinding = new RegistryBinding(window);
+            Window window = Window.GetWindow(this);
+            _registryBinding = new RegistryBinding(window);
             _registryBinding.Register(window, gridVertical);
             _registryBinding.Register(window, gridSql);
         }
@@ -156,16 +156,16 @@ namespace Db2Source
             return item;
         }
 
-		private static string GetDurationText(TimeSpan time)
-		{
-			return string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
-		}
+        private static string GetDurationText(TimeSpan time)
+        {
+            return string.Format("{0}:{1:00}:{2:00}.{3:000}", (int)time.TotalHours, time.Minutes, time.Seconds, time.Milliseconds);
+        }
 
-		private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos = null)
-		{
-			LogListBoxItem item = NewLogListBoxItem(text, query, status, notice, errorPos);
-			item.RedoSql += Item_RedoSql;
-			listBoxLog.Items.Add(item);
+        private void AddLog(string text, QueryHistory.Query query, LogStatus status, bool notice, Tuple<int, int> errorPos = null)
+        {
+            LogListBoxItem item = NewLogListBoxItem(text, query, status, notice, errorPos);
+            item.RedoSql += Item_RedoSql;
+            listBoxLog.Items.Add(item);
             listBoxLog.SelectedItem = item;
             listBoxLog.ScrollIntoView(item);
             if (notice)
@@ -375,7 +375,7 @@ namespace Db2Source
                                     await controller.LoadAsync(dispatcher, reader, _fetchingCancellation.Token);
                                     if (0 <= reader.RecordsAffected)
                                     {
-										_ = dispatcher.InvokeAsync(() =>
+                                        _ = dispatcher.InvokeAsync(() =>
                                         {
                                             AddLog(string.Format((string)FindResource("messageRowsAffected"), reader.RecordsAffected), history, LogStatus.Normal, true);
                                         });
@@ -389,14 +389,14 @@ namespace Db2Source
                             }
                             catch (OperationAbortedException)
                             {
-								_ = dispatcher.InvokeAsync(() =>
+                                _ = dispatcher.InvokeAsync(() =>
                                 {
                                     AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                                 });
                             }
                             catch (OperationCanceledException)
                             {
-								_ = dispatcher.InvokeAsync(() =>
+                                _ = dispatcher.InvokeAsync(() =>
                                 {
                                     AddLog((string)FindResource("messageQueryAborted"), history, LogStatus.Error, true);
                                 });
@@ -414,10 +414,10 @@ namespace Db2Source
                             }
                             finally
                             {
-								DateTime end = DateTime.Now;
+                                DateTime end = DateTime.Now;
                                 string s1 = GetDurationText(sqlEnd - start);
                                 string s2 = GetDurationText(end - start);
-								_ = dispatcher.InvokeAsync(() =>
+                                _ = dispatcher.InvokeAsync(() =>
                                 {
                                     ParameterStoreCollection.GetParameterStores(cmd, stores, out _);
                                     UpdateDataGridParameters();
@@ -434,9 +434,9 @@ namespace Db2Source
                     controller.UpdateGrid();
                 });
             }
-            catch(Exception t)
+            catch (Exception t)
             {
-				_ = dispatcher.InvokeAsync(() =>
+                _ = dispatcher.InvokeAsync(() =>
                 {
                     AddLog(CurrentDataSet.GetExceptionMessage(t), null, LogStatus.Error, true);
                     App.LogException(t);

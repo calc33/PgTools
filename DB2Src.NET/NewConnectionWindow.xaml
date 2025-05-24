@@ -229,6 +229,7 @@
             <!--</ScrollViewer>-->
             <local:EquallyStackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                 <Button x:Name="buttonTest" Grid.Column="0" Margin="5" Padding="5" Click="buttonTest_Click" Content="接続テスト"/>
+                <Button x:Name="buttonConnectionString" Grid.Column="0" Margin="5" Padding="5" Click="buttonConnectionString_Click" Content="接続文字列"/>
                 <Button x:Name="buttonOK" Grid.Column="1" Margin="5" Padding="5" IsDefault="True" Click="buttonOK_Click" Content="OK"/>
                 <Button x:Name="buttonCancel" Grid.Column="2" Margin="5" Padding="5" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
             </local:EquallyStackPanel>

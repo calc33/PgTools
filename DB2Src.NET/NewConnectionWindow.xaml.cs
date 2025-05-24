@@ -505,7 +505,23 @@ namespace Db2Source
             MessageBox.Show(Properties.Resources.MessageBoxText_Connected, Properties.Resources.MessageBoxCaption_Succeed, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void InitTreeViewConnections()
+		private void buttonConnectionString_Click(object sender, RoutedEventArgs e)
+		{
+            ConnectionStringWindow dlg = new ConnectionStringWindow()
+            {
+                Owner = this,
+                Target = Target,
+            };
+            CheckBox cb = FindName("checkBoxPassword") as CheckBox;
+			dlg.CanShowPassword = cb?.IsChecked ?? false;
+            WindowLocator.LocateNearby(sender as Button, dlg, NearbyLocation.UpLeft);
+            dlg.Show();
+            //string connectionString = Target.GetExampleConnectionString(hidePassword);
+            //MessageBox.Show(this, connectionString, "接続文字列", MessageBoxButton.OK, MessageBoxImage.Information);
+
+		}
+
+		private void InitTreeViewConnections()
         {
             ConnectionInfoTreeView.AddTreeViewItem(treeViewConnections.Items, ConnectionList/*, buttonSelectTargetMenuItem_Click*/);
         }

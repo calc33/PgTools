@@ -263,7 +263,7 @@
             </DataTemplate>
             <DataTemplate x:Key="ImageCopy14">
                 <Canvas Width="14" Height="14" SnapsToDevicePixels="True">
-                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M2.5,5.5 l6,0 l0,8 l-6,0 z M6.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
+                    <Path Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ButtonBase}}" StrokeThickness="1" Data="M1.5,5.5 l6,0 l0,8 l-6,0 z M5.5,3.5 l0,-2 l6,0 l0,8 l-2,0"/>
                 </Canvas>
             </DataTemplate>
             <DataTemplate x:Key="ImagePaste14">

@@ -163,6 +163,9 @@
     <Compile Include="CrossGrid.xaml.cs">
       <DependentUpon>CrossGrid.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Dialog\ConnectionStringWindow.xaml.cs">
+      <DependentUpon>ConnectionStringWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialog\PgDumpCompressOption.cs" />
     <Compile Include="GridController\Axis.cs" />
     <Compile Include="GridController\AxisCollection.cs" />
@@ -376,6 +379,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="CrossTableViewer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Dialog\ConnectionStringWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

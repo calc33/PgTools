@@ -28,7 +28,8 @@ namespace Db2Source
         public static readonly DependencyProperty TablespacesProperty = DependencyProperty.Register("Tablespaces", typeof(ObservableCollection<Tablespace>), typeof(DatabaseControl), new PropertyMetadata(new PropertyChangedCallback(OnTablespacesPropertyChanged)));
         public static readonly DependencyProperty IsEditingProperty = DependencyProperty.Register("IsEditing", typeof(bool), typeof(DatabaseControl));
         public static readonly DependencyProperty CurrentUserProperty = DependencyProperty.Register("CurrentUser", typeof(PgsqlUser), typeof(DatabaseControl));
-        public NpgsqlDataSet DataSet
+        public static readonly DependencyProperty ConnectionStringProperty = DependencyProperty.Register("ConnectionString", typeof(string), typeof(DatabaseControl));
+		public NpgsqlDataSet DataSet
         {
             get
             {
@@ -97,7 +98,19 @@ namespace Db2Source
             }
         }
 
-        SchemaObject ISchemaObjectControl.Target
+        public string ConnectionString
+        {
+			get
+			{
+				return (string)GetValue(ConnectionStringProperty);
+			}
+			set
+			{
+				SetValue(ConnectionStringProperty, value);
+			}
+		}
+
+		SchemaObject ISchemaObjectControl.Target
         {
             get
             {
@@ -217,6 +230,7 @@ namespace Db2Source
             UpdateComboBoxSettingCategory();
             dataGridInfo.ItemsSource = Target != null ? new Database[] { Target } : Database.EmptyArray;
             UpdateDataGridSetting();
+            ConnectionString = Target?.ConnectionInfo?.GetExampleConnectionString(true);
         }
 
         private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
@@ -303,6 +317,11 @@ namespace Db2Source
         private void tabControlMain_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
+        }
+
+        private void buttonCopyConnectionString_Click(object sender, RoutedEventArgs e)
+        {
+            Clipboard.SetText(textBlockConnectionString.Text);
         }
     }
 }

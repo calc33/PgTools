@@ -23,7 +23,7 @@
             <DockPanel>
                 <GroupBox DockPanel.Dock="Top" Header="データベース" Margin="2">
                     <DockPanel>
-                        <TextBlock DockPanel.Dock="Top" Text="{Binding Target.Version, ElementName=userControl}" Margin="2,4"/>
+                        <TextBox DockPanel.Dock="Top" Text="{Binding Target.Version, ElementName=userControl, Mode=OneWay}" IsReadOnly="True" Margin="2,4" BorderThickness="0"/>
                         <DataGrid x:Name="dataGridInfo" IsReadOnly="True" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserResizeRows="False" HeadersVisibility="Column" SelectionUnit="Cell" HorizontalGridLinesBrush="#00000000">
                             <DataGrid.Columns>
                                 <DataGridTextColumn Header="データベース名" Binding="{Binding Name}"/>
@@ -41,6 +41,12 @@
                 </GroupBox>
                 <GroupBox Header="接続ユーザー" DockPanel.Dock="Top" Margin="2">
                     <local:PgsqlUserControl Target="{Binding CurrentUser, ElementName=userControl}" IsReadOnly="True"/>
+                </GroupBox>
+                <GroupBox Header="ADO.NET接続文字列" DockPanel.Dock="Top" Margin="2">
+                    <DockPanel>
+                        <Button x:Name="buttonCopyConnectionString" DockPanel.Dock="Right" ContentTemplate="{StaticResource ImageCopy14}" Margin="2,0,0,0" ToolTip="接続文字列をコピー" Click="buttonCopyConnectionString_Click" Width="18"/>
+                        <TextBox x:Name="textBlockConnectionString" Text="{Binding ConnectionString,ElementName=userControl, Mode=OneWay}" IsReadOnly="True" BorderThickness="0"/>
+                    </DockPanel>
                 </GroupBox>
                 <Grid/>
             </DockPanel>

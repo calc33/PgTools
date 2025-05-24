@@ -511,7 +511,25 @@ namespace Db2Source
             }
             return builder.ToString();
         }
-        public override IDbConnection NewConnection(bool withOpening, int commandTimeout)
+		public override string GetExampleConnectionString(bool showDummyPassword)
+        {
+            NpgsqlConnectionStringBuilder builder = new NpgsqlConnectionStringBuilder
+            {
+                Host = ServerName,
+                Database = DatabaseName,
+                Port = ServerPort,
+                Username = UserName,
+                Password = showDummyPassword ? "***" : Password,
+                PersistSecurityInfo = true,
+            };
+			if (!string.IsNullOrEmpty(SearchPath))
+			{
+				builder.SearchPath = SearchPath;
+			}
+			return builder.ToString();
+		}
+
+		public override IDbConnection NewConnection(bool withOpening, int commandTimeout)
         {
             NpgsqlConnection conn = new NpgsqlConnection(ToConnectionString(true, commandTimeout));
             try

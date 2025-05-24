@@ -11,7 +11,7 @@ using NpgsqlTypes;
 
 namespace Db2Source
 {
-	partial class NpgsqlDataSet
+    partial class NpgsqlDataSet
     {
         private const string ERROR_CODE_PERMISSION_DENIED = "42501";  // 42501:エラー:テーブルのアクセス許可が拒否されました
         private static void LogDbCommand(string prefix, NpgsqlCommand command)
@@ -2847,28 +2847,28 @@ namespace Db2Source
                     return (StoredProcedureBase)o;
                 }
                 StoredProcedureBase fn;
-				if (prokind == 'p')
-				{
-					fn = new StoredProcedure(context, ownername, Schema?.nspname, proname, prosrc, true)
-					{
-						Extension = Extension,
-						Language = lanname
-					};
-				}
-				else
+                if (prokind == 'p')
                 {
-					fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
-					{
-						ReturnType = GetReturnType(),
-						Extension = Extension,
-						Language = lanname
-					};
-				}
-				//if (fn.BaseType == null)
-				//{
-				//    fn.BaseType = fn.DataType;
-				//}
-				PgType[] args = AllArgTypes ?? ArgTypes;
+                    fn = new StoredProcedure(context, ownername, Schema?.nspname, proname, prosrc, true)
+                    {
+                        Extension = Extension,
+                        Language = lanname
+                    };
+                }
+                else
+                {
+                    fn = new StoredFunction(context, ownername, Schema?.nspname, proname, prosrc, true)
+                    {
+                        ReturnType = GetReturnType(),
+                        Extension = Extension,
+                        Language = lanname
+                    };
+                }
+                //if (fn.BaseType == null)
+                //{
+                //    fn.BaseType = fn.DataType;
+                //}
+                PgType[] args = AllArgTypes ?? ArgTypes;
                 if (args != null)
                 {
                     for (int i = 0; i < args.Length; i++)
@@ -3133,11 +3133,11 @@ namespace Db2Source
                 {
                     return working.PgForeignDataWrappers.FindByOid(oid);
                 }
-				if (classid == working.PgForeignServerOid)
-				{
-					return working.PgForeignServers.FindByOid(oid);
-				}
-				throw new NotImplementedException(string.Format("FindByOid({0}) not implemented.", classid));
+                if (classid == working.PgForeignServerOid)
+                {
+                    return working.PgForeignServers.FindByOid(oid);
+                }
+                throw new NotImplementedException(string.Format("FindByOid({0}) not implemented.", classid));
             }
             public void FillReference(WorkingData working)
             {
@@ -3584,37 +3584,37 @@ namespace Db2Source
             public PgRole Owner;
             public PgForeignDataWrapper Fdw;
 
-			public static PgObjectCollection<PgForeignServer> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgForeignServer> store)
-			{
-				PgObjectCollection<PgForeignServer> l = store;
-				if (l == null)
-				{
-					l = new PgObjectCollection<PgForeignServer>(DataSet.Properties.Resources.PgForeignServer_SQL, working, connection);
-				}
-				else
-				{
-					l.Fill(DataSet.Properties.Resources.PgForeignDataWrapper_SQL, working, connection, false);
-				}
-				return l;
-			}
-			public override void FillReference(WorkingData working)
-			{
-				Owner = working.PgRoles.FindByOid(srvowner);
+            public static PgObjectCollection<PgForeignServer> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgForeignServer> store)
+            {
+                PgObjectCollection<PgForeignServer> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgForeignServer>(DataSet.Properties.Resources.PgForeignServer_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgForeignDataWrapper_SQL, working, connection, false);
+                }
+                return l;
+            }
+            public override void FillReference(WorkingData working)
+            {
+                Owner = working.PgRoles.FindByOid(srvowner);
                 Fdw = working.PgForeignDataWrappers.FindByOid(srvfdw);
-			}
+            }
 
-			public override string GetIdentifier(bool fullName)
-			{
-				return srvname;
-			}
+            public override string GetIdentifier(bool fullName)
+            {
+                return srvname;
+            }
 
-			public PgsqlForeignServer ToPgsqlForeignServer(NpgsqlDataSet context)
-			{
-				NamedObject o;
-				if (Generated != null && Generated.TryGetTarget(out o))
-				{
-					return (PgsqlForeignServer)o;
-				}
+            public PgsqlForeignServer ToPgsqlForeignServer(NpgsqlDataSet context)
+            {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (PgsqlForeignServer)o;
+                }
 
                 var ret = new PgsqlForeignServer(context, Owner?.rolname, null, srvname)
                 {
@@ -3623,20 +3623,20 @@ namespace Db2Source
                     Version = srvversion,
                     Options = srvoptions
                 };
-				List<string> l = new List<string>();
-				TrimDependBy();
-				foreach (PgObject c in DependBy)
-				{
-					l.Add(c.GetIdentifier(true));
-				}
-				l.Sort();
-				ret.DependBy = l.ToArray();
-				return ret;
-			}
+                List<string> l = new List<string>();
+                TrimDependBy();
+                foreach (PgObject c in DependBy)
+                {
+                    l.Add(c.GetIdentifier(true));
+                }
+                l.Sort();
+                ret.DependBy = l.ToArray();
+                return ret;
+            }
 
-		}
+        }
 
-		private void LoadUserInfo(IDbConnection connection)
+        private void LoadUserInfo(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
             if (conn == null)
@@ -3764,7 +3764,7 @@ namespace Db2Source
             public PgObjectCollection<PgExtension> PgExtensions;
             public PgObjectCollection<PgForeignDataWrapper> PgForeignDataWrappers;
             public PgObjectCollection<PgForeignServer> PgForeignServers;
-			public PgSettingCollection PgSettings;
+            public PgSettingCollection PgSettings;
             public PgDependViewCollection PgDependViews;
             public PgDependCollection PgDepends;
 
@@ -3797,10 +3797,10 @@ namespace Db2Source
                 PgProcOid = PgClass.GetOid(connection, "pg_catalog", "pg_proc", 'r').Value;
                 PgLanguageOid = PgClass.GetOid(connection, "pg_catalog", "pg_language", 'r').Value;
                 PgExtensionOid = PgClass.GetOid(connection, "pg_catalog", "pg_extension", 'r').Value;
-				PgForeignDataWrapperOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_data_wrapper", 'r').Value;
-				PgForeignServerOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_server", 'r').Value;
+                PgForeignDataWrapperOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_data_wrapper", 'r').Value;
+                PgForeignServerOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_server", 'r').Value;
 
-				PgNamespaces = PgNamespace.Load(this, connection, null);
+                PgNamespaces = PgNamespace.Load(this, connection, null);
                 PgNamespaces.UpdateNameToItem();
                 PgCatalogOid = PgNamespaces.FindByName("pg_catalog").oid;
 
@@ -3817,9 +3817,9 @@ namespace Db2Source
                 PgDescriptions = PgDescription.Load(this, connection, null);
                 PgRoles = PgRole.Load(this, connection, null);
                 PgExtensions = PgExtension.Load(this, connection, null);
-				PgForeignDataWrappers = PgForeignDataWrapper.Load(this, connection, null);
-				PgForeignServers = PgForeignServer.Load(this, connection, null);
-				PgSettings = PgSetting.Load(this, connection, null);
+                PgForeignDataWrappers = PgForeignDataWrapper.Load(this, connection, null);
+                PgForeignServers = PgForeignServer.Load(this, connection, null);
+                PgSettings = PgSetting.Load(this, connection, null);
                 PgDependViews = PgDependView.Load(this, connection, null);
                 PgDepends = PgDepend.Load(this, connection, null);
 
@@ -4087,17 +4087,17 @@ namespace Db2Source
                 PgClasses.BeginFillReference(this);
                 PgDescriptions.BeginFillReference(this);
 
-				PgClasses.FillReference(this);
-				PgDescriptions.FillReference(this);
+                PgClasses.FillReference(this);
+                PgDescriptions.FillReference(this);
 
-				PgClasses.EndFillReference(this);
-				PgDescriptions.EndFillReference(this);
+                PgClasses.EndFillReference(this);
+                PgDescriptions.EndFillReference(this);
 
                 LoadFromPgClass();
                 LoadFromPgDescription();
-			}
+            }
 
-			public void FillDatabaseByName(string databaseName, WorkingData working, NpgsqlConnection connection)
+            public void FillDatabaseByName(string databaseName, WorkingData working, NpgsqlConnection connection)
             {
                 //PgRole.Load(connection);
                 //PgTablespace.Load(connection);
@@ -4206,7 +4206,7 @@ namespace Db2Source
             {
                 foreach (PgForeignDataWrapper fdw in PgForeignDataWrappers)
                 {
-					fdw.ToPgsqlForeignDataWrapper(Context);
+                    fdw.ToPgsqlForeignDataWrapper(Context);
                 }
             }
 
@@ -4214,11 +4214,11 @@ namespace Db2Source
             {
                 foreach (PgForeignServer svr in PgForeignServers)
                 {
-					svr.ToPgsqlForeignServer(Context);
+                    svr.ToPgsqlForeignServer(Context);
                 }
             }
 
-			private void LoadFromPgDatabases()
+            private void LoadFromPgDatabases()
             {
                 List<PgsqlDatabase> lTmpl = new List<PgsqlDatabase>();
                 List<PgsqlDatabase> lOther = new List<PgsqlDatabase>();
@@ -4445,82 +4445,82 @@ namespace Db2Source
             }
             return ret;
         }
-		internal StoredProcedure RefreshStoredProcedure(StoredProcedure procedure, NpgsqlConnection connection)
-		{
-			if (_backend == null)
-			{
-				LoadSchema(connection, false);
-			}
-			else
-			{
-				List<string> args = new List<string>();
-				foreach (Parameter p in procedure.Parameters)
-				{
-					if ((p.Direction & ParameterDirection.Input) != 0)
-					{
-						args.Add(p.DataType);
-					}
-				}
-				uint? oid = PgProc.GetOid(_backend, connection, procedure.SchemaName, procedure.Name, args.ToArray());
-				if (!oid.HasValue)
-				{
-					procedure.Release();
-					return null;
-				}
-				_backend.FillProcByOid(oid.Value, connection);
-			}
-			string id = procedure.FullIdentifier;
-			StoredProcedure ret = Objects[id] as StoredProcedure;
-			if (ret != procedure)
-			{
-				procedure.ReplaceTo(ret);
-				procedure.Release();
-			}
-			return ret;
-		}
-
-		//private SchemaObject RefreshDatabase(PgsqlDatabase database, NpgsqlConnection connection)
-		//{
-		//    if (_backend == null)
-		//    {
-		//        LoadSchema(connection, false);
-		//        return DatabaseTemplates[database.Name];
-		//    }
-		//    else
-		//    {
-		//        _backend.FillDatabaseByName(database.Identifier, connection);
-		//    }
-		//    return Database;
-		//}
-
-		internal Sequence RefreshSequence(Sequence sequence, NpgsqlConnection connection)
+        internal StoredProcedure RefreshStoredProcedure(StoredProcedure procedure, NpgsqlConnection connection)
         {
-			string sch = sequence.SchemaName;
-			string name = sequence.Name;
-			if (_backend == null)
-			{
-				LoadSchema(connection, false);
-			}
-			else
-			{
-				uint? oid = PgClass.GetOid(connection, sequence.SchemaName, sequence.Name, 'S');
-				if (!oid.HasValue)
-				{
-					sequence.Release();
-					return null;
-				}
-				_backend.FillSelectableByOid(oid.Value, connection);
-			}
-			Sequence ret = Objects[sch, name] as Sequence;
-			if (ret != sequence)
-			{
-				sequence.ReplaceTo(ret);
-				sequence.Release();
-			}
-			return ret;
-		}
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+            }
+            else
+            {
+                List<string> args = new List<string>();
+                foreach (Parameter p in procedure.Parameters)
+                {
+                    if ((p.Direction & ParameterDirection.Input) != 0)
+                    {
+                        args.Add(p.DataType);
+                    }
+                }
+                uint? oid = PgProc.GetOid(_backend, connection, procedure.SchemaName, procedure.Name, args.ToArray());
+                if (!oid.HasValue)
+                {
+                    procedure.Release();
+                    return null;
+                }
+                _backend.FillProcByOid(oid.Value, connection);
+            }
+            string id = procedure.FullIdentifier;
+            StoredProcedure ret = Objects[id] as StoredProcedure;
+            if (ret != procedure)
+            {
+                procedure.ReplaceTo(ret);
+                procedure.Release();
+            }
+            return ret;
+        }
 
-		public override void RefreshSettings(IDbConnection connection)
+        //private SchemaObject RefreshDatabase(PgsqlDatabase database, NpgsqlConnection connection)
+        //{
+        //    if (_backend == null)
+        //    {
+        //        LoadSchema(connection, false);
+        //        return DatabaseTemplates[database.Name];
+        //    }
+        //    else
+        //    {
+        //        _backend.FillDatabaseByName(database.Identifier, connection);
+        //    }
+        //    return Database;
+        //}
+
+        internal Sequence RefreshSequence(Sequence sequence, NpgsqlConnection connection)
+        {
+            string sch = sequence.SchemaName;
+            string name = sequence.Name;
+            if (_backend == null)
+            {
+                LoadSchema(connection, false);
+            }
+            else
+            {
+                uint? oid = PgClass.GetOid(connection, sequence.SchemaName, sequence.Name, 'S');
+                if (!oid.HasValue)
+                {
+                    sequence.Release();
+                    return null;
+                }
+                _backend.FillSelectableByOid(oid.Value, connection);
+            }
+            Sequence ret = Objects[sch, name] as Sequence;
+            if (ret != sequence)
+            {
+                sequence.ReplaceTo(ret);
+                sequence.Release();
+            }
+            return ret;
+        }
+
+        public override void RefreshSettings(IDbConnection connection)
         {
             NpgsqlConnection conn = connection as NpgsqlConnection;
             if (_backend == null)
@@ -4600,7 +4600,7 @@ namespace Db2Source
             //return obj;
         }
 
-		public class SetOfReturnType : IReturnType
+        public class SetOfReturnType : IReturnType
         {
             public string DataType { get; set; }
 
