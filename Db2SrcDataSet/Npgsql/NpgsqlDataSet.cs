@@ -2,6 +2,7 @@
 using Npgsql;
 using NpgsqlTypes;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Reflection;
@@ -607,7 +608,7 @@ namespace Db2Source
             "{0:yyyy-MM-dd HH:mm:ss.FFFFF}",
             "{0:yyyy-MM-dd HH:mm:ss.FFFFFF}",
         };
-        private string GetImmediatedDateTimeStr(Column column, DateTime value)
+        private static string GetImmediatedDateTimeStr(Column column, DateTime value)
         {
             string baseType = string.Empty;
             int precision = 6;
@@ -624,13 +625,50 @@ namespace Db2Source
             s = s.TrimEnd('.');
             return string.Format("timestamp '{0}'", s);
         }
+
+        public static string GetArrayValueStr(ColumnInfo column, object value)
+        {
+            if (value == null || value is DBNull)
+            {
+                return "null";
+            }
+            if (column.IsNumericArray || column.IsBooleanArray)
+            {
+                return value.ToString();
+            }
+            if (column.IsDateTimeArray)
+            {
+                DateTime dt = Convert.ToDateTime(value);
+                return GetImmediatedDateTimeStr(column.Column, dt);
+            }
+            return ToLiteralStr(value.ToString());
+        }
+
+        private static string GetImmediatedArrayStr(ColumnInfo column, IList value)
+        {
+            StringBuilder buf = new StringBuilder();
+            if (value.Count == 0)
+            {
+                return "array[]";
+            }
+            buf.Append("array[");
+            buf.Append(GetArrayValueStr(column, value[0]));
+            for (int i = 1; i < value.Count; i++)
+            {
+                buf.Append(", ");
+                buf.Append(GetArrayValueStr(column, value[i]));
+            }
+            buf.Append(']');
+            return buf.ToString();
+        }
+
         public override string GetImmediatedStr(ColumnInfo column, object value)
         {
             if (value == null || value is DBNull)
             {
                 return "null";
             }
-            if (column.IsNumeric)
+            if (column.IsNumeric || column.IsBoolean)
             {
                 return base.GetImmediatedStr(column, value);
             }
@@ -638,6 +676,10 @@ namespace Db2Source
             {
                 DateTime dt = Convert.ToDateTime(value);
                 return GetImmediatedDateTimeStr(column.Column, dt);
+            }
+            if (value is IList list)
+            {
+                return GetImmediatedArrayStr(column, list);
             }
             return ToLiteralStr(value.ToString());
         }

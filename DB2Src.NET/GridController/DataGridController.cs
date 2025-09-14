@@ -1161,14 +1161,19 @@ namespace Db2Source
             {
                 return null;
             }
+            object obj = cell;
+            if (info.Column.Header is ColumnInfo columnInfo)
+            {
+                obj = columnInfo.Convert(obj, typeof(string), null, CultureInfo.CurrentUICulture);
+            }
             string s;
             if (string.IsNullOrEmpty(info.StringFormat))
             {
-                s = cell.ToString();
+                s = obj.ToString();
             }
             else
             {
-                s = string.Format(info.StringFormat, cell);
+                s = string.Format(info.StringFormat, obj);
             }
             return s;
         }

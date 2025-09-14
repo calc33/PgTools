@@ -255,6 +255,10 @@ namespace Db2Source
         public bool IsNumeric { get; private set; } = false;
         public bool IsDateTime { get; private set; } = false;
         public bool IsArray { get; private set; } = false;
+        public bool IsStringArray { get; private set; } = false;
+        public bool IsBooleanArray { get; private set; } = false;
+        public bool IsNumericArray { get; private set; } = false;
+        public bool IsDateTimeArray { get; private set; } = false;
         public Type FieldType { get; private set; }
         public bool IsDefaultDefined { get; set; } = false;
         public Column Column { get; set; }
@@ -521,6 +525,14 @@ namespace Db2Source
         {
             return _convertBack(value, targetType, parameter, culture);
         }
+
+        public static bool IsNumericType(Type type)
+        {
+            return type == typeof(byte) || type == typeof(sbyte) || type == typeof(short) || type == typeof(ushort)
+                || type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong)
+                || type == typeof(float) || type == typeof(double) || type == typeof(decimal);
+        }
+        
         public ColumnInfo(IDataReader reader, int index, Selectable table)
         {
             Index = index;
@@ -533,14 +545,24 @@ namespace Db2Source
                 ft = ft.GetGenericArguments()[0];
             }
             IsBoolean = ft == typeof(bool);
-            IsNumeric = ft == typeof(byte) || ft == typeof(sbyte) || ft == typeof(short) || ft == typeof(ushort)
-                || ft == typeof(int) || ft == typeof(uint) || ft == typeof(long) || ft == typeof(ulong)
-                || ft == typeof(float) || ft == typeof(double) || ft == typeof(decimal);
+            IsNumeric = IsNumericType(ft);
             AllowEmptyString = ft == typeof(string);
             IsString = ft == typeof(string);
             IsDateTime = ft == typeof(DateTime);
-            IsArray = (ft == typeof(Array)) || ft.IsArray;
             FieldType = ft;
+            IsArray = (ft == typeof(Array)) || ft.IsArray;
+            if (ft.IsArray)
+            {
+                Type et = ft.GetElementType();
+                if (et.IsGenericType && et.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    et = et.GetGenericArguments()[0];
+                }
+                IsBooleanArray = et == typeof(bool);
+                IsNumericArray = IsNumericType(et);
+                IsStringArray = et == typeof(string);
+                IsDateTimeArray = et == typeof(DateTime);
+            }
             _convert = ConvertNone;
             _convertBack = ConvertNone;
             if (IsArray)
