@@ -234,9 +234,10 @@
                 <Button x:Name="buttonCancel" Grid.Column="2" Margin="5" Padding="5" IsCancel="True" Click="buttonCancel_Click" Content="キャンセル"/>
             </local:EquallyStackPanel>
         </StackPanel>
-        <TabControl x:Name="tabControlConnections" MinWidth="200" TabStripPlacement="Bottom" Grid.Column="1" Margin="4,0,0,0">
+        <TabControl x:Name="tabControlConnections" MinWidth="200" TabStripPlacement="Bottom" Grid.Column="1" Margin="4,0,0,0"
+                    Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}">
             <TabItem x:Name="tabItemAllConnections" Header="接続先一覧">
-                <DockPanel x:Name="dockPanelConnections" Visibility="{Binding IsChecked, ElementName=buttonShowConnections, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <DockPanel x:Name="dockPanelConnections">
                     <Border DockPanel.Dock="Top" BorderBrush="{StaticResource TextBox.Static.Border}" BorderThickness="1">
                         <DockPanel>
                             <Button DockPanel.Dock="Right" Background="Transparent" BorderThickness="0" ContentTemplate="{StaticResource ImageSearch12}"/>
