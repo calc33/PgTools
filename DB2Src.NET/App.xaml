@@ -1243,8 +1243,8 @@
                         <ColumnDefinition Width="20"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Button ContentTemplate="{StaticResource ImageRollback12}" BorderThickness="0" Background="Transparent" ToolTip="変更を元に戻す" IsEnabled="{Binding HasChanges}" Click="RevertColumnButton_Click" Style="{DynamicResource RevertButtonStyle}" Visibility="{Binding Converter={StaticResource HideNewItemPlaceHolderConverter}, Mode=OneWay}"/>
-                    <CheckBox Grid.Column="1" IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}"/>
+                    <Button ContentTemplate="{StaticResource ImageRollback12}" BorderThickness="0" Background="Transparent" ToolTip="変更を元に戻す" IsEnabled="{Binding HasChanges}" Click="RevertColumnButton_Click" Style="{DynamicResource RevertButtonStyle}" Visibility="{Binding Converter={StaticResource HideNewItemPlaceHolderConverter}, Mode=OneWay}" IsTabStop="False"/>
+                    <CheckBox Grid.Column="1" IsChecked="{Binding IsDeleted, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding Converter={StaticResource RowVisibleConverter}, Mode=OneWay}" IsTabStop="False"/>
                     <Label Grid.Column="2" ToolTip="{Binding ErrorMessage}" ContentTemplate="{StaticResource ImageError14}">
                         <Label.Style>
                             <Style TargetType="{x:Type Label}">
