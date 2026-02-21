@@ -244,7 +244,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, MainWindow.Current.IndentOffset, 80);
+                textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, MainWindow.Current.IndentOffset, 80, false);
             }
             finally
             {
@@ -490,7 +490,7 @@ namespace Db2Source
                 limit = l;
             }
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 0, 80);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 0, 80, true);
             StartFetching();
             Dispatcher dispatcher = Dispatcher;
             DataGridController controller = DataGridControllerResult;
@@ -537,7 +537,7 @@ namespace Db2Source
         private static readonly Regex NumericStrRegex = new Regex("[0-9]+");
         private void textBoxLimitRow_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = NumericStrRegex.IsMatch(e.Text);
+            e.Handled = !NumericStrRegex.IsMatch(e.Text);
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)

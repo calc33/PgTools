@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Npgsql;
+using NpgsqlTypes;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -6,8 +8,6 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
-using Npgsql;
-using NpgsqlTypes;
 
 namespace Db2Source
 {
@@ -46,6 +46,7 @@ namespace Db2Source
             { "int8", typeof(long) },
             { "real", typeof(float) },
             { "float4", typeof(float) },
+            { "float8", typeof(double) },
             { "money", typeof(decimal) },
 
             //可変長
@@ -1425,6 +1426,7 @@ namespace Db2Source
             //public char relkind;
 #pragma warning restore 0649
             public PgNamespace Schema;
+            public bool IsSchemaHidden;
             public PgClass Relation;
             public PgType BaseType;
             public bool IsArray;
@@ -1466,6 +1468,7 @@ namespace Db2Source
             public override void FillReference(WorkingData working)
             {
                 Schema = working.PgNamespaces.FindByOid(typnamespace);
+                IsSchemaHidden = typnamespace == working.PgCatalogOid;
                 Relation = working.PgClasses.FindByOid(typrelid);
                 //ArrayType = working.PgTypes.FindByOid(typarray);
             }
@@ -1595,7 +1598,7 @@ namespace Db2Source
 
             public override string GetIdentifier(bool fullName)
             {
-                return fullName ? ToIdentifier(Schema?.nspname, typname) : typname;
+                return (fullName && !IsSchemaHidden) ? ToIdentifier(Schema?.nspname, typname) : typname;
             }
             public override string ToString()
             {
@@ -2301,7 +2304,7 @@ namespace Db2Source
             public string tgname;
             public uint tgfoid;
             public short tgtype;
-            //public char tgenabled;
+            public char tgenabled;
             public bool tgisinternal;
             //public uint tgconstrrelid;
             //public uint tgconstrindid;
@@ -2393,7 +2396,19 @@ namespace Db2Source
                     ProcedureName = Procedure?.GetIdentifier(false),
                     Timing = ((tgtype & 2) != 0) ? TriggerTiming.Before : ((tgtype & 64) != 0) ? TriggerTiming.InsteadOf : TriggerTiming.After
                 };
-
+                t.SetIsEnabled(tgenabled != 'D');
+                switch (tgenabled)
+                {
+                    case 'A':
+                        t.ReplicationRule = ReplicationRule.Always;
+                        break;
+                    case 'R':
+                        t.ReplicationRule = ReplicationRule.Replica;
+                        break;
+                    default:
+                        t.ReplicationRule = ReplicationRule.None;
+                        break;
+                }
                 t.TimingText = TimingToText[(int)t.Timing];
                 t.Event = 0;
                 t.EventText = string.Empty;
@@ -2985,6 +3000,307 @@ namespace Db2Source
             }
         }
 
+        internal class PgCast : PgObject
+        {
+#pragma warning disable 0649
+            public uint castsource;
+            public uint casttarget;
+            public uint castfunc;
+            public char castcontext;
+            public char castmethod;
+#pragma warning restore 0649
+            public PgType Source;
+            public PgType Target;
+            public PgProc Func;
+
+            public static PgObjectCollection<PgCast> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgCast> store)
+            {
+                PgObjectCollection<PgCast> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgCast>(DataSet.Properties.Resources.PgCast_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgCast_SQL, working, connection, false);
+                }
+                return l;
+            }
+
+            public override void FillReference(WorkingData working)
+            {
+                Source = working.PgTypes.FindByOid(castsource);
+                Target = working.PgTypes.FindByOid(casttarget);
+                Func = working.PgProcs.FindByOid(castfunc);
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                return string.Format("{0} as {1}", Source?.GetIdentifier(fullName), Target?.GetIdentifier(fullName));
+            }
+
+            public override string ToString()
+            {
+                return string.Format("cast({0} as {1})", Source?.GetIdentifier(true), Target?.GetIdentifier(true));
+            }
+
+            public Cast ToCast(NpgsqlDataSet context)
+            {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Cast)o;
+                }
+                CastContext cc;
+                switch (castcontext)
+                {
+                    case 'a':
+                        cc = CastContext.Assignment;
+                        break;
+                    case 'e':
+                        cc = CastContext.Assignment | CastContext.Implicit;
+                        break;
+                    case 'i':
+                        cc = CastContext.Implicit;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                CastMethod cm;
+                switch (castmethod)
+                {
+                    case 'b':
+                        cm = CastMethod.BinaryCoercible;
+                        break;
+                    case 'f':
+                        cm = CastMethod.Function;
+                        break;
+                    case 'i':
+                        cm = CastMethod.Inout;
+                        break;
+                    default:
+                        throw new NotImplementedException();
+                }
+                Cast c = new Cast(context.Casts, Source?.formatname, Target?.formatname, cc, cm, Func?.ToStoredProcedureBase(context) as StoredFunction);
+                Generated = new WeakReference<NamedObject>(c);
+                return c;
+            }
+        }
+
+        internal class PgOperator : PgObject
+        {
+#pragma warning disable 0649
+            public string oprname;
+            public uint oprnamespace;
+            public uint oprowner;
+            public char oprkind;
+            public bool oprcanmerge;
+            public bool oprcanhash;
+            public uint oprleft;
+            public uint oprright;
+            public uint oprresult;
+            public uint oprcom;
+            public uint oprnegate;
+            public uint oprcode;
+            public uint oprrest;
+            public uint oprjoin;
+#pragma warning restore 0649
+            public PgNamespace Schema;
+            public PgRole OwnerRole;
+            public PgType Left; // nullable
+            public PgType Right;
+            public PgType Result;
+            public PgOperator Commutator;
+            public PgOperator Negate;
+            public PgProc OpFunc;
+            public PgProc RestrictionFunc;
+            public PgProc JoinFunc;
+
+            public static PgObjectCollection<PgOperator> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgOperator> store)
+            {
+                PgObjectCollection<PgOperator> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgOperator>(DataSet.Properties.Resources.PgOperator_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgOperator_SQL, working, connection, false);
+                }
+                return l;
+            }
+
+            public override void FillReference(WorkingData working)
+            {
+                Schema = working.PgNamespaces.FindByOid(oprnamespace);
+                OwnerRole = working.PgRoles.FindByOid(oprowner);
+                Left = working.PgTypes.FindByOid(oprleft);
+                Right = working.PgTypes.FindByOid(oprright);
+                Result = working.PgTypes.FindByOid(oprresult);
+                Commutator = working.PgOperators.FindByOid(oprcom);
+                Negate = working.PgOperators.FindByOid(oprnegate);
+                OpFunc = working.PgProcs.FindByOid(oprcode);
+                RestrictionFunc = working.PgProcs.FindByOid(oprrest);
+                JoinFunc = working.PgProcs.FindByOid(oprjoin);
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                if (Left is null)
+                {
+                    return string.Format("{0}({1})", oprname, Right.GetIdentifier(fullName));
+                }
+                else
+                {
+                    return string.Format("{0}({1},{2})", oprname, Left.GetIdentifier(fullName), Right.GetIdentifier(fullName));
+                }
+            }
+
+            public Operator ToOperator(NpgsqlDataSet context)
+            {
+                NamedObject o;
+                if (Generated != null && Generated.TryGetTarget(out o))
+                {
+                    return (Operator)o;
+                }
+
+                Operator op = new Operator(context.Operators)
+                {
+                    Name = oprname,
+                    Schema = Schema?.nspname,
+                    LeftType = Left?.ToType(context),
+                    RightType = Right?.ToType(context),
+                    ResultType = Result?.ToType(context),
+                    Commutator = Commutator?.oprname,
+                    Negator = Negate?.oprname,
+                    RestrictProc = (StoredFunction)RestrictionFunc?.ToStoredProcedureBase(context),
+                    JoinProc = (StoredFunction)JoinFunc?.ToStoredProcedureBase(context),
+                    HashEnabled = false,
+                    MergeEnabled = false,
+                };
+                Generated = new WeakReference<NamedObject>(op);
+                return op;
+            }
+        }
+        internal class PgAm: PgObject
+        {
+#pragma warning disable 0649
+            public string amname;
+            public uint amhandler;
+            public char amtype;
+#pragma warning restore 0649
+            public static PgObjectCollection<PgAm> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgAm> store)
+            {
+                PgObjectCollection<PgAm> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgAm>(DataSet.Properties.Resources.PgAm_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgAm_SQL, working, connection, false);
+                }
+                return l;
+            }
+            public override void FillReference(WorkingData working)
+            {
+
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                return amname;
+            }
+        }
+        internal class PgOpfamily : PgObject
+        {
+#pragma warning disable 0649
+            public uint opfmethod;
+            public string opfname;
+            public uint opfnamespace;
+            public uint opfowner;
+#pragma warning restore 0649
+            public PgAm Method;
+            public PgNamespace Schema;
+            public PgRole OwnerRole;
+
+            public static PgObjectCollection<PgOpfamily> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgOpfamily> store)
+            {
+                PgObjectCollection<PgOpfamily> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgOpfamily>(DataSet.Properties.Resources.PgOpfamily_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgOpfamily_SQL, working, connection, false);
+                }
+                return l;
+            }
+
+            public override void FillReference(WorkingData working)
+            {
+                Method = working.PgAms.FindByOid(opfmethod);
+                Schema = working.PgNamespaces.FindByOid(opfnamespace);
+                OwnerRole = working.PgRoles.FindByOid(opfowner);
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                return  opfname;
+            }
+        }
+
+        internal class PgOpclass : PgObject
+        {
+#pragma warning disable 0649
+            public uint opcmethod;
+            public string opcname;
+            public uint opcnamespace;
+            public uint opcowner;
+            public uint opcfamily;
+            public uint opcintype;
+            public bool opcdefault;
+            public uint opckeytype;
+
+#pragma warning restore 0649
+            public PgAm Method;
+            public PgNamespace Schema;
+            public PgRole OwnerRole;
+            public PgOpfamily Family;
+            public PgType IndexType;
+            public PgType KeyType;
+
+            public static PgObjectCollection<PgOpclass> Load(WorkingData working, NpgsqlConnection connection, PgObjectCollection<PgOpclass> store)
+            {
+                PgObjectCollection<PgOpclass> l = store;
+                if (l == null)
+                {
+                    l = new PgObjectCollection<PgOpclass>(DataSet.Properties.Resources.PgOpclass_SQL, working, connection);
+                }
+                else
+                {
+                    l.Fill(DataSet.Properties.Resources.PgOpclass_SQL, working, connection, false);
+                }
+                return l;
+            }
+
+            public override void FillReference(WorkingData working)
+            {
+                Method = working.PgAms.FindByOid(opcmethod);
+                Schema = working.PgNamespaces.FindByOid(opcnamespace);
+                OwnerRole = working.PgRoles.FindByOid(opcowner);
+                Family = working.PgOpfamilies.FindByOid(opcfamily);
+                IndexType = working.PgTypes.FindByOid(opcintype);
+                KeyType = working.PgTypes.FindByOid(opckeytype);
+            }
+
+            public override string GetIdentifier(bool fullName)
+            {
+                return opcname;
+            }
+        }
+
         internal class PgDependCollection : IReadOnlyList<PgDepend>
         {
             private readonly List<PgDepend> _items = new List<PgDepend>();
@@ -3136,6 +3452,26 @@ namespace Db2Source
                 if (classid == working.PgForeignServerOid)
                 {
                     return working.PgForeignServers.FindByOid(oid);
+                }
+                if (classid == working.PgCastOid)
+                {
+                    return working.PgCasts.FindByOid(oid);
+                }
+                if (classid == working.PgOperatorOid)
+                {
+                    return working.PgAms.FindByOid(oid);
+                }
+                if (classid == working.PgAmOid)
+                {
+                    return working.PgAms.FindByOid(oid);
+                }
+                if (classid == working.PgOpfamilyOid)
+                {
+                    return working.PgOpfamilies.FindByOid(oid);
+                }
+                if (classid == working.PgOpclassOid)
+                {
+                    return working.PgOpclasses.FindByOid(oid);
                 }
                 throw new NotImplementedException(string.Format("FindByOid({0}) not implemented.", classid));
             }
@@ -3764,6 +4100,11 @@ namespace Db2Source
             public PgObjectCollection<PgExtension> PgExtensions;
             public PgObjectCollection<PgForeignDataWrapper> PgForeignDataWrappers;
             public PgObjectCollection<PgForeignServer> PgForeignServers;
+            public PgObjectCollection<PgCast> PgCasts;
+            public PgObjectCollection<PgOperator> PgOperators;
+            public PgObjectCollection<PgAm> PgAms;
+            public PgObjectCollection<PgOpfamily> PgOpfamilies;
+            public PgObjectCollection<PgOpclass> PgOpclasses;
             public PgSettingCollection PgSettings;
             public PgDependViewCollection PgDependViews;
             public PgDependCollection PgDepends;
@@ -3782,6 +4123,11 @@ namespace Db2Source
             public uint PgExtensionOid;
             public uint PgForeignDataWrapperOid;
             public uint PgForeignServerOid;
+            public uint PgCastOid;
+            public uint PgOperatorOid;
+            public uint PgAmOid;
+            public uint PgOpfamilyOid;
+            public uint PgOpclassOid;
 
             public void FillAll(NpgsqlConnection connection)
             {
@@ -3799,6 +4145,11 @@ namespace Db2Source
                 PgExtensionOid = PgClass.GetOid(connection, "pg_catalog", "pg_extension", 'r').Value;
                 PgForeignDataWrapperOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_data_wrapper", 'r').Value;
                 PgForeignServerOid = PgClass.GetOid(connection, "pg_catalog", "pg_foreign_server", 'r').Value;
+                PgCastOid = PgClass.GetOid(connection, "pg_catalog", "pg_cast", 'r').Value;
+                PgOperatorOid = PgClass.GetOid(connection, "pg_catalog", "pg_operator", 'r').Value;
+                PgAmOid = PgClass.GetOid(connection, "pg_catalog", "pg_am", 'r').Value;
+                PgOpfamilyOid = PgClass.GetOid(connection, "pg_catalog", "pg_opfamily", 'r').Value;
+                PgOpclassOid = PgClass.GetOid(connection, "pg_catalog", "pg_opclass", 'r').Value;
 
                 PgNamespaces = PgNamespace.Load(this, connection, null);
                 PgNamespaces.UpdateNameToItem();
@@ -3819,6 +4170,11 @@ namespace Db2Source
                 PgExtensions = PgExtension.Load(this, connection, null);
                 PgForeignDataWrappers = PgForeignDataWrapper.Load(this, connection, null);
                 PgForeignServers = PgForeignServer.Load(this, connection, null);
+                PgCasts = PgCast.Load(this, connection, null);
+                PgOperators = PgOperator.Load(this, connection, null);
+                PgAms = PgAm.Load(this, connection, null);
+                PgOpfamilies = PgOpfamily.Load(this, connection, null);
+                PgOpclasses = PgOpclass.Load(this, connection, null);
                 PgSettings = PgSetting.Load(this, connection, null);
                 PgDependViews = PgDependView.Load(this, connection, null);
                 PgDepends = PgDepend.Load(this, connection, null);
@@ -3837,6 +4193,11 @@ namespace Db2Source
                 PgExtensions.BeginFillReference(this);
                 PgForeignDataWrappers.BeginFillReference(this);
                 PgForeignServers.BeginFillReference(this);
+                PgCasts.BeginFillReference(this);
+                PgOperators.BeginFillReference(this);
+                PgAms.BeginFillReference(this);
+                PgOpfamilies.BeginFillReference(this);
+                PgOpclasses.BeginFillReference(this);
                 PgSettings.BeginFillReference(this);
                 PgDependViews.BeginFillReference(this);
                 PgDepends.BeginFillReference(this);
@@ -3857,6 +4218,11 @@ namespace Db2Source
                 PgExtensions.FillReference(this);
                 PgForeignDataWrappers.FillReference(this);
                 PgForeignServers.FillReference(this);
+                PgCasts.FillReference(this);
+                PgOperators.FillReference(this);
+                PgAms.FillReference(this);
+                PgOpfamilies.FillReference(this);
+                PgOpclasses.FillReference(this);
                 PgSettings.FillReference(this);
                 PgDependViews.FillReference(this);
                 PgDepends.FillReference(this);
@@ -3874,6 +4240,11 @@ namespace Db2Source
                 PgExtensions.UpdateNameToItem();
                 PgForeignDataWrappers.UpdateNameToItem();
                 PgForeignServers.UpdateNameToItem();
+                PgCasts.UpdateNameToItem();
+                PgOperators.UpdateNameToItem();
+                PgAms.UpdateNameToItem();
+                PgOpfamilies.UpdateNameToItem();
+                PgOpclasses.UpdateNameToItem();
                 PgRoles.UpdateNameToItem();
                 //PgSettings.UpdateNameToItem();
                 //PgDependViews.UpdateNameToItem();
@@ -3893,6 +4264,11 @@ namespace Db2Source
                 PgExtensions.EndFillReference(this);
                 PgForeignDataWrappers.EndFillReference(this);
                 PgForeignServers.EndFillReference(this);
+                PgCasts.EndFillReference(this);
+                PgOperators.EndFillReference(this);
+                PgAms.EndFillReference(this);
+                PgOpfamilies.EndFillReference(this);
+                PgOpclasses.EndFillReference(this);
                 PgSettings.EndFillReference(this);
                 PgDependViews.EndFillReference(this);
                 PgDepends.EndFillReference(this);
@@ -3910,6 +4286,10 @@ namespace Db2Source
                 LoadFromPgExtensions();
                 LoadFromPgForeignDataWrappers();
                 LoadFromPgForeignServers();
+                LoadFromPgCast();
+                LoadFromPgOperator();
+                LoadFromPgAm();
+                LoadFromPgOpfamily();
                 LoadFromPgSettings();
                 //LoadFromPgDepend();
             }
@@ -4218,6 +4598,31 @@ namespace Db2Source
                 }
             }
 
+            private void LoadFromPgCast()
+            {
+                foreach (PgCast c in PgCasts)
+                {
+                    c.ToCast(Context);
+                }
+            }
+
+            private void LoadFromPgOperator()
+            {
+                foreach (PgOperator o in PgOperators)
+                {
+                    o.ToOperator(Context);
+                }
+            }
+
+            private void LoadFromPgAm()
+            {
+                //
+            }
+
+            private void LoadFromPgOpfamily()
+            {
+                //
+            }
             private void LoadFromPgDatabases()
             {
                 List<PgsqlDatabase> lTmpl = new List<PgsqlDatabase>();

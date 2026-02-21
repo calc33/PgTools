@@ -708,7 +708,7 @@ namespace Db2Source
             return param;
         }
 
-        private void GetInsertColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values)
+        private void GetInsertColumnsByParamsSql(Table table, int indent, int charPerLine, out string fields, out string values, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             StringBuilder bufF = new StringBuilder();
@@ -720,6 +720,10 @@ namespace Db2Source
             bool isFirst = true;
             foreach (Column c in table.Columns)
             {
+                if (!c.IsSupportedType && ignoreUnsupported)
+                {
+                    continue;
+                }
                 string col = GetEscapedIdentifier(c.Name, true);
                 string prm = ":" + c.Name;
                 int wColumn = Math.Max(GetCharWidth(col), GetCharWidth(prm));
@@ -752,7 +756,7 @@ namespace Db2Source
             fields = bufF.ToString();
             values = bufP.ToString();
         }
-        private string GetUpdateColumnsByParamsSql(Table table, int indent, KeyConstraint excludeKey)
+        private string GetUpdateColumnsByParamsSql(Table table, int indent, KeyConstraint excludeKey, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             Dictionary<string, bool> keys = new Dictionary<string, bool>();
@@ -768,6 +772,10 @@ namespace Db2Source
             bool needComma = false;
             foreach (Column c in table.Columns)
             {
+                if (!c.IsSupportedType && ignoreUnsupported)
+                {
+                    continue;
+                }
                 if (keys.ContainsKey(c.Name))
                 {
                     continue;
@@ -786,7 +794,7 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        private string GetUpdateColumnsBySameColumnSql(Table table, int indent, string prefix, KeyConstraint excludeKey)
+        private string GetUpdateColumnsBySameColumnSql(Table table, int indent, string prefix, KeyConstraint excludeKey, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             Dictionary<string, bool> keys = new Dictionary<string, bool>();
@@ -802,6 +810,10 @@ namespace Db2Source
             bool needComma = false;
             foreach (Column c in table.Columns)
             {
+                if (!c.IsSupportedType && ignoreUnsupported)
+                {
+                    continue;
+                }
                 if (keys.ContainsKey(c.Name))
                 {
                     continue;
@@ -822,10 +834,10 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool noNewLine, bool addNewline)
+        private string GetInsertSql(Table table, string alias, int indent, int charPerLine, string postfix, bool noNewLine, bool addNewline, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
-            GetInsertColumnsByParamsSql(table, indent + 1, noNewLine ? int.MaxValue : charPerLine, out string flds, out string prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, noNewLine ? int.MaxValue : charPerLine, out string flds, out string prms, ignoreUnsupported);
             StringBuilder buf = new StringBuilder();
             buf.Append(spc);
             buf.Append("insert into ");
@@ -865,9 +877,9 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine)
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine, bool ignoreUnsupported)
         {
-            return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, noNewLine, true);
+            return GetInsertSql(table, string.Empty, indent, charPerLine, postfix, noNewLine, true, ignoreUnsupported);
         }
 
         /// <summary>
@@ -879,7 +891,7 @@ namespace Db2Source
         /// <param name="postfix"></param>
         /// <param name="data">項目と値の組み合わせを渡す</param>
         /// <returns></returns>
-        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine)
+        public override string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             StringBuilder bufF = new StringBuilder();
@@ -901,6 +913,10 @@ namespace Db2Source
             }
             foreach (Column c in table.Columns)
             {
+                if (!c.IsSupportedType && ignoreUnsupported)
+                {
+                    continue;
+                }
                 if (!name2col.ContainsKey(c.Name))
                 {
                     // dataにない項目は出力しない
@@ -967,7 +983,7 @@ namespace Db2Source
             buf.AppendLine(postfix);
             return buf.ToString();
         }
-        public override string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix)
+        public override string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             StringBuilder buf = new StringBuilder();
@@ -975,7 +991,7 @@ namespace Db2Source
             buf.Append("update ");
             buf.Append(table.EscapedIdentifier(CurrentSchema));
             buf.AppendLine(" set");
-            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, null));
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, null, ignoreUnsupported));
             buf.Append(spc);
             buf.AppendLine(where);
             if (!string.IsNullOrEmpty(postfix))
@@ -1002,7 +1018,7 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        public override string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys)
+        public override string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys, bool ignoreUnsupported)
         {
             string spc = GetIndent(indent);
             Dictionary<string, ColumnInfo> name2col = new Dictionary<string, ColumnInfo>();
@@ -1062,20 +1078,20 @@ namespace Db2Source
         {
             throw new NotImplementedException();
         }
-        public override string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix)
+        public override string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
             if (table.PrimaryKey == null)
             {
                 throw new ArgumentException("主キーがありません");
             }
-            StringBuilder buf = new StringBuilder(GetInsertSql(table, null, indent, charPerLine, string.Empty, false, false));
+            StringBuilder buf = new StringBuilder(GetInsertSql(table, null, indent, charPerLine, string.Empty, false, false, ignoreUnsupported));
             buf.Append(" on conflict on constraint ");
             buf.Append(GetEscapedIdentifier(table.PrimaryKey.Name, true));
             buf.AppendLine(" do update set ");
-            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 1, "excluded.", table.PrimaryKey));
+            buf.Append(GetUpdateColumnsBySameColumnSql(table, indent + 1, "excluded.", table.PrimaryKey, ignoreUnsupported));
             return buf.ToString();
         }
-        public override string GetMergeSql(Table table, int indent, int charPerLine, string postfix)
+        public override string GetMergeSql(Table table, int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
             if (table.PrimaryKey == null)
             {
@@ -1120,10 +1136,10 @@ namespace Db2Source
             buf.AppendLine(")");
             buf.Append(spc);
             buf.AppendLine("when matched then update set");
-            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, table.PrimaryKey));
+            buf.Append(GetUpdateColumnsByParamsSql(table, indent + 1, table.PrimaryKey, ignoreUnsupported));
             buf.Append(spc);
             buf.AppendLine("when not matched then insert (");
-            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out string flds, out string prms);
+            GetInsertColumnsByParamsSql(table, indent + 1, charPerLine, out string flds, out string prms, ignoreUnsupported);
             buf.AppendLine(flds);
             buf.Append(spc);
             buf.AppendLine(") values (");
@@ -1166,16 +1182,23 @@ namespace Db2Source
             }
             StringBuilder bufF = new StringBuilder();
             StringBuilder bufP = new StringBuilder();
+            StringBuilder bufRF = new StringBuilder();
             List<NpgsqlParameter> listP = new List<NpgsqlParameter>();
             bool needComma = false;
             foreach (ColumnInfo f in owner.Fields)
             {
+                if (!f.Column.IsSupportedType)
+                {
+                    continue;
+                }
                 if (needComma)
                 {
                     bufF.Append(", ");
                     bufP.Append(", ");
+                    bufRF.Append(", ");
                 }
                 bufF.Append(GetEscapedIdentifier(f.Name, true));
+                bufRF.Append(GetEscapedIdentifier(f.Name, true));
                 if (row[f.Index] == null || row[f.Index] is DBNull)
                 {
                     if (f.IsDefaultDefined)
@@ -1208,7 +1231,8 @@ namespace Db2Source
             buf.Append(Db2SourceContext.IndentText);
             buf.Append(bufP);
             buf.AppendLine();
-            buf.Append(") returning *");
+            buf.Append(") returning ");
+            buf.Append(bufRF);
             ExecuteSql(buf.ToString(), listP.ToArray(), owner, row, connection, transaction);
         }
 
@@ -1224,10 +1248,22 @@ namespace Db2Source
                 throw new ApplicationException("主キーが設定されていないため、更新できません");
             }
             StringBuilder bufF = new StringBuilder();
+            StringBuilder bufRF = new StringBuilder();
             List<NpgsqlParameter> listP = new List<NpgsqlParameter>();
             bool needComma = false;
+            bool needCommaRF = false;
             foreach (ColumnInfo f in owner.Fields)
             {
+                if (!f.Column.IsSupportedType)
+                {
+                    continue;
+                }
+                if (needCommaRF)
+                {
+                    bufRF.Append(", ");
+                }
+                bufRF.Append(GetEscapedIdentifier(f.Name, true));
+                needCommaRF = true;
                 if (!row.IsModified(f.Index))
                 {
                     continue;
@@ -1289,7 +1325,8 @@ namespace Db2Source
             buf.AppendLine(" set");
             buf.Append(bufF);
             buf.Append(bufC);
-            buf.Append("returning *");
+            buf.Append("returning ");
+            buf.Append(bufRF);
             ExecuteSql(buf.ToString(), listP.ToArray(), owner, row, connection, transaction);
         }
         private void ExecuteDelete(IChangeSet owner, IChangeSetRow row, NpgsqlConnection connection, NpgsqlTransaction transaction)
@@ -1449,7 +1486,7 @@ namespace Db2Source
                 return Convert.ToInt64(ret);
             }
         }
-        public override void SetSequenceValue(long value, Sequence sequence, IDbConnection connection)
+        public override void SetSequenceValue(long? value, Sequence sequence, IDbConnection connection)
         {
             if (connection == null)
             {
@@ -1462,8 +1499,16 @@ namespace Db2Source
             }
             using (var cmd = conn.CreateCommand())
             {
-                cmd.CommandText = string.Format("select setval('{0}'::regclass, :val)", sequence.EscapedIdentifier(null));
-                cmd.Parameters.Add(new NpgsqlParameter("val", NpgsqlDbType.Bigint) { Value = value });
+                if (value.HasValue)
+                {
+                    cmd.CommandText = string.Format("select setval('{0}'::regclass, :val)", sequence.EscapedIdentifier(null));
+                    cmd.Parameters.Add(new NpgsqlParameter("val", NpgsqlDbType.Bigint) { Value = value });
+                }
+                else
+                {
+                    cmd.CommandText = string.Format("select setval('{0}'::regclass, :val, false)", sequence.EscapedIdentifier(null));
+                    cmd.Parameters.Add(new NpgsqlParameter("val", NpgsqlDbType.Bigint) { Value = sequence.StartValue });
+                }
                 cmd.ExecuteNonQuery();
             }
         }

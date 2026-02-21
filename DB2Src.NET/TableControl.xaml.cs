@@ -610,7 +610,7 @@ namespace Db2Source
             }
             string alias = JoinTables[0].Alias;
             string where = Target.GetKeyConditionSQL(alias, string.Empty, MainWindow.Current.IndentOffset, false);
-            string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80);
+            string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80, true);
             textBoxSelectSql.Text = sql;
         }
 
@@ -642,11 +642,11 @@ namespace Db2Source
             {
                 if (checkBoxUpsert.IsChecked ?? false)
                 {
-                    textBoxInsertSql.Text = (Target != null) ? Target.GetUpsertSql(MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
+                    textBoxInsertSql.Text = (Target != null) ? Target.GetUpsertSql(MainWindow.Current.IndentOffset, 80, string.Empty, false) : string.Empty;
                 }
                 else
                 {
-                    textBoxInsertSql.Text = Target?.GetInsertSql(MainWindow.Current.IndentOffset, 80, string.Empty, false);
+                    textBoxInsertSql.Text = Target?.GetInsertSql(MainWindow.Current.IndentOffset, 80, string.Empty, false, false);
                 }
             }
             catch (Exception t)
@@ -660,7 +660,7 @@ namespace Db2Source
             {
                 return;
             }
-            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
+            textBoxUpdateSql.Text = (Target != null) ? Target.GetUpdateSql(Target.GetKeyConditionSQL(string.Empty, "where ", MainWindow.Current.IndentOffset, false), MainWindow.Current.IndentOffset, 80, string.Empty, false) : string.Empty;
         }
 
         private void UpdateTextBoxDeleteSql()
@@ -683,7 +683,7 @@ namespace Db2Source
             tabItemMergeSql.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
             try
             {
-                textBoxMergeSql.Text = enabled ? Target.GetMergeSql(MainWindow.Current.IndentOffset, 80, string.Empty) : string.Empty;
+                textBoxMergeSql.Text = enabled ? Target.GetMergeSql(MainWindow.Current.IndentOffset, 80, string.Empty, false) : string.Empty;
             }
             catch (Exception t)
             {
@@ -964,7 +964,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80, true);
             StartFetching();
             Dispatcher dispatcher = Dispatcher;
             DataGridController controller = DataGridControllerResult;
@@ -1045,7 +1045,7 @@ namespace Db2Source
         private static readonly Regex NumericStrRegex = new Regex("[0-9]+");
         private void textBoxLimitRow_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            e.Handled = NumericStrRegex.IsMatch(e.Text);
+            e.Handled = !NumericStrRegex.IsMatch(e.Text);
         }
 
         private void UserControl_Initialized(object sender, EventArgs e)

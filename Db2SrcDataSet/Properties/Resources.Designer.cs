@@ -129,6 +129,17 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select oid, amname, amtype
+        ///from pg_catalog.pg_am
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgAm_SQL {
+            get {
+                return ResourceManager.GetString("PgAm_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select
         ///  a.attrelid, a.attname, a.atttypid, a.attstattarget, a.attlen, a.attnum, a.attndims, a.attcacheoff, 
         ///  a.atttypmod, a.attbyval, a.attstorage, a.attalign, a.attnotnull, a.atthasdef, a.attisdropped, 
@@ -142,6 +153,18 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgAttribute_SQL {
             get {
                 return ResourceManager.GetString("PgAttribute_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select oid,
+        ///  castsource, casttarget, castfunc, castcontext, castmethod
+        ///from pg_catalog.pg_cast
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgCast_SQL {
+            get {
+                return ResourceManager.GetString("PgCast_SQL", resourceCulture);
             }
         }
         
@@ -426,6 +449,41 @@ namespace Db2Source.DataSet.Properties {
         }
         
         /// <summary>
+        ///   select oid,
+        ///  opcmethod, opcname, opcnamespace, opcowner, opcfamily, opcintype, 
+        ///  opcdefault, opckeytype
+        ///from pg_catalog.pg_opclass に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgOpclass_SQL {
+            get {
+                return ResourceManager.GetString("PgOpclass_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select oid,
+        ///  oprname, oprnamespace, oprowner, oprkind, oprcanmerge, oprcanhash, 
+        ///  oprleft, oprright, oprresult, oprcom, oprnegate
+        ///from pg_catalog.pg_operator
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgOperator_SQL {
+            get {
+                return ResourceManager.GetString("PgOperator_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select oid, opfmethod, opfname, opfnamespace, opfowner
+        ///from pg_catalog.pg_opfamily に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgOpfamily_SQL {
+            get {
+                return ResourceManager.GetString("PgOpfamily_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   select ss.p_oid as oid, (ss.x).n,
         ///  pg_get_function_arg_default(ss.p_oid, (ss.x).n) as parameter_default
         ///from (select p.oid as p_oid, information_schema._pg_expandarray(coalesce(p.proallargtypes, (p.proargtypes)::oid[])) as x from pg_proc p) ss
@@ -550,7 +608,7 @@ namespace Db2Source.DataSet.Properties {
         
         /// <summary>
         ///   select oid,
-        ///  tgrelid, tgname, tgfoid, tgtype, tgisinternal, tgattr,
+        ///  tgrelid, tgname, tgfoid, tgtype, tgenabled, tgisinternal, tgattr,
         ///  pg_catalog.pg_get_triggerdef(oid) as triggerdef
         ///from pg_catalog.pg_trigger に類似しているローカライズされた文字列を検索します。
         /// </summary>

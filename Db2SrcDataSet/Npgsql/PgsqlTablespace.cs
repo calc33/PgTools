@@ -10,7 +10,7 @@ namespace Db2Source
     {
         public static readonly string[] OptionKeys = new string[] { "seq_page_cost", "random_page_cost", "effective_io_concurrency", "maintenance_io_concurrency" };
         private uint _oid;
-        private string _owner;
+        private string _ownerName;
         private string[] _options;
 
         public uint Oid
@@ -28,14 +28,14 @@ namespace Db2Source
         }
         public string Owner
         {
-            get { return _owner; }
+            get { return _ownerName; }
             set
             {
-                if (_owner == value)
+                if (_ownerName == value)
                 {
                     return;
                 }
-                _owner = value;
+                _ownerName = value;
                 OnPropertyChanged("Owner");
             }
         }

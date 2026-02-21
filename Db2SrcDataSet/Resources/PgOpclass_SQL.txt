@@ -1,0 +1,4 @@
+select oid,
+  opcmethod, opcname, opcnamespace, opcowner, opcfamily, opcintype, 
+  opcdefault, opckeytype
+from pg_catalog.pg_opclass

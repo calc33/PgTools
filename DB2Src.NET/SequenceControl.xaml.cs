@@ -341,18 +341,13 @@ namespace Db2Source
             UpdateCurrentValue();
             long? vCur = CurrentValue;
             long? vNew = OwnedColumnValue;
-            if (!vNew.HasValue)
-            {
-                MessageBox.Show((string)Resources["messageEmptyOwnedColumn"], Properties.Resources.MessageBoxCaption_Info, MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
 			string msg = string.Format((string)Resources["messageUpdateSequenceByOwnedColumnFmt"], OrdinalDescription);
 			MessageBoxResult ret = MessageBox.Show(msg, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
 			if (ret != MessageBoxResult.OK)
 			{
 				return;
 			}
-			bool isOK = vCur.HasValue && (0 < Target.Increment ? vNew.Value <= vCur.Value : vCur.Value <= vNew.Value);
+			bool isOK = vCur.HasValue && vNew.HasValue && (0 < Target.Increment ? vNew.Value <= vCur.Value : vCur.Value <= vNew.Value);
             if (isOK)
             {
                 ret = MessageBox.Show(string.Format((string)Resources["messageConfirmUpdateSequenceFmt"], vCur, vNew),
@@ -366,7 +361,7 @@ namespace Db2Source
             }
             using (var conn = ctx.NewConnection(true))
             {
-                ctx.SetSequenceValue(vNew.Value, Target, conn);
+                ctx.SetSequenceValue(vNew, Target, conn);
             }
             UpdateCurrentValue();
         }

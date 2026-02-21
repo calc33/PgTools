@@ -1,4 +1,4 @@
 select oid,
-  tgrelid, tgname, tgfoid, tgtype, tgisinternal, tgattr,
+  tgrelid, tgname, tgfoid, tgtype, tgenabled, tgisinternal, tgattr,
   pg_catalog.pg_get_triggerdef(oid) as triggerdef
 from pg_catalog.pg_trigger

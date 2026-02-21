@@ -30,6 +30,13 @@ namespace Db2Source
         InsteadOf
     }
 
+    public enum ReplicationRule
+    {
+        None,
+        Replica,
+        Always,
+    }
+
     public partial class Trigger: SchemaObject
     {
         public class StringCollection: IList<string>, IList
@@ -284,6 +291,7 @@ namespace Db2Source
             return 3;
         }
 
+        private bool _isEnabled = true;
         private TriggerTiming _timing;
         private string _timingText;
         private TriggerEvent _event;
@@ -304,8 +312,22 @@ namespace Db2Source
         private string _referenceNewRow;
         private string _referenceOldRow;
         private string _definition;
+        private ReplicationRule _replicationRule;
         private Trigger _backup;
         //private string _oldDefinition;
+
+
+        public override bool IsEnabled => _isEnabled;
+
+        internal void SetIsEnabled(bool value)
+        {
+            if (_isEnabled == value)
+            {
+                return;
+            }
+            _isEnabled = value;
+            OnPropertyChanged("IsEnabled");
+        }
 
         public TriggerTiming Timing
         {
@@ -730,6 +752,20 @@ namespace Db2Source
                 }
                 _definition = value;
                 OnPropertyChanged("Definition");
+            }
+        }
+
+        public ReplicationRule ReplicationRule
+        {
+            get { return _replicationRule; }
+            set
+            {
+                if (_replicationRule == value)
+                {
+                    return;
+                }
+                _replicationRule = value;
+                OnPropertyChanged("ReplicationRule");
             }
         }
 

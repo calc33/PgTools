@@ -565,9 +565,28 @@ namespace Db2Source
                     GetEscapedIdentifier(trigger.Name, true),
                     postfix, addNewline ? Environment.NewLine : string.Empty));
             }
+            else
+            {
+                switch (trigger.ReplicationRule)
+                {
+                    case ReplicationRule.Always:
+                        ret.Add(string.Format("{0}{1}alter table {2} enable always trigger {3}{4}{5}", GetIndent(indent), prefix,
+                            GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema, true),
+                            GetEscapedIdentifier(trigger.Name, true),
+                            postfix, addNewline ? Environment.NewLine : string.Empty));
+                        break;
+                    case ReplicationRule.Replica:
+                        ret.Add(string.Format("{0}{1}alter table {2} enable replica trigger {3}{4}{5}", GetIndent(indent), prefix,
+                            GetEscapedIdentifier(trigger.TableSchema, trigger.TableName, CurrentSchema, true),
+                            GetEscapedIdentifier(trigger.Name, true),
+                            postfix, addNewline ? Environment.NewLine : string.Empty));
+                        break;
+                }
+            }
             ret.AddRange(GetSQL(trigger.Comment, prefix, postfix, indent, addNewline));
             return ret.ToArray();
         }
+
         public override string[] GetSQL(Index index, string prefix, string postfix, int indent, bool addNewline)
         {
             if (index == null)
@@ -1278,6 +1297,61 @@ namespace Db2Source
             }
             return new string[] { buf.ToString() };
         }
+
+        public override string[] GetSQL(Cast cast, string prefix, string postfix, int indent, bool addNewline)
+        {
+            StringBuilder buf = new StringBuilder();
+            string spc = GetIndent(indent);
+            buf.Append(spc);
+            buf.Append(prefix);
+            buf.Append("create cast(");
+            buf.Append(GetEscapedIdentifier(cast.SourceType, true));
+            buf.Append(" as ");
+            buf.Append(GetEscapedIdentifier(cast.TargetType, true));
+            buf.Append(")");
+            switch (cast.CastMethod)
+            {
+                case CastMethod.Function:
+                    buf.Append(" with function ");
+                    buf.Append(cast.Function.EscapedIdentifier(string.Empty));
+                    buf.Append("(");
+                    string pre = string.Empty;
+                    foreach (Parameter p in cast.Function.Parameters)
+                    {
+                        buf.Append(pre);
+                        buf.Append(GetEscapedIdentifier(p.DataType, true));
+                        pre = ", ";
+                    }
+                    buf.Append(")");
+                    break;
+                case CastMethod.BinaryCoercible:
+                    buf.Append(" without function");
+                    break;
+                case CastMethod.Inout:
+                     buf.Append(" with inout");
+                     break;
+                default:
+                    throw new InvalidOperationException("Invalid CastMethod: " + cast.CastMethod.ToString());
+            }
+            switch (cast.CastContext)
+            {
+                case CastContext.Implicit:
+                    buf.Append(" as implicit");
+                    break;
+                case CastContext.Assignment:
+                    buf.Append(" as assignment");
+                    break;
+                case CastContext.Implicit | CastContext.Assignment:
+                    break;
+            }
+            buf.Append(postfix);
+            if (addNewline)
+            {
+                buf.AppendLine();
+            }
+            return new string[] { buf.ToString() };
+        }
+
 
         public override string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline)
         {

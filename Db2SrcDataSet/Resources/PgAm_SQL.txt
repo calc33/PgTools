@@ -1,0 +1,2 @@
+select oid, amname, amtype
+from pg_catalog.pg_am

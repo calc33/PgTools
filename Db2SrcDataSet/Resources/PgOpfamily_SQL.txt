@@ -1,0 +1,2 @@
+select oid, opfmethod, opfname, opfnamespace, opfowner
+from pg_catalog.pg_opfamily

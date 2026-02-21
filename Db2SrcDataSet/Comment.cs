@@ -119,20 +119,20 @@ namespace Db2Source
             }
         }
 
-        private string _owner;
+        private string _ownerName;
         public string Owner
         {
             get
             {
-                return _owner;
+                return _ownerName;
             }
             set
             {
-                if (_owner == value)
+                if (_ownerName == value)
                 {
                     return;
                 }
-                _owner = value;
+                _ownerName = value;
             }
         }
         private string _text;

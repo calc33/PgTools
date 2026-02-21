@@ -199,25 +199,25 @@ namespace Db2Source
             return l.ToArray();
         }
 
-        public string GetInsertSql(int indent, int charPerLine, string postfix, bool noNewLine)
+        public string GetInsertSql(int indent, int charPerLine, string postfix, bool noNewLine, bool ignoreUnsupported)
         {
-            return Context.GetInsertSql(this, indent, charPerLine, postfix, noNewLine);
+            return Context.GetInsertSql(this, indent, charPerLine, postfix, noNewLine, ignoreUnsupported);
         }
-        public string GetUpdateSql(string where, int indent, int charPerLine, string postfix)
+        public string GetUpdateSql(string where, int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
-            return Context.GetUpdateSql(this, where, indent, charPerLine, postfix);
+            return Context.GetUpdateSql(this, where, indent, charPerLine, postfix, ignoreUnsupported);
         }
         public string GetDeleteSql(string where, int indent, int charPerLine, string postfix)
         {
             return Context.GetDeleteSql(this, where, indent, charPerLine, postfix);
         }
-        public string GetUpsertSql(int indent, int charPerLine, string postfix)
+        public string GetUpsertSql(int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
-            return Context.GetInsertUpdateSql(this, indent, charPerLine, postfix);
+            return Context.GetInsertUpdateSql(this, indent, charPerLine, postfix, ignoreUnsupported);
         }
-        public string GetMergeSql(int indent, int charPerLine, string postfix)
+        public string GetMergeSql(int indent, int charPerLine, string postfix, bool ignoreUnsupported)
         {
-            return Context.GetMergeSql(this, indent, charPerLine, postfix);
+            return Context.GetMergeSql(this, indent, charPerLine, postfix, ignoreUnsupported);
         }
 
         public string[] GetDropSql(bool ifExists, string prefix, string postfix, int indent, bool cascade, bool addNewline)

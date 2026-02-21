@@ -84,6 +84,7 @@ namespace Db2Source
         {
             IdentifierInvalidated?.Invoke(this, EventArgs.Empty);
         }
+        protected internal NamedCollection _owner;
         protected internal int _serial;
         protected internal bool _released;
         protected bool IsDisposed;
@@ -169,10 +170,11 @@ namespace Db2Source
 
         internal NamedObject(NamedCollection owner)
         {
-            if (owner != null)
+            _owner = owner;
+            if (_owner != null)
             {
                 _serial = owner._serialSeq++;
-                owner.Add(this);
+                _owner.Add(this);
             }
         }
         public virtual bool IsModified { get { return false; } }
@@ -180,6 +182,11 @@ namespace Db2Source
         public virtual void Release()
         {
             _released = true;
+            if (_owner != null)
+            {
+                _owner.Invalidate();
+                _owner = null;
+            }
         }
 
         public override string ToString()
@@ -371,7 +378,7 @@ namespace Db2Source
                 for (int i = _list.Count - 1; 0 <= i; i--)
                 {
                     NamedObject obj = _list[i];
-                    if (_list[i]._released)
+                    if (_list[i].IsReleased)
                     {
                         _list.RemoveAt(i);
                     }
@@ -421,7 +428,7 @@ namespace Db2Source
                     for (int i = _list.Count - 1; 0 <= i; i--)
                     {
                         NamedObject item = _list[i];
-                        if (item._released)
+                        if (item.IsReleased)
                         {
                             continue;
                         }
@@ -433,7 +440,7 @@ namespace Db2Source
                     for (int i = _list.Count - 1; 0 <= i; i--)
                     {
                         NamedObject item = _list[i];
-                        if (item._released)
+                        if (item.IsReleased)
                         {
                             _list.RemoveAt(i);
                         }

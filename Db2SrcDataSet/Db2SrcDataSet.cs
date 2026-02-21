@@ -30,6 +30,8 @@ namespace Db2Source
         Sessions = 13,
         ForeignDataWrapper = 14,
         ForeignServer = 15,
+        Casts = 16,
+        Operators = 17,
     }
 	public enum LogStatus
     {
@@ -1070,6 +1072,7 @@ namespace Db2Source
         public abstract string[] GetSQL(Tablespace tablespace, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(User user, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetSQL(Schema schema, string prefix, string postfix, int indent, bool addNewline);
+        public abstract string[] GetSQL(Cast cast, string prefix, string postfix, int indent, bool addNewline);
 
         public abstract string[] GetAlterSQL(Tablespace after, Tablespace before, string prefix, string postfix, int indent, bool addNewline);
         public abstract string[] GetAlterSQL(User after, User before, string prefix, string postfix, int indent, bool addNewline);
@@ -1254,6 +1257,8 @@ namespace Db2Source
 		public NamedCollection<SessionList> Sessions { get; } = new NamedCollection<SessionList>();
         public NamedCollection<PgsqlForeignDataWrapper> ForeignDataWrappers { get; } = new NamedCollection<PgsqlForeignDataWrapper>();
 		public NamedCollection<PgsqlForeignServer> ForeignServers { get; } = new NamedCollection<PgsqlForeignServer>();
+        public NamedCollection<Cast> Casts { get; } = new NamedCollection<Cast>();
+        public NamedCollection<Operator> Operators { get; } = new NamedCollection<Operator>();
 
 		/// <summary>
 		/// 文字列のnullをDbNullに置換
@@ -1365,7 +1370,7 @@ namespace Db2Source
         public abstract void RefreshTablespaces(IDbConnection connection);
 
 		public abstract long? GetCurrentSequenceValue(Sequence sequence, IDbConnection connection);
-		public abstract void SetSequenceValue(long value, Sequence sequence, IDbConnection connection);
+		public abstract void SetSequenceValue(long? value, Sequence sequence, IDbConnection connection);
 		public abstract long? GetMaxValueOfColumn(Column column, IDbConnection connection);
 		public abstract long? GetMinValueOfColumn(Column column, IDbConnection connection);
 
@@ -1573,7 +1578,7 @@ namespace Db2Source
         }
 
 		public abstract DataTable GetDataTable(string tableName, IDbConnection connection);
-        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine);
+        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, bool noNewLine, bool ignoreUnsupported);
         /// <summary>
         /// データ付でINSERT文を生成する
         /// </summary>
@@ -1583,8 +1588,8 @@ namespace Db2Source
         /// <param name="postfix"></param>
         /// <param name="data">項目と値の組み合わせを渡す</param>
         /// <returns></returns>
-        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine);
-        public abstract string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix);
+        public abstract string GetInsertSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, bool noNewLine, bool ignoreUnsupported);
+        public abstract string GetUpdateSql(Table table, string where, int indent, int charPerLine, string postfix, bool ignoreUnsupported);
         /// <summary>
         /// データ付でUPDATE文を生成する
         /// </summary>
@@ -1596,7 +1601,7 @@ namespace Db2Source
         /// <param name="data">項目と値の組み合わせを渡す</param>
         /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
         /// <returns></returns>
-        public abstract string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys);
+        public abstract string GetUpdateSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> data, Dictionary<ColumnInfo, object> keys, bool ignoreUnsupported);
         public abstract string GetDeleteSql(Table table, string where, int indent, int charPerLine, string postfix);
         /// <summary>
         /// 条件文付でDELETE文を生成する
@@ -1609,8 +1614,8 @@ namespace Db2Source
         /// <param name="keys">抽出条件に使用する項目と値の組み合わせを渡す</param>
         /// <returns></returns>
         public abstract string GetDeleteSql(Table table, int indent, int charPerLine, string postfix, Dictionary<ColumnInfo, object> keys);
-        public abstract string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix);
-        public abstract string GetMergeSql(Table table, int indent, int charPerLine, string postfix);
+        public abstract string GetInsertUpdateSql(Table table, int indent, int charPerLine, string postfix, bool ignoreUnsupported);
+        public abstract string GetMergeSql(Table table, int indent, int charPerLine, string postfix, bool ignoreUnsupported);
 
         /// <summary>
         /// COPY文(PostgreSQL固有SQL文)の宣言部分を生成する
@@ -1806,6 +1811,7 @@ namespace Db2Source
                 Sessions,
 				ForeignDataWrappers,
 				ForeignServers,
+                Casts,
 			};
             Selectables = new FilteredNamedCollection<Selectable>(Objects);
 		    Tables = new FilteredNamedCollection<Table>(Objects);

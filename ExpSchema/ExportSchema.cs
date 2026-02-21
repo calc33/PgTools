@@ -242,6 +242,15 @@ namespace Db2Source
             AppendToBuffer(buffer, (DataSet as NpgsqlDataSet).GetSQL(extension, string.Empty, ";", 0, true));
         }
 
+        //private void ExportCast(StringBuilder buffer, Cast cast)
+        //{
+        //    if (cast == null)
+        //    {
+        //        return;
+        //    }
+        //    AppendToBuffer(buffer, DataSet.GetSQL(cast, string.Empty, ";", 0, true));
+        //}
+
         private async Task ExportAsync(Db2SourceContext dataSet, List<string> schemas, List<string> excludedSchemas, string baseDir, Encoding encoding)
         {
             encoding = encoding ?? Encoding.UTF8;
@@ -354,6 +363,21 @@ namespace Db2Source
                     }
                 }
             }
+            //foreach (Cast cast in (DataSet as NpgsqlDataSet).Casts)
+            //{
+            //    StringBuilder buf = new StringBuilder();
+            //    ExportCast(buf, cast);
+            //    if (buf.Length != 0)
+            //    {
+            //        string dir = Path.Combine(baseDir, cast.GetExportFolderName());
+            //        string path = Path.Combine(dir, cast.SourceType + ".sql");
+            //        Directory.CreateDirectory(dir);
+            //        using (StreamWriter sw = new StreamWriter(path, false, encoding))
+            //        {
+            //            sw.Write(DataSet.NormalizeNewLine(buf));
+            //        }
+            //    }
+            //}
         }
         private static string _hostname = "localhost";
         private static int _port = 5432;

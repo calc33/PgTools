@@ -1,0 +1,4 @@
+select oid,
+  oprname, oprnamespace, oprowner, oprkind, oprcanmerge, oprcanhash, 
+  oprleft, oprright, oprresult, oprcom, oprnegate
+from pg_catalog.pg_operator

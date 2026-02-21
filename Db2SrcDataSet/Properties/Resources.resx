@@ -262,4 +262,19 @@
   <data name="PgUserMapping_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgUserMapping_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
   </data>
+  <data name="PgCast_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgCast_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgOperator_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgOperator_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgAm_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgAm_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgOpfamily_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgOpfamily_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
+  <data name="PgOpclass_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgOpclass_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+  </data>
 </root>

@@ -1604,7 +1604,7 @@ namespace Db2Source
                 {
                     continue;
                 }
-                buf.Append(DataSet.GetInsertSql(Table as Table, 0, 80, ";", values, true));
+                buf.Append(DataSet.GetInsertSql(Table as Table, 0, 80, ";", values, true, true));
             }
             DataObject obj = new DataObject();
             obj.SetData(DataFormats.Text, buf.ToString());
@@ -1705,7 +1705,7 @@ namespace Db2Source
                 {
                     keys = null;
                 }
-                buf.Append(DataSet.GetUpdateSql(Table as Table, 0, 80, ";", values, keys));
+                buf.Append(DataSet.GetUpdateSql(Table as Table, 0, 80, ";", values, keys, true));
             }
             DataObject obj = new DataObject();
             obj.SetData(DataFormats.Text, buf.ToString());

@@ -36,7 +36,7 @@ namespace Db2Source
 				}
 				_schemaName = value;
 				_schema = null;
-				_owner = null;
+				_table = null;
 				InvalidateIdentifier();
 				OnPropertyChanged("SchemaName");
 			}
@@ -44,7 +44,7 @@ namespace Db2Source
         private string _schemaName;
         private string _tableName;
         private Schema _schema;
-        private Selectable _owner;
+        private Selectable _table;
         private string _name;
         protected override string GetFullIdentifier()
         {
@@ -86,7 +86,7 @@ namespace Db2Source
                 }
                 _tableName = value;
                 _schema = null;
-                _owner = null;
+                _table = null;
                 InvalidateIdentifier();
                 OnPropertyChanged("TableName");
             }
@@ -106,13 +106,13 @@ namespace Db2Source
 
         internal void UpdateSelectable()
         {
-            if (_owner != null && _schema != null)
+            if (_table != null && _schema != null)
             {
                 return;
             }
 
             _schema = Context.Schemas[_schemaName];
-            _owner = Context.Selectables[_schemaName, _tableName];
+            _table = Context.Selectables[_schemaName, _tableName];
         }
 
         internal Column Backup(Selectable owner)
@@ -251,7 +251,7 @@ namespace Db2Source
             get
             {
                 UpdateSelectable();
-                return _owner;
+                return _table;
             }
         }
 
@@ -267,13 +267,13 @@ namespace Db2Source
                 {
                     return;
                 }
-                if (_owner != null && !_owner.Columns.ColumnNameChanging(this, value))
+                if (_table != null && !_table.Columns.ColumnNameChanging(this, value))
                 {
                     throw new ColumnNameException(value);
                 }
                 _name = value;
                 InvalidateIdentifier();
-                _owner?.Columns?.ColumnNameChanged(this);
+                _table?.Columns?.ColumnNameChanged(this);
                 OnPropertyChanged("Name");
             }
         }
@@ -508,7 +508,7 @@ namespace Db2Source
         }
         internal Column(Selectable owner, Column basedOn): base(null)
         {
-            _owner = owner;
+            _table = owner;
             SchemaName = basedOn.SchemaName;
             Index = basedOn.Index;
             TableName = basedOn.TableName;
@@ -1243,7 +1243,7 @@ namespace Db2Source
                 return (_backup != null) && !ContentEquals(_backup);
             }
         }
-        public string GetColumnsSQL(string alias, IEnumerable<Column> columns, int indent, int charPerLine)
+        public string GetColumnsSQL(string alias, IEnumerable<Column> columns, int indent, int charPerLine, bool ignoreUnsupported)
         {
             StringBuilder buf = new StringBuilder();
             string spc = Db2SourceContext.GetIndent(indent);
@@ -1254,7 +1254,7 @@ namespace Db2Source
             string a = string.IsNullOrEmpty(alias) ? string.Empty : alias + ".";
             foreach (Column c in columns)
             {
-                if (!c.IsSupportedType)
+                if (!c.IsSupportedType && ignoreUnsupported)
                 {
                     continue;
                 }
@@ -1277,18 +1277,18 @@ namespace Db2Source
             return buf.ToString();
         }
 
-        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel, int indent, int charPerLine)
+        public string GetColumnsSQL(string alias, HiddenLevel visibleLevel, int indent, int charPerLine, bool ignoreUnsupported)
         {
-            return GetColumnsSQL(alias, Columns.GetVisibleColumns(visibleLevel), indent, charPerLine);
+            return GetColumnsSQL(alias, Columns.GetVisibleColumns(visibleLevel), indent, charPerLine, ignoreUnsupported);
         }
 
-        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine, bool ignoreUnsupported)
         {
             StringBuilder buf = new StringBuilder();
             string spc = Db2SourceContext.GetIndent(indent);
             buf.Append(spc);
             buf.AppendLine("select");
-            buf.AppendLine(GetColumnsSQL(alias, visibleLevel, indent + 1, charPerLine));
+            buf.AppendLine(GetColumnsSQL(alias, visibleLevel, indent + 1, charPerLine, ignoreUnsupported));
             buf.Append(spc);
             buf.Append("from ");
             buf.Append(EscapedIdentifier(null));
@@ -1321,11 +1321,11 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string where, string orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine, bool ignoreUnsupported)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine, ignoreUnsupported);
         }
-        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine, bool ignoreUnsupported)
         {
             string spc = Db2SourceContext.GetIndent(indent + 1);
             StringBuilder bufW = new StringBuilder();
@@ -1339,17 +1339,17 @@ namespace Db2Source
                 bufW.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(alias, bufW.ToString(), orderBy, limit, visibleLevel, out whereOffset, indent, charPerLine);
+            return GetSelectSQL(alias, bufW.ToString(), orderBy, limit, visibleLevel, out whereOffset, indent, charPerLine, ignoreUnsupported);
         }
-        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string[] where, string orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine, bool ignoreUnsupported)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine, ignoreUnsupported);
         }
-        public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine, bool ignoreUnsupported)
         {
-            return GetSelectSQL(alias, where, StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, indent, charPerLine);
+            return GetSelectSQL(alias, where, StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, indent, charPerLine, ignoreUnsupported);
         }
-        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, out int whereOffset, int indent, int charPerLine, bool ignoreUnsupported)
         {
             string spc = Db2SourceContext.GetIndent(indent + 1);
             StringBuilder bufW = new StringBuilder();
@@ -1363,11 +1363,11 @@ namespace Db2Source
                 bufW.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, out whereOffset, indent, charPerLine);
+            return GetSelectSQL(alias, bufW.ToString().TrimEnd(), StrUtil.DelimitedText(orderBy, ", "), limit, visibleLevel, out whereOffset, indent, charPerLine, ignoreUnsupported);
         }
-        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine)
+        public string GetSelectSQL(string alias, string[] where, string[] orderBy, int? limit, HiddenLevel visibleLevel, int indent, int charPerLine, bool ignoreUnsupported)
         {
-            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine);
+            return GetSelectSQL(alias, where, orderBy, limit, visibleLevel, out _, indent, charPerLine, ignoreUnsupported);
         }
 
         public long GetRecordCount(IDbConnection connection)
