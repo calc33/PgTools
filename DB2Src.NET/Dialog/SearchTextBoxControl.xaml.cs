@@ -476,12 +476,12 @@ namespace Db2Source
 
         private static int FindNextSimple(string text, int start, string keyword, StringComparison comparison)
         {
-            return text.IndexOf(keyword, start, comparison);
+            return text.IndexOf(keyword, Math.Max(0, Math.Min(start, text.Length - 1)), comparison);
         }
 
         private static int FindPrevSimple(string text, int start, string keyword, StringComparison comparison)
         {
-            return text.LastIndexOf(keyword, start, comparison);
+            return text.LastIndexOf(keyword, Math.Max(0, Math.Min(start, text.Length - 1)), comparison);
         }
 
         private static bool IsWordSeparator(string s, int index)
