@@ -1794,8 +1794,8 @@ namespace Db2Source
             }
             if (Clipboard.ContainsData(DataFormats.CommaSeparatedValue))
             {
-                string csv = Clipboard.GetText(TextDataFormat.CommaSeparatedValue);
-                GridClipboard clipboard = new GridClipboard(this, csv, GridClipboard.TextViewFormat.CSV);
+                string csv = Clipboard.GetText(TextDataFormat.UnicodeText);
+                GridClipboard clipboard = new GridClipboard(this, csv, GridClipboard.TextViewFormat.TabText);
                 if (clipboard.IsSingleText)
                 {
                     PasteAsSingleText(e, clipboard);
