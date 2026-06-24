@@ -102,11 +102,14 @@
     </ApplicationDefinition>
     <Compile Include="Commands\DataGridCommands.cs" />
     <Compile Include="Commands\SearchCommands.cs" />
+    <Compile Include="Commands\SessionCommands.cs" />
     <Compile Include="Converter\DataGridCellToCellConverter.cs" />
     <Compile Include="Converter\ForeignKeyRuleConverter.cs" />
+    <Compile Include="Converter\GrayTextConverter.cs" />
     <Compile Include="Converter\HeaderBackgroundConverter.cs" />
     <Compile Include="Converter\HeaderFontWeightConverter.cs" />
     <Compile Include="Converter\IsErrorBrushConverter.cs" />
+    <Compile Include="Converter\IsProductionEnvironmentConverter.cs" />
     <Compile Include="Converter\JoinKindToVisibilityConverter.cs" />
     <Compile Include="Converter\JoinTableCandidatesCountToEnabledConverter.cs" />
     <Compile Include="Converter\LastConnectedConverter.cs" />
@@ -188,6 +191,9 @@
     </Compile>
     <Compile Include="ParamEditor.cs" />
     <Compile Include="ParameterStoreCollection.cs" />
+    <Compile Include="PgsqlLockListControl.xaml.cs">
+      <DependentUpon>PgsqlLockListControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="QueryFaith.cs" />
     <Compile Include="SelectSchemaTreeViewControl.xaml.cs">
       <DependentUpon>SelectSchemaTreeViewControl.xaml</DependentUpon>
@@ -407,6 +413,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="IndentSettingsControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PgsqlLockListControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -213,119 +213,146 @@ namespace Db2Source
                 GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
                 PropertyInfo prop = props[i];
                 InputFieldAttribute attr = (InputFieldAttribute)prop.GetCustomAttribute(typeof(InputFieldAttribute));
-                TextBlock lbl = RequirePropertyControl("textBlock" + prop.Name, r, 0, () =>
+                if (prop.PropertyType == typeof(bool))
                 {
-                    return new TextBlock()
+                    CheckBox cb = RequirePropertyControl("checkBox" + prop.Name, r, 1, () =>
                     {
-                        Margin = new Thickness(2.0),
-                        HorizontalAlignment = HorizontalAlignment.Right,
-                        VerticalAlignment = VerticalAlignment.Center,
-                        Text = attr?.Title
-                    };
-                });
-
-                TextBox tb = RequirePropertyControl("textBox" + prop.Name, r, 1, () =>
-                {
-                    TextBox newObj = new TextBox()
-                    {
-                        Margin = new Thickness(2.0),
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
-                    Binding b1 = new Binding("Target." + prop.Name)
-                    {
-                        ElementName = "window",
-                        Mode = BindingMode.TwoWay
-                    };
-                    newObj.SetBinding(TextBox.TextProperty, b1);
-                    newObj.TextChanged += TextBox_TextChanged;
-                    newObj.LostFocus += TextBox_LostFocus;
-                    return newObj;
-                });
-
-                if (attr.HiddenField)
-                {
-                    PasswordBox pb = RequirePropertyControl("passwordBox" + prop.Name, r, 1, () =>
-                    {
-                        PasswordBox newObj = new PasswordBox()
+                        CheckBox newObj = new CheckBox()
                         {
                             Margin = new Thickness(2.0),
                             VerticalAlignment = VerticalAlignment.Center,
-                            Password = Target.Password,
-                            Tag = tb
+                            Content = attr?.Title,
+                            ToolTip = attr?.Hint
                         };
-                        newObj.PasswordChanged += PbPassword_PasswordChanged;
-                        tb.TextChanged += TbPassword_TextChanged;
-                        tb.IsVisibleChanged += TbPassword_IsVisibleChanged;
-                        tb.Tag = newObj;
+                        Binding b1 = new Binding("Target." + prop.Name)
+                        {
+                            ElementName = "window",
+                            Mode = BindingMode.TwoWay
+                        };
+                        newObj.SetBinding(CheckBox.IsCheckedProperty, b1);
+                        return newObj;
+                    });
+                }
+                else
+                {
+                    TextBlock lbl = RequirePropertyControl("textBlock" + prop.Name, r, 0, () =>
+                    {
+                        return new TextBlock()
+                        {
+                            Margin = new Thickness(2.0),
+                            HorizontalAlignment = HorizontalAlignment.Right,
+                            VerticalAlignment = VerticalAlignment.Center,
+                            Text = attr?.Title
+                        };
+                    });
+
+                    TextBox tb = RequirePropertyControl("textBox" + prop.Name, r, 1, () =>
+                    {
+                        TextBox newObj = new TextBox()
+                        {
+                            Margin = new Thickness(2.0),
+                            VerticalAlignment = VerticalAlignment.Center,
+                            ToolTip = attr?.Hint
+                        };
+                        Binding b1 = new Binding("Target." + prop.Name)
+                        {
+                            ElementName = "window",
+                            Mode = BindingMode.TwoWay
+                        };
+                        newObj.SetBinding(TextBox.TextProperty, b1);
+                        newObj.TextChanged += TextBox_TextChanged;
+                        newObj.LostFocus += TextBox_LostFocus;
                         return newObj;
                     });
 
-                    GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
-                    r++;
-
-                    StackPanel pnl = RequirePropertyControl<StackPanel>("stackPanel" + prop.Name, r, 1, () =>
+                    if (attr.HiddenField)
                     {
-                        StackPanel newObj = new StackPanel()
+                        PasswordBox pb = RequirePropertyControl("passwordBox" + prop.Name, r, 1, () =>
                         {
-                            Orientation = Orientation.Horizontal
-                        };
+                            PasswordBox newObj = new PasswordBox()
+                            {
+                                Margin = new Thickness(2.0),
+                                VerticalAlignment = VerticalAlignment.Center,
+                                Password = Target.Password,
+                                Tag = tb,
+                                ToolTip = attr?.Hint
+                            };
+                            newObj.PasswordChanged += PbPassword_PasswordChanged;
+                            tb.TextChanged += TbPassword_TextChanged;
+                            tb.IsVisibleChanged += TbPassword_IsVisibleChanged;
+                            tb.Tag = newObj;
+                            return newObj;
+                        });
+
+                        GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
+                        r++;
+
+                        StackPanel pnl = RequirePropertyControl<StackPanel>("stackPanel" + prop.Name, r, 1, () =>
                         {
-                            CheckBox cb = new CheckBox()
+                            StackPanel newObj = new StackPanel()
                             {
-                                Content = (string)FindResource("checkBoxTextShowPassword"),
-                                IsChecked = false,
-                                VerticalAlignment = VerticalAlignment.Center,
-                                Name = "checkBox" + prop.Name
+                                Orientation = Orientation.Horizontal
                             };
-                            RegisterName(cb.Name, cb);
-                            _propertyControls[cb.Name] = cb;
+                            {
+                                CheckBox cb = new CheckBox()
+                                {
+                                    Margin = new Thickness(2, 0, 0, 0),
+                                    Content = (string)FindResource("checkBoxTextShowPassword"),
+                                    IsChecked = false,
+                                    VerticalAlignment = VerticalAlignment.Center,
+                                    Name = "checkBox" + prop.Name
+                                };
+                                RegisterName(cb.Name, cb);
+                                _propertyControls[cb.Name] = cb;
 
-							Binding b3 = new Binding("IsChecked")
-                            {
-                                ElementName = cb.Name,
-                                Mode = BindingMode.OneWay,
-                                Converter = new BooleanToVisibilityConverter()
-                            };
-                            tb.SetBinding(VisibilityProperty, b3);
+                                Binding b3 = new Binding("IsChecked")
+                                {
+                                    ElementName = cb.Name,
+                                    Mode = BindingMode.OneWay,
+                                    Converter = new BooleanToVisibilityConverter()
+                                };
+                                tb.SetBinding(VisibilityProperty, b3);
 
-                            Binding b4 = new Binding("IsChecked")
-                            {
-                                ElementName = cb.Name,
-                                Mode = BindingMode.OneWay,
-                                Converter = new InvertBooleanToVisibilityConverter()
-                            };
-                            pb.SetBinding(VisibilityProperty, b4);
+                                Binding b4 = new Binding("IsChecked")
+                                {
+                                    ElementName = cb.Name,
+                                    Mode = BindingMode.OneWay,
+                                    Converter = new InvertBooleanToVisibilityConverter()
+                                };
+                                pb.SetBinding(VisibilityProperty, b4);
 
-                            Binding b5 = new Binding("IsEnabled")
+                                Binding b5 = new Binding("IsEnabled")
+                                {
+                                    RelativeSource = RelativeSource.Self,
+                                    Mode = BindingMode.OneWay,
+                                    Converter = new IsEnabledToColorConverter()
+                                };
+                                cb.SetBinding(ForegroundProperty, b5);
+                                newObj.Children.Add(cb);
+                            }
                             {
-                                RelativeSource = RelativeSource.Self,
-                                Mode = BindingMode.OneWay,
-                                Converter = new IsEnabledToColorConverter()
-                            };
-                            cb.SetBinding(ForegroundProperty, b5);
-                            newObj.Children.Add(cb);
-                        }
-						{
-                            CheckBox cb = new CheckBox()
-                            {
-                                Content = (string)FindResource("checkBoxTextSavePassword"),
-                                IsChecked = false,
-                                VerticalAlignment = VerticalAlignment.Center,
-                                Name = "checkBoxSavePassword",
-                                Margin = new Thickness(4, 0, 0, 0)
-							};
-							Binding b1 = new Binding("Target.IsPasswordStored")
-							{
-								ElementName = "window",
-								Mode = BindingMode.TwoWay
-							};
-							cb.SetBinding(CheckBox.IsCheckedProperty, b1);
-							RegisterName(cb.Name, cb);
-							_propertyControls[cb.Name] = cb;
-							newObj.Children.Add(cb);
-						}
-						return newObj;
-                    });
+                                CheckBox cb = new CheckBox()
+                                {
+                                    Content = (string)FindResource("checkBoxTextSavePassword"),
+                                    IsChecked = false,
+                                    VerticalAlignment = VerticalAlignment.Center,
+                                    Name = "checkBoxSavePassword",
+                                    Margin = new Thickness(4, 0, 0, 0),
+                                    ToolTip = attr?.Hint
+                                };
+                                Binding b1 = new Binding("Target.IsPasswordStored")
+                                {
+                                    ElementName = "window",
+                                    Mode = BindingMode.TwoWay
+                                };
+                                cb.SetBinding(CheckBox.IsCheckedProperty, b1);
+                                RegisterName(cb.Name, cb);
+                                _propertyControls[cb.Name] = cb;
+                                newObj.Children.Add(cb);
+                            }
+                            return newObj;
+                        });
+                    }
                 }
             }
             GridProperties.RowDefinitions.Add(new RowDefinition() { Height = GridLength.Auto });
@@ -502,10 +529,16 @@ namespace Db2Source
                     return;
                 }
             }
-            MessageBox.Show(Properties.Resources.MessageBoxText_Connected, Properties.Resources.MessageBoxCaption_Succeed, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBoxResult result = MessageBox.Show(Properties.Resources.MessageBoxText_Connected, Properties.Resources.MessageBoxCaption_Succeed, MessageBoxButton.YesNoCancel, MessageBoxImage.Information);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            Target.Name = Target.GetDefaultName();
+            Target = App.Connections.Merge(Target);
         }
 
-		private void buttonConnectionString_Click(object sender, RoutedEventArgs e)
+        private void buttonConnectionString_Click(object sender, RoutedEventArgs e)
 		{
             ConnectionStringWindow dlg = new ConnectionStringWindow()
             {

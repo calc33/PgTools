@@ -205,9 +205,9 @@ namespace Db2Source
             OnPropertyChanged("SelectableForeignKeys");
         }
 
-        public string GetFieldsSQL(int indent, int charPerLine, bool ignoreUnsupported)
+        public string GetFieldsSQL(int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType)
         {
-            return Table.GetColumnsSQL(Alias, VisibleColumns, indent, charPerLine, ignoreUnsupported);
+            return Table.GetColumnsSQL(Alias, string.Empty, VisibleColumns, indent, charPerLine, ignoreUnsupported, expandRowType);
         }
         private static readonly Dictionary<JoinKind, string> JoinKindToSQL = new Dictionary<JoinKind, string>()
         {
@@ -227,13 +227,14 @@ namespace Db2Source
 
         public string GetJoinSQL(int indent, bool isFirst)
         {
+            string spc = Db2SourceContext.GetIndent(indent);
             StringBuilder buf = new StringBuilder();
             if (Referrer == null || JoinBy == null || Kind == JoinKind.Root)
             {
                 if (!isFirst)
                 {
                     buf.AppendLine(",");
-                    buf.Append(Db2SourceContext.IndentText);
+                    buf.Append(spc);
                 }
                 buf.Append(Table.EscapedIdentifier(null));
                 if (!string.IsNullOrEmpty(Alias))
@@ -246,7 +247,7 @@ namespace Db2Source
             if (!isFirst)
             {
                 buf.AppendLine();
-                buf.Append(Db2SourceContext.IndentText);
+                buf.Append(spc);
             }
             buf.Append(JoinKindToSQL[Kind]);
             string a = string.IsNullOrEmpty(Alias) ? string.Empty : Alias + ".";
@@ -326,7 +327,7 @@ namespace Db2Source
     }
     public class JoinTableCollection : ObservableCollection<JoinTable>
     {
-        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, out int whereOffset)
+        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType, out int whereOffset)
         {
             string spc = Db2SourceContext.GetIndent(indent);
             StringBuilder buf = new StringBuilder();
@@ -336,7 +337,7 @@ namespace Db2Source
             string prefix = string.Empty;
             foreach (JoinTable t in Items)
             {
-                string s = t.GetFieldsSQL(indent + 1, charPerLine, ignoreUnsupported);
+                string s = t.GetFieldsSQL(indent + 1, charPerLine, ignoreUnsupported, expandRowType);
                 if (string.IsNullOrEmpty(s))
                 {
                     continue;
@@ -378,11 +379,11 @@ namespace Db2Source
             }
             return buf.ToString();
         }
-        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported)
+        public string GetSelectSQL(string where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType)
         {
-            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, out _);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, expandRowType, out _);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, out int whereOffset)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType, out int whereOffset)
         {
             StringBuilder buf = new StringBuilder();
             bool needIndent = false;
@@ -395,14 +396,14 @@ namespace Db2Source
                 buf.AppendLine(s);
                 needIndent = true;
             }
-            return GetSelectSQL(buf.ToString(), orderBy, limit, indent, charPerLine, ignoreUnsupported, out whereOffset);
+            return GetSelectSQL(buf.ToString(), orderBy, limit, indent, charPerLine, ignoreUnsupported, expandRowType, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported)
+        public string GetSelectSQL(string[] where, string orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, expandRowType, out whereOffset);
         }
-        public string GetSelectSQL(string where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported)
+        public string GetSelectSQL(string where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType)
         {
             StringBuilder bufO = new StringBuilder();
             bool needComma = false;
@@ -415,9 +416,9 @@ namespace Db2Source
                 bufO.Append(s);
                 needComma = true;
             }
-            return GetSelectSQL(where, bufO.ToString(), limit, indent, charPerLine, ignoreUnsupported);
+            return GetSelectSQL(where, bufO.ToString(), limit, indent, charPerLine, ignoreUnsupported, expandRowType);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, out int whereOffset)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType, out int whereOffset)
         {
             StringBuilder bufW = new StringBuilder();
             bool needIndent = false;
@@ -441,12 +442,12 @@ namespace Db2Source
                 bufO.Append(s);
                 needComma = true;
             }
-            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, indent, charPerLine, ignoreUnsupported, out whereOffset);
+            return GetSelectSQL(bufW.ToString().TrimEnd(), bufO.ToString(), limit, indent, charPerLine, ignoreUnsupported, expandRowType, out whereOffset);
         }
-        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported)
+        public string GetSelectSQL(string[] where, string[] orderBy, int? limit, int indent, int charPerLine, bool ignoreUnsupported, bool expandRowType)
         {
             int whereOffset;
-            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, out whereOffset);
+            return GetSelectSQL(where, orderBy, limit, indent, charPerLine, ignoreUnsupported, expandRowType, out whereOffset);
         }
     }
 }

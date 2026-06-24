@@ -166,7 +166,7 @@ namespace Db2Source
                 return;
             }
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropUser"), Current.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropUser"), Current.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -266,7 +266,7 @@ namespace Db2Source
             }
             if (string.IsNullOrEmpty(window.Password1))
             {
-                MessageBoxResult ret = MessageBox.Show(window, (string)FindResource("messageConfirmNoPassword"), Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                MessageBoxResult ret = MessageBox.Show(window, (string)FindResource("messageConfirmNoPassword"), Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning);
                 if (ret != MessageBoxResult.Yes)
                 {
                     e.IsFailed = true;

@@ -1,0 +1,15 @@
+select l.locktype, l.database, l.relation,
+  concat_ws('.', ns.nspname, r.relname) as relationname,
+  r.relkind, pk.keyflds, l.page, l.tuple,
+  l.virtualxid, l.transactionid, l.virtualtransaction,
+  l.pid, l.mode, l.granted, l.waitstart,
+  (pg_stat_get_activity(l.pid)).query
+from pg_locks l
+  left outer join pg_class r on (l.relation = r.oid)
+  left outer join pg_namespace ns on (r.relnamespace = ns.oid)
+  left outer join lateral (
+    select array_agg(a.attname) as keyflds
+    from (select c.conrelid, unnest(c.conkey) conkey from pg_constraint c where c.conrelid = l.relation and c.contype = 'p') p
+      join pg_attribute a on (p.conrelid = a.attrelid and p.conkey = a.attnum)) pk on true
+where l.pid <> pg_backend_pid() and coalesce(r.relkind, 'r') not in ('i', 'S')
+order by l.pid

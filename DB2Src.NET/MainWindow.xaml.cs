@@ -46,6 +46,8 @@ namespace Db2Source
         public static readonly DependencyProperty MatchByWholeProperty = DependencyProperty.Register("MatchByWhole", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByWholePropertyChangedCallback));
         public static readonly DependencyProperty MatchByRegexProperty = DependencyProperty.Register("MatchByRegex", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByRegexPropertyChangedCallback));
         public static readonly DependencyProperty CommandTimeoutProperty = DependencyProperty.Register("CommandTimeout", typeof(int), typeof(MainWindow), new PropertyMetadata(30, CommandTimeoutPropertyChangedCallback));
+        public static readonly DependencyProperty ShowOwnerProperty = DependencyProperty.Register("ShowOwner", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, ShowOwnerPropertyChangedCallback));
+        public static readonly DependencyProperty IsProductEnvironmentProperty = DependencyProperty.Register("IsProductEnvironment", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, IsProductEnvironmentPropertyChangedCallback));
 
         private void UpdateIndentText()
         {
@@ -143,6 +145,26 @@ namespace Db2Source
         private static void CommandTimeoutPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             (d as MainWindow)?.OnCommandTimeoutPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler ShowOwnerPropertyChanged;
+        protected void OnShowOwnerPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            ShowOwnerPropertyChanged?.Invoke(sender, e);
+        }
+        private static void ShowOwnerPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnShowOwnerPropertyChanged(d, e);
+        }
+
+        public event DependencyPropertyChangedEventHandler IsProductEnvironmentPropertyChanged;
+        protected void OnIsProductEnvironmentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            IsProductEnvironmentPropertyChanged?.Invoke(sender, e);
+        }
+        private static void IsProductEnvironmentPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            (d as MainWindow)?.OnIsProductEnvironmentPropertyChanged(d, e);
         }
 
         public static MainWindow Current { get; private set; } = null;
@@ -259,6 +281,19 @@ namespace Db2Source
             set { SetValue(CommandTimeoutProperty, value); }
         }
 
+
+        public bool ShowOwner
+        {
+            get { return (bool)GetValue(ShowOwnerProperty); }
+            set { SetValue(ShowOwnerProperty, value); }
+        }
+
+        public bool IsProductEnvironment
+        {
+            get { return (bool)GetValue(IsProductEnvironmentProperty); }
+            set { SetValue(IsProductEnvironmentProperty, value); }
+        }
+
         private void SetConnectionStatus(SchemaConnectionStatus value)
         {
             Dispatcher.InvokeAsync(() => { ConnectionStatus = value; });
@@ -274,6 +309,12 @@ namespace Db2Source
             {
                 Current = this;
             }
+            Binding b = new Binding("CurrentDataSet.IsProductionEnvironment")
+            {
+                Source = this,
+                Mode = BindingMode.OneWay
+            };
+            SetBinding(IsProductEnvironmentProperty, b);
         }
 
         private void MenuItemOpenDb_Click(object sender, RoutedEventArgs e)
@@ -868,14 +909,15 @@ namespace Db2Source
             MovableTabItem.RegisterSchemaObjectControl(typeof(Table), typeof(TableControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(View), typeof(ViewControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(Sequence), typeof(SequenceControl));
-			MovableTabItem.RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
-			MovableTabItem.RegisterSchemaObjectControl(typeof(StoredProcedure), typeof(StoredProcedureControl));
-			MovableTabItem.RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(StoredFunction), typeof(StoredProcedureControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(StoredProcedure), typeof(StoredProcedureControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(ComplexType), typeof(ComplexTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlBasicType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlEnumType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlRangeType), typeof(PgsqlTypeControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(PgsqlDatabase), typeof(DatabaseControl));
             MovableTabItem.RegisterSchemaObjectControl(typeof(SessionList), typeof(PgsqlSessionListControl));
+            MovableTabItem.RegisterSchemaObjectControl(typeof(LockList), typeof(PgsqlLockListControl));
             TitleBase = Title;
             LoadFromRegistry();
             ParameterStoreCollection.AllParameters.Load();
@@ -907,7 +949,7 @@ namespace Db2Source
 
         private void buttonQuit_Click(object sender, RoutedEventArgs e)
         {
-            MessageBoxResult ret = MessageBox.Show(this, Properties.Resources.MessageBoxText_Quit, Properties.Resources.MessageBoxCaption_Quit, MessageBoxButton.YesNo, MessageBoxImage.Question);
+            MessageBoxResult ret = MessageBox.Show(this, Properties.Resources.MessageBoxText_Quit, Properties.Resources.MessageBoxCaption_Quit, MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -1057,6 +1099,12 @@ namespace Db2Source
         {
             InitExecutableMenuItem(menuItemPsql, menuItemPsql_Click);
             //InitExecutableMenuItem(menuItemPgdump, menuItemPgdump_Click);
+
+            // Xaml中でContextMenuのプロパティをwindowに対してバインドできないので、コード側でバインドする
+            treeViewDbContextMenu.SetBinding(IsEnabledProperty,
+                new Binding("CurrentDataSet") { Source = this, Mode = BindingMode.OneWay, Converter = new NotNullToBooleanConverter() });
+            menuItemShowOwner.SetBinding(MenuItem.IsCheckedProperty,
+                new Binding("ShowOwner") { Source = this, Mode = BindingMode.TwoWay });
         }
         private void InitCommandBindings()
         {
@@ -1630,6 +1678,11 @@ namespace Db2Source
             OpenViewer(CurrentDataSet.SessionList);
         }
 
+        private void menuItemLockList_Click(object sender, RoutedEventArgs e)
+        {
+            OpenViewer(CurrentDataSet.LockList);
+        }
+
         private void menuItemNewDatabase_Click(object sender, RoutedEventArgs e)
         {
             NewPgsqlDatabaseWindow win = new NewPgsqlDatabaseWindow() { DataSet = CurrentDataSet as NpgsqlDataSet, Owner = this };
@@ -1790,9 +1843,51 @@ namespace Db2Source
             ctrl.AddRange(GetCheckedOnTreeViewDb<Table>());
         }
 
-		private void menuItemSequenceList_Click(object sender, RoutedEventArgs e)
-		{
+        private void menuItemSequenceList_Click(object sender, RoutedEventArgs e)
+        {
 
+        }
+
+        private void menuItemToggleProductionEnvironment_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet is null)
+            {
+                return;
+            }
+            if (CurrentDataSet.IsProductionEnvironment == true)
+            {
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show(this,
+                string.Format((string)FindResource("ConfirmMessage_Production"), CurrentDataSet.ConnectionInfo.ToString()),
+                Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning, MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            CurrentDataSet.SetIsProductionEnvironment(true, App.Connections);
+        }
+
+        private void menuItemToggleDevelopmentEnvironment_Click(object sender, RoutedEventArgs e)
+        {
+            if (CurrentDataSet is null)
+            {
+                return;
+            }
+            if (CurrentDataSet.IsProductionEnvironment == false)
+            {
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show(this,
+                string.Format((string)FindResource("ConfirmMessage_Development"), CurrentDataSet.ConnectionInfo.ToString()),
+                Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel,
+                MessageBoxImage.Warning, MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
+            {
+                return;
+            }
+            CurrentDataSet.SetIsProductionEnvironment(false, App.Connections);
         }
     }
 }

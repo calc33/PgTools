@@ -481,10 +481,10 @@ namespace Db2Source
                 return Rows;
             }
         }
-		private Selectable _table;
-		public Selectable Table
-		{
-			get
+        private Selectable _table;
+        public Selectable Table
+        {
+            get
             {
                 return _table;
             }
@@ -495,9 +495,9 @@ namespace Db2Source
                     return;
                 }
                 _table = value;
-				SetKeyFields(_table?.FirstCandidateKey?.Columns);
-				//UpdateFieldComment();
-			}
+                SetKeyFields(_table?.FirstCandidateKey?.Columns);
+                //UpdateFieldComment();
+            }
         }
         public Db2SourceContext DataSet
         {

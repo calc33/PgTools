@@ -212,12 +212,22 @@ namespace Db2Source
                     sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }
             }
+            if (sqls.Count == 0)
+            {
+                return;
+            }
+            if (ctx.IsProductionEnvironment)
+            {
+                Window owner = Window.GetWindow(this);
+                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_EditProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
             try
             {
-                if (sqls.Count != 0)
-                {
-                    ctx.ExecSqlsWithLog(sqls);
-                }
+                ctx.ExecSqlsWithLog(sqls);
             }
             finally
             {

@@ -82,6 +82,7 @@ namespace Db2Source
             { "hstore", typeof(IDictionary<string, string>) },
             { "uuid", typeof(Guid) },
             { "inet", typeof(IPAddress) },
+            { "cidr", typeof(NpgsqlCidr) },
             { "macaddr", typeof(PhysicalAddress) },
             { "tsquery", typeof(NpgsqlTsQuery) },
             { "tsvector", typeof(NpgsqlTsVector) },
@@ -96,6 +97,7 @@ namespace Db2Source
 
             { "bytea", typeof(byte[]) },
             { "oid", typeof(uint) },
+            { "tid", typeof(NpgsqlTid) },
             { "xid", typeof(uint) },
             { "cid", typeof(uint) },
 
@@ -117,15 +119,15 @@ namespace Db2Source
             { "_name", typeof(string[]) },
             { "_int2", typeof(int[]) },
             { "int2vector", typeof(short[]) },
-            //{ "_int2vector", typeof(string[]) },
+            { "_int2vector", typeof(short[][]) },
             { "_int4", typeof(int[]) },
             //{ "_regproc", typeof(string[]) },
             { "_text", typeof(string[]) },
             { "_oid", typeof(uint[]) },
-            //{ "_tid", typeof(string[]) },
+            { "_tid", typeof(NpgsqlTid[]) },
             { "_xid", typeof(uint[]) },
             { "_cid", typeof(uint[]) },
-            //{ "_oidvector", typeof(string[]) },
+            { "_oidvector", typeof(uint[][]) },
             { "_bpchar", typeof(string[]) },
             { "_varchar", typeof(string[]) },
             { "_int8", typeof(long[]) },
@@ -142,7 +144,7 @@ namespace Db2Source
             //{ "_aclitem", typeof(string[]) },
             { "_macaddr", typeof(PhysicalAddress[]) },
             { "_inet", typeof(IPAddress[]) },
-            //{ "_cidr", typeof(string[]) },
+            { "_cidr", typeof(NpgsqlCidr[]) },
             { "_cstring", typeof(string[]) },
             { "_timestamp", typeof(DateTime[]) },
             { "_date", typeof(DateTime[]) },
@@ -205,6 +207,7 @@ namespace Db2Source
             { typeof(float), (NpgsqlDataReader reader, int index) => { return reader.GetFloat(index); } },
             { typeof(double), (NpgsqlDataReader reader, int index) => { return reader.GetDouble(index); } },
             { typeof(decimal), (NpgsqlDataReader reader, int index) => { return reader.GetDecimal(index); } },
+            { typeof(DateTime), (NpgsqlDataReader reader, int index) => { return reader.GetDateTime(index); } },
         };
         private static Dictionary<Type, GetProc> ArrayProcs = new Dictionary<Type, GetProc>()
         {
@@ -222,6 +225,7 @@ namespace Db2Source
             { typeof(float), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<float[]>(index); } },
             { typeof(double), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<double[]>(index); } },
             { typeof(decimal), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<decimal[]>(index); } },
+            { typeof(DateTime), (NpgsqlDataReader reader, int index) => { return reader.GetFieldValue<DateTime[]>(index); } },
         };
         internal static void ReadObject(object target, NpgsqlDataReader reader, FieldInfo[] fields)
         {
@@ -1891,6 +1895,7 @@ namespace Db2Source
             public PgType DefType;
             public string DefTypeName;
             public PgType BaseType;
+            public PgClass RowType;
             public bool IsArray;
             public string ElemTypeName;
             public string BaseTypeName;
@@ -1964,6 +1969,7 @@ namespace Db2Source
                     IsArray = BaseType.IsArray;
                     ElemTypeName = BaseType.ElementType?.typname;
                 }
+                RowType = working.PgClasses.FindByOid(BaseType.typrelid);
             }
             public Column ToColumn(NpgsqlDataSet context)
             {
@@ -1979,6 +1985,10 @@ namespace Db2Source
                     DefaultValue = context.NormalizeSQL(defaultexpr),
                     NotNull = attnotnull
                 };
+                if (RowType != null)
+                {
+                    c.RowType = RowType.ToSchemaObject(context) as Selectable;
+                }
                 Type t;
                 if (!TypeNameToType.TryGetValue(BaseTypeName, out t))
                 {
@@ -3150,10 +3160,11 @@ namespace Db2Source
                 {
                     return string.Format("{0}({1})", oprname, Right.GetIdentifier(fullName));
                 }
-                else
+                if (Right is null)
                 {
-                    return string.Format("{0}({1},{2})", oprname, Left.GetIdentifier(fullName), Right.GetIdentifier(fullName));
+                    return string.Format("{0}({1})", oprname, Left.GetIdentifier(fullName));
                 }
+                return string.Format("{0}({1},{2})", oprname, Left.GetIdentifier(fullName), Right.GetIdentifier(fullName));
             }
 
             public Operator ToOperator(NpgsqlDataSet context)

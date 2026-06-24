@@ -209,6 +209,24 @@ namespace Db2Source
             { typeof(decimal), NpgsqlDbType.Numeric },
         };
 
+        public static readonly Dictionary<NpgsqlDbType, Type> AcceptableType = new Dictionary<NpgsqlDbType, Type>()
+        {
+            { NpgsqlDbType.Boolean, typeof(bool) },
+            { NpgsqlDbType.Smallint, typeof(short) },
+            { NpgsqlDbType.Integer, typeof(int) },
+            { NpgsqlDbType.Bigint, typeof(long) },
+            { NpgsqlDbType.Real, typeof(float) },
+            { NpgsqlDbType.Double, typeof(double) },
+            { NpgsqlDbType.Numeric, typeof(decimal) },
+            //{ NpgsqlDbType.Boolean | NpgsqlDbType.Array, typeof(bool[]) },
+            //{ NpgsqlDbType.Smallint | NpgsqlDbType.Array, typeof(short[]) },
+            //{ NpgsqlDbType.Integer | NpgsqlDbType.Array, typeof(int[]) },
+            //{ NpgsqlDbType.Bigint | NpgsqlDbType.Array, typeof(long[]) },
+            //{ NpgsqlDbType.Real | NpgsqlDbType.Array, typeof(float[]) },
+            //{ NpgsqlDbType.Double | NpgsqlDbType.Array, typeof(double[]) },
+            //{ NpgsqlDbType.Numeric | NpgsqlDbType.Array, typeof(decimal[]) },
+        };
+
         private static Dictionary<string, bool> InitPgsqlReservedDict()
         {
             Dictionary<string, bool> ret = new Dictionary<string, bool>();
@@ -684,19 +702,98 @@ namespace Db2Source
             return ToLiteralStr(value.ToString());
         }
 
+        private object CastToType(object value, Type type)
+        {
+            if (value == null || value is DBNull)
+            {
+                return DBNull.Value;
+            }
+            Type vType = value.GetType();
+            if (type.IsAssignableFrom(vType))
+            {
+                return value;
+            }
+            try
+            {
+                return Convert.ChangeType(value, type);
+            }
+            catch
+            {
+                return value;
+            }
+        }
+
+        private object CastToArrayType(object value, Type type)
+        {
+            if (value == null || value is DBNull)
+            {
+                return DBNull.Value;
+            }
+            Type t = value.GetType();
+            if (!t.IsAssignableFrom(typeof(IEnumerable)))
+            {
+                return CastToType(value, type);
+            }
+            List<object> list = new List<object>();
+            foreach (object o in (IEnumerable)value)
+            {
+                list.Add(o);
+            }
+
+            int n = list.Count;
+            Array a = Array.CreateInstance(type, n);
+            for (int i = 0; i < n; i++)
+            {
+                a.SetValue(CastToType(list[i], type), i);
+            }
+            return a;
+        }
+
+        private object CastForParameter(object value, NpgsqlDbType dbType)
+        {
+            if (value == null || value is DBNull)
+            {
+                return DBNull.Value;
+            }
+            NpgsqlDbType dbt = dbType;
+            bool isArray = false;
+            if ((dbt & NpgsqlDbType.Array) != 0)
+            {
+                isArray = true;
+                dbt &= ~NpgsqlDbType.Array;
+            }            
+            Type t;
+            if (AcceptableType.TryGetValue(dbt, out t))
+            {
+                if (isArray)
+                {
+                    return CastToArrayType(value, t);
+                }
+                return CastToType(value, t);
+            }
+            return value;
+        }
+        
         private void ApplyParameterByFieldInfo(NpgsqlParameter parameter, ColumnInfo info, object value)
         {
             parameter.IsNullable = info.IsNullable;
-            parameter.Value = value ?? DBNull.Value;
+            if (value is null || value is DBNull)
+            {
+                parameter.Value = DBNull.Value;
+                return;
+            }
+            parameter.Value = CastForParameter(value, parameter.NpgsqlDbType);
         }
+
         public override IDbDataParameter ApplyParameterByFieldInfo(IDataParameterCollection parameters, ColumnInfo info, object value, bool isOld)
         {
             NpgsqlParameter param = parameters[isOld ? "old_" + info.Name : info.Name] as NpgsqlParameter;
             param.NpgsqlDbType = GetNpgsqlDbType(info);
             param.IsNullable = info.IsNullable;
-            param.Value = value ?? DBNull.Value;
+            param.Value = CastForParameter(value, param.NpgsqlDbType);
             return param;
         }
+
         public override IDbDataParameter CreateParameterByFieldInfo(ColumnInfo info, object value, bool isOld)
         {
             NpgsqlParameter param = new NpgsqlParameter(isOld ? "old_" + info.Name : info.Name, GetNpgsqlDbType(info))

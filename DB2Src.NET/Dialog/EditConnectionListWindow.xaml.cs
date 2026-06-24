@@ -193,7 +193,7 @@ namespace Db2Source
                 buf.Append(' ');
             }
             buf.Append((string)FindResource("messageDelete"));
-            MessageBoxResult ret = MessageBox.Show(buf.ToString(), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.Yes);
+            MessageBoxResult ret = MessageBox.Show(buf.ToString(), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.Yes);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

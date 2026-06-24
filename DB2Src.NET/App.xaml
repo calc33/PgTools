@@ -32,6 +32,7 @@
             <local:NotNullOrEmptyToBooleanConverter x:Key="NotNullOrEmptyToBooleanConverter"/>
             <local:MultiBooleanToVisibilityConverter x:Key="MultiBooleanToVisibilityConverter"/>
             <local:MultiBooleanAndConverter x:Key="MultiBooleanAndConverter"/>
+            <local:GrayTextConverter x:Key="GrayTextConverter"/>
             <Style x:Key="FocusVisual">
                 <Setter Property="Control.Template">
                     <Setter.Value>
@@ -451,7 +452,13 @@
                         <Rectangle Canvas.Left="1" Canvas.Top="2" Width="15" Height="13" Stroke="Black" Fill="LightGray"/>
                         <Rectangle Canvas.Left="1" Canvas.Top="2" Width="15" Height="2" Stroke="Black" Fill="Black"/>
                     </Canvas>
-                    <TextBlock Grid.Column="2" Text="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}" Padding="2"/>
+                    <StackPanel Orientation="Horizontal" Grid.Column="2" Margin="2">
+                        <TextBlock Text="{Binding Tag.OwnerName, RelativeSource={RelativeSource AncestorType=TreeViewItem}, StringFormat={}({0})}"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}, Converter={StaticResource GrayTextConverter}}"
+                                   Visibility="{Binding ShowOwner, RelativeSource={RelativeSource AncestorType=local:MainWindow}, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        </TextBlock>
+                        <TextBlock Text="{Binding Content, RelativeSource={RelativeSource AncestorType=ContentPresenter}}" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=TreeViewItem}}"/>
+                    </StackPanel>
                 </Grid>
             </DataTemplate>
             <SolidColorBrush x:Key="OptionMark.Static.Background" Color="#FFFFFFFF"/>

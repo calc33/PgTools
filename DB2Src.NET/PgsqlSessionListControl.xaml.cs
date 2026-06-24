@@ -128,6 +128,7 @@ namespace Db2Source
             }
             dataGridSessionList.ItemsSource = l;
         }
+
         public void Refresh()
         {
             AllSessions = Target?.GetSessions();
@@ -157,51 +158,59 @@ namespace Db2Source
             Refresh();
         }
 
-        private void menuItemKillSession_Click(object sender, RoutedEventArgs e)
+        private void KillSessionCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (Target == null)
+            e.CanExecute = !(dataGridSessionList.SelectedItem is null);
+        }
+
+        private void KillSessionCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Target is null)
             {
                 return;
             }
-            NpgsqlSession obj = dataGridSessionList.SelectedItem as NpgsqlSession;
-            if (obj == null)
+            NpgsqlSession session = dataGridSessionList.SelectedItem as NpgsqlSession;
+            if (session is null)
             {
                 return;
             }
-            string msg = string.Format((string)FindResource("messageDisconnectForce"),
-                obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, (string)FindResource("captionDisconnectForce"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-            if (ret != MessageBoxResult.Yes)
+            string msg = string.Format(Properties.Resources.MessageBoxText_TerminateSession, session.ToString());
+            MessageBoxResult result = MessageBox.Show(msg, Properties.Resources.MessageBoxCaption_TerminateSession, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
             {
                 return;
             }
             using (IDbConnection conn = Target.Context.NewConnection(true))
             {
-                obj.Kill(conn);
+                session.Kill(conn);
             }
         }
 
-        private void menuItemAbortQuery_Click(object sender, RoutedEventArgs e)
+        private void AbortQueryCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (Target == null)
+            e.CanExecute = !(dataGridSessionList.SelectedItem is null);
+        }
+
+        private void AbortQueryCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Target is null)
             {
                 return;
             }
-            NpgsqlSession obj = dataGridSessionList.SelectedItem as NpgsqlSession;
-            if (obj == null)
+            NpgsqlSession session = dataGridSessionList.SelectedItem as NpgsqlSession;
+            if (session is null)
             {
                 return;
             }
-            string msg = string.Format((string)FindResource("messageAbortQuery"),
-                obj.Hostname, obj.ApplicationName, obj.UserName, obj.DatabaseName, obj.Pid);
-            MessageBoxResult ret = MessageBox.Show(msg, (string)FindResource("captionAbortQuery"), MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
-            if (ret != MessageBoxResult.Yes)
+            string msg = string.Format(Properties.Resources.MessageBoxText_AbortQuery, session.ToString());
+            MessageBoxResult result = MessageBox.Show(msg, Properties.Resources.MessageBoxCaption_AbortQuery, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
+            if (result != MessageBoxResult.Yes)
             {
                 return;
             }
             using (IDbConnection conn = Target.Context.NewConnection(true))
             {
-                obj.AbortQuery(conn);
+                session.AbortQuery(conn);
             }
         }
 
@@ -227,15 +236,19 @@ namespace Db2Source
         {
             NpgsqlSession selected = dataGridSessionList.SelectedItem as NpgsqlSession;
             NpgsqlDataSet dataSet = (Target?.Context as NpgsqlDataSet);
+            DateTime? start = null;
             string sql = null;
             if (selected != null && dataSet != null)
             {
                 using (var conn = dataSet.NewConnection(true))
                 {
-                    sql = dataSet.GetLastExecutedQuery(selected.Pid, conn);
+                    Tuple<string, DateTime?> result = dataSet.GetLastExecutedQuery(selected.Pid, conn);
+                    sql = result.Item1;
+                    start = result.Item2;
                 }
             }
             textBoxLastExecutedSql.Text = sql;
+            textBlockSqlStart.Text = start.HasValue ? string.Format("(実行開始: {0:M/d HH:mm:ss})", start.Value) : null;
         }
     }
 }

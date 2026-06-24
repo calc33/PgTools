@@ -14,6 +14,7 @@ namespace Db2Source
     {
         public string Name { get; set; }
         public string NameBase { get; set; }
+        public string OwnerName { get; set; }
         public int StyleIndex { get; set; }
         public string Hint { get; set; }
         public bool IsGrouped { get; set; }
@@ -45,6 +46,7 @@ namespace Db2Source
         {
             Name = name;
             NameBase = nameBase;
+            OwnerName = null;
             StyleIndex = styleIndex;
             Hint = null;
             IsGrouped = true;
@@ -57,6 +59,8 @@ namespace Db2Source
         public TreeNode(SchemaObject target)
         {
             Name = target.DisplayName;
+            NameBase = target.DisplayName;
+            OwnerName = target.Owner;
             StyleIndex = 0;
             Hint = target.CommentText;
             IsGrouped = false;
@@ -66,7 +70,7 @@ namespace Db2Source
             Target = target;
         }
     }
-    partial class Db2SourceContext
+    partial class Db2SourceContext: INotifyPropertyChanged
     {
         public static string EscapedHeaderText(string value)
         {
@@ -106,6 +110,9 @@ namespace Db2Source
             return buf.ToString();
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+
         public abstract TreeNode[] GetVisualTree();
         /// <summary>
         /// SQLの実行時例外からエラー位置を取得し、テキストボックスで選択する範囲を返す
@@ -124,6 +131,36 @@ namespace Db2Source
         public abstract string GetExceptionMessage(Exception t);
         public abstract bool SuggestsDropCascade(Exception t);
         public abstract bool AllowOutputParameter { get; }
+
+        private bool _isProductionEnvironment = false;
+
+        /// <summary>
+        /// 本番環境ならtrue
+        /// trueにするとデータの編集やDB構成を変更する際に確認ダイアログを表示する
+        /// </summary>
+        public bool IsProductionEnvironment
+        {
+            get => _isProductionEnvironment;
+            internal set
+            {
+                if (_isProductionEnvironment == value)
+                {
+                    return;
+                }
+                _isProductionEnvironment = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsProductionEnvironment)));
+            }
+        }
+
+        public void SetIsProductionEnvironment(bool value, ConnectionList connections)
+        {
+            IsProductionEnvironment = value;
+            if (ConnectionInfo.IsProduction != value)
+            {
+                ConnectionInfo.IsProduction = value;
+                connections.Save(ConnectionInfo, true);
+            }
+        }
     }
 
     public interface ISchemaObjectControl
@@ -532,13 +569,45 @@ namespace Db2Source
                 || type == typeof(int) || type == typeof(uint) || type == typeof(long) || type == typeof(ulong)
                 || type == typeof(float) || type == typeof(double) || type == typeof(decimal);
         }
-        
+
+        private delegate object ValueGetter(IDataReader reader, int index);
+        private ValueGetter _getValue;
+
+        private object GetAsObject(IDataReader reader, int index)
+        {
+            return reader.GetValue(index);
+        }
+
+        private object GetAsString(IDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+            {
+                return null;
+            }
+            return reader.GetString(index);
+        }
+
+        public object GetValue(IDataReader reader)
+        {
+            return _getValue(reader, Index);
+        }
+
         public ColumnInfo(IDataReader reader, int index, Selectable table)
         {
             Index = index;
             Name = reader.GetName(Index);
             Column = table?.Columns[Name];
-            Type ft = Column?.ValueType ?? reader.GetFieldType(Index);
+            _getValue = GetAsObject;
+            Type ft = Column?.ValueType;
+            if (ft is null)
+            {
+                try { ft = reader.GetFieldType(Index); }
+                catch
+                {
+                    ft = typeof(string);
+                    _getValue = GetAsString;    // 読み込み時に結局NotSupportedExceptionになるのであまり意味はない
+                }
+            }
             if (ft.IsGenericType && ft.GetGenericTypeDefinition() == typeof(Nullable<>))
             {
                 IsNullable = true;

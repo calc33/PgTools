@@ -61,6 +61,24 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
+        ///   強制中断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string AbortQueryCommand_Name {
+            get {
+                return ResourceManager.GetString("AbortQueryCommand_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   {0}で実行中のクエリを中断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string AbortQueryCommand_TitleFmt {
+            get {
+                return ResourceManager.GetString("AbortQueryCommand_TitleFmt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   再実行 に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string ButtonRedo_Tooltip {
@@ -84,6 +102,33 @@ namespace Db2Source.Properties {
         internal static string FindPreviousCommand_Name {
             get {
                 return ResourceManager.GetString("FindPreviousCommand_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   強制切断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string KillCommand_Name {
+            get {
+                return ResourceManager.GetString("KillCommand_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   {0}を強制切断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string KillCommand_TitleFmt {
+            get {
+                return ResourceManager.GetString("KillCommand_TitleFmt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   強制中断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_AbortQuery {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_AbortQuery", resourceCulture);
             }
         }
         
@@ -151,11 +196,47 @@ namespace Db2Source.Properties {
         }
         
         /// <summary>
-        ///   接続成功 に類似しているローカライズされた文字列を検索します。
+        ///   強制切断 に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxCaption_TerminateSession {
+            get {
+                return ResourceManager.GetString("MessageBoxCaption_TerminateSession", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   {0}で実行中のクエリを中断します。よろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_AbortQuery {
+            get {
+                return ResourceManager.GetString("MessageBoxText_AbortQuery", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   接続成功。接続情報一覧に登録しますか? に類似しているローカライズされた文字列を検索します。
         /// </summary>
         internal static string MessageBoxText_Connected {
             get {
                 return ResourceManager.GetString("MessageBoxText_Connected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   本番環境を変更しようとしています。よろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_EditProductionEnv {
+            get {
+                return ResourceManager.GetString("MessageBoxText_EditProductionEnv", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   本番環境で実行しようとしています。よろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_ExecuteProductionEnv {
+            get {
+                return ResourceManager.GetString("MessageBoxText_ExecuteProductionEnv", resourceCulture);
             }
         }
         
@@ -165,6 +246,24 @@ namespace Db2Source.Properties {
         internal static string MessageBoxText_Quit {
             get {
                 return ResourceManager.GetString("MessageBoxText_Quit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   本番環境のデータです。変更を保存してよろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_SaveProductionEnv {
+            get {
+                return ResourceManager.GetString("MessageBoxText_SaveProductionEnv", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   {0}を強制切断します。よろしいですか? に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string MessageBoxText_TerminateSession {
+            get {
+                return ResourceManager.GetString("MessageBoxText_TerminateSession", resourceCulture);
             }
         }
         

@@ -117,6 +117,12 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="AbortQueryCommand_Name" xml:space="preserve">
+    <value>強制中断</value>
+  </data>
+  <data name="AbortQueryCommand_TitleFmt" xml:space="preserve">
+    <value>{0}で実行中のクエリを中断</value>
+  </data>
   <data name="ButtonRedo_Tooltip" xml:space="preserve">
     <value>再実行</value>
   </data>
@@ -125,6 +131,15 @@
   </data>
   <data name="FindPreviousCommand_Name" xml:space="preserve">
     <value>前を検索</value>
+  </data>
+  <data name="KillCommand_Name" xml:space="preserve">
+    <value>強制切断</value>
+  </data>
+  <data name="KillCommand_TitleFmt" xml:space="preserve">
+    <value>{0}を強制切断</value>
+  </data>
+  <data name="MessageBoxCaption_AbortQuery" xml:space="preserve">
+    <value>強制中断</value>
   </data>
   <data name="MessageBoxCaption_Confirm" xml:space="preserve">
     <value>確認</value>
@@ -147,11 +162,29 @@
   <data name="MessageBoxCaption_Succeed" xml:space="preserve">
     <value>成功</value>
   </data>
+  <data name="MessageBoxCaption_TerminateSession" xml:space="preserve">
+    <value>強制切断</value>
+  </data>
+  <data name="MessageBoxText_AbortQuery" xml:space="preserve">
+    <value>{0}で実行中のクエリを中断します。よろしいですか?</value>
+  </data>
   <data name="MessageBoxText_Connected" xml:space="preserve">
-    <value>接続成功</value>
+    <value>接続成功。接続情報一覧に登録しますか?</value>
+  </data>
+  <data name="MessageBoxText_EditProductionEnv" xml:space="preserve">
+    <value>本番環境を変更しようとしています。よろしいですか?</value>
+  </data>
+  <data name="MessageBoxText_ExecuteProductionEnv" xml:space="preserve">
+    <value>本番環境で実行しようとしています。よろしいですか?</value>
   </data>
   <data name="MessageBoxText_Quit" xml:space="preserve">
     <value>終了します。よろしいですか?</value>
+  </data>
+  <data name="MessageBoxText_SaveProductionEnv" xml:space="preserve">
+    <value>本番環境のデータです。変更を保存してよろしいですか?</value>
+  </data>
+  <data name="MessageBoxText_TerminateSession" xml:space="preserve">
+    <value>{0}を強制切断します。よろしいですか?</value>
   </data>
   <data name="NewConnectionTitle" xml:space="preserve">
     <value>新しい接続...</value>

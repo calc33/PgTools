@@ -21,8 +21,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using static Db2Source.QueryHistory;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 
 namespace Db2Source
 {
@@ -610,7 +608,7 @@ namespace Db2Source
             }
             string alias = JoinTables[0].Alias;
             string where = Target.GetKeyConditionSQL(alias, string.Empty, MainWindow.Current.IndentOffset, false);
-            string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80, true);
+            string sql = JoinTables.GetSelectSQL(where, string.Empty, null, MainWindow.Current.IndentOffset, 80, true, true);
             textBoxSelectSql.Text = sql;
         }
 
@@ -964,7 +962,7 @@ namespace Db2Source
             }
             string orderby = sortFields.GetOrderBySql(string.Empty);
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80, true);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, orderby, limit, VisibleLevel, out offset, 0, 80, true, true);
             StartFetching();
             Dispatcher dispatcher = Dispatcher;
             DataGridController controller = DataGridControllerResult;
@@ -1089,6 +1087,15 @@ namespace Db2Source
             if (Target == null)
             {
                 return;
+            }
+            if (Target.Context.IsProductionEnvironment)
+            {
+                Window owner = Window.GetWindow(this);
+                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_SaveProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
             }
             try
             {

@@ -162,7 +162,7 @@ namespace Db2Source
                 }
                 return new TableInfo() { Schema = sc, TableName = tbl, OrderBy = order, IgnoreFields = ignore, condition = where, FixedFields = fixedValues };
             }
-            public static TableInfo[] LoadFromConfigFile(string configFile)
+            public static TableInfo[] LoadFromConfigFile(string configFile, Encoding encoding)
             {
                 List<TableInfo> l = new List<Db2Source.ExportTable.TableInfo>();
                 string sect = null;
@@ -173,7 +173,7 @@ namespace Db2Source
                 //string ignore = null;
                 //string where = null;
                 TableInfo info;
-                foreach (string s in File.ReadLines(configFile))
+                foreach (string s in File.ReadLines(configFile, encoding))
                 {
                     string s2 = s.Trim();
                     if (s2.StartsWith("[") && s2.EndsWith("]"))
@@ -314,6 +314,10 @@ namespace Db2Source
 
         private void ExportTbl(Db2SourceContext dataSet, string baseDir, TableInfo table, IDbCommand command, Encoding encoding)
         {
+            if (command is null)
+            {
+                return;
+            }
             string dir = Path.Combine(baseDir, table.Schema);
             Directory.CreateDirectory(dir);
             string path = Path.Combine(dir, table.TableName + ".sql");
@@ -352,7 +356,7 @@ namespace Db2Source
         {
             await dataSet.LoadSchemaAsync();
             Dictionary<string, bool> activeSchemas = GetActiveSchemaDict(dataSet, schemas, excludedSchemas);
-            TableInfo[] tbls = TableInfo.LoadFromConfigFile(configFile);
+            TableInfo[] tbls = TableInfo.LoadFromConfigFile(configFile, encoding);
             using (IDbConnection conn = dataSet.NewConnection(true))
             {
                 foreach (TableInfo tbl in tbls)

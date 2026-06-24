@@ -194,6 +194,15 @@ namespace Db2Source
                     sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }
             }
+            if (ctx.IsProductionEnvironment)
+            {
+                Window owner = Window.GetWindow(this);
+                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_EditProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
             if (sqls.Count != 0)
             {
                 ctx.ExecSqlsWithLog(sqls);
@@ -243,7 +252,7 @@ namespace Db2Source
         private void menuItemDropTable_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropTable"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropTable"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

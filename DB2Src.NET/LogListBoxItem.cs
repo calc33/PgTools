@@ -143,7 +143,7 @@ namespace Db2Source
 
         private TextBlock textBlockTime;
         private Button buttonRedo;
-        private TextBlock textBlockText;
+        private TextBox textBlockText;
 
         public event EventHandler<EventArgs> RedoSql;
 
@@ -175,10 +175,18 @@ namespace Db2Source
             Grid.SetColumn(buttonRedo, 1);
             grid.Children.Add(buttonRedo);
 
-            textBlockText = new TextBlock();
+            textBlockText = new TextBox();
             textBlockText.Name = "textBoxText";
             textBlockText.VerticalAlignment = VerticalAlignment.Top;
             textBlockText.TextWrapping = TextWrapping.Wrap;
+            textBlockText.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+            textBlockText.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            textBlockText.MaxHeight = SystemParameters.MaximizedPrimaryScreenHeight * 0.5;
+            textBlockText.IsReadOnly = true;
+            textBlockText.Background = Brushes.Transparent;
+            textBlockText.BorderThickness = new Thickness(0);
+            textBlockText.IsTabStop = false;
+            textBlockText.SetBinding(ToolTipProperty, new Binding("ToolTip") { Source = this });
             Grid.SetColumn(textBlockText, 2);
             grid.Children.Add(textBlockText);
         }

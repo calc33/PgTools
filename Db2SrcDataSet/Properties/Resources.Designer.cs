@@ -19,7 +19,7 @@ namespace Db2Source.DataSet.Properties {
     // または Visual Studio のようなツールを使用して自動生成されました。
     // メンバーを追加または削除するには、.ResX ファイルを編集して、/str オプションと共に
     // ResGen を実行し直すか、または VS プロジェクトをビルドし直します。
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -434,6 +434,24 @@ namespace Db2Source.DataSet.Properties {
         internal static string PgForeignTable_SQL {
             get {
                 return ResourceManager.GetString("PgForeignTable_SQL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   select l.locktype, l.database, l.relation,
+        ///  concat_ws(&apos;.&apos;, ns.nspname, r.relname) as relationname,
+        ///  l.transactionid, l.pid, l.mode, l.granted, l.waitstart,
+        ///  (pg_stat_get_activity(l.pid)).query
+        ///from pg_locks l
+        ///  left outer join pg_class r on (l.relation = r.oid)
+        ///  left outer join pg_namespace ns on (r.relnamespace = ns.oid)
+        ///where l.pid &lt;&gt; pg_backend_pid()
+        ///order by l.pid
+        /// に類似しているローカライズされた文字列を検索します。
+        /// </summary>
+        internal static string PgLocks_SQL {
+            get {
+                return ResourceManager.GetString("PgLocks_SQL", resourceCulture);
             }
         }
         

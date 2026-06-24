@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,11 @@ namespace Db2Source
         {
             return new List<ISession>(Context.GetSessions());
         }
+        public List<ISession> GetSessions(IDbConnection connection)
+        {
+            return new List<ISession>(base.Context.GetSessions(connection));
+        }
+
         public SessionList(Db2SourceContext context, string objectName) : base(context, string.Empty, string.Empty, objectName, NamespaceIndex.Sessions)
         {
         }

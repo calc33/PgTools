@@ -10,10 +10,10 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800" Loaded="UserControl_Loaded">
     <UserControl.Resources>
-        <sys:String x:Key="captionDisconnectForce">強制切断</sys:String>
-        <sys:String x:Key="messageDisconnectForce">{0}からの接続({1} {2}@{3} Pid={4})を強制切断します。よろしいですか?</sys:String>
-        <sys:String x:Key="captionAbortQuery">強制中断</sys:String>
-        <sys:String x:Key="messageAbortQuery">{0}からの接続({1} {2}@{3} Pid={4})で実行中のクエリを中断します。よろしいですか?</sys:String>
+        <ContextMenu x:Key="ContextMenuTerminateSession">
+            <MenuItem x:Name="menuItemForceTerminateSession" Header="選択したセッションを強制終了" Command="{x:Static local:SessionCommands.Kill}"/>
+            <MenuItem x:Name="menuItemAbortQuery" Header="選択したセッションで実行中のクエリを中止" Command="{x:Static local:SessionCommands.AbortQuery}"/>
+        </ContextMenu>
         <ControlTemplate x:Key="ComboBoxTemplate" TargetType="{x:Type ComboBox}">
             <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
                 <Grid.ColumnDefinitions>
@@ -171,7 +171,11 @@
             <ToolBarTray>
                 <ToolBar>
                     <Button x:Name="buttonRefresh" ContentTemplate="{StaticResource ImageRollback14}" ToolTip="更新" Click="buttonRefresh_Click"/>
-                    <Button x:Name="buttonStop" ContentTemplate="{StaticResource ImageTrash14}" Click="buttonStop_Click"/>
+                    <Button x:Name="buttonStop" ContentTemplate="{StaticResource ImageTrash14}" Click="buttonStop_Click">
+                        <Button.ContextMenu>
+                            <DynamicResource ResourceKey="ContextMenuTerminateSession"/>
+                        </Button.ContextMenu>
+                    </Button>
                     <ToggleButton x:Name="buttonShowSql" Content="&lt;SQL&gt;" ToolTip="最後に実行したSQLを表示" IsChecked="True"/>
                 </ToolBar>
             </ToolBarTray>
@@ -187,13 +191,14 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <DataGrid x:Name="dataGridSessionList" AutoGenerateColumns="False" IsReadOnly="True"
-                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}" SelectionChanged="dataGridSessionList_SelectionChanged">
+                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}" SelectionChanged="dataGridSessionList_SelectionChanged" Margin="0,-2,0,2">
                 <DataGrid.ContextMenu>
-                    <ContextMenu>
-                        <MenuItem x:Name="menuItemKillSession" Header="セッションを強制終了" Click="menuItemKillSession_Click"/>
-                        <MenuItem x:Name="menuItemAbortQuery" Header="クエリの実行を強制終了" Click="menuItemAbortQuery_Click"/>
-                    </ContextMenu>
+                    <DynamicResource ResourceKey="ContextMenuTerminateSession"/>
                 </DataGrid.ContextMenu>
+                <DataGrid.CommandBindings>
+                    <CommandBinding Command="{x:Static local:SessionCommands.Kill}" Executed="KillSessionCommand_Executed" CanExecute="KillSessionCommand_CanExecute"/>
+                    <CommandBinding Command="{x:Static local:SessionCommands.AbortQuery}" Executed="AbortQueryCommand_Executed" CanExecute="AbortQueryCommand_CanExecute"/>
+                </DataGrid.CommandBindings>
                 <DataGrid.DataContext>
                     <local2:NpgsqlSession/>
                 </DataGrid.DataContext>
@@ -221,7 +226,10 @@
             </GridSplitter>
             <DockPanel Grid.Row="1" Margin="0,4,0,0"
                      Visibility="{Binding IsChecked, ElementName=buttonShowSql,Converter={StaticResource BooleanToVisibilityConverter}}">
-                <TextBlock Text="選択したセッションで最後に実行したSQL" DockPanel.Dock="Top"/>
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+                    <TextBlock Text="選択したセッションで最後に実行したSQL"/>
+                    <TextBlock x:Name="textBlockSqlStart" Margin="2,0" Text="M/d HH:mm:ss" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                </StackPanel>
                 <TextBox x:Name="textBoxLastExecutedSql" Text="{Binding SelectedItem.Query, ElementName=dataGridSessionList, Mode=OneWay}"
                      IsReadOnly="True" VerticalScrollBarVisibility="Visible"/>
             </DockPanel>

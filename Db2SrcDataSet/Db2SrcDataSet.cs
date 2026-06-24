@@ -32,6 +32,7 @@ namespace Db2Source
         ForeignServer = 15,
         Casts = 16,
         Operators = 17,
+        Locks = 18,
     }
 	public enum LogStatus
     {
@@ -336,6 +337,14 @@ namespace Db2Source
         bool Kill(IDbConnection connection);
         bool AbortQuery(IDbConnection connection);
     }
+
+    public interface ILock
+    {
+        ILock WaitingLock { get; set; }
+        ILock[] Waited { get; }
+        void AddToWaited(ILock lockInfo);
+    }
+
     public abstract partial class Db2SourceContext: IComparable
     {
         private static string InitAppDataDir()
@@ -528,6 +537,8 @@ namespace Db2Source
         public string[] TablespaceNames { get; set; }
 
         public SessionList SessionList { get; private set; }
+
+        public LockList LockList { get; private set; }
 
         public QueryHistory History { get; private set; }
 
@@ -1259,14 +1270,15 @@ namespace Db2Source
 		public NamedCollection<PgsqlForeignServer> ForeignServers { get; } = new NamedCollection<PgsqlForeignServer>();
         public NamedCollection<Cast> Casts { get; } = new NamedCollection<Cast>();
         public NamedCollection<Operator> Operators { get; } = new NamedCollection<Operator>();
+        public NamedCollection<LockList> Locks { get; } = new NamedCollection<LockList>();
 
-		/// <summary>
-		/// 文字列のnullをDbNullに置換
-		/// </summary>
-		/// <param name="value"></param>
-		/// <param name="emptyIsNull"></param>
-		/// <returns></returns>
-		public static object ToDbStr(string value, bool emptyIsNull)
+        /// <summary>
+        /// 文字列のnullをDbNullに置換
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="emptyIsNull"></param>
+        /// <returns></returns>
+        public static object ToDbStr(string value, bool emptyIsNull)
         {
             if (value == null || (emptyIsNull && value == string.Empty))
             {
@@ -1775,6 +1787,16 @@ namespace Db2Source
             }
         }
 
+        public abstract ILock[] GetLocks(bool asTree, IDbConnection connection);
+
+        public ILock[] GetLocks(bool asTree)
+        {
+            using (IDbConnection conn = NewConnection(true))
+            {
+                return GetLocks(asTree, conn);
+            }
+        }
+
         public virtual DbType ToDbType(Type type)
         {
             if (type == null)
@@ -1793,6 +1815,7 @@ namespace Db2Source
         public Db2SourceContext(ConnectionInfo info)
         {
             ConnectionInfo = info;
+            IsProductionEnvironment = ConnectionInfo.IsProduction;
             _namespaces = new NamedCollection[]
             {
                 null,
@@ -1812,6 +1835,8 @@ namespace Db2Source
 				ForeignDataWrappers,
 				ForeignServers,
                 Casts,
+                Operators,
+                Locks,
 			};
             Selectables = new FilteredNamedCollection<Selectable>(Objects);
 		    Tables = new FilteredNamedCollection<Table>(Objects);
@@ -1820,7 +1845,8 @@ namespace Db2Source
 			StoredProcedures = new FilteredNamedCollection<StoredProcedure>(Objects);
 
 			SessionList = new SessionList(this, "Sessions");
-    		History = new QueryHistory(ConnectionInfo);
+            LockList = new LockList(this, "Locks");
+            History = new QueryHistory(ConnectionInfo);
         }
 
         public override string ToString()

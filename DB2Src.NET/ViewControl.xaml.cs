@@ -244,7 +244,7 @@ namespace Db2Source
                 {
                     return;
                 }
-                textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, MainWindow.Current.IndentOffset, 80, false);
+                textBoxSelectSql.Text = Target.GetSelectSQL(null, string.Empty, string.Empty, null, HiddenLevel.Visible, MainWindow.Current.IndentOffset, 80, false, true);
             }
             finally
             {
@@ -490,7 +490,7 @@ namespace Db2Source
                 limit = l;
             }
             int offset;
-            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 0, 80, true);
+            string sql = Target.GetSelectSQL(null, textBoxCondition.Text, string.Empty, limit, HiddenLevel.Visible, out offset, 0, 80, true, true);
             StartFetching();
             Dispatcher dispatcher = Dispatcher;
             DataGridController controller = DataGridControllerResult;
@@ -585,12 +585,22 @@ namespace Db2Source
                     sqls.AddRange(ctx.GetSQL(newC.Comment, string.Empty, string.Empty, 0, false));
                 }
             }
+            if (sqls.Count == 0)
+            {
+                return;
+            }
+            if (ctx.IsProductionEnvironment)
+            {
+                Window owner = Window.GetWindow(this);
+                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_EditProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
             try
             {
-                if (sqls.Count != 0)
-                {
-                    ctx.ExecSqlsWithLog(sqls);
-                }
+                ctx.ExecSqlsWithLog(sqls);
             }
             finally
             {
@@ -702,7 +712,7 @@ namespace Db2Source
         private void menuItemDropView_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropView"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropView"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

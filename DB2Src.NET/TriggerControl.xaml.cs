@@ -101,6 +101,15 @@ namespace Db2Source
             {
                 return;
             }
+            if (ctx.IsProductionEnvironment)
+            {
+                Window owner = Window.GetWindow(this);
+                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_EditProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
             try
             {
                 ctx.ExecSqlsWithLog(sqls);
@@ -178,7 +187,7 @@ namespace Db2Source
         private void menuItemDropTrigger_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropTrigger"), Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No);
+            MessageBoxResult ret = MessageBox.Show(owner, string.Format((string)FindResource("messageDropTrigger"), Target.Name), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
             if (ret != MessageBoxResult.Yes)
             {
                 return;

@@ -21,11 +21,13 @@ namespace Db2Source
         public string Title { get; private set; }
         public int Order { get; private set; }
         public bool HiddenField { get; private set; }
-        public InputFieldAttribute(string title, int order, bool hiddenField = false) : base()
+        public string Hint { get; private set; }
+        public InputFieldAttribute(string title, int order, bool hiddenField = false, string hint = null) : base()
         {
             Title = title;
             Order = order;
             HiddenField = hiddenField;
+            Hint = hint;
         }
     }
     public delegate void Command(object sender, ConnectionInfo info);
@@ -389,6 +391,12 @@ namespace Db2Source
         public bool GetIsPasswordStored()
         {
             return _isPasswordStored ?? !string.IsNullOrEmpty(Password);
+        }
+
+        [InputField("本番環境", 90, false, "本番環境を選択すると、DBやデータの変更時に都度確認のダイアログが出るようになります。")]
+        public bool IsProduction
+        {
+            get; set;
         }
 
         [JsonIgnore]

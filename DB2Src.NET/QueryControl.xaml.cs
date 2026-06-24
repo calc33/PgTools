@@ -515,6 +515,14 @@ namespace Db2Source
                 AddLog((string)FindResource("messageNoSql"), null, LogStatus.Error, true);
                 return;
             }
+            if (ctx.IsProductionEnvironment)
+            {
+                MessageBoxResult ret = MessageBox.Show(Window.GetWindow(this), Properties.Resources.MessageBoxText_ExecuteProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+            }
             listBoxErrors.Items.Clear();
             listBoxErrors.Visibility = Visibility.Collapsed;
             UpdateDataGridResult(parts);

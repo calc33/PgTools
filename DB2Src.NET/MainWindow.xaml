@@ -18,7 +18,26 @@
         <sys:String x:Key="TextBoxFilterTooltipByObject">(名前で絞り込み)</sys:String>
         <sys:String x:Key="TextBoxFilterTooltipByColumn">(列名で絞り込み)</sys:String>
         <sys:String x:Key="InvalidIndentText">IndentTextに指定できるのは同じ文字が連続した文字列のみです</sys:String>
+        <sys:String x:Key="ConfirmMessage_Production" xml:space="preserve">以後、 {0} を本番環境として扱います。 
+本番環境にすると、DBやデータの変更時に都度確認のダイアログが出るようになります。 
+よろしいですか?</sys:String>
+        <sys:String x:Key="ConfirmMessage_Development" xml:space="preserve">以後、 {0} を開発環境として扱います。 
+開発環境にすると、編集時の確認ダイアログを出さないようになります。 
+よろしいですか?</sys:String>
+        <x:Array x:Key="IsProductionEnvironmentMenuTitle" Type="{x:Type sys:String}">
+            <sys:String>【開発環境】</sys:String>
+            <sys:String>【＊本番環境＊】</sys:String>
+        </x:Array>
+        <x:Array x:Key="IsProductionEnvironmentFontWeight" Type="{x:Type FontWeight}">
+            <FontWeight>Normal</FontWeight>
+            <FontWeight>Bold</FontWeight>
+        </x:Array>
+        <x:Array x:Key="IsProductionEnvironmentForeground" Type="{x:Type Brush}">
+            <SolidColorBrush Color="Black"/>
+            <SolidColorBrush Color="DarkRed"/>
+        </x:Array>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <local:IsProductionEnvironmentConverter x:Key="IsProductionEnvironmentConverter"/>
         <SolidColorBrush x:Key="WindowBackground" Color="{x:Static SystemColors.ControlColor}"/>
         <ContextMenu x:Key="contextMenuTab">
             <!-- menuItemTabsと内容を合わせる -->
@@ -26,6 +45,7 @@
             <MenuItem Header="新規クエリ(_Q)" Click="menuItemAddQuery_Click"/>
             <MenuItem Header="レコード件数一覧(_C)" Click="menuItemCount_Click"/>
             <MenuItem Header="セッション一覧(_S)" Click="menuItemSessionList_Click"/>
+            <MenuItem Header="ロック一覧(_L)" Click="menuItemLockList_Click"/>
         </ContextMenu>
         <Style x:Key="TabControlStyleSingleLine" TargetType="{x:Type TabControl}">
             <Setter Property="Padding" Value="2"/>
@@ -237,6 +257,17 @@
     <Grid x:Name="gridMain" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
         <DockPanel>
             <Menu DockPanel.Dock="Top" Background="{DynamicResource WindowBackground}">
+                <MenuItem x:Name="menuItemProductionEnvironment"
+                          Header="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentMenuTitle}}"
+                          Foreground="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentForeground}}"
+                          FontWeight="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentFontWeight}}">
+                    <MenuItem x:Name="menuItemToggleProductionEnvironment" Header="本番環境" IsChecked="{Binding IsProductEnvironment, ElementName=window}"
+                              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" FontWeight="Normal"
+                              Click="menuItemToggleProductionEnvironment_Click"/>
+                    <MenuItem x:Name="menuItemToggleDevelopmentEnvironment" Header="開発環境" IsChecked="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource InvertBooleanConverter}}"
+                              Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" FontWeight="Normal"
+                              Click="menuItemToggleDevelopmentEnvironment_Click"/>
+                </MenuItem>
                 <MenuItem Header="データベース(_D)">
                     <MenuItem x:Name="MenuItemOpenDb" Header="データベースを開く(_O)" Click="MenuItemOpenDb_Click"/>
                     <MenuItem x:Name="menuItemDatabaseInfo" Header="情報(_I)" Click="menuItemDatabaseInfo_Click" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}"/>
@@ -278,6 +309,7 @@
                         <MenuItem x:Name="menuItemAddQuery" Header="新規クエリ(_Q)" Click="menuItemAddQuery_Click"/>
                         <MenuItem x:Name="menuItemCount" Header="レコード件数一覧(_C)" Click="menuItemCount_Click"/>
                         <MenuItem x:Name="menuItemSessionList" Header="セッション一覧(_S)" Click="menuItemSessionList_Click"/>
+                        <MenuItem x:Name="menuItemLockList" Header="ロック一覧(_L)" Click="menuItemLockList_Click"/>
                         <!--<MenuItem x:Name="menuItemSequenceList" Header="シーケンス一覧(_E)" Click="menuItemSequenceList_Click"/>-->
                     </MenuItem>
                     <MenuItem x:Name="menuItemLogWindow" Header="_SQL実行ログ" IsCheckable="True" IsChecked="False"/>
@@ -318,9 +350,9 @@
                               local:MainWindow.MultipleSelectionMode="False"
                               FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
                         <TreeView.ContextMenu>
-                            <ContextMenu x:Name="treeViewDbContextMenu" IsEnabled="{Binding CurrentDataSet, ElementName=window, Converter={StaticResource NotNullToBooleanConverter}}">
+                            <ContextMenu x:Name="treeViewDbContextMenu">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>
-                                <MenuItem x:Name="menuItemShowOwner" Header="所有者を表示" IsCheckable="True" IsChecked="{Binding ShowOwner, ElementName=window}"/>
+                                <MenuItem x:Name="menuItemShowOwner" Header="所有者を表示" IsCheckable="True"/>
                                 <MenuItem Header="新規作成">
                                     <MenuItem x:Name="menuItemNewDatabase" Header="データベース" Click="menuItemNewDatabase_Click"/>
                                     <MenuItem x:Name="menuItemNewSchema" Header="スキーマ" IsEnabled="False"/>

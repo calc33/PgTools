@@ -125,118 +125,118 @@
     <value>..\Resources\GetEncodings_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="NpgsqlDataSet_USERINFOSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\NpgsqlDataSet_USERINFOSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\NpgsqlDataSet_USERINFOSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgAttribute_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgAttribute_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgAttribute_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClassOid_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClassOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClassOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass_INDEXSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClass_INDEXSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClass_INDEXSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass_RELATEDSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\resources\pgclass_relatedsql.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\resources\pgclass_relatedsql.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass_SEQUENCESQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClass_SEQUENCESQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClass_SEQUENCESQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClass_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClass_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass_VIEWDEFSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClass_VIEWDEFSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClass_VIEWDEFSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgConstraint_CHECKSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgConstraint_CHECKSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgConstraint_CHECKSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgConstraint_REFTABLESQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgConstraint_REFTABLESQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgConstraint_REFTABLESQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgConstraint_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgConstraint_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgConstraint_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgDatabase_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgDatabase_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgDatabase_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgDepend_View_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgDepend_View_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgDepend_View_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgDescription_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgDescription_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgDescription_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgNamespace_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgNamespace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgNamespace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgProc10_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgProc10_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgProc10_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgProcOid_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgProcOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgProcOid_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgProc_ARGDEFAULTSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgProc_ARGDEFAULTSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgProc_ARGDEFAULTSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgProc_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\PgProc_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;iso-2022-jp</value>
   </data>
   <data name="PgRoles_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgRoles_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgRoles_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgSettings_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgSettings_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgSettings_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgStatActivity_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgStatActivity_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgStatActivity_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgTablespace_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgTablesspace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgTablesspace_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgTrigger_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgTrigger_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgTrigger_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgType_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgType_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgType_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PostgresReservedWords" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PostgresReservedWords.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PostgresReservedWords.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="ServerEncoding_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ServerEncoding_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgClass9_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgClass9_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgClass9_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgForeignTable_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgForeignTable_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgForeignTable_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QueryHistory_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QueryHistory_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QueryHistory_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QueryParameter_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QueryParameter_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QueryParameter_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QueryHistory_InsertSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QueryHistory_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QueryHistory_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QueryHistory_UpdateSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QueryHistory_UpdateSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QueryHistory_UpdateSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QueryParameter_InsertSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QueryParameter_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QueryParameter_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QuerySql_InsertSQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QuerySql_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QuerySql_InsertSQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="QuerySql_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\QuerySql_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\QuerySql_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgProc9_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgProc9_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgProc9_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="GetLastExecutedQuery_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\GetLastExecutedQuery_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\GetLastExecutedQuery_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="28000" xml:space="preserve">
     <value>無効な認証指定</value>
@@ -245,36 +245,39 @@
     <value>パスワード認証に失敗しました</value>
   </data>
   <data name="PgExtension_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgExtension_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgExtension_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgDepend_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgDepend_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgDepend_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="GetLastSequence_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\GetLastSequence_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\GetLastSequence_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgForeignDataWrapper_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgForeignDataWrapper_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgForeignDataWrapper_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgForeignServer_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgForeignServer_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgForeignServer_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgUserMapping_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgUserMapping_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgUserMapping_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgCast_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgCast_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgCast_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgOperator_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgOperator_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgOperator_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgAm_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgAm_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgAm_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgOpfamily_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgOpfamily_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgOpfamily_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="PgOpclass_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PgOpclass_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;shift_jis</value>
+    <value>..\Resources\PgOpclass_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="PgLocks_SQL" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\PgLocks_SQL.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

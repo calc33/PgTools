@@ -434,7 +434,7 @@ namespace Db2Source
                 ColumnInfo fi = _owner.Fields[i];
                 try
                 {
-                    _data[i] = reader.GetValue(fi.Index);
+                    _data[i] = fi.GetValue(reader);
 
                 }
                 catch (InvalidCastException)

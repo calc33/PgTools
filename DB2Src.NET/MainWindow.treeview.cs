@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Threading;
 
@@ -17,7 +18,6 @@ namespace Db2Source
         public static readonly DependencyProperty IsCheckableProperty = DependencyProperty.RegisterAttached("IsCheckable", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckablePropertyChanged));
         public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.RegisterAttached("IsChecked", typeof(bool?), typeof(MainWindow), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, IsCheckedPropertyChanged));
         public static readonly DependencyProperty MultipleSelectionModeProperty = DependencyProperty.RegisterAttached("MultipleSelectionMode", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender, MultipleSelectionModePropertyChanged));
-        public static readonly DependencyProperty ShowOwnerProperty = DependencyProperty.RegisterAttached("ShowOwner", typeof(bool), typeof(MainWindow), new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender, ShowOwnerPropertyChanged));
 
         public static bool GetIsCheckable(TreeViewItem target)
         {
@@ -137,25 +137,6 @@ namespace Db2Source
 
         }
 
-        public static bool? GetShowOwner(TreeView target)
-        {
-            return (bool?)target.GetValue(ShowOwnerProperty);
-        }
-
-        public static void SetShowOwner(TreeView target, bool? value)
-        {
-            if (GetShowOwner(target) == value)
-            {
-                return;
-            }
-            target.SetValue(ShowOwnerProperty, value);
-        }
-
-        private static void ShowOwnerPropertyChanged(DependencyObject dp, DependencyPropertyChangedEventArgs e)
-        {
-
-        }
-
         //private Dictionary<Tuple<Type, int>, string> groupNodeTypeToStyleName = new Dictionary<Tuple<Type, int>, string>()
         //{
         //    { new Tuple<Type,int>(typeof(Schema),0), "TreeViewItemStyleSchema" },
@@ -180,22 +161,6 @@ namespace Db2Source
         //    { new Tuple<Type,int>(typeof(StoredFunction),1), "TreeViewItemStyleTable" },
         //    { new Tuple<Type,int>(typeof(Sequence),0), "TreeViewItemStyleTable" },
         //};
-
-        //public event DependencyPropertyChangedEventHandler ShowOwnerPropertyChanged;
-        //protected void OnShowOwnerPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
-        //{
-        //    ShowOwnerPropertyChanged?.Invoke(sender, e);
-        //}
-        //private static void ShowOwnerPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        //{
-        //    (d as MainWindow)?.OnShowOwnerPropertyChanged(d, e);
-        //}
-
-        //public bool ShowOwner
-        //{
-        //    get { return (bool)GetValue(ShowOwnerProperty); }
-        //    set { SetValue(ShowOwnerProperty, value); }
-        //}
 
         private void SetTreeView(TreeViewItem item, TreeNode node)
         {

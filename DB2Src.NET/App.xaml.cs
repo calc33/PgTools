@@ -57,7 +57,7 @@ namespace Db2Source
         public static bool ExecSql(string sql, bool forceDisconnect = false)
         {
             Db2SourceContext ds = CurrentDataSet;
-            if (ds == null)
+            if (ds is null)
             {
                 return false;
             }
@@ -84,7 +84,7 @@ namespace Db2Source
         public static bool ExecSqls(string[] sqls, bool forceDisconnect, DependencyObject sender)
         {
             Db2SourceContext ds = CurrentDataSet;
-            if (ds == null)
+            if (ds is null)
             {
                 return false;
             }
@@ -96,7 +96,7 @@ namespace Db2Source
                 }
                 catch (Exception t)
                 {
-                    Window win = sender == null ? Current.MainWindow : Window.GetWindow(sender);
+                    Window win = sender is null ? Current.MainWindow : Window.GetWindow(sender);
                     MessageBox.Show(win, CurrentDataSet.GetExceptionMessage(t), Db2Source.Properties.Resources.MessageBoxCaption_Error, MessageBoxButton.OK, MessageBoxImage.Error);
                     LogException(sql, t);
                     return false;
@@ -108,12 +108,12 @@ namespace Db2Source
         private void TabItemCloseButton_Click(object sender, RoutedEventArgs e)
         {
             TabItem item = (sender as Control).TemplatedParent as TabItem;
-            if (item == null)
+            if (item is null)
             {
                 return;
             }
             TabControl tab = item.Parent as TabControl;
-            if (tab == null)
+            if (tab is null)
             {
                 return;
             }
@@ -127,7 +127,7 @@ namespace Db2Source
             tab.Items.Remove(item);
             SchemaObject target = ctrl?.Target;
             ctrl?.OnTabClosed(sender);
-            if (target != null)
+            if (!(target is null))
             {
                 target.Control = null;
             }
@@ -223,16 +223,16 @@ namespace Db2Source
 
         public static string GetDefaultLoginUserForDatabase(Database database)
         {
-            if (database == null)
+            if (database is null)
             {
                 throw new ArgumentNullException("database");
             }
-            if (CurrentDataSet == null)
+            if (CurrentDataSet is null)
             {
                 throw new ApplicationException("データベースに未接続のためユーザー情報が取得できません");
             }
             NpgsqlConnectionInfo obj = FindConnectionInfoByDbName(database.Name);
-            if (obj != null)
+            if (!(obj is null))
             {
                 return obj.UserName;
             }
@@ -241,11 +241,11 @@ namespace Db2Source
 
         public static void OpenDatabase(Database database, string userName, bool forceDialog)
         {
-            if (database == null)
+            if (database is null)
             {
                 throw new ArgumentNullException("database");
             }
-            if (CurrentDataSet == null)
+            if (CurrentDataSet is null)
             {
                 return;
             }
@@ -270,11 +270,11 @@ namespace Db2Source
 
         public static void OpenDatabase(NpgsqlConnectionInfo connectionInfo, bool forceDialog)
         {
-            if (connectionInfo == null)
+            if (connectionInfo is null)
             {
                 throw new ArgumentNullException("connectionInfo");
             }
-            if (CurrentDataSet == null)
+            if (CurrentDataSet is null)
             {
                 return;
             }
@@ -302,7 +302,7 @@ namespace Db2Source
         {
             get
             {
-                if (_connections == null)
+                if (_connections is null)
                 {
                     _connections = InitConnections();
                 }
@@ -321,11 +321,11 @@ namespace Db2Source
 
         private static bool HasFullyConnectionArgs()
         {
-            return _hostname != null && _database != null && _username != null;
+            return !(_hostname is null) && !(_database is null) && !(_username is null);
         }
         private static bool HasNoConnectionArgs()
         {
-            return _hostname == null && _database == null && _username == null;
+            return _hostname is null && _database is null && _username is null;
         }
 
         public static bool IsConnectedByArgs { get; private set; } = false;
@@ -539,7 +539,7 @@ namespace Db2Source
             Resources["DBNull"] = DBNull.Value;
             AnalyzeArguments(e.Args);
             MainWindow window = new MainWindow() { StartupConnection = GetStartupConnection() };
-            if (HasFullyConnectionArgs() && window.StartupConnection == null)
+            if (HasFullyConnectionArgs() && window.StartupConnection is null)
             {
                 Shutdown();
                 return;
@@ -553,7 +553,7 @@ namespace Db2Source
             Button button = sender as Button;
             ScrollViewer sb = button.TemplatedParent as ScrollViewer;
             DataGrid grid = sb?.TemplatedParent as DataGrid;
-            if (grid == null)
+            if (grid is null)
             {
                 return;
             }
@@ -569,11 +569,11 @@ namespace Db2Source
             DataGrid grid = win.Grid;
             DataGridColumn col = win.SelectedColumn;
             object row = grid.CurrentItem;
-            if (row == null && 0 < grid.Items.Count)
+            if (row is null && 0 < grid.Items.Count)
             {
                 row = grid.Items[0];
             }
-            if (row != null && col != null)
+            if (!(row is null) && !(col is null))
             {
                 grid.ScrollIntoView(row, col);
             }
@@ -593,7 +593,7 @@ namespace Db2Source
 
         public static T FindVisualParent<T>(DependencyObject item) where T : FrameworkElement
         {
-            if (item == null)
+            if (item is null)
             {
                 return null;
             }
@@ -611,7 +611,7 @@ namespace Db2Source
                 PropertyInfo prop = item.GetType().GetProperty("Parent");
                 obj = prop?.GetValue(item) as DependencyObject;
             }
-            while (obj != null)
+            while (!(obj is null))
             {
                 if (obj is T)
                 {
@@ -632,7 +632,7 @@ namespace Db2Source
 
         public static T FindLogicalParent<T>(DependencyObject item) where T : DependencyObject
         {
-            if (item == null)
+            if (item is null)
             {
                 return null;
             }
@@ -641,7 +641,7 @@ namespace Db2Source
                 return (T)item;
             }
             DependencyObject obj = LogicalTreeHelper.GetParent(item);
-            while (obj != null)
+            while (!(obj is null))
             {
                 if (obj is T)
                 {
@@ -678,12 +678,12 @@ namespace Db2Source
 
         private static void UnlinkLogicalChildren(DependencyObject obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 return;
             }
             Panel panel = obj as Panel;
-            if (panel != null)
+            if (!(panel is null))
             {
                 foreach (UIElement elem in panel.Children)
                 {
@@ -692,10 +692,10 @@ namespace Db2Source
                 panel.Children.Clear();
             }
             ContentControl control = obj as ContentControl;
-            if (control != null)
+            if (!(control is null))
             {
                 DependencyObject content = control.Content as DependencyObject;
-                if (content != null)
+                if (!(content is null))
                 {
                     UnlinkLogicalChildren(content);
                 }
@@ -751,7 +751,7 @@ namespace Db2Source
         {
             MenuItem menu = sender as MenuItem;
             DataGrid gr = (menu.Parent as ContextMenu)?.Tag as DataGrid;
-            if (gr == null || gr.IsReadOnly)
+            if (gr is null || gr.IsReadOnly)
             {
                 return;
             }
@@ -769,7 +769,7 @@ namespace Db2Source
         {
             MenuItem menu = sender as MenuItem;
             DataGrid gr = (menu.Parent as ContextMenu)?.Tag as DataGrid;
-            if (gr == null || gr.IsReadOnly)
+            if (gr is null || gr.IsReadOnly)
             {
                 return;
             }
@@ -787,7 +787,7 @@ namespace Db2Source
         {
             DataGridCell cell = FindVisualParent<DataGridCell>(sender as DependencyObject);
             Row row = cell.DataContext as Row;
-            if (row == null || row.ChangeKind == ChangeKind.None)
+            if (row is null || row.ChangeKind == ChangeKind.None)
             {
                 return;
             }

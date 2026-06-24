@@ -284,7 +284,7 @@ namespace Db2Source
         private void menuItemDropProcedue_Click(object sender, RoutedEventArgs e)
         {
             Window owner = Window.GetWindow(this);
-            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropSequence"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            MessageBoxResult ret = MessageBox.Show(owner, (string)FindResource("messageDropSequence"), Properties.Resources.MessageBoxCaption_Drop, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
             if (ret != MessageBoxResult.Yes)
             {
                 return;
@@ -351,7 +351,7 @@ namespace Db2Source
             if (isOK)
             {
                 ret = MessageBox.Show(string.Format((string)Resources["messageConfirmUpdateSequenceFmt"], vCur, vNew),
-					Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNo, MessageBoxImage.Question, MessageBoxResult.No);
+					Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.No);
                 if (ret != MessageBoxResult.Yes)
                 {
                     return;

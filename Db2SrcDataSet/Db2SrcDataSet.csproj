@@ -115,6 +115,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Index.cs" />
     <Compile Include="JoinTable.cs" />
+    <Compile Include="LockList.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="NamedObject.cs" />
     <Compile Include="Npgsql\NpgsqlConnectionInfo.cs" />
@@ -269,6 +270,7 @@
     <None Include="Resources\PgAm_SQL.txt" />
     <None Include="Resources\PgOpfamily_SQL.txt" />
     <None Include="Resources\PgOpclass_SQL.txt" />
+    <Content Include="Resources\PgLocks_SQL.txt" />
     <Content Include="Resources\ServerEncoding_SQL.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
