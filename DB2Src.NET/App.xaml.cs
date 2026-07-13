@@ -652,29 +652,29 @@ namespace Db2Source
             return null;
         }
 
-        //public static T FindFirstVisualChild<T>(DependencyObject item) where T: DependencyObject
-        //{
-        //    int n = VisualTreeHelper.GetChildrenCount(item);
-        //    List<DependencyObject> l = new List<DependencyObject>();
-        //    for (int i = 0; i < n; i++)
-        //    {
-        //        DependencyObject obj = VisualTreeHelper.GetChild(item, i);
-        //        if (obj is T)
-        //        {
-        //            return (T)obj;
-        //        }
-        //        l.Add(obj);
-        //    }
-        //    foreach (DependencyObject obj in l)
-        //    {
-        //        DependencyObject ret = FindFirstVisualChild<T>(obj);
-        //        if (ret is T)
-        //        {
-        //            return (T)ret;
-        //        }
-        //    }
-        //    return null;
-        //}
+        public static T FindFirstVisualChild<T>(DependencyObject item) where T : DependencyObject
+        {
+            int n = VisualTreeHelper.GetChildrenCount(item);
+            List<DependencyObject> l = new List<DependencyObject>();
+            for (int i = 0; i < n; i++)
+            {
+                DependencyObject obj = VisualTreeHelper.GetChild(item, i);
+                if (obj is T)
+                {
+                    return (T)obj;
+                }
+                l.Add(obj);
+            }
+            foreach (DependencyObject obj in l)
+            {
+                DependencyObject ret = FindFirstVisualChild<T>(obj);
+                if (ret is T)
+                {
+                    return (T)ret;
+                }
+            }
+            return null;
+        }
 
         private static void UnlinkLogicalChildren(DependencyObject obj)
         {

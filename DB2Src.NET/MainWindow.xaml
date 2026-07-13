@@ -79,8 +79,10 @@
                                         <Button x:Name="buttonScrollSearchTabItem" ContentTemplate="{StaticResource ImageDropDown10}" VerticalContentAlignment="Bottom" BorderThickness="0" Background="Transparent" Click="buttonScrollSearchTabItem_Click" Padding="2"/>
                                     </StackPanel>
                                 </Border>
-                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden" MouseMove="tabPanelScrollViewer_MouseMove" PreviewMouseDown="tabPanelScrollViewer_PreviewMouseDown" MouseUp="tabPanelScrollViewer_PreviewMouseUp" AllowDrop="True" VerticalAlignment="Bottom">
-                                    <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
+                                <ScrollViewer x:Name="tabPanelScrollViewer" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"
+                                              AllowDrop="True" VerticalAlignment="Bottom" Margin="0,0,0,-1" Background="Transparent"
+                                              MouseMove="tabPanelScrollViewer_MouseMove" PreviewMouseDown="tabPanelScrollViewer_PreviewMouseDown" MouseUp="tabPanelScrollViewer_PreviewMouseUp">
+                                    <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,1" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
                                 </ScrollViewer>
                             </DockPanel>
                         </Grid>

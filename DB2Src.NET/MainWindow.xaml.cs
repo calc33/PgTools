@@ -942,7 +942,7 @@ namespace Db2Source
             QueryControl c = new QueryControl();
             Binding b = new Binding("CurrentDataSet") { ElementName = "window" };
             c.SetBinding(QueryControl.CurrentDataSetProperty, b);
-            TabItem item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(_queryControlIndex), c, FindResource("TabItemStyleClosable") as Style);
+            TabItem item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(_queryControlIndex), null, c, FindResource("TabItemStyleClosable") as Style);
             tabControlMain.SelectedItem = item;
             _queryControlIndex++;
         }
@@ -1724,7 +1724,7 @@ namespace Db2Source
             RecordCountControl c = new RecordCountControl();
             Binding b = new Binding("CurrentDataSet") { Source = this };
             c.SetBinding(RecordCountControl.DataSetProperty, b);
-            item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), c, FindResource("TabItemStyleClosable") as Style);
+            item = MovableTabItem.NewTabItem(tabControlMain, c.GetTabItemHeader(), null, c, FindResource("TabItemStyleClosable") as Style);
             _recordCountTabItem = new WeakReference<TabItem>(item);
             if (becomeSelected)
             {

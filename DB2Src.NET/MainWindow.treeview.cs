@@ -7,8 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 
 namespace Db2Source
@@ -162,6 +164,28 @@ namespace Db2Source
         //    { new Tuple<Type,int>(typeof(Sequence),0), "TreeViewItemStyleTable" },
         //};
 
+        private const double TooltipOffset = 6.0;
+        private void UpdateTooltipPlacement(TreeViewItem item)
+        {
+            if (item == null || item.ActualHeight == 0)
+            {
+                return;
+            }
+            ContentPresenter content = App.FindFirstVisualChild<ContentPresenter>(item);
+            if (content == null)
+            {
+                return;
+            }
+            FrameworkElement panel = (FrameworkElement)App.FindFirstVisualChild<StackPanel>(content) ?? content;
+            if (panel == null)
+            {
+                return;
+            }
+
+            Point p0 = item.PointFromScreen(panel.PointToScreen(new Point(0, 0)));
+            ToolTipService.SetPlacementRectangle(item, new Rect(p0.X - TooltipOffset, p0.Y, panel.ActualWidth + TooltipOffset, panel.ActualHeight));
+        }
+
         private void SetTreeView(TreeViewItem item, TreeNode node)
         {
             item.Tag = node;
@@ -246,7 +270,20 @@ namespace Db2Source
                 item.HeaderTemplate = FindResource("ImageTable") as DataTemplate;
                 item.MouseDoubleClick += TreeViewItem_MouseDoubleClick;
             }
-            item.ToolTip = node.Hint;
+            if (!string.IsNullOrEmpty(node.Hint))
+            {
+                TextBlock tt = new TextBlock() { Text = node.Hint };
+                tt.SetBinding(FontFamilyProperty, new Binding("FontFamily") { Source = item });
+                tt.SetBinding(FontSizeProperty, new Binding("FontSize") { Source = item });
+                tt.SetBinding(FontStretchProperty, new Binding("FontStretch") { Source = item });
+                tt.SetBinding(FontStyleProperty, new Binding("FontStyle") { Source = item });
+                tt.SetBinding(FontWeightProperty, new Binding("FontWeight") { Source = item });
+                item.ToolTip = tt;
+                ToolTipService.SetPlacementTarget(item, item);
+                ToolTipService.SetPlacement(item, PlacementMode.Bottom);
+                // 現時点ではサイズ未確定なのでサイズ確定後にツールチップの表示位置を設定
+                item.SizeChanged += (s, e) => { Dispatcher.InvokeAsync(() => UpdateTooltipPlacement(item), DispatcherPriority.Loaded); };
+            }
             //Binding b = new Binding("Tag.Target.CommentText");
             //b.RelativeSource = RelativeSource.Self;
             //item.SetBinding(FrameworkElement.ToolTipProperty, b);
