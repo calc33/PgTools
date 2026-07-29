@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 
 namespace Db2Source
@@ -23,11 +24,21 @@ namespace Db2Source
                 SetValue(IsMovingProperty, value);
             }
         }
-        public static TabItem NewTabItem(TabControl parent, string header, UIElement element, Style tabItemStyle)
+        public static TabItem NewTabItem(TabControl parent, string header, string tooltip, UIElement element, Style tabItemStyle)
         {
             MovableTabItem item = new MovableTabItem();
             item.Content = element;
-            item.Header = new TextBlock() { Text = header };
+            TextBlock tt = new TextBlock() { Text = tooltip };
+            tt.SetBinding(FontFamilyProperty, new Binding("FontFamily") { Source = item });
+            tt.SetBinding(FontSizeProperty, new Binding("FontSize") { Source = item });
+            tt.SetBinding(FontStretchProperty, new Binding("FontStretch") { Source = item });
+            tt.SetBinding(FontStyleProperty, new Binding("FontStyle") { Source = item });
+            tt.SetBinding(FontWeightProperty, new Binding("FontWeight") { Source = item });
+            TextBlock txt = new TextBlock() { Text = header, ToolTip = tt };
+            ToolTipService.SetPlacement(txt, PlacementMode.Top);
+            ToolTipService.SetPlacementTarget(txt, item);
+            ToolTipService.SetInitialShowDelay(txt, 500);
+            item.Header = txt;
             item.Style = tabItemStyle;
             parent.Items.Add(item);
             return item;
@@ -56,7 +67,7 @@ namespace Db2Source
                 {
                     return null;
                 }
-                TabItem item = NewTabItem(tabControl, target.FullName, ctrl as UIElement, tabItemStyle);
+                TabItem item = NewTabItem(tabControl, target.Name, target.FullIdentifier, ctrl as UIElement, tabItemStyle);
                 item.Tag = target;
                 return item;
             }
