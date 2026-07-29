@@ -725,14 +725,9 @@ namespace Db2Source
             {
                 return;
             }
-            if (ctx.IsProductionEnvironment)
+            if (!MainWindow.Current.CheckProductionEnvironment(Properties.Resources.MessageBoxText_EditProductionEnv))
             {
-                Window owner = Window.GetWindow(this);
-                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_EditProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
-                if (ret != MessageBoxResult.Yes)
-                {
-                    return;
-                }
+                return;
             }
             try
             {

@@ -1088,14 +1088,9 @@ namespace Db2Source
             {
                 return;
             }
-            if (Target.Context.IsProductionEnvironment)
+            if (!MainWindow.Current.CheckProductionEnvironment(Properties.Resources.MessageBoxText_SaveProductionEnv))
             {
-                Window owner = Window.GetWindow(this);
-                MessageBoxResult ret = MessageBox.Show(owner, Properties.Resources.MessageBoxText_SaveProductionEnv, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Exclamation, MessageBoxResult.No);
-                if (ret != MessageBoxResult.Yes)
-                {
-                    return;
-                }
+                return;
             }
             try
             {

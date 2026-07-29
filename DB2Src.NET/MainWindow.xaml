@@ -36,6 +36,10 @@
             <SolidColorBrush Color="Black"/>
             <SolidColorBrush Color="DarkRed"/>
         </x:Array>
+        <x:Array x:Key="IsProductionEnvironmentBackground" Type="{x:Type sys:Object}">
+            <StaticResource ResourceKey="{x:Static SystemColors.WindowBrushKey}"/>
+            <SolidColorBrush Color="#FFFFF0FF"/>
+        </x:Array>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <local:IsProductionEnvironmentConverter x:Key="IsProductionEnvironmentConverter"/>
         <SolidColorBrush x:Key="WindowBackground" Color="{x:Static SystemColors.ControlColor}"/>
@@ -260,13 +264,13 @@
         <DockPanel>
             <Menu DockPanel.Dock="Top" Background="{DynamicResource WindowBackground}">
                 <MenuItem x:Name="menuItemProductionEnvironment"
-                          Header="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentMenuTitle}}"
-                          Foreground="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentForeground}}"
-                          FontWeight="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentFontWeight}}">
-                    <MenuItem x:Name="menuItemToggleProductionEnvironment" Header="本番環境" IsChecked="{Binding IsProductEnvironment, ElementName=window}"
+                          Header="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentMenuTitle}}"
+                          Foreground="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentForeground}}"
+                          FontWeight="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentFontWeight}}">
+                    <MenuItem x:Name="menuItemToggleProductionEnvironment" Header="本番環境" IsChecked="{Binding IsProductionEnvironment, ElementName=window}"
                               Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" FontWeight="Normal"
                               Click="menuItemToggleProductionEnvironment_Click"/>
-                    <MenuItem x:Name="menuItemToggleDevelopmentEnvironment" Header="開発環境" IsChecked="{Binding IsProductEnvironment, ElementName=window, Converter={StaticResource InvertBooleanConverter}}"
+                    <MenuItem x:Name="menuItemToggleDevelopmentEnvironment" Header="開発環境" IsChecked="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource InvertBooleanConverter}}"
                               Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" FontWeight="Normal"
                               Click="menuItemToggleDevelopmentEnvironment_Click"/>
                 </MenuItem>
@@ -330,7 +334,8 @@
                 <DockPanel Margin="0,0,4,0">
                     <StackPanel DockPanel.Dock="Top" Margin="0,2">
                         <Border BorderThickness="1" BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" Background="Transparent">
-                            <DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >
+                            <!--<DockPanel Background="{DynamicResource {x:Static SystemColors.ControlLightLightBrushKey}}" >-->
+                            <DockPanel Background="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentBackground}}">
                                 <Button x:Name="buttonFilterKind" Width="16" Height="16" DockPanel.Dock="Right" Background="Transparent" BorderBrush="Transparent" Click="buttonFilterKind_Click">
                                     <Button.ContextMenu>
                                         <ContextMenu>
@@ -344,13 +349,18 @@
                                         <Path Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" Data="M10,12 L14,12 L12,16 z"/>
                                     </Canvas>
                                 </Button>
-                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" PreviewKeyUp="textBoxFilter_PreviewKeyUp"/>
+                                <TextBox x:Name="textBoxFilter" HorizontalAlignment="Stretch" BorderThickness="0" TextChanged="textBoxFilter_TextChanged" PreviewKeyDown="textBoxFilter_PreviewKeyDown" KeyDown="textBoxFilter_KeyDown" LostFocus="textBoxFilter_LostFocus" PreviewKeyUp="textBoxFilter_PreviewKeyUp" Background="Transparent"/>
                             </DockPanel>
                         </Border>
                     </StackPanel>
                     <TreeView x:Name="treeViewDB" SnapsToDevicePixels="True" ScrollViewer.VerticalScrollBarVisibility="Visible" Style="{DynamicResource TreeViewDbStyle}" ItemContainerStyle="{DynamicResource TreeViewItemStyleSchema}"
                               local:MainWindow.MultipleSelectionMode="False"
-                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}" FontSize="{Binding FontSize, Source={StaticResource TreeFont}}" FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}" FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}" FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}">
+                              FontFamily="{Binding FontFamily, Source={StaticResource TreeFont}}"
+                              FontSize="{Binding FontSize, Source={StaticResource TreeFont}}"
+                              FontStretch="{Binding FontStretch, Source={StaticResource TreeFont}}"
+                              FontStyle="{Binding FontStyle, Source={StaticResource TreeFont}}"
+                              FontWeight="{Binding FontWeight, Source={StaticResource TreeFont}}"
+                              Background="{Binding IsProductionEnvironment, ElementName=window, Converter={StaticResource IsProductionEnvironmentConverter}, ConverterParameter={StaticResource IsProductionEnvironmentBackground}}">
                         <TreeView.ContextMenu>
                             <ContextMenu x:Name="treeViewDbContextMenu">
                                 <MenuItem x:Name="menuItemRefreshSchema" Header="更新" Click="menuItemRefreshSchema_Click"/>

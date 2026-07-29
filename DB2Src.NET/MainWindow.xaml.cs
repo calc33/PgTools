@@ -47,7 +47,7 @@ namespace Db2Source
         public static readonly DependencyProperty MatchByRegexProperty = DependencyProperty.Register("MatchByRegex", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, MatchByRegexPropertyChangedCallback));
         public static readonly DependencyProperty CommandTimeoutProperty = DependencyProperty.Register("CommandTimeout", typeof(int), typeof(MainWindow), new PropertyMetadata(30, CommandTimeoutPropertyChangedCallback));
         public static readonly DependencyProperty ShowOwnerProperty = DependencyProperty.Register("ShowOwner", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, ShowOwnerPropertyChangedCallback));
-        public static readonly DependencyProperty IsProductEnvironmentProperty = DependencyProperty.Register("IsProductEnvironment", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, IsProductEnvironmentPropertyChangedCallback));
+        public static readonly DependencyProperty IsProductionEnvironmentProperty = DependencyProperty.Register("IsProductionEnvironment", typeof(bool), typeof(MainWindow), new PropertyMetadata(false, IsProductionEnvironmentPropertyChangedCallback));
 
         private void UpdateIndentText()
         {
@@ -157,14 +157,38 @@ namespace Db2Source
             (d as MainWindow)?.OnShowOwnerPropertyChanged(d, e);
         }
 
-        public event DependencyPropertyChangedEventHandler IsProductEnvironmentPropertyChanged;
-        protected void OnIsProductEnvironmentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
+        public event DependencyPropertyChangedEventHandler IsProductionEnvironmentPropertyChanged;
+        protected void OnIsProductionEnvironmentPropertyChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
-            IsProductEnvironmentPropertyChanged?.Invoke(sender, e);
+            IsProductionEnvironmentPropertyChanged?.Invoke(sender, e);
         }
-        private static void IsProductEnvironmentPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void IsProductionEnvironmentPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            (d as MainWindow)?.OnIsProductEnvironmentPropertyChanged(d, e);
+            (d as MainWindow)?.OnIsProductionEnvironmentPropertyChanged(d, e);
+        }
+
+        private DateTime _nextConfirmationTime = DateTime.MinValue;
+
+        private void CheckWindowState()
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                _nextConfirmationTime = DateTime.MinValue;
+            }
+        }
+
+        public bool CheckProductionEnvironment(string message)
+        {
+            if (IsProductionEnvironment && _nextConfirmationTime < DateTime.Now)
+            {
+                MessageBoxResult ret = MessageBox.Show(this, message, Properties.Resources.MessageBoxCaption_Confirm, MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.No);
+                if (ret != MessageBoxResult.Yes)
+                {
+                    return false;
+                }
+            }
+            _nextConfirmationTime = DateTime.Now.AddMinutes(5);
+            return true;
         }
 
         public static MainWindow Current { get; private set; } = null;
@@ -288,10 +312,10 @@ namespace Db2Source
             set { SetValue(ShowOwnerProperty, value); }
         }
 
-        public bool IsProductEnvironment
+        public bool IsProductionEnvironment
         {
-            get { return (bool)GetValue(IsProductEnvironmentProperty); }
-            set { SetValue(IsProductEnvironmentProperty, value); }
+            get { return (bool)GetValue(IsProductionEnvironmentProperty); }
+            set { SetValue(IsProductionEnvironmentProperty, value); }
         }
 
         private void SetConnectionStatus(SchemaConnectionStatus value)
@@ -314,7 +338,7 @@ namespace Db2Source
                 Source = this,
                 Mode = BindingMode.OneWay
             };
-            SetBinding(IsProductEnvironmentProperty, b);
+            SetBinding(IsProductionEnvironmentProperty, b);
         }
 
         private void MenuItemOpenDb_Click(object sender, RoutedEventArgs e)
@@ -1159,6 +1183,8 @@ namespace Db2Source
         private void window_LocationChanged(object sender, EventArgs e)
         {
             WindowLocator.AdjustMaxSizeToScreen(this);
+            // ウィンドウが最小化されたら本番環境確認ダイアログの表示抑制を解除
+            Dispatcher.InvokeAsync(CheckWindowState, DispatcherPriority.Background);
         }
 
         private void CopyTableCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
