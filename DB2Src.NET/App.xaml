@@ -4,7 +4,7 @@
              xmlns:local="clr-namespace:Db2Source"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
-             DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" >
+             DispatcherUnhandledException="Application_DispatcherUnhandledException" Startup="Application_Startup" Activated="Application_Activated" Deactivated="Application_Deactivated">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -1342,7 +1342,7 @@
                                             <Path x:Name="pathArrow" Fill="{TemplateBinding Foreground}" Data="M2,3 L6,0 L6,6 z"/>
                                         </Canvas>
                                     </Label>
-                                    <Button Grid.Column="1" Margin="1" BorderThickness="0" Background="Transparent" Click="DataGridCheckBoxColumnHeaderStyleButton_Click" ContextMenuOpening="DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening" ToolTip="チェックした行を削除">
+                                    <Button Grid.Column="1" Margin="1" BorderThickness="0" Background="Transparent" Click="DataGridCheckBoxColumnHeaderStyleButton_Click" ContextMenuOpening="DataGridCheckBoxColumnHeaderStyleBorder_ContextMenuOpening" ToolTip="チェックした行を削除" IsTabStop="False">
                                         <Button.ContextMenu>
                                             <ContextMenu Placement="Bottom">
                                                 <MenuItem Header="すべてチェック" Click="MenuItemCheckAll_Click"/>

@@ -14,7 +14,7 @@ namespace Db2Source
             {
                 return null;
             }
-            ColumnInfo col = cell.Column.Header as ColumnInfo;
+            GridClipboard.Column col = cell.Column.Header as GridClipboard.Column;
             if (col == null || col.Index == -1)
             {
                 return null;

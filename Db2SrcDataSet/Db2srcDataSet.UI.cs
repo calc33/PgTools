@@ -306,6 +306,72 @@ namespace Db2Source
         public string StringFormat { get; set; }
         //public IValueConverter Converter { get; set; }
         public int Index { get; private set; }
+
+        private static object ParseArrayValue(Type elementType, string value, out bool valid)
+        {
+            if (!(value.StartsWith("[") && value.EndsWith("]")) && !(value.StartsWith("(") && value.EndsWith(")")))
+            {
+                throw new ArgumentException("value");
+            }
+            valid = true;
+            List<object> ret = new List<object>();
+            foreach (string s in value.Substring(1, value.Length - 2).Split(','))
+            {
+                object o = ParseValueCore(elementType, s.Trim(), out bool v);
+                valid &= v;
+                ret.Add(o);
+            }
+            return ret.ToArray();
+        }
+
+        private static object ParseValueCore(Type type, string value, out bool valid)
+        {
+            if (value == null)
+            {
+                valid = true;
+                return null;
+            }
+            if (type == typeof(string))
+            {
+                valid = true;
+                return value;
+            }
+            if (value == string.Empty)
+            {
+                valid = true;
+                return null;
+            }
+            if (type.IsArray)
+            {
+                return ParseArrayValue(type.GetElementType(), value, out valid);
+            }
+            Type refType = type.MakeByRefType();
+            MethodInfo mi = type.GetMethod("TryParse", new Type[] { typeof(string), refType });
+            if (mi != null)
+            {
+                try
+                {
+                    object[] args = new object[] { value, null };
+                    bool ret = (bool)mi.Invoke(null, args);
+                    if (!ret)
+                    {
+                        valid = false;
+                        return null;
+                    }
+                    object v = args[1];
+                    valid = true;
+                    return v;
+                }
+                catch
+                {
+                    valid = false;
+                    return null;
+                }
+            }
+            valid = false;
+            return null;
+        }
+
         public object ParseValue(string value, bool ignoreNotNull, out bool valid)
         {
             valid = true;
@@ -323,31 +389,9 @@ namespace Db2Source
                 valid = ignoreNotNull || !IsNotNull;
                 return null;
             }
-
-            Type refType = FieldType.MakeByRefType();
-            MethodInfo mi = FieldType.GetMethod("TryParse", new Type[] { typeof(string), refType });
-            if (mi != null)
-            {
-                try
-                {
-                    object[] args = new object[] { value, null };
-                    bool ret = (bool)mi.Invoke(null, args);
-                    if (!ret)
-                    {
-                        valid = false;
-                        return null;
-                    }
-                    object v = args[1];
-                    valid = ignoreNotNull || !IsNotNull || (v != null);
-                    return v;
-                }
-                catch
-                {
-                    valid = false;
-                    return null;
-                }
-            }
-            throw new ArgumentException("value");
+            object ret = ParseValueCore(FieldType, value, out valid);
+            valid &= ignoreNotNull || !IsNotNull || (ret != null);
+            return ret;
         }
 
         public object ConvertValue(object value)

@@ -548,6 +548,44 @@ namespace Db2Source
             //MainWindow = window;    // 最初に作成したwindowが自動的にMainWindowになるため不要
         }
 
+        private static readonly TimeSpan GCTimerSpan = new TimeSpan(0, 0, 5);
+        private DispatcherTimer _gcTimer = null;
+
+        /// <summary>
+        /// アプリケーションが非アクティブになったときにガベージコレクションを実行する
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RunGCOnDeactive(object sender, EventArgs e)
+        {
+            _gcTimer.Stop();
+            if (MainWindow.IsActive)
+            {
+                return;
+            }
+            GC.Collect();
+        }
+
+
+        private void Application_Activated(object sender, EventArgs e)
+        {
+            if (_gcTimer != null)
+            {
+                _gcTimer.Stop();
+            }
+        }
+
+        private void Application_Deactivated(object sender, EventArgs e)
+        {
+            //Dispatcher.InvokeAsync(Close);
+            if (_gcTimer == null)
+            {
+                _gcTimer = new DispatcherTimer(GCTimerSpan, DispatcherPriority.Background, RunGCOnDeactive, Dispatcher);
+            }
+            _gcTimer.Stop();
+            _gcTimer.Start();
+        }
+
         private void GridSelectColumnButton_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;

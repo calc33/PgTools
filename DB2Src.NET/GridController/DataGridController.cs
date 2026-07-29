@@ -782,6 +782,9 @@ namespace Db2Source
             cb = new CommandBinding(ApplicationCommands.Paste, PasteCommand_Executed, PasteCommand_CanExecute);
             Grid.CommandBindings.Add(cb);
 
+            Grid.PreviewKeyDown += Grid_PreviewKeyDown;
+            Grid.PreviewKeyUp += Grid_PreviewKeyUp;
+
             UpdateGrid();
         }
 
@@ -933,6 +936,30 @@ namespace Db2Source
             {
                 Dispatcher.CurrentDispatcher.InvokeAsync(win.Close);
                 _searchDataGridTextWindow = null;
+            }
+        }
+
+        private void Grid_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // Handle key down events here
+        }
+
+        private void Grid_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (Grid.CurrentColumn is DataGridTemplateColumn && Grid.CurrentItem is Row row)
+            {
+                if (e.Key == Key.Space)
+                {
+                    row.IsDeleted = !row.IsDeleted;
+                    e.Handled = true;
+                    return;
+                }
+                //if (e.Key == Key.Z && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && row.HasChanges)
+                //{
+                //    row.RevertChanges();
+                //    e.Handled = true;
+                //    return;
+                //}
             }
         }
 
@@ -1774,7 +1801,8 @@ namespace Db2Source
             GridClipboardWindow win = new GridClipboardWindow
             {
                 Owner = Window.GetWindow(Grid),
-                Clipboard = clipboard
+                Clipboard = clipboard,
+                GridController = this,
             };
             bool? ret = win.ShowDialog();
             if (!ret.HasValue || !ret.Value)
@@ -1792,10 +1820,10 @@ namespace Db2Source
             {
                 return;
             }
-            if (Clipboard.ContainsData(DataFormats.CommaSeparatedValue))
+            if (Clipboard.ContainsData(DataFormats.UnicodeText))
             {
-                string csv = Clipboard.GetText(TextDataFormat.UnicodeText);
-                GridClipboard clipboard = new GridClipboard(this, csv, GridClipboard.TextViewFormat.TabText);
+                string tsv = Clipboard.GetText(TextDataFormat.UnicodeText);
+                GridClipboard clipboard = new GridClipboard(this, tsv, GridClipboard.TextViewFormat.TabText);
                 if (clipboard.IsSingleText)
                 {
                     PasteAsSingleText(e, clipboard);

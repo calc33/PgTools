@@ -6,7 +6,8 @@
         xmlns:local="clr-namespace:Db2Source"
         mc:Ignorable="d"
         FontFamily="{Binding FontFamily, Source={StaticResource BaseFont}}" FontSize="{Binding FontSize, Source={StaticResource BaseFont}}" FontStretch="{Binding FontStretch, Source={StaticResource BaseFont}}" FontStyle="{Binding FontStyle, Source={StaticResource BaseFont}}" FontWeight="{Binding FontWeight, Source={StaticResource BaseFont}}"
-        Title="データの貼り付け" Height="450" Width="800" WindowStyle="ToolWindow" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LocationChanged="window_LocationChanged">
+        Title="データの貼り付け" Height="450" Width="800" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner" Loaded="window_Loaded" LocationChanged="window_LocationChanged"
+    xmlns:theme="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2">
     <Window.Resources>
         <local:DataGridCellToCellConverter x:Key="DataGridCellToCellConverter"/>
         <SolidColorBrush x:Key="ErrorTextBrush" Color="Red"/>
@@ -58,11 +59,45 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        <Style x:Key="ColumnHeaderGripperStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Cursor" Value="SizeWE"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="DataGridTextColumnHeaderStyle1" TargetType="{x:Type DataGridColumnHeader}">
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type DataGridColumnHeader}">
+                        <Grid>
+                            <theme:DataGridHeaderBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" IsPressed="{TemplateBinding IsPressed}" IsHovered="{TemplateBinding IsMouseOver}" IsClickable="{TemplateBinding CanUserSort}" Padding="{TemplateBinding Padding}" SortDirection="{TemplateBinding SortDirection}" SeparatorVisibility="{TemplateBinding SeparatorVisibility}" SeparatorBrush="{TemplateBinding SeparatorBrush}">
+                                <!--<ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>-->
+                                <ComboBox x:Name="comboBoxHeader" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          ItemsSource="{Binding DisplayColumns, RelativeSource={RelativeSource AncestorType=local:GridClipboardWindow}}"
+                                          DisplayMemberPath="Name"
+                                          SelectedValuePath="Value"
+                                          SelectedValue="{Binding TargetColumn, Mode=TwoWay}"
+                                          SelectionChanged="comboBoxHeader_SelectionChanged"/>
+                            </theme:DataGridHeaderBorder>
+                            <Thumb x:Name="PART_LeftHeaderGripper" HorizontalAlignment="Left" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                            <Thumb x:Name="PART_RightHeaderGripper" HorizontalAlignment="Right" Style="{StaticResource ColumnHeaderGripperStyle}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
     <DockPanel>
         <StackPanel DockPanel.Dock="Top">
             <StackPanel Orientation="Horizontal">
-                <CheckBox x:Name="checkBoxContainsHeader" Content="先頭行は項目名" Margin="4,2" IsEnabled="{Binding Clipboard.HasExplicitHeader, ElementName=window, Mode=OneWay}" IsChecked="{Binding Clipboard.UseExplicitHeader, ElementName=window, Mode=TwoWay}" Checked="checkBoxContainsHeader_Checked"/>
+                <CheckBox x:Name="checkBoxContainsHeader" Content="先頭行は項目名" Margin="4,2" IsChecked="{Binding Clipboard.HasHeader, ElementName=window, Mode=TwoWay}" Checked="checkBoxContainsHeader_Checked"/>
                 <CheckBox x:Name="checkBoxMergeByKey" Content="キー項目で照合してマージ" Margin="4,2" IsEnabled="{Binding Clipboard.CanMergeByKey, ElementName=window, Mode=OneWay}" IsChecked="{Binding Clipboard.MergeByKey, ElementName=window, Mode=TwoWay}"/>
                 <CheckBox x:Name="checkBoxIgnoreEmpty" Content="空のセルは置換しない" Margin="4,2" IsChecked="{Binding Clipboard.IgnoreEmptyCell, ElementName=window}"/>
             </StackPanel>
@@ -74,7 +109,11 @@
             <Button Content="貼り付け" MinWidth="70" Margin="10,6" Padding="4" IsDefault="True" IsEnabled="{Binding Clipboard.IsValid, ElementName=window}" Click="Button_Click"/>
             <Button Content="キャンセル" MinWidth="70" Margin="10,6" Padding="4" IsCancel="True" Click="ButtonClose_Click"/>
         </StackPanel>
-        <DataGrid x:Name="dataGridClipboardData" AutoGenerateColumns="False" CellStyle="{DynamicResource DataGridCellDataStyle}" IsReadOnly="True" CanUserSortColumns="False" CanUserReorderColumns="False"
-                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}"/>
+        <DataGrid x:Name="dataGridClipboardData" AutoGenerateColumns="False" CellStyle="{DynamicResource DataGridCellDataStyle}" CanUserSortColumns="False" CanUserReorderColumns="False"
+                  FontFamily="{Binding FontFamily, Source={StaticResource DataGridFont}}" FontSize="{Binding FontSize, Source={StaticResource DataGridFont}}" FontStretch="{Binding FontStretch, Source={StaticResource DataGridFont}}" FontStyle="{Binding FontStyle, Source={StaticResource DataGridFont}}" FontWeight="{Binding FontWeight, Source={StaticResource DataGridFont}}">
+            <DataGrid.Columns>
+                <DataGridTextColumn HeaderStyle="{DynamicResource DataGridTextColumnHeaderStyle1}"/>
+            </DataGrid.Columns>
+        </DataGrid>
     </DockPanel>
 </Window>
