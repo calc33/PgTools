@@ -7,7 +7,7 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2" x:Name="userControl" x:Class="Db2Source.SortFieldControl"
              mc:Ignorable="d" 
-             d:DesignHeight="20" d:DesignWidth="72">
+             d:DesignHeight="21.946" d:DesignWidth="72" Loaded="userControl_Loaded">
     <UserControl.Resources>
         <sys:String x:Key="AddFieldText">(追加)</sys:String>
         <sys:String x:Key="DeleteFieldText">(削除)</sys:String>
@@ -241,8 +241,15 @@
         </Style>
     </UserControl.Resources>
     <StackPanel Orientation="Horizontal" Margin="0,0,2,0">
-        <ComboBox x:Name="comboBoxField" DropDownClosed="comboBoxField_DropDownClosed" SelectionChanged="comboBoxField_SelectionChanged" DisplayMemberPath="Name" ItemsSource="{Binding Columns, ElementName=userControl}" />
-        <ComboBox x:Name="comboBoxOrder" SelectedIndex="0" FontSize="6" VerticalContentAlignment="Center" ToolTip="{Binding SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}" Style="{DynamicResource ComboBoxStyleOrder}" SelectedValuePath="Value">
+        <Grid x:Name="gridGripper" Grid.Column="1" VerticalAlignment="Top" Width="8" Height="12" Cursor="SizeWE"
+              Visibility="{Binding IsMovable,ElementName=userControl, Converter={StaticResource BooleanToVisibilityConverter}}"
+              Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+              MouseMove="gridGripper_MouseMove" MouseDown="gridGripper_MouseDown" MouseUp="gridGripper_MouseUp">
+            <Border BorderBrush="{DynamicResource ComboBox.Static.Border}" BorderThickness="1,1,0,1" VerticalAlignment="Stretch"/>
+            <Border BorderBrush="{DynamicResource ComboBox.Static.Border}" Margin="3,2,0,2" BorderThickness="1,0,1,0" Width="3" Height="8" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </Grid>
+        <ComboBox x:Name="comboBoxField" Grid.RowSpan="2" DropDownClosed="comboBoxField_DropDownClosed" SelectionChanged="comboBoxField_SelectionChanged" DisplayMemberPath="Name" ItemsSource="{Binding Columns, ElementName=userControl}" />
+        <ComboBox x:Name="comboBoxOrder" Grid.Column="1" Grid.Row="1" SelectedIndex="0" FontSize="6" VerticalContentAlignment="Center" ToolTip="{Binding SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}" Style="{DynamicResource ComboBoxStyleOrder}" SelectedValuePath="Value">
             <local:SortOrderItem Text="▲" Value="Asc" ToolTip="小さいものから並べる"/>
             <local:SortOrderItem Text="▼" Value="Desc" ToolTip="大きいものから並べる"/>
         </ComboBox>

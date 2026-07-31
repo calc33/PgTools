@@ -20,18 +20,19 @@ namespace Db2Source
     /// </summary>
     public partial class SortFieldListControl: UserControl
     {
-        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(SortFieldListControl), new PropertyMetadata(new PropertyChangedCallback(OnTargetPropertyChanged)));
+        public static readonly DependencyProperty TargetProperty = DependencyProperty.Register("Target", typeof(Selectable), typeof(SortFieldListControl), new PropertyMetadata((d, e) => ((SortFieldListControl)d).OnTargetPropertyChanged(e)));
+        public static readonly DependencyProperty MovingControlProperty = DependencyProperty.Register("MovingControl", typeof(SortFieldControl), typeof(SortFieldListControl), new PropertyMetadata((d, e) => ((SortFieldListControl)d).OnMovingControlPropertyChanged(e)));
 
         public Selectable Target
         {
-            get
-            {
-                return (Selectable)GetValue(TargetProperty);
-            }
-            set
-            {
-                SetValue(TargetProperty, value);
-            }
+            get => (Selectable)GetValue(TargetProperty);
+            set => SetValue(TargetProperty, value);
+        }
+
+        public SortFieldControl MovingControl
+        {
+            get => (SortFieldControl)GetValue(MovingControlProperty);
+            set => SetValue(MovingControlProperty, value);
         }
 
         private void InitColumns()
@@ -57,9 +58,8 @@ namespace Db2Source
             InitColumns();
         }
 
-        private static void OnTargetPropertyChanged(DependencyObject target, DependencyPropertyChangedEventArgs e)
+        private void OnMovingControlPropertyChanged(DependencyPropertyChangedEventArgs e)
         {
-            (target as SortFieldListControl)?.OnTargetPropertyChanged(e);
         }
 
         internal SortFieldControl AddNewFieldControl(Column column, SortOrder order)

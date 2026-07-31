@@ -22,6 +22,7 @@ namespace Db2Source
     {
         public static readonly DependencyProperty ColumnsProperty = DependencyProperty.Register("Columns", typeof(ColumnCollection), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnColumnsPropertyChanged)));
         public static readonly DependencyProperty SelectedFieldProperty = DependencyProperty.Register("SelectedField", typeof(Column), typeof(SortFieldControl), new PropertyMetadata(new PropertyChangedCallback(OnSelectedFieldPropertyChanged)));
+        public static readonly DependencyProperty IsMovableProperty = DependencyProperty.Register("IsMovable", typeof(bool), typeof(SortFieldControl), new PropertyMetadata(true));
 
         private Operation _addField;
         private Operation _deleteField;
@@ -83,6 +84,44 @@ namespace Db2Source
             set
             {
                 comboBoxOrder.SelectedValue = value;
+            }
+        }
+
+        public bool IsMovable
+        {
+            get { return (bool)GetValue(IsMovableProperty); }
+            set { SetValue(IsMovableProperty, value); }
+        }
+
+        public bool IsMoving
+        {
+            get
+            {
+                SortFieldListControl c = FindOwner();
+                if (c is null)
+                {
+                    throw new ApplicationException();
+                }
+                return c.MovingControl == this;
+            }
+            set
+            {
+                SortFieldListControl c = FindOwner();
+                if (c is null)
+                {
+                    throw new ApplicationException();
+                }
+                if (value)
+                {
+                    c.MovingControl = this;
+                }
+                else
+                {
+                    if (c.MovingControl == this)
+                    {
+                        c.MovingControl = null;
+                    }
+                }
             }
         }
 
@@ -183,6 +222,11 @@ namespace Db2Source
             InitializeComponent();
         }
 
+        private void userControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            SetBinding(IsMovableProperty, new Binding("SelectedField") { Source = this, Converter = new NotNullToBooleanConverter() });
+        }
+
         private void comboBoxField_DropDownClosed(object sender, EventArgs e)
         {
             UpdateComboBoxFieldSelection();
@@ -201,6 +245,84 @@ namespace Db2Source
             }
             UpdateComboBoxFieldSelection();
         }
+
+        private void gridGripper_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.MouseDevice.Captured is null)
+            {
+                IsMoving = true;
+                if (!e.MouseDevice.Capture(gridGripper))
+                {
+                    IsMoving = false;
+                }
+            }
+        }
+
+        private void gridGripper_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (e.MouseDevice.Captured == gridGripper)
+            {
+                e.MouseDevice.Capture(null);
+                IsMoving = false;
+            }
+        }
+
+        private void gridGripper_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.MouseDevice.Captured is null)
+            {
+                return;
+            }
+            SortFieldListControl parent = FindOwner();
+            if (parent is null)
+            {
+                e.MouseDevice.Capture(null);
+                return;
+            }
+            SortFieldControl target = parent.MovingControl;
+            if (target is null)
+            {
+                e.MouseDevice.Capture(null);
+                return;
+            }
+            Point pt = e.MouseDevice.GetPosition(parent);
+            SortFieldControl moveTo = App.FindVisualParent<SortFieldControl>(parent.InputHitTest(pt) as DependencyObject);
+            if (0 < pt.X && pt.X < parent.ActualWidth && (moveTo is null || !moveTo.IsMovable || moveTo == target))
+            {
+                return;
+            }
+            UIElementCollection list = parent.stackPanelMain.Children;
+            int i0 = list.IndexOf(target);
+            int i1;
+            if (moveTo != null)
+            {
+                i1 = list.IndexOf(moveTo);
+
+            }
+            else if (pt.X <= 8)
+            {
+                i1 = -1;
+            }
+            else
+            {
+                i1 = list.Count;
+            }
+            if (i1 < i0 - 1)
+            {
+                for (i1++; i1 < i0 && !(list[i1] as SortFieldControl).IsMovable; i1++) ;
+            }
+            else if (i0 + 1 < i1)
+            {
+                for (i1--; i0 < i1 && !(list[i1] as SortFieldControl).IsMovable; i1--) ;
+            }
+            i1 = Math.Min(Math.Max(0, i1), list.Count - 1);
+            if (i0 != i1)
+            {
+                list.Remove(target);
+                list.Insert(i1, target);
+            }
+        }
+
         public class Operation
         {
             public string Name { get; set; }
