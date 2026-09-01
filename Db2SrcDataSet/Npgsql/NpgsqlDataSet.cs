@@ -207,6 +207,7 @@ namespace Db2Source
             { typeof(float), NpgsqlDbType.Real },
             { typeof(double), NpgsqlDbType.Double },
             { typeof(decimal), NpgsqlDbType.Numeric },
+            { typeof(Guid), NpgsqlDbType.Uuid },
         };
 
         public static readonly Dictionary<NpgsqlDbType, Type> AcceptableType = new Dictionary<NpgsqlDbType, Type>()
@@ -218,6 +219,13 @@ namespace Db2Source
             { NpgsqlDbType.Real, typeof(float) },
             { NpgsqlDbType.Double, typeof(double) },
             { NpgsqlDbType.Numeric, typeof(decimal) },
+            { NpgsqlDbType.Uuid, typeof(Guid) },
+            { NpgsqlDbType.Timestamp, typeof(DateTime) },
+            { NpgsqlDbType.TimestampTz, typeof(DateTime) },
+            { NpgsqlDbType.Date, typeof(DateTime) },
+            { NpgsqlDbType.Time, typeof(TimeSpan) },
+            { NpgsqlDbType.TimeTz, typeof(DateTimeOffset) },
+            { NpgsqlDbType.Interval, typeof(TimeSpan) },
             //{ NpgsqlDbType.Boolean | NpgsqlDbType.Array, typeof(bool[]) },
             //{ NpgsqlDbType.Smallint | NpgsqlDbType.Array, typeof(short[]) },
             //{ NpgsqlDbType.Integer | NpgsqlDbType.Array, typeof(int[]) },
