@@ -388,6 +388,7 @@ namespace Db2Source
         private static string _exportDir = null;
         private static readonly List<string> _schemas = new List<string>();
         private static readonly List<string> _excludeSchemas = new List<string>();
+        private static bool _ignoreSearchPath = false;
         private static Encoding _encoding = Encoding.UTF8;
         private static NewLineRule _newLine = NewLineRule.None;
         private static readonly Dictionary<string, NewLineRule> ArgToNewLineRule = new Dictionary<string, NewLineRule>()
@@ -473,6 +474,10 @@ namespace Db2Source
                             {
                                 _encoding = Encoding.GetEncoding(v);
                             }
+                            break;
+                        case "-I":
+                        case "--ignore-searchpath":
+                            _ignoreSearchPath = true;
                             break;
                         case "--newline":
                             if (!ArgToNewLineRule.TryGetValue(v.ToLower(), out _newLine))
@@ -612,6 +617,10 @@ namespace Db2Source
             {
                 DataSet = new NpgsqlDataSet(info) { NewLineRule = _newLine }
             };
+            if (_ignoreSearchPath)
+            {
+                obj.DataSet.ExportSchemaOption = SourceSchemaOption.Every;
+            }
             if (_exportDir == null)
             {
                 _exportDir = Environment.CurrentDirectory;
